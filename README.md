@@ -37,55 +37,33 @@ findings — every decision stays with the researcher:
 
 ## The team
 
-**Four people, five jobs.** The capstone guide is explicit about this:
-
-> *"A team of four puts two jobs on one name."*
-
-**Owning a job means you answer first — not that you do it alone.**
-Jobs can overlap; ownership cannot.
+**Four people, four jobs.** Owning a job means **you answer first** — not that
+you do it alone. Jobs can overlap; ownership cannot.
 
 | Job | Owner | Owns | GitHub |
 |---|---|---|---|
 | **01 · Front end** | **Retag** | Four screens that link, forms that answer, the phone-portrait pass | *to fill in* |
 | **02 · Back end and data** | **Hind** | The tables, accounts, records, the run log | *to fill in* |
-| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit — **[see the full role →](03-security/README.md)** | `t021600-dot` |
+| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit — **[full role →](03-security/README.md)** | `t021600-dot` |
 | **04 · Automation and agents** | **Dana** | The workflow, the six agents, guardrails, the tools | *to fill in* |
-| **05 · Ship and present** | ⚠️ **unassigned** | The live address, this page, testing on another machine, demo day | |
 
 > **Everyone: add your GitHub username to this table in your first PR.**
-> *(Check the spelling of your own name too — fix it if I got it wrong.)*
+> *(Fix the spelling of your own name too, if it is wrong.)*
 
-### ⚠️ Job 05 still needs a name
+### Shipping and the demo are shared
 
-Every one of the 28 pass/fail items is graded whether or not someone owns it,
-and **05 · Ship and present has six of them** — the public URL, the repo front
-page, testing on a machine that did not build it, two rehearsals, and everyone
-explaining their own part. Leave it unowned and they simply do not get done.
+There is no separate ship-and-present job — the four of us split it:
 
-**The recommendation: Hind takes 05 alongside 02.**
+| What | Who |
+|---|---|
+| GitHub Pages on, the live URL in this README | **Hind** |
+| The live site works on a laptop that did not build it | **Retag** |
+| Two full rehearsals, Wednesday | **all four** |
+| Each of us explains our own part, no slides, no reading | **all four** |
+| The backup screen recording | **Dana** |
 
-The two jobs are complementary rather than competing:
-
-| | Sun | Mon | Tue | Wed |
-|---|---|---|---|---|
-| **02 · Back end** | heavy | heavy | lighter | done |
-| **05 · Ship** | light | light | medium | **the whole night** |
-
-02 is front-loaded, 05 is back-loaded — so one person can carry both without a
-clash.
-
-**Not Mariam (03).** Security is the blocker on the first build night — nobody
-can safely point a page at the database until row level security is on — and it
-already carries six pass/fail items of its own, the largest share of any job.
-
-**Not Retag (01).** Front end is heavy on all three build nights, and 05 owns
-Wednesday entirely.
-
-**Dana (04) is the alternative** if Hind is overloaded — 04 is light on Sunday,
-though it peaks on Tuesday just as 05 starts to climb.
-
-**Decide tonight and write the name in the table.** *"We all did everything"* is
-the sentence that loses marks.
+**What is on `main` is what is live.** Push before the demo and open the link
+in a private window to check.
 
 ---
 
@@ -111,7 +89,6 @@ you need something in someone else's.
 02-back-end/    Hind     SQL, table map, seed data
 03-security/    Mariam   RLS, policies, validation, tests, threat model
 04-agents/      Dana     n8n workflow export, guardrails
-05-ship/        ???      slides, demo script, backup recording
 ```
 
 **These stay at the repo root — GitHub Pages serves the live site from here:**
@@ -161,7 +138,7 @@ Small PRs merged the same evening beat one giant one on Wednesday.
 | `data/` | 02 · Back end and data |
 | `security/` | 03 · Security |
 | `agent/` | 04 · Automation and agents |
-| `ship/` | 05 · Ship and present |
+| `ship/` | shipping and demo work — anyone |
 
 **What is on `main` is what is live.** Never push half-finished work to it.
 
