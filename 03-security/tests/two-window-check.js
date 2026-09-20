@@ -65,8 +65,18 @@ for (const t of ['missions', 'mission_runs', 'agent_steps', 'results', 'reports'
 
 // ---- BEAT 2 · A's mission, BY ID, in B's hand ------------------------
 const one = await sb.from('missions').select('id,title,objective').eq('id', A_MISSION);
-console.log('%cA\'s mission by id | rows: ' + (one.data?.length ?? 0),
-            'font-size:16px;font-weight:bold;color:#0a0');
+// THE BUG THIS AVOIDS, on the one beat the whole role is graded on:
+// if the query ERRORS - wrong table name, dead session, a typo - then
+// one.data is null, `?? 0` turns that into 0, and the line prints a
+// confident green "rows: 0" that looks exactly like a perfect pass.
+// A check that errors is NOT a pass. So read the error FIRST.
+if (one.error) {
+  console.log('%cNOT A PASS - the query errored: ' + one.error.message,
+              'font-size:16px;font-weight:bold;color:#c00');
+  throw new Error('Beat 2 errored. Read the message above. Do not tick this box.');
+}
+console.log('%cA's mission by id | rows: ' + one.data.length,
+            'font-size:16px;font-weight:bold;color:' + (one.data.length === 0 ? '#0a0' : '#c00'));
 
 // ---- BEAT 3 · the contrast: B's OWN missions still work --------------
 // Proves the database is filtering, not simply broken.

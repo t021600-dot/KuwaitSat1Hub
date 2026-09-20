@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automation section — standalone check (04 · Agents)</title>
+<link rel="stylesheet" href="../../01-front-end/app/css/styles.css">
+<style>
+  .wrap { max-width: 780px; margin: 0 auto; padding: 24px 16px; }
+  .note { border-left: 3px solid #F5A524; padding-left: 12px; }
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <h1>Automation section — standalone check</h1>
+  <p class="small muted">
+    Owner: 04 · Automation and agents. This page exists so the panel can be opened,
+    clicked and read <em>without</em> touching <code>mission.html</code>, which belongs to
+    01 · Front end. It is not the demo screen. The demo screen is
+    <code>mission.html</code> with the three lines in
+    <code>../docs/AU-M3-PROCESS.md</code> section 5.
+  </p>
+
+  <p class="small note">
+    This page runs the local replay source, so it needs no Supabase and no n8n. It
+    executes <code>agent/run.js</code> — the same file n8n runs — so the order of steps
+    and the decision are real. The zone scores and cooling projections are sample
+    values, not KuwaitSat-1 measurements.
+  </p>
+
+  <div class="btn-row">
+    <button class="btn btn-sm btn-ghost" id="case-refuse" type="button">Case A · one zone refused</button>
+    <button class="btn btn-sm btn-ghost" id="case-pass" type="button">Case B · nothing refused</button>
+    <button class="btn btn-sm btn-ghost" id="case-stall" type="button">Case C · every zone refused</button>
+  </div>
+
+  <div id="automation-slot" style="margin-top:18px"></div>
+</main>
+
+<script src="../agent/decision.js"></script>
+<script src="../agent/steps.js"></script>
+<script src="../agent/run.js"></script>
+<script src="agent-panel.js"></script>
+<script>
+(function () {
+  function zones(topCooling, cold) {
+    return [
+      { id: 'z_a', name: 'Zone A — North corridor', score: 88, projectedCoolingC: topCooling,
+        note: 'Low existing canopy, road access on two sides.',
+        polygon: [[47.60, 29.40], [47.80, 29.40], [47.80, 29.60], [47.60, 29.60], [47.60, 29.40]] },
+      { id: 'z_b', name: 'Zone B — Central basin', score: 81, projectedCoolingC: cold ? 0.5 : 1.9,
+        note: 'Shallow depression retains runoff.' },
+      { id: 'z_c', name: 'Zone C — South flats', score: 67, projectedCoolingC: cold ? 0.4 : 1.4,
+        note: 'Workable, higher soil salinity.' },
+      { id: 'z_d', name: 'Zone D — East margin', score: 59, projectedCoolingC: cold ? 0.2 : 0.9,
+        note: 'Wind exposure needs a shelter belt.' }
+    ];
+  }
+
+  var panel = null;
+
+  function load(z) {
+    if (panel) { panel.stop(); }
+    panel = AgentPanel.mount({
+      el: document.getElementById('automation-slot'),
+      missionId: 'demo-' + Date.now(),
+      source: AgentPanel.mockSource(z,
+        'Identify areas in Kuwait where increasing vegetation could improve environmental conditions.')
+    });
+  }
+
+  document.getElementById('case-refuse').addEventListener('click', function () { load(zones(0.6, false)); });
+  document.getElementById('case-pass').addEventListener('click', function () { load(zones(1.8, false)); });
+  document.getElementById('case-stall').addEventListener('click', function () { load(zones(0.6, true)); });
+
+  load(zones(0.6, false));
+})();
+</script>
+
+</body>
+</html>
