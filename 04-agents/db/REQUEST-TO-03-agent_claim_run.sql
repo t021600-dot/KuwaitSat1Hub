@@ -1,6 +1,19 @@
 -- =====================================================================
+-- >>> SUPERSEDED. DO NOT RUN THIS FILE. <<<
+-- Run 04-agents/db/08_agent_claim.sql instead. It is this ask, answered,
+-- with two bugs fixed that this draft contained:
+--   1. the sweeper below keys off started_at, which is set when a run is
+--      QUEUED, not when it is claimed — so it would mark a run stalled one
+--      second after the worker picked it up, if the run had waited in the
+--      queue (which is exactly the au-m1 "close n8n, press the button"
+--      test). 08 adds mission_runs.claimed_at and keys off last activity.
+--   2. the function is renamed claim_next_run(); the old name still
+--      answers as a thin shim so worker/edge/index.ts keeps working.
+-- This file is kept only as the written record of the ask.
+-- =====================================================================
+--
 -- 04 · Automation  ->  03 · Security     ONE ASK, SUNDAY NIGHT
--- Requested by: Dana        Reviewed by: Mariam (03)        Status: OPEN
+-- Requested by: Dana        Reviewed by: Mariam (03)        Status: ANSWERED
 --
 -- THE GAP, in one sentence:
 --   03/db/03_grants.sql revokes EVERY table privilege from service_role,
