@@ -37,8 +37,12 @@ findings — every decision stays with the researcher:
 
 ## The team
 
-Five people, five jobs. **Owning a job means you answer first — not that you do
-it alone.** Jobs can overlap; ownership cannot.
+**Four people, five jobs.** The capstone guide is explicit about this:
+
+> *"A team of four puts two jobs on one name."*
+
+So one person carries a second job. **Owning a job means you answer first — not
+that you do it alone.** Jobs can overlap; ownership cannot.
 
 | Job | Owns | Name | GitHub |
 |---|---|---|---|
@@ -46,9 +50,21 @@ it alone.** Jobs can overlap; ownership cannot.
 | **02 · Back end and data** | The tables, accounts, records, the run log | *to fill in* | *to fill in* |
 | **03 · Security** | Row level security, secrets, validation, the AI audit | *to fill in* | `t021600-dot` |
 | **04 · Automation and agents** | The workflow, guardrails, the tools | *to fill in* | *to fill in* |
-| **05 · Ship and present** | The live address, this page, demo day | *to fill in* | *to fill in* |
+| **05 · Ship and present** | The live address, this page, demo day | **doubled with →** *to fill in* | |
 
-**Everyone: add your name and GitHub username to this table in your first PR.**
+### Who should take the second job
+
+**Not 03 · Security.** It is a blocker on the first build night — nobody can
+safely point a page at the database until row level security is on — and it
+carries six of the twenty-eight pass/fail items, the largest share of any job.
+
+**05 · Ship is the one to double up**, for the reason the guide gives: it has
+little to ship on the first two nights, then becomes the whole of Wednesday and
+Thursday. Pair it with **01 · Front end** or **02 · Back end** — whoever is
+lighter on Tuesday.
+
+**Write the two names in the table above in your first PR.** "We all did
+everything" is the sentence that loses marks.
 
 ---
 

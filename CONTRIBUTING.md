@@ -1,8 +1,8 @@
-# How five people work in one repo
+# How our team works in one repo
 
 *Idea-independent: this works for any capstone team.*
 
-One repo, five people, four evenings. These rules exist so nobody overwrites anybody else's
+One repo, four people, four evenings. These rules exist so nobody overwrites anybody else's
 work at 9 PM on Tuesday.
 
 ## 1. Get write access (once)
@@ -41,7 +41,7 @@ work straight to `main`.
 
 ## 4. Who answers first
 
-Each of the five jobs has one owner (see the table on your repo front page (`README.md`)). Owning a job does
+Each of the five jobs has one owner (we are four, so one person holds two) (see the table on your repo front page (`README.md`)). Owning a job does
 not mean doing it alone. It means that when somebody asks a question about that area, you answer
 first. Jobs can overlap. Ownership cannot.
 
@@ -56,7 +56,7 @@ first. Jobs can overlap. Ownership cannot.
 ## 5. The freeze rule
 
 The feature list in your frozen scope file (for example `docs/SCOPE.md`) is **frozen**. A new feature only goes in if
-an old one comes out, and you name the one that comes out, out loud, in front of the other four.
+an old one comes out, and you name the one that comes out, out loud, in front of the other three.
 Then edit that scope file in the same pull request.
 
 ## 6. Never commit a secret
