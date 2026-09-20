@@ -68,72 +68,6 @@
     return false;
   }
 
-  /* ------------------------------------------------------------------
-     describeRefusal · WHAT THE APP SAYS IT REFUSED TO DO.
-
-     capstone COULD 14: "the guardrail holds AND THE APP SAYS WHAT IT
-     REFUSED TO DO." Raising missions.injection_flag satisfies the first
-     half. On its own it fails the second: a chip reading "Objective
-     flagged for review" tells a judge something was caught, never what.
-
-     So the screening also returns a sentence, and the sentence quotes
-     the offending words back. It is written for a researcher reading a
-     step row, not for a log file.
-
-       reason  -> agent_log_step(..., p_refused_reason => reason)
-                  The step is still ALLOWED: the satellite step really
-                  did run. What was refused is the embedded instruction,
-                  not the step. agent_log_step stores refused_reason
-                  independently of p_allowed (05_views_rpc.sql, the
-                  insert takes both columns), and my_agent_steps exposes
-                  it, so this reaches the screen in about 2 seconds.
-
-       notice  -> the FIRST LINE of the draft narrative, so the sentence
-                  is also in the text a human approves and in the report
-                  that comes out of it.
-
-     Returns null for a clean objective, so every call site reads
-     `refusal ? refusal.reason : null` and a normal run is untouched.
-     ------------------------------------------------------------------ */
-
-  /* How much of the objective to quote back. Long enough to be
-     recognisable in the room, short enough that it cannot push a wall of
-     text into a step row. */
-  var QUOTE_CHARS = 90;
-
-  function quoteFrom(objective, marker) {
-    var raw = String(objective || '');
-    var at = raw.toLowerCase().indexOf(marker);
-    if (at === -1) { return marker; }
-    var slice = raw.slice(at, at + QUOTE_CHARS).replace(/\s+/g, ' ').trim();
-    return slice.length < raw.length - at ? slice + '…' : slice;
-  }
-
-  function describeRefusal(objective) {
-    var t = String(objective || '').toLowerCase();
-    var marker = null;
-    for (var i = 0; i < INSTRUCTION_MARKERS.length; i++) {
-      if (t.indexOf(INSTRUCTION_MARKERS[i]) !== -1) {
-        marker = INSTRUCTION_MARKERS[i];
-        break;
-      }
-    }
-    if (!marker) { return null; }
-
-    var quote = quoteFrom(objective, marker);
-    return {
-      marker: marker,
-      quote: quote,
-      reason: 'Refused an instruction found inside the research objective: "' +
-              quote + '". The objective is data, not a command, so it was not ' +
-              'carried out. The mission was run as written and the objective ' +
-              'is flagged for review.',
-      notice: 'REFUSED: the objective contained an instruction to the agent - "' +
-              quote + '". It was not carried out. The mission below answers ' +
-              'the research question as written.'
-    };
-  }
-
   function logStep(runId, key, args, allowed, refusedReason, injection) {
     var def = S.byKey(key);
     return {
@@ -304,7 +238,6 @@
   return {
     STEP_BUDGET: STEP_BUDGET,
     looksLikeInstruction: looksLikeInstruction,
-    describeRefusal: describeRefusal,
     planRun: planRun
   };
 });
