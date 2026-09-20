@@ -1,0 +1,100 @@
+KUWAITSAT GREEN INTELLIGENCE
+CREDITS AND SOURCES
+================================================================
+
+Every factual claim on the site is numbered and traceable to one
+of the entries below. The numbers match the [n] chips in the page
+and in the generated study report.
+
+[1] KuwaitSat-1 project — official site
+    https://kuwaitsat.space/
+    Mission statement, 2U platform, multi-colour camera, team roster, partners.
+
+[2] Kuwait University — first Kuwaiti satellite launch announcement
+    https://www.ku.edu.kw/media-center/news/announcements/kuw277609
+    Launch of KuwaitSat-1, 3 January 2023.
+
+[3] Kuwait University — KuwaitSat-1 mosaic announcement
+    https://www.ku.edu.kw/media-center/news/announcements/kuw290561
+    Mosaic of eastern Kuwait; 39 m resolution; Warba, Bubiyan, Kuwait City, Failaka, Burgan.
+
+[4] AlJassar et al., “The First Kuwait National Satellite Project — KuwaitSat-1”, 37th Small Satellite Conference (2023)
+    https://digitalcommons.usu.edu/smallsat/2023/all2023/206/
+    Gecko RGB imager, 39 m GSD, 80 km swath, ground station, first image series 5 April 2023.
+
+[5] Gunter's Space Page — KuwaitSat 1
+    https://space.skyrocket.de/doc_sdat/kuwaitsat-1.htm
+    2U CubeSat, 2 kg, Falcon 9 Block 5, COSPAR 2023-001CY, Cape Canaveral.
+
+[6] Spaceflight Now — Falcon 9 Transporter-6 launch coverage
+    https://spaceflightnow.com/2023/01/03/falcon-9-transporter-6-live-coverage/
+    Transporter-6 rideshare, 3 January 2023, sun-synchronous deployment orbit.
+
+[7] Kuwait Times / KUNA — KuwaitSat-1: nucleus of Kuwait's space ambition
+    https://kuwaittimes.com/kuwaitsat-1-nucleus-of-kuwaits-space-ambition/
+    Project led by Dr Hala Al-Jassar; student cohort and 2019 project start, as reported.
+
+[8] The National — Striking images of Kuwait captured by country's own satellite
+    https://www.thenationalnews.com/gulf-news/2023/04/09/striking-images-of-kuwait-captured-by-countrys-own-satellite/
+    Press publication of the April 2023 KuwaitSat-1 imagery.
+
+[9] Ministry of Foreign Affairs, State of Kuwait — Kuwait Vision 2035 “New Kuwait”
+    https://www.mofa.gov.kw/en/pages/kuwait-vision-2035
+    Official statement of the vision and its seven pillars, one of which is “Sustainable living environment”.
+
+[10] World Meteorological Organization — verification of the Mitribah, Kuwait temperature extreme
+    https://wmo.int/media/news/wmo-verifies-3rd-and-4th-hottest-temperature-recorded-earth
+    53.9 °C (±0.1 °C) at Mitribah on 21 July 2016 — the highest temperature recorded for Asia. Verified and announced 18 June 2019.
+
+[11] World Bank Open Data — Kuwait country indicators
+    https://data.worldbank.org/country/kuwait
+    Land area 17,820 km² (2023); forest area 0.35% of land area (2023); average precipitation 121 mm/year (2022); urban population 100% (2025).
+
+[12] Kuwait University — Dr Hala Al-Jassar represents the Kuwait National Space Research Center at the United Nations
+    https://www.ku.edu.kw/media-center/news/alkwyt-twkd-dwrha-fy-mjal-alfda-walastfadt-mn-khdmath-d-halt-aljsar-mmthlt-n-mrkz
+    Kuwait University, 10 February 2025: names Dr Hala Al-Jassar as Acting Head of the Department of Physics, College of Science, and as representative of the Kuwait National Space Research Center (Kuwait-NSRC).
+
+[13] Almutawa AA (2022). Native and xeric plant recommendations for urban landscapes in Kuwait. Technology in Horticulture 2:7
+    https://doi.org/10.48130/TIH-2022-0007
+    Peer-reviewed species list for Kuwaiti urban landscapes: 12 native and 7 non-native xeric species with stated height, drought and salinity tolerance.
+
+[14] Alahmad B, Tomasso LP, Al-Hemoud A, James P, Koutrakis P (2020). Spatial Distribution of Land Surface Temperatures in Kuwait: Urban Heat and Cool Islands. IJERPH 17(9):2993
+    https://doi.org/10.3390/ijerph17092993
+    Kuwait-specific MODIS analysis, 2001–2017: daytime urban COOL island −1.1 °C and night-time urban HEAT island +3.6 °C relative to rural/barren land.
+
+[15] Yin Y et al. (2024). Cooling Benefits of Urban Tree Canopy: A Systematic Review. Sustainability 16(12):4955
+    https://doi.org/10.3390/su16124955
+    Systematic review: land surface temperature falls 0.6–3.7 °C when vegetation proportion rises from 20% to 50% at urban scale; relationship is non-linear.
+
+[16] Li H et al. (2024). Cooling efficacy of trees across cities is determined by background climate, urban morphology, and tree trait. Communications Earth & Environment 5:754
+    https://doi.org/10.1038/s43247-024-01908-4
+    182 studies across 110 cities: in arid climates maximum pedestrian-level air cooling reaches −9.3 °C, with minor night-time warming up to +0.4 °C.
+
+----------------------------------------------------------------
+IMAGERY
+
+  KuwaitSat-1 satellite photographs are the property of the KuwaitSat-1
+  project and Kuwait University and their press publishers. They are NOT
+  copied into this prototype. Each frame in "Captured From Space" records
+  the real acquisition and links to the publisher.
+
+  The team photograph was supplied by the project owner for this academic
+  presentation. Its original publisher has not been independently verified,
+  and the site says so on the image itself.
+
+TYPEFACES
+
+  Archivo, IBM Plex Sans and IBM Plex Mono, served by Google Fonts.
+
+SOUND
+
+  All audio is synthesised in the browser with the Web Audio API.
+  No recording is used, downloaded, or implied to be an official launch
+  recording from any agency or launch provider.
+
+NOT CLAIMED
+
+  This prototype is not affiliated with Kuwait University, KFAS, CITRA
+  or the KuwaitSat-1 project. It carries no official endorsement and no
+  planning authority. It does not display live telemetry. Nothing in it
+  should be acted on without human review and competent-authority approval.

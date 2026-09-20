@@ -813,7 +813,6 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
     transition-duration:.01ms !important}
 }
 </style>
-<link rel="stylesheet" href="css/ksat-integration.css">
 </head>
 <body>
 
@@ -5987,12 +5986,5 @@ renderAll = function(){
 addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcDrawProposal,240); });
 </script>
 
-<!-- ===== integration layer: sign-in, Supabase persistence, audit trail.
-     Added by 03 Security + 04 Agents. Purely additive - nothing above
-     this comment was changed or removed. A pristine copy of this page
-     is kept at site-original/index.html. ===== -->
-<script src="vendor/supabase.js"></script>
-<script src="js/config.js"></script>
-<script src="js/ksat-integration.js"></script>
 </body>
 </html>

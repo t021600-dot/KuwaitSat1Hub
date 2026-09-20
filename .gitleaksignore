@@ -9,7 +9,7 @@
 #    minified bundle. Verified by eye: it is library code, not a credential.
 #    If this file is ever re-vendored at a new version, DELETE this line,
 #    re-scan, and re-verify before adding it back.
-01-front-end/app/vendor/supabase.js:generic-api-key:1
+vendor/supabase.js:generic-api-key:1
 
 # 2) The Supabase PUBLISHABLE key in config.js, on both copies. This one is
 #    meant to be in our JavaScript - the browser has to receive it, so hiding
@@ -24,4 +24,4 @@
 #    the history. gitleaks stops repeating a finding we have already judged;
 #    the hook keeps guarding the thing that would actually hurt.
 js/config.js:generic-api-key:16
-01-front-end/app/js/config.js:generic-api-key:16
+app-retag/js/config.js:generic-api-key:16
