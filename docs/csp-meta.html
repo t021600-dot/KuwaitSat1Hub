@@ -1,0 +1,53 @@
+<!-- =====================================================================
+     KuwaitSat-1 Mission Hub - Content Security Policy
+     Owner: 03 Security. ONE SOURCE OF TRUTH.
+
+     Paste this IDENTICALLY into the <head> of every page:
+       index.html, signin.html, dashboard.html, mission.html, report.html
+
+     Replace PROJECTREF with our Supabase project ref.
+
+     We are on a static host, so we cannot send HTTP response headers.
+     A <meta> tag is the only wall available.
+     ===================================================================== -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self';
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' data: https://PROJECTREF.supabase.co
+                       https://tile.openstreetmap.org
+                       https://*.tile.openstreetmap.org;
+               connect-src 'self' https://PROJECTREF.supabase.co;
+               font-src 'self';
+               form-action 'self';
+               base-uri 'none';
+               object-src 'none'">
+<meta name="referrer" content="no-referrer">
+
+<!-- NOTES FOR 01 - FRONT END, read before you paste:
+
+  script-src 'self' means NO onclick= attributes anywhere. Every handler
+  is addEventListener in a .js file. Retrofitting this on Wednesday is an
+  evening; doing it from the start is free.
+
+  img-src lists BOTH tile.openstreetmap.org AND *.tile.openstreetmap.org.
+  CSP host sources do NOT match subdomains without an explicit wildcard,
+  and Leaflet's tile template is https://{s}.tile.openstreetmap.org/...
+  where {s} becomes a, b, c. List only the bare host and THE MAP IS BLANK,
+  with a console violation nobody reads until Thursday.
+
+  connect-src must include the Supabase origin or every read fails
+  silently. There is deliberately no wss:// because we poll, not Realtime.
+
+  script-src 'self' also means NO CDN. Download supabase-js and the map
+  library into /vendor/ and commit them.
+
+  DO NOT add upgrade-insecure-requests. It rewrites http:// to https://
+  before the request leaves, so the console goes clean while any host
+  without HTTPS just fails as a missing file. It turns a loud failure
+  into a silent one on the night you need the loud one.
+
+  frame-ancestors is IGNORED in a meta tag - it only works as a response
+  header, which our host cannot send. Do not add it, and do not claim
+  clickjacking protection we do not have.
+-->

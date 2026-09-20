@@ -1,0 +1,106 @@
+#!/bin/sh
+# =====================================================================
+# KuwaitSat-1 Mission Hub - pre-commit secret guard
+# Owner: 03 Security.  Install (each person, once):
+#     git config core.hooksPath tools/hooks
+# Verify:  git config core.hooksPath     -> must print  tools/hooks
+#
+# DESIGN NOTE, learned on the very first commit:
+# The first version matched bare fragments like `eyJ` and `sk-ant-`.
+# That blocked our own SECURITY DOCUMENTATION, which has to describe
+# what a secret looks like in order to tell people to search for it.
+# A hook that blocks legitimate work teaches people to run --no-verify,
+# which becomes a habit, which is how a real key eventually lands.
+#
+# So the rules below match REALISTIC SECRET SHAPES - full length, no
+# whitespace - not the prose that describes them. gitleaks (rule 4) is
+# the authoritative scanner; rules 1-3 are a fast backstop.
+# =====================================================================
+
+fail=0
+
+# Never scan this hook against itself, and skip lockfiles.
+staged=$(git diff --cached --name-only --diff-filter=ACM \
+         | grep -v '^tools/hooks/' \
+         | grep -v 'package-lock\.json$')
+[ -z "$staged" ] && exit 0
+
+added() { git diff --cached -U0 -- $staged | grep '^+' | grep -v '^+++'; }
+
+# ---------------------------------------------------------------------
+# 1 - a REAL JWT: two base64 segments joined directly by a dot, no
+# whitespace. A Supabase anon or service-role key looks like this.
+# Prose that mentions "eyJ" or writes "eyJhbG..." as an example does not
+# match, because it lacks the second long segment joined by a dot.
+#
+# This applies to js/config.js too - do NOT add an exception for it.
+# A legacy anon key and a service-role key both start eyJhbG and are
+# indistinguishable at a glance, and "the anon key wasn't working so I
+# tried the other one" is the commonest Supabase beginner mistake.
+# ---------------------------------------------------------------------
+if added | grep -qE 'eyJ[A-Za-z0-9_-]{15,}\.eyJ[A-Za-z0-9_-]{25,}'; then
+  echo "BLOCKED: a real JWT is in this commit."
+  echo "  If it is the publishable key, switch to the sb_publishable_ format."
+  echo "  If it is the SECRET key: do not commit, do not delete-and-retry."
+  echo "  ROTATE IT FIRST, then tell 03 Security."
+  fail=1
+fi
+
+# ---------------------------------------------------------------------
+# 2 - credential literals at their REAL lengths.
+#   Anthropic  sk-ant-...       long
+#   Supabase   sb_secret_...    long
+#   Google     AIza + 35 chars  exact
+#   Mapbox     pk.eyJ...        a real JWT tail
+#
+# `service_role` as a bare word is deliberately absent: inside a real
+# JWT it lives in the base64 payload, not as plain text, so rule 1 is
+# what catches it - and the word appears legitimately in our SQL.
+# ---------------------------------------------------------------------
+if added | grep -qE '(sk-ant-[A-Za-z0-9_-]{25,}|sb_secret_[A-Za-z0-9_-]{20,}|AIza[0-9A-Za-z_-]{35}|pk\.eyJ[A-Za-z0-9_-]{25,})'; then
+  echo "BLOCKED: a credential-shaped literal is in this commit."
+  echo "  (Anthropic key, Supabase secret key, Google or Mapbox token.)"
+  echo "  These live in the n8n credential store. Never in the repo."
+  fail=1
+fi
+
+# ---------------------------------------------------------------------
+# 3 - .env files, but NOT .env.example.
+# The naive regex blocks .env.example, which is the very first file you
+# are told to commit. That is how a hook loses the team's trust.
+# ---------------------------------------------------------------------
+staged_env=$(git diff --cached --name-only | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$')
+if [ -n "$staged_env" ]; then
+  echo "BLOCKED: an .env file is staged:"
+  echo "$staged_env" | sed 's/^/    /'
+  echo "  Add it to .gitignore. Commit .env.example (names only) instead."
+  fail=1
+fi
+
+# ---------------------------------------------------------------------
+# 4 - gitleaks: the authoritative scanner. ~170 credential formats, and
+# it tells a real secret apart from documentation about secrets.
+# --redact so a found value is never printed to the terminal.
+# Install: https://github.com/gitleaks/gitleaks/releases
+# ---------------------------------------------------------------------
+if command -v gitleaks >/dev/null 2>&1; then
+  if ! gitleaks protect --staged --redact --no-banner >/dev/null 2>&1; then
+    echo "BLOCKED by gitleaks. Run for detail:"
+    echo "    gitleaks protect --staged --redact --verbose"
+    fail=1
+  fi
+else
+  echo "note: gitleaks is not installed - running the basic rules only."
+  echo "      https://github.com/gitleaks/gitleaks/releases"
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "Commit refused. Do NOT use --no-verify."
+  echo "If this is a FALSE POSITIVE - documentation describing a key format"
+  echo "rather than a real key - tell 03 Security and we fix the pattern."
+  echo "If a secret has already been pushed: ROTATE IT FIRST, then tell 03."
+  exit 1
+fi
+
+exit 0
