@@ -48,7 +48,7 @@ Jobs can overlap; ownership cannot.
 |---|---|---|---|
 | **01 · Front end** | **Retag** | Four screens that link, forms that answer, the phone-portrait pass | *to fill in* |
 | **02 · Back end and data** | **Hind** | The tables, accounts, records, the run log | *to fill in* |
-| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit — **[see the full role →](docs/03-SECURITY-ROLE.md)** | `t021600-dot` |
+| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit — **[see the full role →](03-security/README.md)** | `t021600-dot` |
 | **04 · Automation and agents** | **Dana** | The workflow, the six agents, guardrails, the tools | *to fill in* |
 | **05 · Ship and present** | ⚠️ **unassigned** | The live address, this page, testing on another machine, demo day | |
 
@@ -103,25 +103,32 @@ and they are safe **only because row level security is switched on**.
 
 ## Where your work goes
 
-```
-index.html        landing page            01 · Front end
-signin.html       sign in                 01
-dashboard.html    the researcher's missions   01
-mission.html      one mission + the map   01
-css/              styles                  01
-js/               client code             01
-js/config.js      project URL + publishable key (public by design)
+**One folder per member.** Put your own work in your own folder; ask in a PR if
+you need something in someone else's.
 
-db/               SQL: tables, row level security, policies   02 + 03
-tests/            test matrices and proof scripts             03
-n8n/              exported workflow JSON, guardrail list      04
-docs/             SECURITY.md, THREAT-MODEL.md, slides        03 + 05
-assets/           images, the backup recording                05
+```
+01-front-end/   Retag    screen specs, state tables, notes
+02-back-end/    Hind     SQL, table map, seed data
+03-security/    Mariam   RLS, policies, validation, tests, threat model
+04-agents/      Dana     n8n workflow export, guardrails
+05-ship/        ???      slides, demo script, backup recording
 ```
 
-Each folder has a `README.md` saying what belongs in it and who owns it.
-**Add your own files to your own folders.** If you need something in someone
-else's area, ask them in the PR rather than editing it yourself.
+**These stay at the repo root — GitHub Pages serves the live site from here:**
+
+```
+index.html      the landing page
+signin.html     dashboard.html      mission.html      ← 01 adds these
+css/  js/       styles and client code                ← 01
+js/config.js    project URL + publishable key (public by design)
+tools/hooks/    the pre-commit secret guard (everyone installs it)
+```
+
+> Moving `index.html` into a subfolder breaks the live site. Screens and
+> assets stay at root; everything else goes in your folder.
+
+Each member folder has a `README.md` listing that job's MUST items and what
+the other jobs need from it. **Start with yours.**
 
 ---
 
