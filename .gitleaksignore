@@ -1,0 +1,12 @@
+# gitleaks allowlist - owner: 03 Security
+#
+# RULE: one line per finding, each with a reason, each re-checked when the
+# file changes. NEVER add a whole directory. A blanket "vendor/" ignore is
+# how a real key pasted into a vendored file stops being noticed.
+#
+# 1) supabase-js, vendored and minified at a pinned version. The generic
+#    rule matches the token sequence after `fetchWithAuth=` inside the
+#    minified bundle. Verified by eye: it is library code, not a credential.
+#    If this file is ever re-vendored at a new version, DELETE this line,
+#    re-scan, and re-verify before adding it back.
+01-front-end/app/vendor/supabase.js:generic-api-key:1
