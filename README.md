@@ -41,30 +41,51 @@ findings — every decision stays with the researcher:
 
 > *"A team of four puts two jobs on one name."*
 
-So one person carries a second job. **Owning a job means you answer first — not
-that you do it alone.** Jobs can overlap; ownership cannot.
+**Owning a job means you answer first — not that you do it alone.**
+Jobs can overlap; ownership cannot.
 
-| Job | Owns | Name | GitHub |
+| Job | Owner | Owns | GitHub |
 |---|---|---|---|
-| **01 · Front end** | Four screens that link, forms that answer, phone portrait | *to fill in* | *to fill in* |
-| **02 · Back end and data** | The tables, accounts, records, the run log | *to fill in* | *to fill in* |
-| **03 · Security** | Row level security, secrets, validation, the AI audit | *to fill in* | `t021600-dot` |
-| **04 · Automation and agents** | The workflow, guardrails, the tools | *to fill in* | *to fill in* |
-| **05 · Ship and present** | The live address, this page, demo day | **doubled with →** *to fill in* | |
+| **01 · Front end** | **Retag** | Four screens that link, forms that answer, the phone-portrait pass | *to fill in* |
+| **02 · Back end and data** | **Hind** | The tables, accounts, records, the run log | *to fill in* |
+| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit | `t021600-dot` |
+| **04 · Automation and agents** | **Dana** | The workflow, the six agents, guardrails, the tools | *to fill in* |
+| **05 · Ship and present** | ⚠️ **unassigned** | The live address, this page, testing on another machine, demo day | |
 
-### Who should take the second job
+> **Everyone: add your GitHub username to this table in your first PR.**
+> *(Check the spelling of your own name too — fix it if I got it wrong.)*
 
-**Not 03 · Security.** It is a blocker on the first build night — nobody can
-safely point a page at the database until row level security is on — and it
-carries six of the twenty-eight pass/fail items, the largest share of any job.
+### ⚠️ Job 05 still needs a name
 
-**05 · Ship is the one to double up**, for the reason the guide gives: it has
-little to ship on the first two nights, then becomes the whole of Wednesday and
-Thursday. Pair it with **01 · Front end** or **02 · Back end** — whoever is
-lighter on Tuesday.
+Every one of the 28 pass/fail items is graded whether or not someone owns it,
+and **05 · Ship and present has six of them** — the public URL, the repo front
+page, testing on a machine that did not build it, two rehearsals, and everyone
+explaining their own part. Leave it unowned and they simply do not get done.
 
-**Write the two names in the table above in your first PR.** "We all did
-everything" is the sentence that loses marks.
+**The recommendation: Hind takes 05 alongside 02.**
+
+The two jobs are complementary rather than competing:
+
+| | Sun | Mon | Tue | Wed |
+|---|---|---|---|---|
+| **02 · Back end** | heavy | heavy | lighter | done |
+| **05 · Ship** | light | light | medium | **the whole night** |
+
+02 is front-loaded, 05 is back-loaded — so one person can carry both without a
+clash.
+
+**Not Mariam (03).** Security is the blocker on the first build night — nobody
+can safely point a page at the database until row level security is on — and it
+already carries six pass/fail items of its own, the largest share of any job.
+
+**Not Retag (01).** Front end is heavy on all three build nights, and 05 owns
+Wednesday entirely.
+
+**Dana (04) is the alternative** if Hind is overloaded — 04 is light on Sunday,
+though it peaks on Tuesday just as 05 starts to climb.
+
+**Decide tonight and write the name in the table.** *"We all did everything"* is
+the sentence that loses marks.
 
 ---
 
