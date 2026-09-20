@@ -35,9 +35,6 @@ findings — every decision stays with the researcher:
 
 ---
 
-> ## 📋 [**PLAN.md** — where we are and how we get to one product](PLAN.md)
-> *Everyone reads this. 8 minutes. Updated Sunday 20 September.*
-
 ## The team
 
 **Four people, four jobs.** Owning a job means **you answer first** — not that

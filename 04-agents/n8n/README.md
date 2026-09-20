@@ -1,6 +1,6 @@
 # The n8n side of the run
 
-**Owner:** 04 · Dana. Five nodes. No webhook.
+**Owner:** 04 · Dana. Six nodes. No webhook.
 
 > **The browser never calls n8n** (`DECISIONS.md` D-1). n8n comes to us. It
 > polls for `mission_runs` rows that are `queued` and works them. That is why
@@ -8,19 +8,34 @@
 > `queued` row is still written by `launch_mission()`. n8n catches up when it
 > reopens.
 
-## The five nodes
+## The six nodes
 
 | # | Node | What it is |
 |---|---|---|
 | 1 | **Schedule Trigger** | every 15 seconds |
-| 2 | **HTTP Request — claim a run** | `GET {{$env.SUPABASE_URL}}/rest/v1/mission_runs?status=eq.queued&limit=1` |
-| 3 | **Code — "Plan the run"** | paste `agent-code-node.js` whole |
-| 4 | **HTTP Request — execute** | `POST {{$env.SUPABASE_URL}}/rest/v1/rpc/{{ $json.rpc }}`, body `{{ $json.args }}`, *Execute Once* off so it runs per item |
-| 5 | **NoOp** | so a finished run is visibly finished on the canvas |
+| 2 | **HTTP Request — sweep dead runs** | `POST {{$env.SUPABASE_URL}}/rest/v1/rpc/sweep_stalled_runs`, body `{}` |
+| 3 | **HTTP Request — claim a run** | `POST {{$env.SUPABASE_URL}}/rest/v1/rpc/claim_next_run`, body `{}` |
+| 4 | **Code — "Plan the run"** | paste `agent-code-node.js` whole |
+| 5 | **HTTP Request — execute** | `POST {{$env.SUPABASE_URL}}/rest/v1/rpc/{{ $json.rpc }}`, body `{{ $json.args }}`, *Execute Once* off so it runs per item |
+| 6 | **NoOp** | so a finished run is visibly finished on the canvas |
 
-Node 2 is the one read n8n makes. Everything it *writes* goes through node 4,
-and node 4 can only ever hit `/rest/v1/rpc/…` because node 3 only ever emits
-three names: `agent_log_step`, `agent_write_result`, `agent_finish_run`.
+Node 3 is the one read n8n makes, and it is a **function call, not a table
+read**. An earlier draft of this page had node 2 as
+`GET /rest/v1/mission_runs?status=eq.queued` — that returns **401**, every
+time, because `03-security/db/03_grants.sql` revokes every table privilege
+from `service_role`. The read path is `claim_next_run()` in
+`04-agents/db/08_agent_claim.sql`, and it is also what stops two n8n
+executions claiming the same run (`FOR UPDATE SKIP LOCKED`). Node 3 returning
+an empty array means *nothing is queued* — that is not an error, and the
+workflow must simply stop.
+
+Node 2 exists so a run whose worker died reads **Stopped** on the researcher's
+screen instead of spinning for ever (guardrail rule 16, capstone SHOULD 9).
+It takes no body and returns the number of runs it stalled, usually `0`.
+
+Everything n8n *writes* goes through node 5, and node 5 can only ever hit
+`/rest/v1/rpc/…` because node 4 only ever emits three names:
+`agent_log_step`, `agent_write_result`, `agent_finish_run`.
 
 > **If you ever see `/rest/v1/agent_steps` in this workflow, the workflow is
 > wrong, not the grants.** n8n has zero table privileges
