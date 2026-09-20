@@ -1,0 +1,21 @@
+# Never commit a secret (checklist MUST: no key, token or password
+# anywhere in the repo or its history)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Tooling
+node_modules/
+*.log
+.vercel/
