@@ -533,14 +533,25 @@ var Automation = (function () {
         if (state === 'refused') st.style.color = 'var(--danger)';
         body.appendChild(st);
 
-        /* The one line of text under the step name. When the step was
-           refused, the REASON replaces the description — a refusal the
-           researcher cannot read is not a refusal they can trust.
-           .textContent, always: this string was written by the agent. */
-        body.appendChild(el('span', 'sm',
-          (state === 'refused' && row && row.refused_reason)
-            ? row.refused_reason
-            : blurb));
+        /* The one line of text under the step name. A refused_reason
+           REPLACES the description whenever the row carries one — a
+           refusal the researcher cannot read is not a refusal they can
+           trust. .textContent, always: this string was written by the
+           agent, about text a researcher typed.
+
+           Note it is NOT gated on state === 'refused'. agent_log_step
+           stores refused_reason independently of p_allowed, and the
+           injection path uses exactly that: the satellite step really
+           ran, and the instruction embedded in the objective really did
+           not. COULD 14 asks that the app say WHAT it refused to do —
+           this is the line that says it, about 2 seconds after step 1. */
+        var detail = el('span', 'sm',
+          (row && row.refused_reason) ? row.refused_reason : blurb);
+        if (row && row.refused_reason) {
+          detail.style.color =
+            state === 'refused' ? 'var(--danger)' : 'var(--warn)';
+        }
+        body.appendChild(detail);
 
         /* The run flagged the objective as containing an instruction
            rather than a research question. It is raised once and never

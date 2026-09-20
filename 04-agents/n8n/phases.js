@@ -220,6 +220,12 @@
     var objective = input.objective;
     var area = input.area_geojson;
     var injection = R.looksLikeInstruction(objective);
+    /* COULD 14. The flag alone tells a judge that SOMETHING was caught.
+       describeRefusal() is the sentence that says WHAT - it quotes the
+       instruction back, goes into agent_steps.refused_reason on step 1,
+       and becomes the first line of the draft a human approves.
+       null for a clean objective, so a normal run is unchanged. */
+    var refusal = R.describeRefusal(objective);
     var bb = bboxOf(area);
 
     /* Guardrail rule 12 (GUARDRAILS.md). The database already refuses an
@@ -249,13 +255,18 @@
            the mission the researcher actually asked for. We raise the
            flag and carry on. GUARDRAILS.md rules 1 and 13. */
         logCall(runId, 'satellite_data',
-          { area_bbox: bb, max_scenes: 20, injection_screened: true },
-          true, null, injection),
+          { area_bbox: bb, max_scenes: 20, injection_screened: true,
+            instruction_refused: refusal ? refusal.quote : null },
+          /* allowed stays TRUE: the satellite step really did run. What
+             was refused is the instruction inside the objective, and
+             agent_log_step stores refused_reason either way. */
+          true, refusal ? refusal.reason : null, injection),
         logCall(runId, 'environmental_analysis',
           { measures: ['ndvi', 'surface_temperature'], scenes: 20 },
           true, null, false)
       ],
       ctx: { run_id: runId, stop: false, injection: injection,
+             refusal_notice: refusal ? refusal.notice : null,
              area_bbox: bb, zones: zones, rejected_ids: [] }
     };
   }
@@ -317,6 +328,11 @@
     var rejected = input.rejected_ids || [];
     var accepted = D.rankZones(input.zones || [], rejected);
     var calls = [];
+    /* Written by phaseObserve when the objective carried an instruction.
+       It leads the draft, so the refusal is in the text a human approves
+       and in the report that comes out of it - not only in a step row
+       that scrolls away. Empty on every clean run. */
+    var refusalNotice = input.refusalNotice || '';
 
     accepted.forEach(function (z, i) {
       calls.push(resultCall(runId, 'site', z.name,
@@ -347,6 +363,7 @@
       true, null, false));
 
     calls.push(resultCall(runId, 'narrative', 'Draft findings',
+      (refusalNotice ? refusalNotice + ' ' : '') +
       'Recommended ' + (accepted[0] ? accepted[0].name : 'no zone') + ' first, ' +
       'from ' + accepted.length + ' zone(s) that cleared the ' +
       D.IMPACT_FLOOR_C.toFixed(1) + ' °C floor. ' +

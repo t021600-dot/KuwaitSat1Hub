@@ -115,6 +115,27 @@ begin
       using errcode = 'P0001';
   end if;
 
+  -- THE RATE LIMIT, ENFORCED WHERE WE CLAIM IT IS.
+  -- It used to live only in the BEFORE INSERT trigger on missions, which
+  -- limits CREATING a mission. But 04's guardrail list reads these numbers
+  -- out as a limit on the AGENT, and launching is what costs model credit.
+  -- A guardrail you say out loud must be the guardrail the code enforces.
+  if (select count(*) from public.mission_runs r
+        join public.missions m2 on m2.id = r.mission_id
+       where m2.researcher_id = (select auth.uid())
+         and r.started_at > now() - interval '1 hour') >= s.max_missions_per_hour then
+    raise exception 'Limit reached: % agent runs per hour.', s.max_missions_per_hour
+      using errcode = 'P0001';
+  end if;
+
+  if (select count(*) from public.mission_runs r
+        join public.missions m2 on m2.id = r.mission_id
+       where m2.researcher_id = (select auth.uid())
+         and r.started_at > now() - interval '1 day') >= s.max_missions_per_day then
+    raise exception 'Limit reached: % agent runs per day.', s.max_missions_per_day
+      using errcode = 'P0001';
+  end if;
+
   if exists (select 1 from public.mission_runs
               where mission_id = p_mission_id
                 and status in ('queued','running')) then
