@@ -1,4 +1,4 @@
-# 🔐 Job 03 · Security — everything in one place
+# 🔐 Job 03 · Security
 
 **Owner:** Mariam Madouh · **GitHub:** `t021600-dot`
 *The single entry point for my part of KuwaitSat-1 Mission Hub. Start here.*

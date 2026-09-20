@@ -1,4 +1,24 @@
-# 02 · Back end and data — Hind
+# 🗄️ Job 02 · Back end and data
+
+**Owner:** Hind · **GitHub:** *to fill in*
+*What remembers. The single entry point for this role.*
+
+---
+
+## What this role is
+
+> **If a refresh empties it, we have a slideshow, not a platform.**
+
+The tables, the accounts, the records, and the log that proves the automation
+actually ran. Persistence is what turns a demo into a product — and it is the
+foundation every other job stands on: security has nothing to protect and agents
+have nowhere to write without it.
+
+| | |
+|---|---|
+| **My share of the bar** | **5** of the 28 MUST items (`be-m1` … `be-m5`) |
+| **The judge's question to me** | *"What is one row in this table?"* |
+| **The test I cannot fake** | Add a record, hard refresh, then open the URL in a private window and sign in |
 
 ---
 

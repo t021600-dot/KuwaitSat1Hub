@@ -1,4 +1,24 @@
-# 01 · Front end — Retag
+# 🖥️ Job 01 · Front end
+
+**Owner:** Retag · **GitHub:** *to fill in*
+*Everything a person touches. The single entry point for this role.*
+
+---
+
+## What this role is
+
+> **If a stranger cannot reach the result without being told what to click,
+> nothing else we built matters.**
+
+Four screens that link, forms that always answer, and a page that works on a
+phone held in one hand. This is the only part of the project a judge experiences
+*directly* — everything else is experienced through it.
+
+| | |
+|---|---|
+| **My share of the bar** | **5** of the 28 MUST items (`fe-m1` … `fe-m5`) |
+| **The judge's question to me** | *"What happens when this button is pressed?"* |
+| **The test I cannot fake** | Hand your phone to another team. Say nothing. If you have to speak, it failed |
 
 ---
 

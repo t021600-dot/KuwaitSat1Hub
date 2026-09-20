@@ -1,4 +1,26 @@
-# 04 · Automation and agents — Dana
+# 🤖 Job 04 · Automation and agents
+
+**Owner:** Dana · **GitHub:** *to fill in*
+*What acts on its own. The single entry point for this role.*
+
+---
+
+## What this role is
+
+> **If it only collects and forwards, it is a form in a costume.**
+
+Six AI agents that take a research objective and work it through to a finding —
+with at least one real decision where the next step depends on what was found,
+guardrails written *before* the agent can act, and a run that a researcher can
+watch without ever opening n8n.
+
+| | |
+|---|---|
+| **My share of the bar** | **6** of the 28 MUST items (`au-m1` … `au-m6`) |
+| **The judge's question to me** | *"Draw the process. Where does it decide?"* |
+| **The test I cannot fake** | Close n8n completely, then press the button in our own app |
+
+---
 
 The n8n workflow, the guardrail list, and notes on the six agent steps.
 
