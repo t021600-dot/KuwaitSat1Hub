@@ -48,7 +48,7 @@ Jobs can overlap; ownership cannot.
 |---|---|---|---|
 | **01 · Front end** | **Retag** | Four screens that link, forms that answer, the phone-portrait pass | *to fill in* |
 | **02 · Back end and data** | **Hind** | The tables, accounts, records, the run log | *to fill in* |
-| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit | `t021600-dot` |
+| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit — **[see the full role →](docs/03-SECURITY-ROLE.md)** | `t021600-dot` |
 | **04 · Automation and agents** | **Dana** | The workflow, the six agents, guardrails, the tools | *to fill in* |
 | **05 · Ship and present** | ⚠️ **unassigned** | The live address, this page, testing on another machine, demo day | |
 
