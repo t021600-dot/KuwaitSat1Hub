@@ -12,8 +12,8 @@
 // or in any chat window. It lives in the n8n credential store.
 // =====================================================================
 
-const SUPABASE_URL = '<PASTE PROJECT URL>';
-const SUPABASE_PUBLISHABLE_KEY = '<PASTE PUBLISHABLE KEY>';
+const SUPABASE_URL = 'https://kqboenytmzagdiweqygl.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_EdgMqS23EnQSKxghh7nYgw_5V1SM7TQ';
 
 // USE THE sb_publishable_... KEY FORMAT, NOT THE LEGACY eyJ... ANON KEY.
 // Our own pre-commit hook blocks any real JWT in a commit - including in

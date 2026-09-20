@@ -1,0 +1,29 @@
+se-m1 / se-m3 VERIFICATION - run against the LIVE project
+project: kqboenytmzagdiweqygl  (org KuwaitSat1Hub)
+run by:  03 Security   date: Monday 21 September 2026, 00:40
+
+Every query below returns rows ONLY ON FAILURE. One row came back, and it is
+the one that is supposed to.
+
+  Q1  RLS off on any table ................... EMPTY  PASS (8/8 tables on)
+  Q3  RLS on with no policy .................. app_settings  EXPECTED
+                                               (the kill switch - no browser
+                                                role may read it at all)
+  Q4  view without security_invoker .......... EMPTY  PASS (3/3 views on)
+  Q5  anon holds any table grant ............. EMPTY  PASS
+  Q6  service_role holds any table grant ..... EMPTY  PASS
+  Q7  a password-ish column anywhere ......... EMPTY  PASS  <- se-m3
+  Q8  SECURITY DEFINER fn without search_path  EMPTY  PASS
+
+WHAT Q6 MEANS, said plainly: n8n authenticates as service_role, which has
+BYPASSRLS - every policy is invisible to it. Its table privileges are revoked,
+so it can call five named functions and touch no table at all. On the agent
+path the wall is the function, not the policy.
+
+A GAP THIS RUN CAUGHT: the first pass of 03_grants.sql revoked every TABLE
+privilege from service_role but never touched the VIEWS, so the automation
+role still held ALL on my_missions, my_mission_results and my_agent_steps.
+The practical leak was small - those views filter on auth.uid(), which is null
+for service_role - but the sentence we say out loud is "n8n touches no table
+at all", and Q6 would have shown grants sitting there. Fixed in migration
+04_views_and_write_paths.

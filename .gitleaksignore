@@ -10,3 +10,18 @@
 #    If this file is ever re-vendored at a new version, DELETE this line,
 #    re-scan, and re-verify before adding it back.
 01-front-end/app/vendor/supabase.js:generic-api-key:1
+
+# 2) The Supabase PUBLISHABLE key in config.js, on both copies. This one is
+#    meant to be in our JavaScript - the browser has to receive it, so hiding
+#    it in a .env would be theatre. It is safe ONLY because row level security
+#    is on, which is verified in evidence/se-m1-verify-2026-09-21.txt.
+#
+#    IMPORTANT - why this does not weaken us: the pre-commit hook
+#    (tools/hooks/pre-commit, rule 1) still blocks any REAL JWT in this exact
+#    file, deliberately, and its comment says not to add an exception for
+#    config.js. So a service-role key pasted here by a tired teammate on
+#    Tuesday is still caught - by the hook, at commit time, before it reaches
+#    the history. gitleaks stops repeating a finding we have already judged;
+#    the hook keeps guarding the thing that would actually hurt.
+js/config.js:generic-api-key:16
+01-front-end/app/js/config.js:generic-api-key:16
