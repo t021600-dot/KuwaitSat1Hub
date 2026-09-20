@@ -1,33 +1,77 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KuwaitSat-1 Mission Hub</title>
-  <!-- 03 Security will paste the Content-Security-Policy meta tag here -->
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KuwaitSat-1 Mission Hub</title>
+<meta name="description" content="A secure research platform for authorized KuwaitSat-1 researchers.">
+<!-- CSP is owned by 03 · Security (03-security/docs/csp-meta.html) and ships as a
+     Vercel response header. This page is already script-src 'self' clean: no
+     inline <script>, no onclick= anywhere. Keep it that way. -->
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <main class="landing">
-    <h1>🛰️ KuwaitSat-1 Mission Hub</h1>
-    <p class="tagline">
-      From a research question to a complete research report.
-    </p>
-    <p class="lede">
-      Authorised researchers define an objective over an area of Kuwait,
-      launch a chain of AI research assistants, review the findings, and
-      generate a report. Each researcher's work is private to them.
-    </p>
 
-    <a class="cta" href="login.html">Sign in</a>
+<header id="site-header"></header>
 
-    <p class="prototype-note">
-      Prototype — invented data only. A student capstone for AI for Coding
-      (CODED × KFAS × SACGC). Not connected to kuwaitsat.space.
+<main class="wrap">
+
+  <section class="hero">
+    <h1>KuwaitSat-1 Mission Hub</h1>
+    <p class="lede">A secure research platform for authorized KuwaitSat-1 researchers.
+      Define a research question, select an area of Kuwait, and let a team of AI research
+      assistants work through the analysis while you stay in control of every decision.</p>
+    <p class="btn-row" style="margin-top:20px">
+      <a class="btn btn-primary" href="login.html">Researcher sign in</a>
     </p>
-  </main>
+    <p class="small muted">Access is restricted to authorized researchers. Missions, data and
+      reports are private to the researcher who created them.</p>
+  </section>
 
-  <!-- 01 Front end: this landing page must open for a stranger with NO
-       login wall (checklist sh-m1). Every other page is gated. -->
+  <hr class="rule">
+
+  <section class="section">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="card step">
+        <div class="n">01</div>
+        <h3>Define a mission</h3>
+        <p class="small muted">Write your research objective in plain language and draw the
+          area of Kuwait you care about on the map.</p>
+      </div>
+      <div class="card step">
+        <div class="n">02</div>
+        <h3>Agents run</h3>
+        <p class="small muted">Six research assistants work through the steps in order, from
+          pulling satellite scenes to drafting the report.</p>
+      </div>
+      <div class="card step">
+        <div class="n">03</div>
+        <h3>You approve the report</h3>
+        <p class="small muted">Nothing is published until you have read the findings and
+          pressed Generate Report yourself.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>The research assistants</h2>
+    <p class="small muted">Each agent handles one part of the workflow. The agents do not
+      control the satellite and do not make decisions on your behalf.</p>
+    <ul class="agent-list" id="agent-tags"></ul>
+  </section>
+
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="vendor/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/agents.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/data.js"></script>
+<script src="js/page-index.js"></script>
+
 </body>
 </html>
