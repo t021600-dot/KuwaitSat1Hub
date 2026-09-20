@@ -212,6 +212,100 @@
   };
 
   /* -------------------------------------------------------------------
+     4b · THE AGENT AUDIT TRAIL  (be-m5, au-m6)
+
+     The prototype's pipeline is genuinely good and stays exactly as it is:
+     ten steps with TWO real decision nodes (dec1 on the stress threshold,
+     dec2 on the potential threshold), and steps that get SKIPPED when a
+     decision says so. That is au-m3 already satisfied in Hind's own code.
+
+     What was missing is that the run left no trace. These map the
+     prototype's step ids onto the six step_name values the database CHECK
+     constraint allows, and record each one as it happens - including the
+     skips, because "the agent decided not to do this" is the most
+     interesting row in the log.
+     ------------------------------------------------------------------- */
+
+  var STEP_MAP = {
+    req:  'satellite_data',
+    col:  'satellite_data',
+    val:  'satellite_data',
+    img:  'satellite_data',
+    env:  'environmental_analysis',
+    dec1: 'environmental_analysis',   // the first decision node
+    pot:  'impact_prediction',
+    dec2: 'impact_prediction',        // the second decision node
+    rec:  'recommendation',
+    rep:  'reporting'
+  };
+
+  KS.logStep = function (pipeId, opts) {
+    if (!haveDb() || !KS.runId) return Promise.resolve(null);
+    opts = opts || {};
+    return window.sb.rpc('researcher_log_step', {
+      p_run_id: KS.runId,
+      p_step: STEP_MAP[pipeId] || 'satellite_data',
+      p_tool: pipeId,
+      p_args: opts.args || null,
+      p_allowed: opts.allowed !== false,
+      p_refused_reason: opts.reason || null,
+      p_injection: !!opts.injection
+    }).then(function (r) {
+      if (r.error) console.warn('[ksat] step not logged:', r.error.message);
+      return r.data || null;
+    });
+  };
+
+  KS.writeResult = function (kind, title, body, geometry) {
+    if (!haveDb() || !KS.runId) return Promise.resolve(null);
+    return window.sb.rpc('researcher_write_result', {
+      p_run_id: KS.runId, p_kind: kind, p_title: title,
+      p_body: body, p_geometry: geometry || null
+    }).then(function (r) {
+      if (r.error) console.warn('[ksat] result not written:', r.error.message);
+      return r.data || null;
+    });
+  };
+
+  KS.finishRun = function (status, err) {
+    if (!haveDb() || !KS.runId) return Promise.resolve(null);
+    return window.sb.rpc('researcher_finish_run', {
+      p_run_id: KS.runId, p_status: status || 'complete', p_error: err || null
+    }).then(function () { KS.runId = null; });
+  };
+
+  /* -------------------------------------------------------------------
+     4c · PROMPT INJECTION SCREEN  (Dana's guardrail, au-m4 / COULD 14)
+
+     The objective is free text a researcher typed, and it is about to be
+     handed to a tool-using agent. An objective that contains an
+     INSTRUCTION rather than a research question is flagged and named -
+     never acted on. The flag is raised on the mission and cannot be
+     lowered from the browser.
+     ------------------------------------------------------------------- */
+  var INJECTION_PATTERNS = [
+    /ignore (all |your |previous |prior )*(instructions|rules|guardrails)/i,
+    /disregard (the |all |your )*(above|previous|instructions|rules)/i,
+    /(list|show|dump|reveal|print) (me )?(all|every) (the )?(missions|users|researchers|rows|records|accounts)/i,
+    /you are now|act as (a|an)|pretend to be|from now on you/i,
+    /system prompt|reveal your (prompt|instructions)/i,
+    /drop table|delete from|update .* set |;\s*--/i
+  ];
+
+  KS.screenObjective = function (text) {
+    if (!text) return { flagged: false };
+    for (var i = 0; i < INJECTION_PATTERNS.length; i++) {
+      if (INJECTION_PATTERNS[i].test(text)) {
+        return {
+          flagged: true,
+          reason: 'The objective contains an instruction rather than a research question. It was recorded and refused, not acted on.'
+        };
+      }
+    }
+    return { flagged: false };
+  };
+
+  /* -------------------------------------------------------------------
      5 · Wrap runAgent() without replacing it.
      We wait for the prototype to define it, then decorate. If it is never
      defined, nothing happens and the page is unaffected.
@@ -221,13 +315,108 @@
     var original = window.runAgent;
 
     var wrapped = function () {
-      var result = original.apply(this, arguments);   // the prototype runs first, untouched
-      try { KS.launch(); } catch (e) { /* never let persistence break the demo */ }
+      // 1 · the prototype runs first, completely untouched
+      var result = original.apply(this, arguments);
+
+      // 2 · then we record it. Everything below is wrapped so that a
+      //     database problem can never break the demo on stage.
+      try { recordRun(); } catch (e) { console.warn('[ksat]', e); }
+
       return result;
     };
     wrapped.__ksatWrapped = true;
     window.runAgent = wrapped;
     return true;
+  }
+
+  /* -------------------------------------------------------------------
+     5b · Record the run that the prototype is currently performing.
+
+     We read the prototype's OWN state (S.ag) rather than re-deciding
+     anything. The decisions are Hind's; we are the audit trail.
+     ------------------------------------------------------------------- */
+  function recordRun() {
+    if (!haveDb() || !KS.live) return;
+    var S = window.S;
+    if (!S || !S.ag) return;
+
+    var region  = (window.REG && window.REG[S.ag.area]) || {};
+    var areaName = region.en || region.name || String(S.ag.area || 'Selected area');
+    var objective =
+      'Assess where increasing vegetation cover in ' + areaName +
+      ' could reduce surface temperature and dust load. Stress threshold ' +
+      S.ag.thresh + ', greening-potential threshold ' + S.ag.gp + '.';
+
+    // THE GUARDRAIL, BEFORE ANYTHING IS WRITTEN.
+    var screen = KS.screenObjective(objective);
+
+    var bounds = region.bounds || { west: 47.60, east: 47.82, south: 29.30, north: 29.44 };
+
+    window.sb.from('missions').insert({
+      title: ('Greening potential - ' + areaName).slice(0, 120),
+      objective: objective.slice(0, 1500),
+      area_geojson: KS.boundsToPolygon(bounds)
+    }).select('id').single().then(function (m) {
+      if (m.error) { console.warn('[ksat] mission refused:', m.error.message); return; }
+      KS.missionId = m.data.id;
+      return window.sb.rpc('launch_mission', { p_mission_id: KS.missionId });
+    }).then(function (r) {
+      if (!r || r.error) {
+        if (r && r.error) console.warn('[ksat] launch refused:', r.error.message);
+        return;
+      }
+      KS.runId = r.data;
+
+      // If the objective carried an instruction, record the refusal FIRST
+      // so the audit trail shows the guardrail firing before any work.
+      var chain = Promise.resolve();
+      if (screen.flagged) {
+        chain = KS.logStep('req', { allowed: false, reason: screen.reason, injection: true });
+      }
+
+      // Walk the prototype's own pipeline, honouring its skip decisions.
+      var PIPE = window.PIPE || [];
+      var skipped = (S.ag.out && S.ag.out.st && S.ag.out.st.skipped) || [];
+
+      PIPE.forEach(function (step) {
+        chain = chain.then(function () {
+          var wasSkipped = skipped.indexOf(step.id) !== -1;
+          return KS.logStep(step.id, {
+            allowed: !wasSkipped,
+            reason: wasSkipped
+              ? 'Skipped by the pipeline decision: the threshold was not met.'
+              : null,
+            args: step.dec ? { decision_node: true,
+                               stress_threshold: S.ag.thresh,
+                               potential_threshold: S.ag.gp } : null
+          });
+        });
+      });
+
+      // The findings, with their provenance labels kept.
+      chain = chain.then(function () {
+        var out = S.ag.out || {};
+        if (out.rec) {
+          return KS.writeResult('narrative',
+            'AI recommendation - ' + areaName,
+            String(out.rec.en || out.rec || '') +
+            '\n\nConfidence: ' + (out.conf || 'not stated') +
+            ' [MODELLED]. Area assessed: ' + areaName + ' [MEASURED].',
+            null);
+        }
+      }).then(function () {
+        return KS.writeResult('metric', 'Run summary - ' + areaName,
+          'Stress threshold ' + S.ag.thresh + ' [SET BY RESEARCHER]. ' +
+          'Greening-potential threshold ' + S.ag.gp + ' [SET BY RESEARCHER]. ' +
+          'Pipeline steps: ' + (window.PIPE || []).length +
+          ', skipped by decision: ' + skipped.length + ' [MEASURED].', null);
+      }).then(function () {
+        return KS.finishRun(screen.flagged ? 'failed' : 'complete',
+                            screen.flagged ? 'Objective refused by the injection guardrail.' : null);
+      });
+
+      return chain;
+    }).catch(function (e) { console.warn('[ksat] run not recorded:', e); });
   }
 
   /* -------------------------------------------------------------------
