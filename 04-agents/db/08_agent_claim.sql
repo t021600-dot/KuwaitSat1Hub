@@ -124,8 +124,13 @@ begin
         -- SKIP LOCKED means the second worker walks past the locked row
         -- and takes the next one, or takes nothing. It never waits and it
         -- never duplicates.
-        for update skip locked
-        limit 1)
+        --
+        -- The locking clause goes AFTER limit. Postgres accepts it either
+        -- side, but "limit 1 for update skip locked" is the form every
+        -- reference writes, and a reviewer reading it should not have to
+        -- stop and decide whether it still means what it looks like.
+        limit 1
+        for update skip locked)
     returning r.id as claimed_run, r.mission_id as claimed_mission)
   select c.claimed_run, c.claimed_mission, m.title, m.objective, m.area_geojson
     from claimed c
