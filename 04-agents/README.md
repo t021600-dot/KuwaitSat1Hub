@@ -35,8 +35,12 @@ The n8n workflow, the guardrail list, and notes on the six agent steps.
 
 ## What goes in this folder
 - the exported workflow JSON (n8n → ⋯ → Download)
-- `GUARDRAILS.md` — numbered, four kinds:
-  **never · ask a human first · spend limits · stop and ask**
+- **[`GUARDRAILS.md`](GUARDRAILS.md) — written.** Sixteen numbered rules in four
+  kinds: **never · ask a human first · spend limits · stop and ask** — plus the
+  approved tool list for `au-m5` and the rehearsal that `au-m4` needs.
+  **Read it aloud; it is written to be spoken.**
+  ⚠️ The rehearsal in its section 4 has **not been run yet**, so the "one rule
+  changed" half of `au-m4` cannot be claimed until it has.
 - a failure plan per node
 
 ⚠️ **Open the exported JSON before committing it.** n8n exports can contain
