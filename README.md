@@ -44,7 +44,7 @@ you do it alone. Jobs can overlap; ownership cannot.
 |---|---|---|---|
 | **01 · Front end** | **Retag** | Four screens that link, forms that answer, the phone-portrait pass | *to fill in* |
 | **02 · Back end and data** | **Hind** | The tables, accounts, records, the run log | *to fill in* |
-| **03 · Security** | **Mariam** | Row level security, secrets, validation, the AI audit — **[full role →](03-security/README.md)** | `t021600-dot` |
+| **03 · Security** | **Mariam Madouh** | Row level security, secrets, validation, the AI audit — **[full role →](03-security/README.md)** | `t021600-dot` |
 | **04 · Automation and agents** | **Dana** | The workflow, the six agents, guardrails, the tools | *to fill in* |
 
 > **Everyone: add your GitHub username to this table in your first PR.**
