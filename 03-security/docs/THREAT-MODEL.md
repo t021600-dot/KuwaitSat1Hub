@@ -2,7 +2,7 @@
 
 **Owner:** 03 · Security · **Written:** Sunday 20 September 2026, build night 1 · **Covers:** the prototype as it will be shown on Thursday 24 September 2026 — not a production system.
 
-**Scope:** static front end on a public HTTPS URL, Supabase (Auth + Postgres + Storage), n8n running the six-agent chain, Kuwait basemap. All demo data is invented, per the kit rule "No real customer, patient or worker data in a student demo" (CAPSTONE-GUIDE.md:189).
+**Scope:** static front end on a public HTTPS URL **hosted on Vercel** (which sends real HTTP response headers - see `VERCEL-HEADERS.md`), Supabase (Auth + Postgres; **no Storage** - see `DECISIONS.md` D-2), n8n running the six-agent chain, Kuwait basemap. All demo data is invented, per the kit rule "No real customer, patient or worker data in a student demo" (CAPSTONE-GUIDE.md:189).
 
 **This file is the evidence for two SHOULD items:** "the blast radius in one sentence" and "the three biggest threats written down with what you did" (CAPSTONE-GUIDE.md:116).
 
@@ -32,15 +32,23 @@ Ranked by **what a person standing at our demo table could actually do in 60 sec
 
 ### T1 — Right-click the report or the map image, paste the URL into a signed-out window (≈10 seconds, no account, no DevTools)
 
-**The threat.** Files are not rows. Supabase Storage has its own permission system, completely separate from the row-level security everything else in our plan is about. If the bucket holding the generated report PDF, the result map image or a cached KuwaitSat-1 scene is left **Public** — the default a beginner picks at 23:00 because `getPublicUrl()` works first try and `createSignedUrl()` does not — then `https://<ref>.supabase.co/storage/v1/object/public/reports/<id>.pdf` opens for anybody, forever, with no session. Our whole "this is not a public data portal" claim dies on one right-click, on the screen our own demo put the judge on, without a single query reaching Postgres. If object ids are sequential, they can walk to other missions' files too.
+**The threat.** Files are not rows. Supabase Storage has its own permission system, completely separate from the row-level security everything else in our plan is about. If a bucket holding a generated report PDF, a result map image or a cached KuwaitSat-1 scene were left **Public** — the default a beginner picks at 23:00 because `getPublicUrl()` works first try and `createSignedUrl()` does not — then `https://<ref>.supabase.co/storage/v1/object/public/reports/<id>.pdf` would open for anybody, forever, with no session. Our whole "this is not a public data portal" claim would die on one right-click, on the screen our own demo put the judge on, without a single query reaching Postgres. If object ids were sequential, they could walk to other missions' files too.
 
-**What we did.**
-- `[SUN]` Bucket is **private**. Files are reached only through short-lived signed URLs (minutes, not days) minted server-side. `[SUN]`
-- `[SUN]` Object paths are `missions/<mission_id>/...` with `mission_id` from `gen_random_uuid()` — v4, not guessable, not walkable.
-- `[SUN]` `source_ref` (the archive path column) is not granted to `authenticated`, and no signed URL is ever written into a results row or into a generated report.
-- `[TUE]` The verification list covers **buckets as well as tables**, run against the live project, because a bucket somebody adds on Monday is invisible to any check written tonight. Evidence: the image address pasted into a private window, error saved to `evidence/`.
+**What we did — and it is the strongest answer available: THERE ARE NO FILES.**
 
-**What we consciously did NOT do (the honest gap).** A signed URL is a bearer token: within its lifetime, anyone holding the link can fetch the file, and it is not bound to the researcher who asked for it. A report a researcher downloads and forwards is outside our control completely — no watermark, no expiry once it is a file on a laptop, no per-download audit row. With real imagery that is the first gap we would close.
+`DECISIONS.md` **D-2** removes the whole surface rather than defending it.
+
+- `[SUN]` **Zero Storage buckets exist.** Not private ones, not signed-URL ones — none. There is no bucket, so there is no bucket permission to get wrong.
+- `[SUN]` The Kuwait map draws from `results.geometry` (jsonb), which is behind RLS like every other row.
+- `[SUN]` "Generate Report" renders `reports.body_md` as **plain text** in the page (`textContent`), and the researcher uses the browser's own Print to PDF. The PDF is made **on their machine**, so it never exists on our server to be linked to.
+- `[SUN]` `source_ref` (the archive path column) is not granted to `authenticated`, and no URL of any kind is written into a results row or a report.
+- `[TUE]` The verification pass covers **buckets as well as tables**, run against the live project, because a bucket somebody creates on Monday is invisible to any check written tonight. Evidence: the empty bucket list, screenshotted to `audit/evidence/t1-no-buckets.png` (see `SUPABASE-SETTINGS.md` §5).
+
+> **Say it in one sentence:** *"We have no files, so we have no file permissions to get wrong."* That is a stronger and more honest answer than any signed-URL implementation we could have shipped in three nights — and it is provable by a screenshot of an empty list.
+>
+> **An earlier version of this section described a private bucket with short-lived signed URLs.** That was never built, and D-2 says it will not be. It has been corrected here because a judge who is told about a bucket will ask to see it. **Do not describe a control you would have to go and build.**
+
+**What we consciously did NOT do (the honest gap).** The moment there are real files, all of this comes back: a signed URL is a bearer token, so within its lifetime anyone holding the link can fetch the file and it is not bound to the researcher who asked for it. And a report a researcher prints and forwards is outside our control completely — no watermark, no expiry once it is a file on a laptop, no per-download audit row. With real imagery that is the first gap we would close.
 
 ---
 
@@ -51,7 +59,7 @@ Ranked by **what a person standing at our demo table could actually do in 60 sec
 - **A convenience view without `security_invoker`.** A view created as `create view public.my_missions as select * from public.missions` runs with its **owner's** privileges and bypasses RLS on the table underneath entirely. It looks fine in the dashboard, and it hands every mission to every signed-in account behind a name that says the opposite.
 
 **What we did.**
-- `[SUN]` RLS enabled on **all five** tables before any page reads data — this is the Sunday blocker, ahead of everything else. Every predicate is `researcher_id = auth.uid()`; child tables reach the owner through the mission row.
+- `[SUN]` RLS enabled on **all eight** tables (`profiles`, `missions`, `mission_runs`, `agent_steps`, `results`, `reports`, `mission_collaborators`, `app_settings`) before any page reads data — this is the Sunday blocker, ahead of everything else. Count them in `db/01_tables_rls.sql`; the number in a sentence you say out loud has to match the number of `enable row level security` lines. Every predicate is `researcher_id = auth.uid()`; child tables reach the owner through the mission row.
 - `[SUN]` `revoke` on `anon`; explicit column grants to `authenticated` (grants decide columns and verbs; RLS decides rows — we need both).
 - `[SUN]` Every view is created `with (security_invoker = on)`, carries its own `where` clause, and is granted explicitly.
 - `[TUE]` Verification query lists every **table and view** in `public` with its RLS state and invoker mode, run over the **live** schema, not the schema we intended — a table added Monday with RLS off is a total silent leak.
@@ -97,5 +105,7 @@ Four things a generic web app never has to answer. Only what we can defend; `[NE
 "Three things change, and none of them is a bigger firewall. First, identity stops being self-serve — accounts get approved against the institution's own directory instead of anyone typing an email address, because with real data 'authorized researcher' has to mean something a person actually signed for. Second, the agent path stops borrowing a key that bypasses our own rules: n8n gets its own database role that can execute four named functions and read nothing, so the sentence I say to you changes from 'the function is the wall' to 'row level security applies to the agents too'. Third, we start treating the derived product as the real export — every download of a scene or a report writes an audit row saying who, when and which mission, report links expire, and what may leave the institution at all is decided by the imagery licence, which is a question for whoever holds the KuwaitSat-1 data policy and not for me. I would also stop sending our areas of interest to a third-party map host. And before any of that, someone would have to own the parts we deliberately cut this week: sharing, roles, and what happens to a researcher's missions when they leave."
 
 ---
+
+**One thing that moved OUT of the gap list this week, because the host changed:** we deploy to **Vercel**, which sends real HTTP response headers. So the CSP is an actual `Content-Security-Policy` header, `frame-ancestors 'none'` applies (clickjacking protection is real, not aspirational), HSTS is on, and `Referrer-Policy: no-referrer` stops the basemap host in §3b from receiving our page URL — which contains a mission id — alongside the tile coordinates it already sees. It does **not** fix the tile-traffic disclosure itself; only self-hosting tiles would. All six headers: `VERCEL-HEADERS.md`.
 
 **Out of scope for this week, stated so it is a decision and not an oversight:** denial of service and load, key rotation procedure, backup and restore, session revocation on the server side, log retention, and anything about a real ground segment. We are a four-day prototype with invented data; these are the right things to defer and the wrong things to pretend we covered.

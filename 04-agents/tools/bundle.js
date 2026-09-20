@@ -8,6 +8,14 @@
    agent/steps.js and agent/run.js, in that order, plus the tail that
    turns the plan into n8n items.
 
+   THIS IS THE FALLBACK, NOT THE BUILD. The workflow we are building is
+   n8n/workflow.json (22 nodes, built by tools/build-workflow.js, written
+   up in n8n/BUILD-GUIDE.md), where the run is broken at the decision so
+   the gate is a node you can point at. This bundle plans a whole run in
+   ONE Code node instead. Keep it for the evening the import fails and
+   you have to paste something into a fresh canvas - it is the same
+   decision code either way.
+
    WHY. An n8n Code node cannot require a local file. Without this, the
    threshold would be typed a second time inside n8n, the two copies
    would drift, and "where does the number live" would have two answers.
@@ -48,7 +56,7 @@ var tail = [
   '   The next node POSTs each item to',
   '     {{$env.SUPABASE_URL}}/rest/v1/rpc/{{ $json.rpc }}',
   '   with {{ $json.args }} as the body. Three function names, no table',
-  '   URL, ever. See n8n/README.md.',
+  '   URL, ever. See n8n/BUILD-GUIDE.md.',
   '   ------------------------------------------------------------------ */',
   'const __g = globalThis;',
   'const __in = $json;',

@@ -15,6 +15,34 @@
 -- laptop. The "(none)" rows are the point of it: they are the things we
 -- blocked ON PURPOSE, and a judge who asks "what can't they do?" wants
 -- those, not a shrug.
+--
+-- ---------------------------------------------------------------------
+-- WHY EVERY `create policy` HAS A `drop policy if exists` ABOVE IT
+--
+-- `create policy` is NOT `create or replace policy` - no such thing
+-- exists in Postgres. Re-paste this file onto a database that already
+-- has these policies and the very first statement stops with
+--
+--     ERROR: policy "profiles_select_own" for table "profiles"
+--            already exists
+--
+-- At 1am that error reads like "everything is broken" when it actually
+-- means "this already worked". Worse, a beginner's reflex is to start
+-- deleting things to make the red go away - and the thing they delete is
+-- se-m1. The drop lines make the file safe to run as many times as you
+-- like: each one removes only the policy the line under it immediately
+-- re-creates, and the end state is identical every time.
+--
+-- `if exists` means the drop is silent on a fresh database too, so this
+-- file behaves the same on first run and tenth run. WHAT the policies do
+-- is unchanged - only the ability to re-run them safely is new.
+--
+-- >>> ALWAYS PASTE A DROP AND ITS CREATE TOGETHER. <<<
+-- Run a `drop policy` on its own and you leave that table with RLS ON
+-- and NO POLICY, which returns ZERO ROWS TO EVERYONE - including the
+-- owner, including the screen you are testing. It looks exactly like
+-- "all our data vanished" (README says the same thing about a missing
+-- policy). The pair is one edit; never half of it.
 -- =====================================================================
 
 
@@ -23,12 +51,15 @@
 -- There is deliberately no researcher directory: Researcher B cannot even
 -- enumerate who else has an account.
 -- ---------------------------------------------------------------------
+drop policy if exists profiles_select_own on public.profiles;
 create policy profiles_select_own on public.profiles
   for select to authenticated using (user_id = (select auth.uid()));
 
+drop policy if exists profiles_insert_own on public.profiles;
 create policy profiles_insert_own on public.profiles
   for insert to authenticated with check (user_id = (select auth.uid()));
 
+drop policy if exists profiles_update_own on public.profiles;
 create policy profiles_update_own on public.profiles
   for update to authenticated using      (user_id = (select auth.uid()))
                                 with check (user_id = (select auth.uid()));
@@ -40,6 +71,7 @@ create policy profiles_update_own on public.profiles
 -- ---------------------------------------------------------------------
 
 -- read: mine, or one somebody explicitly shared with me
+drop policy if exists missions_select_own_or_shared on public.missions;
 create policy missions_select_own_or_shared on public.missions
   for select to authenticated
   using ( researcher_id = (select auth.uid())
@@ -52,6 +84,7 @@ create policy missions_select_own_or_shared on public.missions
 -- DO NOT DELETE THIS POLICY THINKING THE GRANT IS ENOUGH. RLS denies by
 -- default: a table with RLS on and no INSERT policy refuses every insert,
 -- and the symptom is "Launch Mission does nothing" at 1am.
+drop policy if exists missions_insert_own on public.missions;
 create policy missions_insert_own on public.missions
   for insert to authenticated
   with check ( researcher_id = (select auth.uid()) );
@@ -60,6 +93,7 @@ create policy missions_insert_own on public.missions
 -- ---------------------------------------------------------------------
 -- mission_runs · readable because the parent mission is readable
 -- ---------------------------------------------------------------------
+drop policy if exists mission_runs_select_readable on public.mission_runs;
 create policy mission_runs_select_readable on public.mission_runs
   for select to authenticated using ( public.can_read_mission(mission_id) );
 
@@ -69,6 +103,7 @@ create policy mission_runs_select_readable on public.mission_runs
 -- A refused step is evidence the guardrails fired. It is a feature on
 -- screen, not something to hide.
 -- ---------------------------------------------------------------------
+drop policy if exists agent_steps_select_readable on public.agent_steps;
 create policy agent_steps_select_readable on public.agent_steps
   for select to authenticated using ( public.can_read_run(run_id) );
 
@@ -78,6 +113,7 @@ create policy agent_steps_select_readable on public.agent_steps
 -- An in-flight draft is not a finding and must not be read as one — the
 -- researcher reviews what the agent FINISHED, never a half-written row.
 -- ---------------------------------------------------------------------
+drop policy if exists results_select_complete on public.results;
 create policy results_select_complete on public.results
   for select to authenticated
   using ( status <> 'draft' and public.can_read_mission(mission_id) );
@@ -86,6 +122,7 @@ create policy results_select_complete on public.results
 -- ---------------------------------------------------------------------
 -- reports
 -- ---------------------------------------------------------------------
+drop policy if exists reports_select_readable on public.reports;
 create policy reports_select_readable on public.reports
   for select to authenticated using ( public.can_read_mission(mission_id) );
 
@@ -94,6 +131,7 @@ create policy reports_select_readable on public.reports
 -- mission_collaborators · my own invitation, or the sharing list of a
 -- mission I own. Not a way to enumerate other people's sharing.
 -- ---------------------------------------------------------------------
+drop policy if exists collab_select_own on public.mission_collaborators;
 create policy collab_select_own on public.mission_collaborators
   for select to authenticated
   using ( user_id = (select auth.uid()) or public.owns_mission(mission_id) );

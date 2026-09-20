@@ -103,6 +103,6 @@ Run 2 — Tuesday __ / __ , the LIVE public URL, borrowed laptop
    into account A? (`(await sb.auth.getUser()).data.user.email`)
 2. Is the key I used a **service-role key**, which bypasses RLS?
 3. Does a permissive policy elsewhere let this through? Run query 2 in
-   `sql/99-verify.sql` and look for `roles = {public}` or `qual = true`.
+   `db/99_verify.sql` and look for `roles = {public}` or `qual = true`.
 4. Is there a **view without `security_invoker`** in the path? Run query 4 in
-   `sql/99-verify.sql`. This is the one that hides best.
+   `db/99_verify.sql`. This is the one that hides best.

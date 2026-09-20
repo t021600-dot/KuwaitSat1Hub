@@ -20,8 +20,9 @@
    WHY A PLAN INSTEAD OF A SCRIPT. A plan is a value, so it can be
    tested (../tests/decision.test.js), printed on a whiteboard
    (../tools/rehearse.js) and replayed in the browser with no backend
-   (../app/agent-panel.js) without any of those three re-implementing the
-   order of the run. One order, one file.
+   (../app/demo.html, which fakes the DATABASE and drives the real panel)
+   without any of those three re-implementing the order of the run.
+   One order, one file.
 
    HONESTY. The zone scores and the cooling projections handed to this
    function are sample values produced by the prototype, not KuwaitSat-1
@@ -55,17 +56,84 @@
      we do not sanitise it into something that looks obedient - we raise
      the flag and carry on with the mission as written. */
   var INSTRUCTION_MARKERS = [
-    'ignore previous', 'ignore all previous', 'disregard the', 'system prompt',
+    'ignore all previous', 'ignore previous', 'disregard the', 'system prompt',
     'you are now', 'act as', 'reveal your', 'print your instructions',
     'drop table', 'send an email', 'call the webhook'
   ];
+  /* Longest phrase first inside a family, on purpose. 'ignore previous'
+     would also match the attack objective, and then the refusal on screen
+     would name a marker narrower than the thing it actually caught. */
+
+  /* How much of the objective we quote back on screen. Long enough for a
+     judge to recognise the attack they typed, short enough that a
+     1,500-character objective cannot push the step description off the
+     strip. */
+  var QUOTE_MAX = 92;
+
+  /* ------------------------------------------------------------------
+     describeRefusal · guardrail rules 1 and 13 in one function, because
+     the two halves of the break test fail separately:
+
+       (a) the guardrail HOLDS - the instruction is not carried out and
+           the mission is flagged;
+       (b) the app SAYS WHAT IT REFUSED TO DO - a sentence, on our own
+           screen, naming the thing it would not do.
+
+     Raising missions.injection_flag satisfies (a). On its own it fails
+     (b): a chip reading "Objective flagged" tells a judge something was
+     caught, never what. So this returns the SENTENCES as well, and every
+     caller puts them where the researcher can read them:
+
+       reason -> agent_steps.refused_reason (the my_agent_steps view
+                 exposes it; mission_runs.error_note does not reach the
+                 browser at all)
+       notice -> the first line of the draft report
+       quote  -> the researcher's own words, bounded
+
+     Returns null for an ordinary research question.
+     ------------------------------------------------------------------ */
+  function describeRefusal(objective) {
+    var raw = String(objective || '');
+    var lower = raw.toLowerCase();
+
+    for (var i = 0; i < INSTRUCTION_MARKERS.length; i++) {
+      var at = lower.indexOf(INSTRUCTION_MARKERS[i]);
+      if (at === -1) { continue; }
+
+      /* Quote from where the instruction starts, stop at the end of that
+         line, and never run past QUOTE_MAX. We slice the ORIGINAL text,
+         not the lowercased copy, so the screen shows what was typed. */
+      var quote = raw.slice(at, at + QUOTE_MAX + 40).split('\n')[0]
+                     .replace(/\s+/g, ' ').trim();
+      if (quote.length > QUOTE_MAX) {
+        quote = quote.slice(0, QUOTE_MAX - 1).trim() + '…';
+      }
+
+      return {
+        marker: INSTRUCTION_MARKERS[i],
+        quote: quote,
+
+        /* Written for a researcher, not for a log file - it is displayed
+           verbatim on the step row. The instruction is only ever inside
+           quotation marks, and the sentence around it says what was NOT
+           done, so nothing downstream can read this as a command. */
+        reason: 'Refused an instruction found inside the research objective: ' +
+                '“' + quote + '”. It was not carried out. A mission ' +
+                'objective is data, not a command.',
+
+        /* The draft report leads with this, so the refusal is the first
+           thing the human approver reads. */
+        notice: 'REFUSED: the objective contained an instruction (“' + quote +
+                '”). It was not carried out, and nothing outside this ' +
+                'mission was read. The findings below answer the research ' +
+                'question that was in the objective.'
+      };
+    }
+    return null;
+  }
 
   function looksLikeInstruction(objective) {
-    var t = String(objective || '').toLowerCase();
-    for (var i = 0; i < INSTRUCTION_MARKERS.length; i++) {
-      if (t.indexOf(INSTRUCTION_MARKERS[i]) !== -1) { return true; }
-    }
-    return false;
+    return describeRefusal(objective) !== null;
   }
 
   function logStep(runId, key, args, allowed, refusedReason, injection) {
@@ -132,7 +200,8 @@
     var decisions = [];
     var rejectedIds = [];
     var rerankCount = 0;
-    var injection = looksLikeInstruction(input.objective);
+    var refusal = describeRefusal(input.objective);   /* null when clean */
+    var injection = refusal !== null;
 
     function push(call) {
       if (call.rpc === 'agent_log_step') {
@@ -150,9 +219,18 @@
 
     /* STEP 1 - the only step that touches anything outside our database.
        If the objective carries an instruction, the flag is raised here
-       and it rides on the mission for the rest of the run. */
+       and it rides on the mission for the rest of the run.
+
+       The step itself stays ALLOWED. The satellite step really did run;
+       what was refused is the instruction inside the objective, and
+       agent_log_step stores refused_reason either way. Marking the step
+       refused would say the scene search failed, which is not true. */
     push(logStep(runId, 'satellite_data',
-      { area: 'mission area', max_scenes: 20 }, true, null, injection));
+      refusal
+        ? { area: 'mission area', max_scenes: 20,
+            instruction_refused: refusal.marker }
+        : { area: 'mission area', max_scenes: 20 },
+      true, refusal ? refusal.reason : null, injection));
 
     /* STEP 2 */
     push(logStep(runId, 'environmental_analysis',
@@ -202,20 +280,37 @@
 
     /* STEP 5 - the accepted zones become result rows. Geometry is jsonb
        on the row. No bucket, no image file (DECISIONS D-2). */
+    /* O-1: the gate tests the TOP zone only, so a candidate under the
+       floor still gets a polygon. Keeping them is the better story - but
+       then every row has to say which side of the floor it is on, or the
+       map and the metric row contradict each other on screen. Same fix,
+       same words, as n8n/phases.js -> phaseDeliver(). */
     var accepted = D.rankZones(zones, rejectedIds);
+    var belowFloor = 0;
     accepted.forEach(function (z, i) {
+      var cooling = D.round1(z.projectedCoolingC);
+      var clears = cooling >= D.IMPACT_FLOOR_C;
+      if (!clears) { belowFloor += 1; }
       push(writeResult(runId, 'site',
         z.name,
         'Rank ' + (i + 1) + ' of ' + accepted.length + '. Score ' + z.score + '/100. ' +
-        'Projected cooling ' + D.round1(z.projectedCoolingC).toFixed(1) + ' °C at 24 months. ' +
+        'Projected cooling ' + cooling.toFixed(1) + ' °C at 24 months. ' +
+        (i === 0
+          ? 'RECOMMENDED: this is the zone the run proposes. '
+          : (clears
+              ? 'Clears the floor. Shown as an alternative, not the recommendation. '
+              : 'BELOW THE FLOOR - shown for context only. Not recommended. ')) +
         (z.note || ''),
         z.polygon ? { type: 'Polygon', coordinates: [z.polygon] } : null));
     });
     push(writeResult(runId, 'metric',
       'Impact floor applied',
-      'Zones were accepted only at or above ' + D.IMPACT_FLOOR_C.toFixed(1) +
-      ' °C of projected 24-month cooling. ' + rejectedIds.length +
-      ' zone(s) were rejected and re-ranked. Sample figures, not measurements.',
+      'The recommended zone was accepted only at or above ' +
+      D.IMPACT_FLOOR_C.toFixed(1) + ' °C of projected 24-month cooling. ' +
+      rejectedIds.length + ' zone(s) failed that test and were re-ranked out. ' +
+      'The other candidates are drawn with their own projections, ' + belowFloor +
+      ' of them below the floor - context, not recommendations. ' +
+      'Sample figures, not measurements.',
       null));
 
     push(logStep(runId, 'visualization',
@@ -225,6 +320,10 @@
        human: generate_report is granted to authenticated, not to n8n. */
     push(writeResult(runId, 'narrative',
       'Draft findings',
+      /* The refusal LEADS the draft. A human approving a report has to
+         read what the agent refused to do before they read the finding,
+         not after it - so it goes first, not in a footnote. */
+      (refusal ? refusal.notice + '\n\n' : '') +
       'Recommended ' + (accepted[0] ? accepted[0].name : 'no zone') + ' first. ' +
       'Awaiting researcher approval. No report exists until a researcher presses Generate Report.',
       null));
@@ -237,6 +336,8 @@
 
   return {
     STEP_BUDGET: STEP_BUDGET,
+    INSTRUCTION_MARKERS: INSTRUCTION_MARKERS,
+    describeRefusal: describeRefusal,
     looksLikeInstruction: looksLikeInstruction,
     planRun: planRun
   };

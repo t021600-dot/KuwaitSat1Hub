@@ -35,7 +35,16 @@ order by tablename, policyname;
 -- ---------------------------------------------------------------------
 -- 3 · RLS ON but NO POLICY AT ALL = zero rows for everyone, including
 -- the screens that are supposed to work.
--- `app_settings` is the ONLY name allowed to appear here.
+-- `app_settings` is the ONLY name allowed to appear here THIS WEEK.
+--
+-- ONE LEGITIMATE EXCEPTION, so you do not chase it at 1am: if file
+-- 07_admin_audit_PHASE2.sql has been run (it is "read, do not run" this
+-- week), `app_admins` appears here too, and that is CORRECT and
+-- deliberate - RLS on + no policy + no grant is exactly how 07 keeps the
+-- administrator list unreadable from any browser. Its own BLOCK 4 says
+-- so. If you see `app_admins` here and 07 was NOT run, that is a real
+-- finding: somebody created the table by hand.
+-- ANY OTHER NAME IS A BLOCKER.
 -- ---------------------------------------------------------------------
 select c.relname as table_with_rls_and_no_policy
 from pg_class c join pg_namespace n on n.oid = c.relnamespace

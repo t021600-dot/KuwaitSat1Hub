@@ -3,6 +3,23 @@
 **Owner:** 03 · Security · **Build:** Monday · **Re-verify:** Tuesday, on the borrowed laptop
 **The judge's test:** the address bar, plus the console for mixed-content warnings.
 
+> ### ⚠️ THE HOST CHANGED. READ THIS BEFORE YOU QUOTE ANYTHING BELOW.
+>
+> We deploy to **Vercel**, not GitHub Pages. Vercel **can send HTTP response
+> headers**; GitHub Pages could not. Everything this file used to write down as
+> *"unavailable to us, not misconfigured"* is now **available and shipped**:
+>
+> - the CSP is a **real `Content-Security-Policy` response header**, from
+>   [`../../vercel.json`](../../vercel.json)
+> - **`frame-ancestors 'none'` works**, so we *do* have clickjacking protection
+> - **HSTS (`Strict-Transport-Security`) is set**
+> - plus `X-Content-Type-Options`, `Referrer-Policy: no-referrer` and
+>   `Permissions-Policy`
+>
+> Line-by-line explanation of every header: [`VERCEL-HEADERS.md`](VERCEL-HEADERS.md).
+> **Do not say "our host cannot send headers" to a judge — it has not been true
+> since we moved.**
+
 ---
 
 ## Why this is not a five-minute tick for us
@@ -27,8 +44,8 @@ first time our HTTPS story meets a machine that is not ours.
 | Layer | Stops | Where |
 |---|---|---|
 | Repo scan | an `http://` somebody **typed** | `check-mixed-content.ps1` below |
-| CSP in the page head | an `http://` anything builds **at runtime** | the meta tag below |
-| CHECK constraint | an `http://` **the AI agent writes into a row** | `sql/` addition below |
+| CSP, as a response **header** (and the same policy in the page head) | an `http://` anything builds **at runtime** | [`../../vercel.json`](../../vercel.json), plus the meta tag below |
+| CHECK constraint | an `http://` **the AI agent writes into a row** | `db/` addition below |
 
 **The third one is ours alone and nobody else will think of it.** The
 Visualization or Reporting agent writes a row. If that row carries
@@ -38,14 +55,26 @@ input surface too.**
 
 ---
 
-## 1 · The CSP meta tag — one source of truth
+## 1 · The CSP — one policy, shipped two ways
 
-Paste this identically into the `<head>` of **every** page: `index.html`,
-`signin.html`, `dashboard.html`, `mission.html`, `report.html`. Replace
-`PROJECTREF` with our Supabase project ref.
+**The authoritative copy is the response header** in
+[`../../vercel.json`](../../vercel.json). Vercel sends it on every response,
+including preview deployments, with no build step.
 
-GitHub Pages is a static host — we cannot set response headers, so a `<meta>`
-tag is the only wall available.
+Paste the **same** policy as a `<meta>` tag into the `<head>` of **every** page:
+`index.html`, `signin.html`, `dashboard.html`, `mission.html`, `report.html`.
+Replace `PROJECTREF` with our Supabase project ref **in both files**.
+
+**Why keep the meta tag at all, now that we have the header?** Because a header
+only exists when a server sends one. Open a page from `file://` or a bare local
+static server on a build night and the header is gone; the meta tag still
+protects the page. It is a belt for the nights the braces are not there.
+
+**The rule that will cost you an hour if you do not know it:** when a page has
+**both** a CSP header and a CSP meta tag, the browser enforces **both** — a
+request must satisfy each policy independently. So **loosening only one of them
+changes nothing.** Add an origin to `vercel.json` *and* to `csp-meta.html`, in
+the same commit, or you will debug a block that "should not be happening".
 
 ```html
 <!-- Content Security Policy · owner: 03 Security · one source of truth -->
@@ -84,13 +113,33 @@ tag is the only wall available.
   absent. A `ws://` (no `s`) is mixed content and is blocked anyway.
 - **`object-src 'none'`, `base-uri 'none'`** — cheap, no downside.
 
-### Two honesty notes — say these rather than over-claim
+### Two things that USED to be limitations and are now controls
 
-- **`frame-ancestors` is IGNORED inside a `<meta>` tag.** It only works as an
-  HTTP response header, which GitHub Pages cannot set. Do not add it, and do
-  **not** claim clickjacking protection we do not have.
-- There is no `Strict-Transport-Security` header either, for the same reason.
-  If asked: *"GitHub Pages serves it — we don't control response headers."*
+Both of these were written down as honest gaps while we were on GitHub Pages.
+On Vercel they are real, shipped, and demonstrable. **Update the sentence you
+rehearsed.**
+
+- **`frame-ancestors 'none'` is in the header, so clickjacking protection is
+  real.** It is still **ignored inside a `<meta>` tag** — that part never
+  changed, and it is why the header matters. So the directive lives in
+  `vercel.json` only, and the meta tag deliberately does not carry it (a meta
+  policy containing it is not an error; the browser just drops that directive).
+  `X-Frame-Options: DENY` rides along for older browsers.
+  **Ten-second proof:** an `<iframe>` pointing at our live URL, in a scratch
+  file outside the repo, refuses to render.
+- **`Strict-Transport-Security` is set** —
+  `max-age=31536000; includeSubDomains`, deliberately **without `preload`**
+  (preload is effectively irreversible, and you cannot preload a `*.vercel.app`
+  subdomain anyway). If asked: *"HSTS is on for a year; we left preload off
+  because it is a decision you cannot take back in a four-day project."*
+  The honest limit: HSTS protects a browser that has **already** visited once
+  over HTTPS. It is not a first-visit control.
+
+Three more headers ship alongside them — `X-Content-Type-Options: nosniff`,
+`Referrer-Policy: no-referrer` and `Permissions-Policy`. `no-referrer` is the
+project-specific one: without it, every basemap tile request would carry our
+page URL — which contains a mission id — to a third-party host.
+See [`VERCEL-HEADERS.md`](VERCEL-HEADERS.md) for all six, line by line.
 
 ### Do NOT add `upgrade-insecure-requests`
 
@@ -103,7 +152,10 @@ them.
 ### Self-host the libraries
 
 `script-src 'self'` means **no CDN**. Download `supabase-js` and the map library
-into `/vendor/` and commit them. Ten minutes, tonight, and it removes the
+into `vendor/` and commit them. Leaflet is already there
+(`01-front-end/app/vendor/leaflet.js` + `leaflet.css` + `vendor/images/`);
+**`supabase-js` still needs doing** — that is the one outstanding item on this
+line. Ten minutes, tonight, and it removes the
 question permanently — otherwise the CSP blanks the page and somebody "fixes" it
 by adding `'unsafe-inline'` at 23:00.
 
@@ -203,7 +255,14 @@ run the `select` above over existing rows before you add it.
    window. Not localhost.
 2. **The console, on the mission page with the map drawn.** No mixed-content
    warnings, no CSP violations. Scroll it so they can see it is empty.
-3. **View Source** on any page — the CSP meta tag is right there in the `<head>`.
+3. **DevTools → Network → the document request → Response Headers.** All six
+   headers are listed: `Content-Security-Policy`, `Strict-Transport-Security`,
+   `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`,
+   `X-Frame-Options`. **This is the strongest beat in `se-m4`** — a response
+   header cannot be faked by the page, the way a meta tag in View Source can.
+   Evidence: `audit/evidence/se-m4-response-headers.png`.
+4. **View Source** on any page — the same CSP is there as a meta tag too, for
+   the nights the page is opened without a server.
    This one is worth having as a `se-m6` fix too, if the audit finds the CSP
    missing or weak on Monday.
 
@@ -211,5 +270,6 @@ Run it on a **freshly launched mission**, not just a completed one — the whole
 reason `se-m4` is hard here is that the agent writes rows at runtime, and a
 completed mission only proves the URLs written by a run that already happened.
 
-Evidence: `audit/evidence/se-m4-console-clean.png` and
+Evidence: `audit/evidence/se-m4-console-clean.png`,
+`audit/evidence/se-m4-response-headers.png` and
 `audit/evidence/se-m4-view-source-csp.png`.

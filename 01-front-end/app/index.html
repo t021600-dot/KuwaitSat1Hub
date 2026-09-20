@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KuwaitSat-1 Mission Hub</title>
 <meta name="description" content="A secure research platform for authorized KuwaitSat-1 researchers.">
+<!-- CSP is owned by 03 · Security (03-security/docs/csp-meta.html) and ships as a
+     Vercel response header. This page is already script-src 'self' clean: no
+     inline <script>, no onclick= anywhere. Keep it that way. -->
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -63,24 +66,12 @@
 <footer id="site-footer"></footer>
 
 <script src="vendor/supabase.js"></script>
-
 <script src="js/config.js"></script>
-
 <script src="js/agents.js"></script>
+<script src="js/ui.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/data.js"></script>
-<script src="js/ui.js"></script>
-<script>
-  // Public page: render the header for whoever is (or is not) signed in.
-  Data.getCurrentUser().then(function (user) {
-    renderHeader(user);
-    renderFooter();
-  });
-
-  $('#agent-tags').innerHTML = AGENTS.map(function (a) {
-    return '<li><span class="tag">' + esc(a.name) + '</span></li>';
-  }).join('');
-</script>
+<script src="js/page-index.js"></script>
 
 </body>
 </html>

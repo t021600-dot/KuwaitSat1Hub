@@ -53,8 +53,9 @@ If you only get one minute, say this and stop.
 > asks instead of guessing.
 >
 > Sixteen rules. Every number is in the database, not in a slide. Forty tool
-> calls per run. Five missions an hour, twenty a day. Twenty thousand characters
-> per result. One map area, and it has to be over Kuwait.
+> calls per run. Five an hour and twenty a day per researcher - counted twice,
+> missions created and runs launched. Twenty thousand characters per result. One
+> map area, and it has to be over Kuwait.
 >
 > The agents can write through exactly three functions and to nothing else. They
 > cannot make a report — only a person can. And a research objective is treated
@@ -82,9 +83,21 @@ itself is a row: `agent_steps.allowed = false` plus `refused_reason`.
 visible in the agent strip. The judge reads the refusal; they do not have to
 trust you.
 
-🔨 **Yours to build:** the n8n branch that detects the instruction and calls
-`agent_log_step(..., p_allowed => false, p_injection => true)`. The live test is
-in section 4, R-2.
+**The detection is written and tested.** `04-agents/agent/run.js` →
+`describeRefusal()` owns the marker list and returns three things: the marker it
+matched, the researcher's own words quoted back (bounded to 92 characters), and
+the two sentences. `n8n/phases.js` → `phaseObserve()` puts the reason on step 1
+with `p_injection => true`, and `phaseDeliver()` makes the refusal the **first
+line of the draft report**. `tests/injection.test.js` drives the R-2 objective
+through the real files and reads the sentence back off the rendered panel.
+
+**The step stays `allowed = true` on purpose, and say why if asked:** the
+satellite step really did run. What was refused is the instruction *inside the
+objective*, and `agent_log_step` stores `refused_reason` either way. Marking the
+step refused would claim the scene search failed, which is not what happened.
+
+🔨 **Still yours to build:** the workflow itself, in n8n. The code is
+written; the canvas is not. The live test is in section 4, R-2.
 
 ### Rule 2 — The agents never touch the satellite
 
@@ -199,21 +212,42 @@ Second wall: `01_tables_rls.sql` →
 **Six agents, so forty is generous on purpose.** A bound so tight it refuses a
 real run destroys the audit row along with the run.
 
-### Rule 10 — Five missions an hour, twenty a day, per researcher
+### Rule 10 — Five an hour, twenty a day, per researcher — counted TWICE
 
-> "Rule ten. Five missions an hour and twenty a day, per researcher. The numbers
-> are a row in the database, so we can change them without deploying anything."
+> "Rule ten. Five an hour and twenty a day, per researcher — and it is counted
+> twice, because there are two ways to spend our budget. Five missions created,
+> and five agent runs launched. The numbers are a row in the database, so we can
+> change them without deploying anything."
 
-**Enforced in:** `03-security/db/06_validation.sql` → `missions_guard()`, a
-`before insert` trigger on `missions`. The numbers live in
-`app_settings.max_missions_per_hour` (**5**) and `max_missions_per_day` (**20**),
-defined in `01_tables_rls.sql`.
+**Enforced in two places, on purpose. Both read the same two settings, so there
+is still only one number to change:**
 
-**The messages are exact strings:** `Limit reached: 5 missions per hour.`
-Retag's `mapError()` matches on them. Do not let anyone reword one.
+| What it limits | Where | The sentence it raises |
+|---|---|---|
+| **Creating** a mission | `06_validation.sql` → `missions_guard()`, a `before insert` trigger on `missions` | `Limit reached: 5 missions per hour.` / `... per day.` |
+| **Launching** an agent run | `05_views_rpc.sql` → `launch_mission()`, counting `mission_runs` for this researcher in the last hour / day | `Limit reached: 5 agent runs per hour.` / `... per day.` |
 
-> ⚠️ **This is the rule section 4 is about to break.** Read section 4 before you
-> say this one to a judge with confidence.
+The numbers live in `app_settings.max_missions_per_hour` (**5**) and
+`max_missions_per_day` (**20**), defined in `01_tables_rls.sql`, and the
+functions format the value into the sentence — so raising the limit in the SQL
+editor changes the message too, with no deploy.
+
+**Why twice, in one sentence a judge will accept:** the trigger counts missions,
+and relaunching an existing mission inserts no mission — so a rule enforced only
+there limits typing, not spending. Launching is what costs model credit, so
+launching is counted where launching happens. **That second half is the R-1 rule
+change; see section 4 before you claim it.**
+
+**The four messages are exact strings and the screen matches on their shape** —
+`app/js/automation.js` → `rateLimitMessage()` reads the number out of the
+sentence so the screen quotes the database's own limit. Do not let anyone reword
+one without telling Retag and me the same evening.
+
+> ⚠️ **Still NOT enforced, and do not say it is:** a cap on runs *per mission*,
+> and the lock on relaunching a mission that already has an approved report.
+> Both are written out as SQL for Mariam in section 4. Until they are in
+> `launch_mission()`, one mission can be relaunched until the researcher's
+> five-an-hour is gone, and its findings can change underneath a signed report.
 
 ### Rule 11 — Twenty thousand characters per result
 
@@ -259,8 +293,11 @@ attached as the constraint `missions_area_shape`. Size cap: `missions_area_size`
 > raises the injection flag, and names in the report exactly what it refused to
 > do. Then it answers the actual research question, if there was one."
 
-**Enforced in:** the `p_injection` path of `agent_log_step` (Rule 1).
-🔨 The *branch that decides* is yours to build in n8n.
+**Enforced in:** the `p_injection` path of `agent_log_step` (Rule 1). The branch
+that decides is `agent/run.js` → `describeRefusal()`, read by `n8n/phases.js` and
+carried into the generated workflow by `tools/build-workflow.js` — so the n8n
+Code node and the browser replay screen the objective with the same list.
+🔨 The canvas that runs it still has to be built in n8n.
 **Live test:** section 4, R-2.
 
 ### Rule 14 — Stop when the run is already over
@@ -388,8 +425,9 @@ Rule 10. *"Five missions an hour, twenty a day."*
 
 - [ ] Mariam has run `01_tables_rls` → `99_verify` against the real project.
 - [ ] A rehearsal researcher account exists and can sign in.
-- [ ] The Launch button is wired to `launch_mission()` — **note:**
-      `01-front-end/app/js/data.js` has no launch function at all yet.
+- [ ] The Launch button is wired to `launch_mission()`. `01-front-end/app/js/data.js`
+      now calls it — **check with Retag which panel `mission.html` actually mounts**
+      before you rehearse. `node 04-agents/tools/preflight.js` check C1 answers this.
 - [ ] Your n8n workflow completes a run end to end and calls `agent_finish_run`.
 
 ### The procedure — run exactly this
@@ -423,57 +461,71 @@ select count(*) from public.reports where mission_id = '<paste the mission id>';
 
 ### What will break, and exactly why
 
-**Prediction: all six launches are accepted. Nothing stops you.**
+> ⚠️ **READ THIS FIRST — the prediction below was written against a
+> `launch_mission()` that no longer exists.** Half of the rule change it asked
+> for has since been written into `05_views_rpc.sql`. So this is now in two
+> parts: what the code refuses **today**, and what it still does not.
 
-`launch_mission()` checks four things, and only four:
+**Part one — what refuses you now, and it is not the trigger.**
+
+`launch_mission()` today checks six things:
 
 1. `owns_mission(p_mission_id)` — you do own it.
-2. the `app_settings` row exists — it does.
+2. the `app_settings` row exists — it does. (Missing ⇒ refuse. Fail closed.)
 3. `accepting_new_missions` is true — it is.
-4. no run for this mission is already `queued` or `running`.
+4. **runs you launched in the last hour `< max_missions_per_hour` (5).**
+5. **runs you launched in the last day `< max_missions_per_day` (20).**
+6. no run for this mission is already `queued` or `running`.
 
-Check 4 is the only one that ever refuses a second press — and it releases the
-moment `agent_finish_run` sets the run to `complete`. **There is no count of
-finished runs anywhere in that function.**
+Checks 4 and 5 are the new ones, and they count rows in `mission_runs` joined to
+**your** missions — runs launched, not missions created. So pressing Launch six
+times inside an hour now refuses on the **sixth**, with
+`Limit reached: 5 agent runs per hour.`
 
-Meanwhile `missions_guard()` — the thing that enforces five-an-hour — is a
-`before insert` trigger **on `missions`**. Step 4 inserts no mission. The trigger
-never fires. `missions_this_hour` will read **1**.
+Check 6 on its own never stops you: it releases the moment `agent_finish_run`
+sets the run `complete`. Before 4 and 5 existed, **nothing** counted finished
+runs — and `missions_guard()`, a `before insert` trigger on `missions`, never
+fired at all, because relaunching inserts no mission. `missions_this_hour` still
+reads **1** after six launches. That is exactly why the count had to move to
+where launching happens.
 
-| Reading | Predicted |
+| Reading | Predicted, against today's SQL |
 |---|---|
-| Launches accepted | **6 of 6** |
-| `mission_runs` rows for one mission | **6** |
-| `sum(tool_calls)` | **6 × your steps-per-run** |
-| `missions_this_hour` | **1** |
-| What refused you | **nothing** |
+| Launches accepted | **5 of 6** |
+| The 6th press | refused: `Limit reached: 5 agent runs per hour.` |
+| `mission_runs` rows for one mission | **5** |
+| `sum(tool_calls)` | **5 × your steps-per-run** |
+| `missions_this_hour` | **1** — the trigger never fired |
+| What refused you | **`launch_mission()`, not the trigger** |
 
-**And the second half, which is worse.** `launch_mission()` never reads
-`missions.status`. So a mission that already has an **approved report** relaunches
-too, and the new run writes fresh `results` rows against the same mission. The
-findings on screen then no longer match the report a human signed. Press
-Generate Report at step 3, relaunch at step 4, and you can watch the evidence
-behind an approved report change underneath it.
+**Part two — what is still NOT enforced, and it is the worse half.**
+`launch_mission()` still never reads `missions.status`, and still never counts
+runs **per mission**. So:
+
+- one mission can absorb a researcher's whole five-an-hour allowance by itself; and
+- a mission that already has an **approved report** relaunches, and the new run
+  writes fresh `results` rows against it. Press Generate Report, relaunch, and
+  you can watch the evidence behind a signed report change underneath it.
 
 ### The rule change it forces
 
-Rule 10 splits in two.
+Rule 10 splits in two. **10b is half landed — say exactly which half.**
 
-> **10a.** Five missions an hour and twenty a day, per researcher.
-> *(unchanged — `missions_guard()`)*
+> **10a.** Five an hour and twenty a day, per researcher — missions created
+> (`missions_guard()`) **and** runs launched (`launch_mission()`).
+> ✅ **in the SQL**
 >
-> **10b.** Three agent **runs** per mission per hour. And a mission that already
+> **10b.** Three agent **runs** per mission per hour, and a mission that already
 > has an approved report cannot be relaunched — a new question is a new mission.
+> ⛔ **not written yet. Do not claim it.**
 
-**The SQL to ask Mariam for**, inside `launch_mission()`, after the
-`accepting_new_missions` check and before the insert:
+**The SQL still to ask Mariam for** — inside `launch_mission()`, after the
+per-researcher counts and before the insert:
 
 ```sql
-  -- R-1 · the relaunch cap.
-  -- A finished run releases the "already running" check above, so without
-  -- these two blocks one mission and one finger can spend the budget
-  -- without limit — and the 5-per-hour trigger never even fires, because
-  -- relaunching inserts no mission row for it to fire on.
+  -- R-1 · the relaunch cap. The per-RESEARCHER counts above stop one
+  -- account spending everything. These two stop one MISSION doing it,
+  -- and stop a signed report's evidence changing underneath it.
   if (select count(*) from public.mission_runs
        where mission_id = p_mission_id
          and started_at > now() - interval '1 hour') >= 3 then
@@ -487,9 +539,11 @@ Rule 10 splits in two.
   end if;
 ```
 
-**Tell Retag to add both strings to `mapError()`** the same evening. An unmapped
-P0001 shows the researcher a raw Postgres error, which fails `se-m5` while
-fixing `au-m4`.
+**Tell Retag the strings the same evening.** `app/js/automation.js` already
+reads the two `Limit reached: … agent runs per …` sentences and quotes the
+database's own number back at the researcher; `mapError()` on 01's side needs the
+same, plus these two if Mariam adds them. An unmapped P0001 shows the researcher
+a raw Postgres error, which fails `se-m5` while fixing `au-m4`.
 
 ### ✍️ Fill this in the moment you have run it
 
@@ -569,9 +623,13 @@ Honest dependency list. Tick it, or do not say the line.
 | Claim | Depends on | State tonight |
 |---|---|---|
 | Rules 1, 3, 4, 6, 7, 9, 11, 14, 15, 16 are *enforced* | Mariam runs `01` → `99` against the real project | **Written, not run** |
-| Rules 10, 12 are *enforced* | the same, plus `06_validation.sql` | **Written, not run** |
-| "The button calls `launch_mission`" | Retag wires it — `data.js` has no launch function yet | **Not wired** |
-| Rules 1, 8, 13 (the deciding branches) | your n8n workflow | **🔨 to build** |
+| Rule 10a (both counts) is *enforced* | the same, plus `05_views_rpc.sql` — the run counts are in `launch_mission()` now | **Written, not run** |
+| Rule 10b (per-mission cap, report lock) | **nobody has written it** — the SQL is drafted in section 4 | ⛔ **not written — do not claim** |
+| Rule 12 is *enforced* | the same, plus `06_validation.sql` | **Written, not run** |
+| The claim path (`claim_next_run`, `sweep_stalled_runs`) | `03-security/db/08_agent_claim.sql`, reviewed by 03 | **Written, not run** |
+| "The button calls `launch_mission`" | `01-front-end/app/js/data.js` calls it; the panel must be mounted on `mission.html` | **Half wired — run preflight C1** |
+| Rules 1, 13 (the injection branch) | written in `agent/run.js` + `n8n/phases.js`, proven by `tests/injection.test.js`; the canvas is not built | **Code done · 🔨 canvas to build** |
+| Rule 8 (a refusal waits, no retry, no continue-on-fail) | your n8n node settings | **🔨 to build** |
 | "A rehearsal broke rule 10" | **you run R-1 and fill in the table** | **NOT RUN — do not claim** |
 | "The tool list stops at three" | `03_grants.sql` run | **Written, not run** |
 | The floor, the re-rank cap and the score floor | `04-agents/agent/decision.js` committed and wired into the n8n Code node | **Code written — check it is on `main` before you cite the path to a judge** |

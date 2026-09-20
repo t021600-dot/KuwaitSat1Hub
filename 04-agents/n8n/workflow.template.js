@@ -161,9 +161,14 @@ var TAIL_DELIVER = [
   "   file after Thursday.",
   "   ----------------------------------------------------------------- */",
   "const gate = $('Rank and project').first().json.ctx;",
+  "const prep = $('Prepare the run').first().json.ctx;",
   "const ctl  = $('Demo controls').first().json;",
   "const out = AgentPhases.phaseDeliver({",
   "  run_id: gate.run_id, zones: gate.zones, rejected_ids: gate.rejected_ids,",
+  "  // carried from node 7. When the objective contained an instruction",
+  "  // the DRAFT leads with what was refused, because the person pressing",
+  "  // Approve has to read it before the finding, not after it.",
+  "  refusalNotice: prep.refusal_notice,",
   "  breakVisualization: ctl.break_visualization === true",
   "});",
   "return out.calls.map(c => ({ json: { rpc: c.rpc, args: c.args, ctx: out.ctx } }));"
@@ -289,11 +294,11 @@ var nodes = [
   },
 
   /* --- 3 · SWEEP FIRST ----------------------------------------------
-     Option A in 04-agents/db/08_agent_claim.sql: the worker sweeps at
+     Option A in 03-security/db/08_agent_claim.sql: the worker sweeps at
      the top of every poll, before it claims. A worker that died mid-run
      cannot call agent_finish_run to say so, and only the database can
      correct that row. Body {} takes the function's own default of three
-     minutes - the same number as STALL_MS in app/automation.js. */
+     minutes - the same number as STALL_MS in app/js/automation.js. */
   http('Sweep stalled runs', rpcUrl('sweep_stalled_runs'), '{}', [X(2), ROW_MAIN], {
     notes: 'Returns how many dead runs it marked stalled. Usually 0.'
   }),

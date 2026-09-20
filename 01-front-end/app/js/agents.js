@@ -1,6 +1,16 @@
 /* The six agents, in fixed order.
-   Every number below is SAMPLE DATA for the demo. Nothing here is a real
-   KuwaitSat-1 measurement. */
+
+   WHY THE KEYS LOOK LIKE THIS: `key` is not ours to choose. It is written
+   into agent_steps.step_name, and 01_tables_rls.sql has a CHECK constraint
+   that accepts exactly these six spellings:
+     satellite_data, environmental_analysis, recommendation,
+     impact_prediction, visualization, reporting
+   Anything else (even 'visualisation' with an s) is refused by the database,
+   so the step never appears and the strip stalls with no explanation.
+
+   `summary` is SAMPLE DATA, shown only in demo mode. A live run has no
+   summary column — the database gives us a status and, if the agent was
+   refused, a reason. */
 
 const AGENTS = [
   {
@@ -10,7 +20,7 @@ const AGENTS = [
     summary: 'Retrieved 14 KuwaitSat-1 scenes covering the selected area.'
   },
   {
-    key: 'environmental',
+    key: 'environmental_analysis',
     name: 'Environmental Analysis',
     role: 'Reads vegetation and surface temperature signals.',
     summary: 'Mean NDVI 0.12 · surface temperature anomaly +2.4 °C across 3 zones.'
@@ -22,7 +32,7 @@ const AGENTS = [
     summary: '3 candidate zones ranked for vegetation intervention.'
   },
   {
-    key: 'impact',
+    key: 'impact_prediction',
     name: 'Impact Prediction',
     role: 'Projects the effect of acting on the recommendation.',
     summary: 'Projected −1.8 °C local cooling and +0.21 NDVI over 24 months.'
@@ -36,8 +46,8 @@ const AGENTS = [
   {
     key: 'reporting',
     name: 'Reporting',
-    role: 'Assembles the draft report for researcher approval.',
-    summary: 'Draft report assembled. Awaiting researcher approval.'
+    role: 'Assembles the draft findings for researcher approval.',
+    summary: 'Draft findings assembled. Awaiting researcher approval.'
   }
 ];
 

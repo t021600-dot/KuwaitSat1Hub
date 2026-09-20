@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>New mission — KuwaitSat-1 Mission Hub</title>
+<!-- CSP is owned by 03 · Security (03-security/docs/csp-meta.html) and ships as a
+     Vercel response header. This page is already script-src 'self' clean: no
+     inline <script>, no onclick= anywhere. Keep it that way. -->
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -21,25 +24,30 @@
     <p class="muted small">Write the question. The agents handle the steps.</p>
   </div>
 
-  <div class="banner banner-error hidden" id="error" role="alert" aria-live="assertive"></div>
+  <!-- Working / worked / failed-and-why, all in one place. -->
+  <div class="banner" id="form-banner" role="status" aria-live="polite" hidden></div>
 
   <form id="mission-form" novalidate>
   <div class="grid-2">
 
     <div class="card">
+      <!-- NO maxlength ON EITHER FIELD. maxlength truncates a long paste in
+           silence, the form then accepts the shortened text and a row IS
+           created — the form refused nothing. The counters below plus the
+           database CHECK constraints do the refusing, visibly. -->
       <div class="field">
         <label for="title">Mission title</label>
-        <input id="title" type="text" maxlength="80" placeholder="Vegetation potential — Jahra corridor">
-        <div class="hint"><span id="title-count">0</span>/80</div>
-        <div class="err hidden" id="e-title"></div>
+        <input id="title" type="text" placeholder="Vegetation potential — Jahra corridor">
+        <div class="hint"><span id="title-count">0</span>/120 characters</div>
+        <div class="err" id="e-title" hidden></div>
       </div>
 
       <div class="field">
         <label for="objective">Research objective</label>
         <textarea id="objective" rows="6"
           placeholder="Identify areas in Kuwait where increasing vegetation could improve environmental conditions."></textarea>
-        <div class="hint">Write the question in your own words. At least 20 characters.</div>
-        <div class="err hidden" id="e-objective"></div>
+        <div class="hint"><span id="objective-count">0</span>/1,500 characters — at least 20.</div>
+        <div class="err" id="e-objective" hidden></div>
       </div>
     </div>
 
@@ -56,15 +64,17 @@
       </div>
 
       <p class="mono" id="bounds-text" style="margin-top:12px">No area selected.</p>
-      <div class="err hidden" id="e-area"></div>
+      <div class="err" id="e-area" hidden></div>
 
-      <details style="margin-top:12px">
+      <details style="margin-top:12px" id="coords">
         <summary class="small muted" style="cursor:pointer">Type the coordinates instead</summary>
+        <!-- The four bounds are the ones kuwait_area_ok() accepts:
+             46.5–48.8 E, 28.5–30.1 N (DECISIONS D-3). -->
         <div class="grid-2" style="gap:12px;margin-top:12px">
           <div class="field"><label for="n">North latitude</label><input id="n" type="number" step="0.01" min="28.5" max="30.1"></div>
           <div class="field"><label for="s">South latitude</label><input id="s" type="number" step="0.01" min="28.5" max="30.1"></div>
-          <div class="field"><label for="e">East longitude</label><input id="e" type="number" step="0.01" min="46.5" max="48.4"></div>
-          <div class="field"><label for="w">West longitude</label><input id="w" type="number" step="0.01" min="46.5" max="48.4"></div>
+          <div class="field"><label for="e">East longitude</label><input id="e" type="number" step="0.01" min="46.5" max="48.8"></div>
+          <div class="field"><label for="w">West longitude</label><input id="w" type="number" step="0.01" min="46.5" max="48.8"></div>
         </div>
         <button class="btn btn-sm" type="button" id="apply-coords">Apply coordinates</button>
       </details>
@@ -86,179 +96,10 @@
 <script src="vendor/supabase.js"></script>
 <script src="js/config.js"></script>
 <script src="js/agents.js"></script>
+<script src="js/ui.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/data.js"></script>
-<script src="js/ui.js"></script>
-<script>
-guard(function () {
-  var map = null;
-  try {
-    map = baseMap('picker');
-  } catch (err) {
-    // The map is a convenience, not the only way in. Fall back to coordinates.
-    $('#picker').outerHTML =
-      '<div class="map-placeholder">The map could not load. Type the coordinates below instead.</div>';
-    $('#map-hint').textContent = 'Enter the four coordinates of your area below.';
-    $('details').open = true;
-  }
-
-  var corner1 = null, rect = null, marker = null, area = null;
-
-  function clearArea() {
-    corner1 = null;
-    if (rect && map) { map.removeLayer(rect); }
-    rect = null;
-    if (marker && map) { map.removeLayer(marker); }
-    marker = null;
-    area = null;
-    $('#bounds-text').textContent = 'No area selected.';
-    refresh();
-  }
-
-  function setArea(a) {
-    // Keep the box inside Kuwait and give it a minimum size.
-    a.north = Math.min(30.1, Math.max(28.5, a.north));
-    a.south = Math.min(30.1, Math.max(28.5, a.south));
-    a.east  = Math.min(48.4, Math.max(46.5, a.east));
-    a.west  = Math.min(48.4, Math.max(46.5, a.west));
-    if (a.north < a.south) { var t = a.north; a.north = a.south; a.south = t; }
-    if (a.east  < a.west)  { var u = a.east;  a.east  = a.west;  a.west  = u; }
-    if (a.north - a.south < 0.05) a.north = a.south + 0.05;
-    if (a.east - a.west   < 0.05) a.east  = a.west + 0.05;
-
-    area = a;
-    if (map) {
-      if (rect) map.removeLayer(rect);
-      if (marker) { map.removeLayer(marker); marker = null; }
-      rect = L.rectangle(areaToBounds(a), {
-        color: '#4DD0C0', weight: 2, fillColor: '#4DD0C0', fillOpacity: 0.12
-      }).addTo(map);
-      map.fitBounds(rect.getBounds(), { padding: [24, 24], maxZoom: 11 });
-    }
-
-    $('#bounds-text').textContent = boundsText(a) + ' — approx. ' +
-      areaKm2(a).toLocaleString('en-GB') + ' km²';
-    $('#n').value = a.north.toFixed(2);
-    $('#s').value = a.south.toFixed(2);
-    $('#e').value = a.east.toFixed(2);
-    $('#w').value = a.west.toFixed(2);
-    refresh();
-  }
-
-  if (map) map.on('click', function (ev) {
-    if (area) { clearArea(); }
-    if (!corner1) {
-      corner1 = ev.latlng;
-      marker = L.circleMarker(corner1, { radius: 6, color: '#4DD0C0', fillOpacity: 1 }).addTo(map);
-      $('#map-hint').textContent = 'First corner set. Now tap the opposite corner.';
-      return;
-    }
-    var c2 = ev.latlng;
-    setArea({
-      north: Math.max(corner1.lat, c2.lat), south: Math.min(corner1.lat, c2.lat),
-      east:  Math.max(corner1.lng, c2.lng), west:  Math.min(corner1.lng, c2.lng)
-    });
-    corner1 = null;
-    $('#map-hint').textContent = 'Area selected. Tap the map twice again to replace it.';
-  });
-
-  $('#use-view').addEventListener('click', function () {
-    if (!map) return;
-    var b = map.getBounds();
-    setArea({ north: b.getNorth(), south: b.getSouth(), east: b.getEast(), west: b.getWest() });
-    $('#map-hint').textContent = 'Area selected from the current view. Tap the map twice to replace it.';
-  });
-
-  $('#clear-area').addEventListener('click', function () {
-    clearArea();
-    $('#map-hint').textContent = 'Tap one corner on the map, then tap the opposite corner.';
-  });
-
-  $('#apply-coords').addEventListener('click', function () {
-    var n = parseFloat($('#n').value), s = parseFloat($('#s').value);
-    var e = parseFloat($('#e').value), w = parseFloat($('#w').value);
-    if ([n, s, e, w].some(isNaN)) {
-      fieldError('area', 'Fill all four coordinate fields.');
-      return;
-    }
-    setArea({ north: n, south: s, east: e, west: w });
-  });
-
-  $('#title').addEventListener('input', function () {
-    $('#title-count').textContent = this.value.length;
-    refresh();
-  });
-  $('#objective').addEventListener('input', refresh);
-  $('#title').addEventListener('blur', function () { validate(true); });
-  $('#objective').addEventListener('blur', function () { validate(true); });
-
-  function fieldError(id, msg) {
-    var box = $('#e-' + id);
-    var input = $('#' + id);
-    if (msg) {
-      if (input) input.setAttribute('aria-invalid', 'true');
-      box.textContent = msg; box.classList.remove('hidden');
-    } else {
-      if (input) input.removeAttribute('aria-invalid');
-      box.textContent = ''; box.classList.add('hidden');
-    }
-    return !msg;
-  }
-
-  function missing() {
-    var out = [];
-    if (!$('#title').value.trim()) out.push('a title');
-    if ($('#objective').value.trim().length < 20) out.push('an objective of at least 20 characters');
-    if (!area) out.push('an area on the map');
-    return out;
-  }
-
-  function validate(show) {
-    var ok = true;
-    if (show) {
-      ok = fieldError('title', $('#title').value.trim() ? '' : 'Mission title is required.') && ok;
-      ok = fieldError('objective', $('#objective').value.trim().length >= 20 ? '' : 'Write at least 20 characters.') && ok;
-      ok = fieldError('area', area ? '' : 'Select an area on the map.') && ok;
-    }
-    return missing().length === 0;
-  }
-
-  function refresh() {
-    var gaps = missing();
-    $('#launch').disabled = gaps.length > 0;
-    $('#launch-reason').textContent = gaps.length
-      ? 'Still needed: ' + gaps.join(', ') + '.'
-      : 'Ready to launch.';
-  }
-
-  $('#mission-form').addEventListener('submit', function (ev) {
-    ev.preventDefault();
-    if (!validate(true)) return;
-
-    var btn = $('#launch');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Launching…';
-
-    Data.createMission({
-      title: $('#title').value.trim(),
-      objective: $('#objective').value.trim(),
-      area: area
-    }).then(function (m) {
-      return Data.startPipeline(m.id).then(function () {
-        window.location.href = 'mission.html?id=' + encodeURIComponent(m.id);
-      });
-    }).catch(function (err) {
-      btn.disabled = false;
-      btn.textContent = 'Launch Mission';
-      $('#error').textContent = err.message || 'Could not create the mission.';
-      $('#error').classList.remove('hidden');
-    });
-  });
-
-  setTimeout(function () { if (map) map.invalidateSize(); }, 200);
-  refresh();
-});
-</script>
+<script src="js/page-new-mission.js"></script>
 
 </body>
 </html>

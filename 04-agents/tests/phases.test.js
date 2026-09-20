@@ -27,7 +27,7 @@ function test(name, fn) {
 }
 
 /* The three functions in 03-security/db/05_views_rpc.sql, plus the one
-   in 04-agents/db/REQUEST-TO-03-agent_claim_run.sql. Nothing else. */
+   in 03-security/db/08_agent_claim.sql. Nothing else. */
 var LEGAL_RPC = ['agent_log_step', 'agent_write_result', 'agent_finish_run'];
 
 /* Copied from the CHECK constraint, 03-security/db/01_tables_rls.sql.

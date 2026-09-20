@@ -219,7 +219,12 @@
     var runId = input.run_id;
     var objective = input.objective;
     var area = input.area_geojson;
-    var injection = R.looksLikeInstruction(objective);
+    /* One call, three outputs: the flag, the sentence that goes on the
+       step row, and the notice that leads the draft report. The marker
+       list lives in agent/run.js, so the worker and the browser replay
+       cannot disagree about what counts as an instruction. */
+    var refusal = R.describeRefusal(objective);
+    var injection = refusal !== null;
     var bb = bboxOf(area);
 
     /* Guardrail rule 12 (GUARDRAILS.md). The database already refuses an
@@ -247,15 +252,27 @@
            the rest of the run. We do not obey the objective, we do not
            quietly rewrite it into something obedient, and we do not stop
            the mission the researcher actually asked for. We raise the
-           flag and carry on. GUARDRAILS.md rules 1 and 13. */
+           flag, we SAY what we refused, and we carry on with the real
+           research question. GUARDRAILS.md rules 1 and 13.
+
+           The step stays allowed = true: the scene search really did
+           run. What was refused is the instruction inside the objective,
+           and agent_log_step stores refused_reason either way. */
         logCall(runId, 'satellite_data',
-          { area_bbox: bb, max_scenes: 20, injection_screened: true },
-          true, null, injection),
+          refusal
+            ? { area_bbox: bb, max_scenes: 20, injection_screened: true,
+                instruction_refused: refusal.marker }
+            : { area_bbox: bb, max_scenes: 20, injection_screened: true },
+          true, refusal ? refusal.reason : null, injection),
         logCall(runId, 'environmental_analysis',
           { measures: ['ndvi', 'surface_temperature'], scenes: 20 },
           true, null, false)
       ],
       ctx: { run_id: runId, stop: false, injection: injection,
+             /* carried to phaseDeliver so the DRAFT leads with the
+                refusal. A refusal only the step row knows about is one
+                the person approving the report never reads. */
+             refusal_notice: refusal ? refusal.notice : null,
              area_bbox: bb, zones: zones, rejected_ids: [] }
     };
   }
@@ -318,21 +335,43 @@
     var accepted = D.rankZones(input.zones || [], rejected);
     var calls = [];
 
+    /* O-1, found by hand-simulating the run: the gate tests the TOP zone
+       only, so a candidate under the floor used to get a polygon while
+       the metric row said "accepted only at or above 1.0 °C". Both were
+       on screen at once, and a judge who read the tooltip and then the
+       metric would have caught the guardrail being decorative.
+
+       The fix keeps every candidate visible - the rejected-zone story is
+       better with the other numbers on the map - and makes each row say
+       which side of the floor it is on. One zone is RECOMMENDED; the
+       rest are context. The metric row below says exactly that. */
+    var belowFloor = 0;
     accepted.forEach(function (z, i) {
+      var cooling = D.round1(z.projectedCoolingC);
+      var clears = cooling >= D.IMPACT_FLOOR_C;
+      if (!clears) { belowFloor += 1; }
       calls.push(resultCall(runId, 'site', z.name,
         'Rank ' + (i + 1) + ' of ' + accepted.length + '. ' +
         'Zone score ' + z.score + '/100. ' +
-        'Projected cooling ' + D.round1(z.projectedCoolingC).toFixed(1) +
+        'Projected cooling ' + cooling.toFixed(1) +
         ' °C at 24 months, against a floor of ' + D.IMPACT_FLOOR_C.toFixed(1) + ' °C. ' +
+        (i === 0
+          ? 'RECOMMENDED: this is the zone the run proposes. '
+          : (clears
+              ? 'Clears the floor. Shown as an alternative, not the recommendation. '
+              : 'BELOW THE FLOOR - shown for context only. Not recommended. ')) +
         (z.note ? z.note + ' ' : '') + SAMPLE_NOTE,
         { type: 'Polygon', coordinates: [z.polygon] }));
     });
 
     calls.push(resultCall(runId, 'metric', 'Impact floor applied',
-      'A zone reached the map only at or above ' + D.IMPACT_FLOOR_C.toFixed(1) +
-      ' °C of projected 24-month cooling. ' + rejected.length +
-      ' zone(s) were rejected and the run ranked again without them. ' +
-      'Re-rank limit ' + D.MAX_RERANKS + '. ' + SAMPLE_NOTE, null));
+      'The recommended zone was accepted only at or above ' +
+      D.IMPACT_FLOOR_C.toFixed(1) + ' °C of projected 24-month cooling. ' +
+      rejected.length + ' zone(s) failed that test and the run ranked again ' +
+      'without them. Re-rank limit ' + D.MAX_RERANKS + '. The other ' +
+      'candidates are drawn with their own projections, ' + belowFloor +
+      ' of them below the floor - they are context, not recommendations. ' +
+      SAMPLE_NOTE, null));
 
     /* THE DELIBERATE BREAK. 'visualisation' with an s is not one of the
        six names the database will accept:
@@ -347,6 +386,11 @@
       true, null, false));
 
     calls.push(resultCall(runId, 'narrative', 'Draft findings',
+      /* The refusal LEADS the draft when there was one. The person who
+         presses Approve has to meet it before the finding, not in a
+         footnote under it. input.refusalNotice comes from phaseObserve's
+         ctx and is null on an ordinary run. */
+      (input.refusalNotice ? input.refusalNotice + '\n\n' : '') +
       'Recommended ' + (accepted[0] ? accepted[0].name : 'no zone') + ' first, ' +
       'from ' + accepted.length + ' zone(s) that cleared the ' +
       D.IMPACT_FLOOR_C.toFixed(1) + ' °C floor. ' +

@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="KuwaitSat Green Intelligence — a research console for KuwaitSat-1 researchers: state an objective, seven agents take it from satellite acquisition to a written report.">
 <meta name="author" content="KuwaitSat Green Intelligence capstone team">
+
+<!-- ============================================================
+     WHY THIS LINE IS HERE.
+     Vercel serves every file in the repo, so this page goes live at a
+     real public URL next to the actual product. Without this tag a
+     search engine indexes the DESIGN STUDY, and whoever finds it first
+     reads a simulated page as if it were the Mission Hub.
+     noindex keeps the page reachable by anyone we hand the link to and
+     keeps it out of search results. The banner at the top of the body
+     is the other half of the same fix.
+     ============================================================ -->
+<meta name="robots" content="noindex">
 <style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{margin:0;background:#04060B}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>KuwaitSat Green Intelligence</title>
 
@@ -815,6 +827,117 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 </style>
 </head>
 <body>
+
+<!-- =====================================================================
+     DESIGN STUDY BANNER  ·  added by 02 · Back end, Sunday 20 Sep
+     =====================================================================
+     WHY THIS EXISTS, in one paragraph, because the reason is the whole
+     point of it:
+
+     Vercel serves every file in the repository. That means this page is
+     live at a public URL at the same moment the real Mission Hub is.
+     Somebody who opens it has no way to tell which of the two is the
+     product - and this page says, in several places, that nothing leaves
+     the browser and no network request is made. That was true when it
+     was a zip file on a laptop. It is not true of the product, which
+     signs researchers in against Supabase and stores their missions in
+     Postgres. A visitor who reads the claim here and believes it is
+     reading the product's privacy behaviour off the wrong page.
+
+     So: one fixed bar, above everything including the cinematic intro
+     overlay (z-index 200), that cannot be scrolled away or dismissed,
+     and one link to the real thing. Nothing else on the page changed.
+
+     The three rules below are the only rules of this block, and they
+     are the ones to protect if anyone tidies this file later:
+       1. z-index stays above 200, or the intro covers the banner.
+       2. no close button. "Unmissable" and "dismissible" are opposites.
+       3. the href stays RELATIVE. ../../index.html resolves to the repo
+          root both on Vercel (/02-back-end/prototype/ -> /) and when the
+          file is opened straight off a laptop, which is how README.txt
+          tells people to open it. A hard-coded https:// URL would break
+          the second case and would have to be re-edited after deploy.
+     ===================================================================== -->
+<style>
+/* Self-contained: every colour is written out rather than taken from the
+   page's custom properties, so the banner still reads correctly even if
+   the theme block above it is ever edited. */
+#dsBanner{
+  position:fixed; inset-inline:0; top:0; z-index:9999;
+  background:#B63B32; color:#FFF2EC;
+  border-bottom:2px solid #FEBDA0;
+  box-shadow:0 6px 26px rgba(0,0,0,.55);
+  font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  padding:9px max(16px, env(safe-area-inset-left,0px)) 9px max(16px, env(safe-area-inset-right,0px));
+}
+#dsBanner .ds-in{
+  max-width:1240px; margin:0 auto;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+}
+#dsBanner .ds-tag{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-size:10.5px; font-weight:600; letter-spacing:.18em; text-transform:uppercase;
+  background:#FFF2EC; color:#7A241D;
+  padding:4px 9px; border-radius:5px; white-space:nowrap; flex:0 0 auto;
+}
+#dsBanner .ds-txt{ margin:0; font-size:12.8px; line-height:1.45; flex:1 1 320px; min-width:0 }
+#dsBanner .ds-txt b{ font-weight:600 }
+#dsBanner .ds-ar{ display:block; margin-top:2px; font-size:12.4px; color:#FFD9CB }
+#dsBanner .ds-link{
+  flex:0 0 auto; font-size:12.5px; font-weight:600; color:#7A241D;
+  background:#FFF2EC; border-radius:7px; padding:7px 13px;
+  text-decoration:none; white-space:nowrap;
+}
+#dsBanner .ds-link:hover,#dsBanner .ds-link:focus{ background:#FFFFFF; text-decoration:underline }
+
+/* The page below has to start under the banner instead of behind it.
+   --ds-banner-h is measured in JavaScript a few lines down, because the
+   banner wraps to two or three lines on a phone and a hard-coded height
+   would leave a gap on a laptop or clip the text on a phone. The value
+   in var(...) is only the fallback used for the first paint. */
+body{ padding-top:var(--ds-banner-h,52px) }
+
+/* Two sticky elements in this page pin themselves to the top of the
+   VIEWPORT, which the banner now occupies. Push both down by the same
+   measured height so neither ends up underneath it. These are overrides
+   of .bar and .rc-status, not edits to them - the original rules are
+   untouched where they were written. */
+.bar{ top:calc(var(--ds-banner-h,52px) + env(safe-area-inset-top,0px)) }
+.rc-status{ top:calc(var(--ds-banner-h,52px) + var(--bar-h) + 16px) }
+@media(max-width:940px){ .rc-status{ position:static } }
+</style>
+
+<div id="dsBanner" role="region" aria-label="Design study notice">
+  <div class="ds-in">
+    <span class="ds-tag">Design study</span>
+    <p class="ds-txt">
+      This page is the <b>design study</b> for the KuwaitSat-1 Mission Hub &mdash;
+      <b>it is not the product.</b> Everything on it is simulated inside the
+      browser: no sign-in, no database, nothing here is saved or shared.
+      <span class="ds-ar" lang="ar" dir="rtl">هذه الصفحة دراسة تصميم وليست المنتج. كل ما فيها محاكاة داخل المتصفح، بلا تسجيل دخول وبلا قاعدة بيانات.</span>
+    </p>
+    <a class="ds-link" href="../../index.html">Open the real Mission&nbsp;Hub &rarr;</a>
+  </div>
+</div>
+
+<script>
+/* Measure the banner and hand its height to the CSS above. The banner is
+   one line on a laptop and three on a phone, and the web fonts land after
+   first paint and change the wrap again - so measure on load, on resize,
+   and (where the browser has it) whenever the element itself changes size. */
+(function () {
+  var bar = document.getElementById("dsBanner");
+  function publishHeight() {
+    document.documentElement.style.setProperty("--ds-banner-h", bar.offsetHeight + "px");
+  }
+  publishHeight();
+  addEventListener("resize", publishHeight);
+  addEventListener("load", publishHeight);          /* after the fonts swap in */
+  if (window.ResizeObserver) { new ResizeObserver(publishHeight).observe(bar); }
+})();
+</script>
+<!-- ================= end of the design-study banner ================= -->
+
 
 
 <canvas id="stars" aria-hidden="true"></canvas>

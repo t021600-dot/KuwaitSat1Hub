@@ -278,13 +278,19 @@ function newHost() { return new El('section'); }
     api = Automation.mount({ el: host, missionId: 'm4', client: sb });
     return wait().then(wait).then(function () {
       var realNow = Date.now;
-      Date.now = function () { return realNow() + 200000; };   // jump past STALL_MS
+      /* Jump past STALL_MS, whatever it is set to. Reading the number
+         off the panel instead of typing it here means the stall timeout
+         can be re-agreed with the database sweeper (it moved from 120s
+         to 180s to match sweep_stalled_runs) without this test failing
+         for a reason that has nothing to do with the behaviour. */
+      Date.now = function () { return realNow() + Automation.limits.stallMs + 20000; };
       return api.refresh().then(function () { Date.now = realNow; });
     });
   }).then(function () {
     console.log('\n9 · Stall timeout');
     ok('says failed, not spinning', text(host).indexOf('Failed — no response') >= 0);
-    ok('names the timeout in seconds', text(host).indexOf('120 seconds') >= 0);
+    ok('names the timeout in seconds',
+       text(host).indexOf(Math.round(Automation.limits.stallMs / 1000) + ' seconds') >= 0);
     ok('stopped polling', polls.length === 0);
 
     /* ---------- 10 · no client at all ---------- */

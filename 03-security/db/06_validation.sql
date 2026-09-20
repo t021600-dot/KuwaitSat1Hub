@@ -16,6 +16,32 @@
 -- Everything in this file is refused by the DATABASE. A browser check is
 -- a courtesy to the user; it is not security. Every rule below still
 -- fires when someone skips our page entirely and calls the API by hand.
+--
+-- ---------------------------------------------------------------------
+-- WHY EVERY `add constraint` HAS A `drop constraint if exists` ABOVE IT
+--
+-- There is no `add or replace constraint` in Postgres. Re-paste this
+-- file onto a database that already has these constraints and it stops
+-- at the first one with
+--
+--     ERROR: constraint "missions_title_len" for relation "missions"
+--            already exists
+--
+-- which at 1am reads like total collapse and actually means "this
+-- already worked". The drop lines make the file safe to run as many
+-- times as you like, on a fresh database and on a half-finished one.
+--
+-- TWO THINGS WORTH KNOWING ABOUT THE DROP-THEN-ADD PAIR:
+--   · `add constraint ... check (...)` RE-VALIDATES EVERY EXISTING ROW.
+--     So if a rule below is ever tightened, the re-paste is also the
+--     test: it fails loudly on the old row that breaks the new rule,
+--     which is exactly what you want to find out about on Monday.
+--   · The `alter column ... set not null` lines need no guard. Setting
+--     NOT NULL on a column that is already NOT NULL does nothing and
+--     raises nothing - it is idempotent as written.
+--
+-- WHAT THE CONSTRAINTS DO IS UNCHANGED. Only the ability to re-run this
+-- file safely is new.
 -- =====================================================================
 
 
@@ -45,10 +71,12 @@ alter table public.missions alter column area_geojson set not null;
 -- while the counter on screen says it is fine. On a Kuwait project with a
 -- language toggle, that is a visible contradiction a judge can trip.
 -- ---------------------------------------------------------------------
+alter table public.missions drop constraint if exists missions_title_len;
 alter table public.missions
   add constraint missions_title_len
   check (char_length(btrim(title)) between 3 and 120);
 
+alter table public.missions drop constraint if exists missions_objective_len;
 alter table public.missions
   add constraint missions_objective_len
   check (char_length(btrim(objective)) between 20 and 1500);
@@ -61,11 +89,15 @@ alter table public.missions
 -- Written as a NEGATIVE match on purpose: `~ '[[:alpha:]]'` depends on
 -- the database's lc_ctype and can return false for Arabic. This form
 -- accepts Arabic, English, and anything else, on any locale.
--- Verify it yourself with query 6 in 99-verify.sql before you trust it.
+-- Verify it yourself with query 9 in 99_verify.sql before you trust it -
+-- query 9 is the Arabic/English/junk check. (It used to say query 6, which
+-- is the service_role grant check and proves nothing about this rule.)
+alter table public.missions drop constraint if exists missions_objective_has_letter;
 alter table public.missions
   add constraint missions_objective_has_letter
   check (btrim(objective) !~ '^[0-9[:space:][:punct:]]*$');
 
+alter table public.missions drop constraint if exists missions_title_has_letter;
 alter table public.missions
   add constraint missions_title_has_letter
   check (btrim(title) !~ '^[0-9[:space:][:punct:]]*$');
@@ -75,6 +107,19 @@ alter table public.missions
 -- 2 · THE MAP AREA — the field nobody validates.
 -- Shape, ring count, point count, coordinate TYPE, and where on Earth.
 -- ---------------------------------------------------------------------
+-- RE-RUN NOTE, and it is the one drop-if-exists cannot cover:
+-- `create or replace` can change this function's BODY all night, but it
+-- CANNOT change its return type or its argument list - Postgres answers
+--     ERROR: cannot change return type of existing function
+-- and you cannot simply `drop function` it either, because the CHECK
+-- constraint below DEPENDS on it:
+--     ERROR: cannot drop function ... because other objects depend on it
+-- If you ever need to change the signature, do it in this order:
+--   1. alter table public.missions drop constraint if exists missions_area_shape;
+--   2. drop function if exists public.kuwait_area_ok(jsonb);
+--   3. re-paste this whole file.
+-- Never use `drop ... cascade` here: cascade would silently remove the
+-- constraint that is the whole point of the function.
 create or replace function public.kuwait_area_ok(a jsonb)
 returns boolean
 language sql immutable
@@ -127,12 +172,18 @@ as $fn$
            or (pt->>1)::numeric not between 28.5 and 30.1 ));
 $fn$;
 
+-- The drop/add pair sits AFTER the function above on purpose: re-adding
+-- the constraint re-checks every existing mission row against the
+-- function body you just replaced. Replacing the function alone would
+-- not re-validate anything already stored.
+alter table public.missions drop constraint if exists missions_area_shape;
 alter table public.missions
   add constraint missions_area_shape
   check (public.kuwait_area_ok(area_geojson));
 
 -- "far too long" for a field that is not text: a 5,000-vertex freehand
 -- polygon, or a Polygon object padded with 10,000 junk keys.
+alter table public.missions drop constraint if exists missions_area_size;
 alter table public.missions
   add constraint missions_area_size
   check (octet_length(area_geojson::text) between 2 and 8192);
@@ -150,10 +201,12 @@ alter table public.missions
 -- A typo'd status silently bypasses the status gate on results_select,
 -- so this is se-m1's problem as much as se-m5's.
 -- ---------------------------------------------------------------------
+alter table public.missions drop constraint if exists missions_status_allowed;
 alter table public.missions
   add constraint missions_status_allowed
   check (status in ('draft','queued','running','review','complete','failed'));
 
+alter table public.mission_runs drop constraint if exists runs_status_allowed;
 alter table public.mission_runs
   add constraint runs_status_allowed
   check (status in ('queued','running','complete','failed','stalled'));

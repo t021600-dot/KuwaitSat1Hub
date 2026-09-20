@@ -30,7 +30,7 @@ list of things you now have no time to fix.
 | # | Must be true | Where it is checked |
 |---|---|---|
 | 1 | Mariam has run `03-security/db/01_tables_rls` → `99_verify` against the real Supabase project | `99_verify.sql` in the SQL editor, all rows green |
-| 2 | `04-agents/db/08_agent_claim.sql` has been run (blocks 1 and 3: `claim_next_run`, `sweep_stalled_runs`) | SQL editor |
+| 2 | `03-security/db/08_agent_claim.sql` has been run (blocks 1 and 3: `claim_next_run`, `sweep_stalled_runs`) | SQL editor |
 | 3 | The n8n Cloud workflow `KuwaitSat-1 · mission run worker` is imported and reads **Active** | n8n → Overview |
 | 4 | The automation panel is wired into `mission.html` and the old bottom-of-page launch branch is deleted | `docs/AU-M3-PROCESS.md` §5 |
 | 5 | A rehearsal researcher account exists and can sign in on a laptop that did not build the app | `login.html` |
@@ -413,10 +413,10 @@ returns that list and nothing more.
 - the limit is stated from memory and is not in the file;
 - the grant query returns a table privilege for `service_role`;
 - **the tool name Dana points at is not the tool name on screen in the run.**
-  ⚠️ `04-agents/worker/agent-run.js` names its tools `objective_screen`,
-  `impact_model`, `map_layer`, `draft_report` — *different names* from
-  `agent/steps.js`. Whichever engine runs on Thursday is the vocabulary the
-  judge sees. See NOT-YET-TRUE #6.
+  ✅ **Resolved.** The second engine that used different tool names
+  (`worker/agent-run.js`) has been deleted. There is one vocabulary now:
+  `agent/steps.js` → `STEPS[].tool`, read by the n8n Code nodes, by the Edge
+  fallback and by the replay page. See NOT-YET-TRUE #6.
 
 **Evidence:** `au-m5_steps-js-limit.png`, plus the grant query result pasted into
 `evidence/README.md`.
@@ -460,9 +460,11 @@ open and no dashboard session anywhere in the window.
 - the verifier has to be told anything;
 - a spinner with no words at any point;
 - **`Queued — waiting for a worker to pick this run up…` forever.** If n8n is not
-  collecting, the app gives up after **120 seconds** with a visible failure
-  (`STALL_MS` in `04-agents/app/js/automation.js`) — which passes SHOULD 9 but
-  fails `au-m6`, because the outcome the user sees is nothing;
+  collecting, the app warns at **20 seconds** (`QUEUE_WARN_MS`) and gives up
+  after **180 seconds** with a visible failure (`STALL_MS` in
+  `04-agents/app/js/automation.js`, the same three minutes as
+  `sweep_stalled_runs()`) — which passes SHOULD 9 but fails `au-m6`, because the
+  outcome the user sees is nothing;
 - you had to press refresh and did not say so beforehand.
 
 **Evidence:** `au-m6_private-window-run.mp4`. This is also Dana's backup screen
@@ -614,12 +616,18 @@ number came from, and Dana points at a row.
 **PASS:** every number traced to something visible without opening the database.
 **FAIL:** a number that exists only in prose; claiming a figure is a measurement.
 
-> ⚠️ **THIS ROW FAILS TODAY AND YOU SHOULD KNOW WHY.** The
-> `[MEASURED]` / `[MODELLED]` provenance tags exist **only** in
-> `04-agents/worker/agent-run.js` — the Edge-function engine. The engine wired
-> into n8n is `agent/run.js`, and its result bodies carry **no provenance
-> labels**. Pick one engine (NOT-YET-TRUE #6) or port the tags across. Until then
-> this is a SHOULD you cannot claim.
+> ⚠️ **PARTLY FIXED — read before claiming it.** There is one engine now, and
+> **every** result row it writes ends with the provenance sentence
+> *"Sample prototype figure, not a KuwaitSat-1 measurement."*
+> (`n8n/phases.js` → `SAMPLE_NOTE`, asserted by `tests/phases.test.js`: *every
+> finding says on the row that its figures are samples*). Each `site` row also
+> now says whether it **clears the impact floor** or is drawn **for context
+> only**, so the map and the metric row cannot contradict each other (O-1).
+>
+> What is still NOT there: per-figure `[MEASURED]` / `[MODELLED]` tags. Every
+> figure in this build is modelled, and the row says so in a sentence rather
+> than a tag. Say it that way and it is true; claim per-number tagging and it is
+> not.
 
 ---
 ---
@@ -709,11 +717,14 @@ the guardrail holds, and the app says what it refused to do.
 **FAIL:**
 - the agent lists missions, or any part of that instruction is carried out;
 - the flag clears;
-- **the spoken script and the code disagree.** `GUARDRAILS.md` R-2 and
-  `HAND-SIMULATION.md` both say the run *continues on the real question*.
-  `worker/agent-run.js` → `detectInjection()` **refuses the whole run** and
-  finishes it `stalled`. One of those is wrong on Thursday. See NOT-YET-TRUE #6,
-  and fix the words or the code before rehearsing this.
+- **the spoken script and the code disagree.** ✅ **Resolved.** The engine that
+  refused the whole run on an injection (`worker/agent-run.js` →
+  `detectInjection()`) has been deleted. The surviving code does what
+  `GUARDRAILS.md` R-2 and `HAND-SIMULATION.md` say: `agent/run.js` →
+  `describeRefusal()` flags it, names it, and the run **continues on the real
+  question**, with the refusal as the first line of the draft report.
+  `tests/injection.test.js` drives the R-2 objective through the real files and
+  the real panel and reads the sentence back off the page.
 
 ---
 ---
@@ -729,10 +740,14 @@ the panel has nothing to call, and **V-1, V-2, V-4, V-5, V-6, V-8, V-9, V-11,
 V-13 and V-14 cannot be attempted at all.** This is the single biggest
 dependency in area 04. *Action: Mariam runs them, tonight or Monday.*
 
-**2 · `04-agents/db/08_agent_claim.sql` has not been run.** Without
+**2 · `03-security/db/08_agent_claim.sql` has not been run.** Without
 `claim_next_run()` the worker has three write paths and **no read path** — it
-cannot discover that a queued run exists. Nothing in 04 runs. *Action: send it to
-Mariam with #1, as one ask.*
+cannot discover that a queued run exists. Nothing in 04 runs. The file has been
+reviewed and now lives in 03's folder, so it runs in file order with the rest.
+*Action: it goes with #1, as one ask.* (04's original request file,
+`04-agents/db/REQUEST-TO-03-agent_claim_run.sql`, is **deleted** — it keyed the
+sweeper off `started_at`, which is set when a run is QUEUED, so it would have
+stalled the very run the `au-m1` test creates.)
 
 **3 · The n8n workflow is not imported or Active, and the trial expiry has not
 been checked.** `n8n/workflow.json` exists and regenerates cleanly, but nothing
@@ -750,33 +765,37 @@ would let the team pass V-1 by accident while nothing ever reaches a database.
 *Action: apply `docs/AU-M3-PROCESS.md` §5, and delete the
 `if (btn.dataset.action === 'launch')` branch. Not comment out. Delete.*
 
-**5 · There are THREE automation panels in this repo and only one can be live.**
-`app/automation.js` (12.7 KB), `app/agent-panel.js` (13 KB), and
-`app/js/automation.js` (42.6 KB, newest). They have different mount signatures,
-different stall timeouts (180 s vs 120 s) and different feature sets — only the
-newest has the SHOULD 8 approval checkpoint. `app/INTEGRATION.md` points at the
-first; `docs/AU-M3-PROCESS.md` §5 points at the second. *Action: pick
-`app/js/automation.js`, delete or archive the other two, and fix both documents
-tonight. If this is unresolved on Wednesday, two of us will wire different files
-and neither will know which one the judge is looking at.*
+**5 · ✅ RESOLVED — there is ONE automation panel.** `app/js/automation.js`
+survives: it is the only one with the SHOULD 8 approval checkpoint and the
+database-error translation, and it is the one the tests load verbatim.
+`app/automation.js` and `app/agent-panel.js` are **deleted**. `INTEGRATION.md`
+and `AU-M3-PROCESS.md` §5 now both point at the survivor, `app/demo.html` drives
+it through a fake Supabase client instead of carrying its own copy, and its
+`STALL_MS` moved 120 s → **180 s** to match `sweep_stalled_runs()`.
+`tools/preflight.js` check **C1b** fails if any deleted duplicate reappears.
 
-**6 · There are TWO agent engines with different logic, different tool names and
-different behaviour on injection.**
-`agent/decision.js` + `steps.js` + `run.js` → `IMPACT_FLOOR_C = 1.0`, tools
-`scene_index.search` … `draft.compose`, injection **flags and continues**. This
-is what n8n runs, what the docs describe, and what the tests assert.
-`worker/agent-run.js` → evidence bars (`NDVI_BAR`, `TEMP_ANOMALY_BAR`), tools
-`objective_screen`, `impact_model`, `map_layer`, `draft_report`, injection
-**refuses the whole run** and finishes it `stalled`, and it is the **only** place
-the `[MEASURED]` / `[MODELLED]` provenance tags exist.
-*Consequences: V-5 points at tool names that may not be on screen, V-11 fails,
-V-14's spoken script contradicts the code.* *Action: declare one engine the live
-one this week; port provenance into it if it is the `agent/` one.*
+**6 · ✅ RESOLVED — there is ONE agent engine.**
+`agent/decision.js` + `steps.js` + `run.js` + `n8n/phases.js` survive:
+`IMPACT_FLOOR_C = 1.0`, tools `scene_index.search` … `draft.compose`, and an
+injection that **flags, names and continues**. That is what n8n runs (through
+the generated `workflow.json`), what the Edge fallback in `worker/edge/index.ts`
+now imports, what the docs describe and what all four test files assert.
+`worker/agent-run.js` is **deleted** — it used different tool names, different
+thresholds, and refused the whole run on an injection, which is the opposite of
+guardrail rule 13. Its one genuinely useful idea, provenance on the row, already
+exists in the survivor as `SAMPLE_NOTE` on every finding.
+*Consequences cleared: V-5 points at the only tool names there are; V-11's
+provenance sentence is on every row; V-14's script and the code now agree.*
 
-**7 · `n8n/README.md` is stale and describes a different workflow.** It says six
-nodes; `workflow.json` and `BUILD-GUIDE.md` have **22**, with different names.
-A teammate following the README builds the wrong thing. *Action: delete the node
-table in `n8n/README.md` and point it at `BUILD-GUIDE.md`.*
+**7 · ✅ RESOLVED — `n8n/README.md` is deleted, and so is
+`worker/n8n/WORKFLOW.md`.** The README's node 2 did
+`GET /rest/v1/mission_runs?status=eq.queued` — a **table URL**, which
+`03_grants.sql` makes a 401, and which never claimed the row, so two polls
+15 seconds apart would have processed the same run twice. `WORKFLOW.md` built the
+same run behind a webhook (a URL that starts agents, which D-1 exists to
+prevent) and had no IF node, so there was no decision on the canvas for `au-m3`.
+**`n8n/BUILD-GUIDE.md` is the only guide** — 22 nodes, a schedule trigger, and
+`claim_next_run()`. Its §8 keeps the record of what the other two said.
 
 **8 · Rehearsal R-1 has not been run, so `au-m4`'s "one rule I changed" is not
 claimable.** The table in `GUARDRAILS.md` §4 is empty. **Do not say the sentence
@@ -793,20 +812,27 @@ ten minutes and it converts three rows from NOT PROVEN to proven.*
 
 **10 · Three known defects found by hand and still open**
 (`HAND-SIMULATION.md`, bottom):
-- **O-1** — a zone projecting 0.9 °C still gets a polygon on the map while the
-  metric row says zones were accepted only at or above 1.0 °C. Both are on screen
-  at once. A judge reading the tooltip then the metric catches it, and the
-  guardrail reads as decorative. *Pick (a) or (b) and say which.*
+- **O-1 — ✅ FIXED, option (b), which was the stated preference.** Every
+  candidate still reaches the map (the rejected-zone story is better with the
+  other numbers visible), but each `site` row now says which side of the floor it
+  is on — `RECOMMENDED`, *clears the floor*, or `BELOW THE FLOOR - shown for
+  context only` — and the metric row says *"the recommended zone was accepted
+  only at or above 1.0 °C … the other candidates are drawn with their own
+  projections, N of them below the floor — context, not recommendations."* The
+  map and the metric row can no longer contradict each other. Changed in
+  `agent/run.js` and `n8n/phases.js`, in the same words.
 - **O-2** — two coordinate orders in the repo and nothing converts. `seed.js`
   emits `[lat, lng]`, `demo.html` emits `[lng, lat]`, `run.js` wraps whichever it
   is handed, and `kuwait_area_ok()` constrains `missions.area_geojson` — **not**
   `results.geometry`. A reversed Jahra polygon draws in Europe, live, on the map
   the judge is watching.
-- **O-3** — a queued run that is never collected blocks its mission forever
-  (`launch_mission()` refuses while a run is `queued`/`running`, and nothing ages
-  it out). The app gives up at **120 seconds**; `sweep_stalled_runs()` only fires
-  at **3 minutes**. In that gap the researcher sees a failure and cannot relaunch.
-  *Have the one-line SQL that clears a stuck queued run in the runbook, on paper,
+- **O-3 — half fixed.** The timing gap is closed: the app now gives up at
+  **180 seconds**, the same three minutes as `sweep_stalled_runs()`, so the
+  screen and the row never disagree (`tools/preflight.js` C5 enforces it).
+  **Still open:** `sweep_stalled_runs()` only sweeps `running` runs — deliberately,
+  because a `queued` run with n8n closed is the `au-m1` test in progress — so a
+  run that is never *claimed* still blocks its mission until somebody clears it.
+  *Keep the one-line SQL that clears a stuck queued run in the runbook, on paper,
   on the night.*
 
 **11 · Nobody but Dana has run any of this.** Every claim on this page is

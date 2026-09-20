@@ -115,12 +115,19 @@ var Automation = (function () {
      the line that tells you the workflow is switched off, instead of
      leaving you staring at a spinner wondering. */
 
-  var STALL_MS = 120000;
-  /* THE STALL TIMEOUT — this is SHOULD 9. If 2 minutes pass with no new
+  var STALL_MS = 180000;
+  /* THE STALL TIMEOUT — this is SHOULD 9. If 3 minutes pass with no new
      step written, we stop polling and say the run FAILED, with a reason.
      A run that dies quietly must never look the same as a run that is
-     thinking. Raise this number if a real step legitimately takes longer;
-     it is the only place it is written. */
+     thinking.
+
+     THREE MINUTES IS NOT AN ARBITRARY NUMBER. It is the same number as
+     the default of sweep_stalled_runs(p_idle_minutes int default 3) in
+     03-security/db/08_agent_claim.sql, so the screen and the database
+     give up at the same moment. At 2 minutes the screen said "Failed"
+     while the row still read 'running', and the next refresh contradicted
+     it — in front of a judge. CHANGE ONE, CHANGE BOTH, and say which two
+     files you changed. tools/preflight.js check C5 fails if they drift. */
 
   var STEP_BUDGET = 40;
   /* MIRROR of the database. agent_log_step() refuses step 41 with
@@ -228,6 +235,31 @@ var Automation = (function () {
       'That run no longer exists.'
   };
 
+  /* The rate limits are the one family of refusals we cannot match on an
+     exact string: launch_mission() formats the NUMBER into the sentence
+     from app_settings ("Limit reached: 5 agent runs per hour."), so the
+     number can change in the database without a deploy — which is the
+     whole point of keeping it in a row. We match the shape and keep the
+     database's own number in what the researcher reads.
+
+     Two different limits raise two different sentences, and they mean
+     different things:
+       "... agent runs per hour/day"  -> launch_mission(), LAUNCHING
+       "... missions per hour/day"    -> missions_guard(),  CREATING
+     Saying "you have created too many" to someone who only pressed
+     Launch sends them hunting for missions to delete. */
+  function rateLimitMessage(msg) {
+    var m = /^Limit reached: (\d+) (agent runs|missions) per (hour|day)\.$/.exec(msg);
+    if (!m) { return null; }
+    var isRun = m[2] === 'agent runs';
+    return (isRun
+      ? 'You have launched ' + m[1] + ' runs this ' + m[3] + ', which is the limit. '
+      : 'You have created ' + m[1] + ' missions this ' + m[3] + ', which is the limit. ') +
+      'Nothing was started. The limit is there so one account cannot spend ' +
+      'the whole platform’s budget — wait, or use another mission that ' +
+      'has already run.';
+  }
+
   function humanError(err) {
     /* Never returns raw database text. Always returns a sentence. */
     if (!err) return 'Something went wrong, and we could not tell what.';
@@ -239,6 +271,10 @@ var Automation = (function () {
 
     /* (a) One of our own written sentences — use the mapped version. */
     if (DB_MESSAGES[msg]) return DB_MESSAGES[msg];
+
+    /* (a2) A rate limit, whose number comes out of app_settings. */
+    var limited = rateLimitMessage(msg);
+    if (limited) return limited;
 
     /* (b) No network. This is the most common one on venue wifi, and it
        is worth naming exactly, because it is not our bug and the fix is
@@ -533,14 +569,28 @@ var Automation = (function () {
         if (state === 'refused') st.style.color = 'var(--danger)';
         body.appendChild(st);
 
-        /* The one line of text under the step name. When the step was
-           refused, the REASON replaces the description — a refusal the
-           researcher cannot read is not a refusal they can trust.
-           .textContent, always: this string was written by the agent. */
-        body.appendChild(el('span', 'sm',
-          (state === 'refused' && row && row.refused_reason)
-            ? row.refused_reason
-            : blurb));
+        /* The one line of text under the step name. Whenever the row
+           carries a reason, the REASON replaces the description — a
+           refusal the researcher cannot read is not a refusal they can
+           trust.
+
+           NOT only when state === 'refused'. The injection case is a step
+           that RAN (allowed = true) while an instruction inside the
+           objective was refused, and agent_log_step stores
+           refused_reason either way. Gating this on 'refused' is how the
+           chip ends up saying something was caught while the screen never
+           says what — which is the half of the break test a step row in a
+           table cannot prove.
+
+           .textContent, always: this string was written by the agent from
+           text a researcher typed. */
+        var detail = (row && row.refused_reason) ? row.refused_reason : blurb;
+        var detailLine = el('span', 'sm', detail);
+        if (row && row.refused_reason && state !== 'refused') {
+          /* the step is fine; the objective was not */
+          detailLine.style.color = 'var(--warn)';
+        }
+        body.appendChild(detailLine);
 
         /* The run flagged the objective as containing an instruction
            rather than a research question. It is raised once and never
@@ -848,7 +898,7 @@ var Automation = (function () {
              run failed in the database — this panel has no write access
              to that, and guessing on the server's behalf would put a lie
              in the audit trail. What we say is exactly what we know:
-             nothing has happened here for two minutes. */
+             nothing has happened here for three minutes. */
           stop();
           launchBtn.disabled = false;
           launchBtn.textContent = 'Launch Mission';

@@ -128,19 +128,30 @@ is not:
 - It is the tool the course taught. Three nights is not the week to learn Deno.
 - The canvas doubles as the `au-m3` artefact and the failure-plan-per-node artefact.
 
-**What makes this safe to choose:** the worker logic is in `worker/agent-run.js`, pure,
-with no network calls and no secrets in it. n8n pastes it into a Code node; the Edge
-fallback in `worker/edge/index.ts` imports the same file. **If the trial is dead tonight, or
-n8n breaks on Tuesday, you switch engines by moving one file and you change nothing else** —
-not the button, not the SQL, not the guardrails, not the demo script.
+**What makes this safe to choose:** the worker logic is in `agent/decision.js`,
+`agent/steps.js`, `agent/run.js` and `n8n/phases.js` — pure, with no network calls and no
+secrets in any of them. `tools/build-workflow.js` generates them into the n8n Code nodes;
+the Edge fallback in `worker/edge/index.ts` imports the same four files and does the HTTP
+itself. **If the trial is dead tonight, or n8n breaks on Tuesday, you switch engines by
+copying four files and you change nothing else** — not the button, not the SQL, not the
+guardrails, not the demo script.
+
+*(There was briefly a second copy of this logic in `worker/agent-run.js`, written by a
+parallel session. It refused the whole run on an injection instead of flagging it and
+answering the research question — the opposite of guardrail rule 13 — so the two engines
+would have behaved differently in front of a judge. It has been deleted.)*
 
 **The one thing that blocks both A and B, tonight:** `03_grants.sql` revokes every table
 privilege from `service_role`, so the worker cannot read `mission_runs` or `missions`. It
 cannot find a queued run and cannot learn the objective or the area. It needs a fourth
 function — `03_grants.sql` says so itself: *"If n8n needs a fourth, it gets a fourth
-FUNCTION, never a table grant."* The SQL is written and waiting for review in
-`04-agents/db/REQUEST-TO-03-agent_claim_run.sql`. **Send it to Mariam tonight. Nothing in
-area 04 runs until it exists.**
+FUNCTION, never a table grant."* That fourth function now exists: `claim_next_run()`, with `sweep_stalled_runs()` beside
+it, in `03-security/db/08_agent_claim.sql` — reviewed by 03 and living in their folder, so
+it runs with `01`→`06` rather than separately. **Nothing in area 04 runs until somebody
+executes it.** *(04's original ask, `04-agents/db/REQUEST-TO-03-agent_claim_run.sql`, had
+two bugs the answer fixed — it keyed the sweeper off `started_at`, which is set when the
+run is QUEUED, so the `au-m1` test would have stalled its own run. The request file has
+been deleted so nobody runs the older draft.)*
 
 **Cut list for this decision** (a judge who asks what you left out wants answers, not a shrug):
 Vercel cron · Next.js route handlers · Supabase Realtime · a browser-side agent loop ·

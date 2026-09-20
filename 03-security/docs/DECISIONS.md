@@ -41,7 +41,7 @@ curl -X POST <the webhook> -d '{"mission_id":"<the id you handed the judge>"}'
 ```
 
 starts a run on another researcher's mission from outside every account. Every
-policy in `sql/04-policies.sql` stays perfectly intact and completely
+policy in `db/04_policies.sql` stays perfectly intact and completely
 irrelevant, while the two-window demo still passes.
 
 **Cost of deciding late:** 04 builds a Webhook trigger on Tuesday and it is
@@ -90,7 +90,7 @@ and it makes the build simpler, not harder.
 
 ## D-3 · Mission areas must be inside Kuwait
 
-**Decision.** `kuwait_area_ok()` in `sql/06-validation.sql` refuses any polygon
+**Decision.** `kuwait_area_ok()` in `db/06_validation.sql` refuses any polygon
 with a point outside 46.5–48.8 E / 28.5–30.1 N.
 
 **Why.** Two reasons, and the second is the better one.
@@ -135,7 +135,7 @@ schema is still open.
 
 **The situation.** `mission_collaborators`, `is_collaborator()`,
 `share_mission()` and the `or public.is_collaborator(...)` branch in three
-policies are all written and ready in `sql/`. They match the project brief,
+policies are all written and ready in `db/`. They match the project brief,
 which says Supabase stores "users, missions, workflows, results and
 **permissions**".
 

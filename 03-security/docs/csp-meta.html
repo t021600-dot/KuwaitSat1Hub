@@ -5,10 +5,24 @@
      Paste this IDENTICALLY into the <head> of every page:
        index.html, signin.html, dashboard.html, mission.html, report.html
 
-     Replace PROJECTREF with our Supabase project ref.
+     Replace PROJECTREF with our Supabase project ref - in THIS file AND
+     in /vercel.json. The two must stay identical.
 
-     We are on a static host, so we cannot send HTTP response headers.
-     A <meta> tag is the only wall available.
+     THE AUTHORITATIVE COPY OF THIS POLICY IS A RESPONSE HEADER.
+     We deploy to Vercel, which CAN send HTTP response headers, so the
+     real Content-Security-Policy is sent from /vercel.json on every
+     response. See docs/VERCEL-HEADERS.md for every line explained.
+
+     So why keep the meta tag? Because a header only exists when a server
+     sends one. Open a page from file:// or a bare local static server on
+     a build night and there is no header - the meta tag still protects
+     the page.
+
+     THE RULE THAT COSTS AN HOUR IF YOU DO NOT KNOW IT: when a page has
+     BOTH a CSP header and a CSP meta tag, the browser enforces BOTH - a
+     request must satisfy each policy independently. Loosening only one
+     of them changes NOTHING. If you add an origin, add it to vercel.json
+     AND to this file, in the same commit.
      ===================================================================== -->
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self';
@@ -47,7 +61,21 @@
   without HTTPS just fails as a missing file. It turns a loud failure
   into a silent one on the night you need the loud one.
 
-  frame-ancestors is IGNORED in a meta tag - it only works as a response
-  header, which our host cannot send. Do not add it, and do not claim
-  clickjacking protection we do not have.
+  frame-ancestors is IGNORED in a meta tag - that part is a rule of CSP
+  itself and has not changed. It only works as a RESPONSE HEADER, and we
+  can now send one: it lives in /vercel.json as
+
+      frame-ancestors 'none'
+
+  alongside X-Frame-Options: DENY for older browsers. So clickjacking
+  protection IS real now and you may say so - just do not try to add the
+  directive here, because a meta policy cannot carry it.
+
+  Same story for Strict-Transport-Security, X-Content-Type-Options,
+  Referrer-Policy and Permissions-Policy: all four are response headers,
+  all four ship from /vercel.json, and none of them can live in a meta
+  tag. The one exception is <meta name="referrer"> above, which IS a
+  real meta-level control - it is kept as the file:// fallback for the
+  same reason the CSP meta tag is kept, and the Referrer-Policy header in
+  vercel.json says the same thing (no-referrer) for every real request.
 -->

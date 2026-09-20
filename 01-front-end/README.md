@@ -77,16 +77,16 @@ while the screen looks like it worked. Leaving it off is correct.
 
 ## ⚠️ Two things that must change before demo day
 
-### 1 · `se-m3` is currently failing — passwords are stored and shown
+### 1 · `se-m3` — FIXED. (Kept as the record of what was wrong.)
 
 ```js
 // js/seed.js:116
-id: 'usr_a', email: 'researcher.a@kuwaitsat.kw', password: 'demo1234',
+id: 'usr_a', email: 'researcher.a@kuwaitsat.kw', password: '<REDACTED>',
 ```
 
 ```html
 <!-- login.html:55 -->
-<div class="mono">researcher.a@kuwaitsat.kw &nbsp; demo1234</div>
+<div class="mono">researcher.a@kuwaitsat.kw &nbsp; &lt;REDACTED&gt;</div>
 ```
 
 The judge's `se-m3` test is *"your app never stores a password, and none is shown

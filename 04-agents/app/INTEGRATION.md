@@ -2,8 +2,8 @@
 
 **From:** Dana (04) · **To:** Retag (01) · **Cost to you:** two lines and one `<div>`.
 
-`automation.js` is self-contained. It defines one global (`Automation`), writes no
-CSS, and reuses the classes you already ship (`card`, `btn`, `timeline`, `agent`,
+`04-agents/app/js/automation.js` is self-contained. It defines one global
+(`Automation`), writes no CSS, and reuses the classes you already ship (`card`, `btn`, `timeline`, `agent`,
 `chip`, `small`, `muted`, `pipeline-head`). It never touches `Data`, `localStorage`,
 or any of your files.
 
@@ -52,11 +52,13 @@ Automation.mount({
 });
 ```
 
-Copy `04-agents/app/automation.js` to `js/automation.js` at the repo root when the
-screens move to the root for GitHub Pages. Until then, reference it where it sits.
+Copy `04-agents/app/js/automation.js` to `js/automation.js` when the screens move
+for deployment. Until then, reference it where it sits.
 **Do not edit the copy.** If it needs a change, tell me and I change the one in
 `04-agents/` — otherwise we ship two versions of the automation section on
-Wednesday and neither of us knows which one is live.
+Wednesday and neither of us knows which one is live. *(That already happened
+once: this folder held three panels. There is now exactly one, and
+`node 04-agents/tools/preflight.js` check C1b fails if another appears.)*
 
 ## 3 · Things that will bite, listed before they bite
 
@@ -67,6 +69,8 @@ Wednesday and neither of us knows which one is live.
 | **No `maxlength` on the objective** | `06_validation.sql` says it plainly: `maxlength` silently truncates the judge's 5,000-character paste, the row is created, and nothing refuses anything. Use a live counter. |
 | **The step strip only shows finished steps** | `agent_log_step` writes a step that is already complete, so a step is either written or not yet written. The strip marks the next unwritten step as *Running…* while the run is live. That is inference, and it is honest — the row appears the moment the step really finished. |
 | **Two runs on one mission duplicate the findings** | `launch_mission()` refuses a second run only while one is `queued`/`running`. After a complete run the button stays disabled on purpose. For a second demo, make a new mission. |
+| **The rate limits raise four different sentences** | `launch_mission()` says `Limit reached: 5 agent runs per hour.` (or `per day`); the insert trigger says `Limit reached: 5 missions per hour.` They mean different things — launching versus creating — and the number comes from `app_settings`, so it can change without a deploy. `automation.js` matches the SHAPE of the sentence and quotes the database's own number; your `mapError()` should too. |
+| **The human checkpoint is inside the panel** | When a run completes, the panel shows the draft and an **Approve and generate report** button, and calls `generate_report()` itself. If your page has its own approve control, tell me and I will drop mine — two buttons that both publish is worse than either. |
 | **Never `innerHTML` with a value from the database** | `results.body` and `reports.body_md` are written by the agent from text a researcher typed. `automation.js` uses `textContent` and `white-space: pre-wrap` everywhere. D-2. |
 
 ## 4 · What I need from you in CSS (optional, 6 lines)

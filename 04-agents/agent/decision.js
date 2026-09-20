@@ -9,10 +9,11 @@
            <  1.0 °C  ->  reject that zone, go back and rank again
 
    That number is IMPACT_FLOOR_C, twelve lines below. It is written
-   once, in this file, and nowhere else. The n8n Code node runs this
-   exact file (see ../n8n/README.md); the browser panel imports it; the
-   test in ../tests/decision.test.js asserts on it. If a judge asks
-   "where does the threshold live", the answer is one file and one line.
+   once, in this file, and nowhere else. The n8n Code nodes run this
+   exact file, generated into the workflow by tools/build-workflow.js
+   (see ../n8n/BUILD-GUIDE.md §5); the browser panel and the replay page
+   read it; the tests in ../tests/ assert on it. If a judge asks "where
+   does the threshold live", the answer is one file and one line.
 
    WHY THE LOOP TERMINATES. The re-rank is not the same question asked
    twice. Recommendation ranks on what was OBSERVED (NDVI, surface

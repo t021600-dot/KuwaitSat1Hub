@@ -51,7 +51,12 @@ Our own rules that you should check we actually kept:
 - No text a researcher typed, and no text an AI agent wrote, is ever
   rendered with innerHTML.
 - No key, token or password anywhere in the repo.
-- Every page has a Content-Security-Policy meta tag.
+- The Content-Security-Policy ships as a REAL HTTP RESPONSE HEADER from
+  vercel.json (we host on Vercel), and the same policy is repeated as a
+  meta tag in every page head as a fallback for local file:// viewing.
+  script-src is 'self' with NO 'unsafe-inline'. frame-ancestors is
+  'none'. We also send Strict-Transport-Security, X-Content-Type-Options,
+  Referrer-Policy: no-referrer and Permissions-Policy.
 - HTTPS only, no mixed content.
 - The browser never calls the n8n webhook; it calls launch_mission().
 - No Supabase Storage bucket exists; the map draws from results.geometry.

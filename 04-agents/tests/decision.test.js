@@ -23,7 +23,14 @@ function test(name, fn) {
    KuwaitSat-1 measurements - the same values the screen shows. */
 function zones(topCooling) {
   return [
-    { id: 'z_a', name: 'Zone A - North corridor', score: 88, projectedCoolingC: topCooling, polygon: [[29.4, 47.6], [29.4, 47.8], [29.6, 47.8], [29.6, 47.6]] },
+    /* [longitude, latitude], and the ring CLOSES (last point = first).
+       That is what GeoJSON means and what 06_validation.sql checks:
+       (pt->>0) against 46.5-48.8 E, (pt->>1) against 28.5-30.1 N.
+       This sample was written [29.4, 47.6] - latitude first - which
+       reads as 29.4 E, 47.6 N: not Kuwait, and refused by
+       kuwait_area_ok(). A sample in the wrong order is how the wrong
+       order reaches the map. */
+    { id: 'z_a', name: 'Zone A - North corridor', score: 88, projectedCoolingC: topCooling, polygon: [[47.6, 29.4], [47.8, 29.4], [47.8, 29.6], [47.6, 29.6], [47.6, 29.4]] },
     { id: 'z_b', name: 'Zone B - Central basin',  score: 81, projectedCoolingC: 1.9 },
     { id: 'z_c', name: 'Zone C - South flats',    score: 67, projectedCoolingC: 1.4 },
     { id: 'z_d', name: 'Zone D - East margin',    score: 59, projectedCoolingC: 0.9 },

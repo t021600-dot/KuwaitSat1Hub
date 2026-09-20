@@ -51,11 +51,17 @@ claim. The checks it makes, and the demo line each one protects:
 | `C3` no n8n or webhook URL in browser files | `au-m1` fails in the Network tab, publicly |
 | `C5` the screen and the sweeper give up together | the screen says **Failed** while the row still says `running` |
 
-> **C5 is open and it is yours to close.** The shipped panel gives up at **120 s**;
-> `sweep_stalled_runs()` defaults to **3 minutes**. Pick one. Recommendation:
-> make both 120 s — put `{"p_idle_minutes": 2}` in the **Sweep stalled runs**
-> node body. Three minutes of nothing on a stage is unwatchable, and a judge
-> who refreshes during that minute sees two different truths.
+> **C5 is closed.** Both numbers are now **3 minutes**: the panel's
+> `STALL_MS = 180000` and the default of `sweep_stalled_runs(p_idle_minutes
+> int default 3)`. The screen and the database give up in the same second, so a
+> judge who refreshes cannot be shown two different truths. Leave the **Sweep
+> stalled runs** node body as `{}` — an empty body takes that default.
+>
+> **On stage you will never wait three minutes for it.** The worker gives up
+> first, at 120 s (`RUN_MAX_MS` in `worker/edge/index.ts`, and n8n's own node
+> timeouts), and closes the run with a reason. The 3-minute stall is the
+> backstop for the case where the worker itself died — which is exactly the
+> failure nothing inside the worker can report.
 
 ## 1.2 · Thursday, T-60 minutes
 
@@ -92,17 +98,28 @@ launch them**.
 | M3 | *(created live)* | the break test (§5) |
 | M4 | `Spare` | when something dies |
 
-> **Rule 10 can break your own demo.** Five missions per researcher per hour.
-> M1–M4 is four. The one you create live is five. **Create a sixth in that hour
-> and the database refuses you in front of a judge** — with the right words, but
-> at the wrong moment. Count what you made while rehearsing.
+> **Rule 10 can break your own demo, and it now counts TWO things.**
+> Five **missions created** per researcher per hour (the insert trigger), and
+> five **runs launched** per researcher per hour (`launch_mission`). M1–M4 is
+> four missions; the one you create live is five. And every rehearsal launch
+> spends one of the five runs. **Create a sixth mission, or press Launch a sixth
+> time, inside one hour and the database refuses you in front of a judge** —
+> with the right words, at the wrong moment. Count both while rehearsing.
+>
+> The two sentences are different and so are the fixes:
+> *"Limit reached: 5 missions per hour."* → you created too many.
+> *"Limit reached: 5 agent runs per hour."* → you launched too many.
 
-> **And rule 10b, if R-1 is in by then:** three runs per mission per hour, and a
-> mission with an approved report **cannot be relaunched**. So: the smoke test
-> goes on a throwaway mission, never on M1. And once you approve M1's report on
-> stage, M1 is spent — if a judge says *"do it again"*, you launch **M4**, not M1.
-> Saying that out loud is a point, not an apology:
-> **"This one's report is approved, so it's locked. I'll use a fresh mission."**
+> **Rule 10b is NOT in the code.** Three runs per mission per hour, and the lock
+> on relaunching a mission that has an approved report, are still drafted SQL in
+> `GUARDRAILS.md` §4 — nobody has run them. So do not say either on stage, and
+> do not rely on them: **M1 CAN be relaunched after you approve its report**, and
+> the new run rewrites its findings underneath the report you just signed. Treat
+> that as your own discipline, not the database's: the smoke test goes on a
+> throwaway mission, and if a judge says *"do it again"*, launch **M4**, not M1.
+> If asked, that is a good answer, not a bad one:
+> **"The per-mission cap is the next thing I'd add — here is the SQL I wrote for
+> it, and here is why the rehearsal made me write it."**
 
 ## 1.5 · The clock facts, so nothing on screen surprises you
 
@@ -111,7 +128,7 @@ launch them**.
 | **15 s** | n8n Schedule Trigger | up to 15 s of `Queued` before step 1 appears. **Say it before the judge notices it.** |
 | **2 s** | panel `POLL_MS` | the strip updates twice a second-and-a-half. No websocket. |
 | **20 s** | panel `QUEUE_WARN_MS` | *"Queued — still waiting for the workflow to pick this run up…"* = **the workflow is off.** |
-| **120 s** | panel `STALL_MS` | *"Failed — no response."* Stops. Never spins. |
+| **180 s** | panel `STALL_MS` | *"Failed — no response."* Stops. Never spins. Same 3 minutes as `sweep_stalled_runs()`, on purpose. |
 | **40** | `agent_log_step` | the budget. A clean run uses 8. One rejection, 9. |
 
 ---
@@ -458,12 +475,15 @@ the trial lapsed.
 Then go to §4.5 or straight to §5. A genuine failure that reports itself is
 evidence *for* you. Do not apologise it away.
 
-## 6.3 · "Failed — no response" after two minutes
+## 6.3 · "Failed — no response" after three minutes
 
 **Meaning:** the run was claimed and then the worker died mid-run.
 
-> *"Two minutes with no new step, so it stopped waiting and said so."*
+> *"Three minutes with no new step, so it stopped waiting and said so."*
 > *"The alternative is a spinner, and a spinner tells her nothing."*
+
+*(The database's sweeper marks the row `stalled` at the same three minutes, so
+the screen and the row agree if she refreshes.)*
 
 ## 6.4 · The database refuses the launch
 
@@ -472,7 +492,8 @@ the right sentence. Then name the rule:
 
 | On screen | Say |
 |---|---|
-| *"Limit reached: 5 missions per hour."* | *"That is guardrail ten, refusing me. It counts missions per researcher."* |
+| *"Limit reached: 5 missions per hour."* | *"That is guardrail ten, refusing me. It counts missions created, per researcher."* |
+| *"Limit reached: 5 agent runs per hour."* | *"Guardrail ten again, the other half — it counts runs launched, because launching is what costs money."* |
 | *"New runs are switched off right now."* | *"That is the kill switch. Rule fifteen. It is one row in the database."* |
 | *"This mission is already running."* | *"It will not start a second run over the top of the first."* |
 
@@ -580,12 +601,14 @@ before you say it.
    previously raised the flag with no sentence, so the app showed a chip and
    never said *what* it refused — COULD 14's second half. The screening itself is
    a marker list, not a classifier; §5.4 is the honest answer.
-4. **The stall mismatch (120 s vs 180 s) is open.** I did not silently change
-   either number — two sessions chose them independently. Pick one Monday.
-5. **Three panels exist in `04-agents/`** (`app/js/automation.js`,
-   `app/automation.js`, `app/agent-panel.js`). This runbook quotes the strings of
-   `app/js/automation.js`, the one with the human checkpoint and the error
-   translation. **If you ship a different one, the quoted lines in §2 are wrong.**
+4. **The stall mismatch (120 s vs 180 s) is closed.** Both are 3 minutes now —
+   the panel's `STALL_MS` moved to match `sweep_stalled_runs()`, and
+   `tools/preflight.js` check C5 fails if they drift apart again.
+5. **There is now exactly ONE panel in `04-agents/`:** `app/js/automation.js`,
+   the one with the human checkpoint and the error translation — which is the
+   one this runbook quotes. The other two (`app/automation.js`,
+   `app/agent-panel.js`) have been deleted; preflight check C1b fails if either
+   comes back. **If you ship a different one, the quoted lines in §2 are wrong.**
 6. **Zone scores and cooling projections are prototype sample values.** Say it
    once, early, in your own words (beat 2:40). The decision comparing them is
    real code; the inputs are not measurements.

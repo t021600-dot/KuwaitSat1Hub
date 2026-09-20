@@ -6,7 +6,7 @@
 
 > **Blocked until 03 runs the SQL.** Two things must exist in the database before a single node works:
 > 1. everything in `03-security/db/` (files 01 → 06). Until then `launch_mission()` does not exist and the button writes nothing.
-> 2. `04-agents/db/08_agent_claim.sql` — the read path. Every table privilege is revoked from `service_role`, so **the worker cannot SELECT `mission_runs` and cannot read an objective**: it can write through three functions and read through none. That file adds `claim_next_run()` and `sweep_stalled_runs()`, and it is written and waiting for 03 to review and run. (It supersedes `db/REQUEST-TO-03-agent_claim_run.sql`, which is the same idea with one function and no sweeper.)
+> 2. `03-security/db/08_agent_claim.sql` — the read path. Every table privilege is revoked from `service_role`, so **the worker cannot SELECT `mission_runs` and cannot read an objective**: it can write through three functions and read through none. That file adds `claim_next_run()` and `sweep_stalled_runs()`. It has been reviewed by 03 and lives in their folder now, which is why it runs with `01`→`06` and not separately. (It supersedes `04-agents/db/REQUEST-TO-03-agent_claim_run.sql` — the ask, which had two bugs the answer fixed. That file has been **deleted**, so nobody can paste the older draft into the SQL editor.)
 >
 > Nothing below is a claim about a system that is running. It is the build order for one that is not yet.
 
@@ -142,9 +142,9 @@ Every other node builds its URL from this one, so there is one place to change a
 | Body | JSON · `{}` |
 | Settings → On Error | leave at **Stop Workflow** |
 
-Sweep first, claim second. That order is Option A in `04-agents/db/08_agent_claim.sql`, and it is there because **a worker that dies mid-run cannot call `agent_finish_run` to say so**. The row would stay `running` for ever and the researcher would watch a spinner — the exact thing SHOULD 9 forbids. Nothing inside a dead process can fix that; the database has to, and this is the worker asking it to.
+Sweep first, claim second. That order is Option A in `03-security/db/08_agent_claim.sql`, and it is there because **a worker that dies mid-run cannot call `agent_finish_run` to say so**. The row would stay `running` for ever and the researcher would watch a spinner — the exact thing SHOULD 9 forbids. Nothing inside a dead process can fix that; the database has to, and this is the worker asking it to.
 
-An empty body takes the function's default of three minutes of no activity, which is deliberately the same number as `STALL_MS = 180000` in `app/automation.js`, so the screen and the database give up at the same moment. It returns how many runs it stalled — usually `0`.
+An empty body takes the function's default of three minutes of no activity, which is deliberately the same number as `STALL_MS = 180000` in `app/js/automation.js`, so the screen and the database give up at the same moment. (The panel used to say 120000, which meant the screen read *Failed* while the row still read `running`. `node 04-agents/tools/preflight.js` check C5 now fails if the two drift again.) It returns how many runs it stalled — usually `0`.
 
 It never touches `queued` runs. A run that is queued with n8n closed is the `au-m1` test in progress, and sweeping it would fail the exact test this workflow exists to pass.
 
@@ -160,7 +160,7 @@ Leave On Error at Stop Workflow: if the sweeper is refused, the poll does nothin
 | Send Body | on · JSON · `{}` |
 | Settings → **Always Output Data** | **on** |
 
-**This is the whole of "claiming a run safely".** `claim_next_run()` (`04-agents/db/08_agent_claim.sql`) does it inside one statement:
+**This is the whole of "claiming a run safely".** `claim_next_run()` (`03-security/db/08_agent_claim.sql`) does it inside one statement:
 
 ```sql
 update public.mission_runs r
@@ -384,14 +384,14 @@ Rehearse this once on Wednesday with the app open, and write down the exact word
 
 ---
 
-## 8 · Two things this supersedes
+## 8 · Two guides this replaced — both deleted
 
-Three sessions wrote into this folder in parallel and left three descriptions of the same workflow. Pick one before Tuesday — shipping two is worse than shipping either:
+Three sessions wrote into this folder in parallel and left three descriptions of the same workflow. Two of them are now **deleted**, because shipping two guides is worse than shipping either. This is the record of what they said and why they went, so nobody restores one from history on Wednesday:
 
-- **`04-agents/n8n/README.md`** (five nodes) has node 2 doing `GET /rest/v1/mission_runs?status=eq.queued`. That is a **table URL, and the grants make it 401** — its own text says a table URL is a finding. It also never claims the row, so two polls 15 seconds apart process the same run twice. Both are fixed by `claim_next_run()`.
-- **`04-agents/worker/n8n/WORKFLOW.md`** builds the same run behind a **Webhook** woken by a Supabase Database Webhook. It works, but it puts a URL that starts agents back on the internet, which is the thing D-1 exists to prevent, and it has no IF node so there is no decision on the canvas.
+- **`04-agents/n8n/README.md`** (five nodes) — **deleted.** Its node 2 did `GET /rest/v1/mission_runs?status=eq.queued`. That is a **table URL, and the grants make it 401** — the same page's own text said a table URL is a finding. It also never claimed the row, so two polls 15 seconds apart would process the same run twice and write two sets of steps onto one run. Both are fixed by `claim_next_run()`, which claims inside the same statement that reads (`for update skip locked`) and is reached at `/rest/v1/rpc/claim_next_run`.
+- **`04-agents/worker/n8n/WORKFLOW.md`** — **deleted.** It built the same run behind a **Webhook** woken by a Supabase Database Webhook. It works, but it puts a URL that starts agents back on the internet, which is the thing D-1 exists to prevent; it called the compatibility shim `agent_claim_run()` rather than `claim_next_run()`; and it had no IF node, so there was no decision anywhere on the canvas to point at for `au-m3`.
 
-This guide is the one with a schedule, a claim, and the decision as a node you can point at.
+This guide is the one with a schedule, a claim, and the decision as a node you can point at. `node 04-agents/tools/preflight.js` check C1b fails if either file comes back.
 
 ---
 
@@ -436,11 +436,11 @@ Related, and worth knowing before it surprises you: if a run takes longer than 1
 Say these as they are. Every one of them is fixable this week; none of them is fixable by describing it as done.
 
 1. **The SQL has not been run.** No `launch_mission()`, no `claim_next_run()`, no run.
-2. **`04-agents/db/08_agent_claim.sql` has not been reviewed by 03.** It is a request from 04 to 03, not a merged decision, and it adds a column (`mission_runs.claimed_at`) as well as two functions.
+2. **`03-security/db/08_agent_claim.sql` has been reviewed by 03 but not RUN.** It adds a column (`mission_runs.claimed_at`) as well as two functions, and until somebody runs it there is no read path for the worker at all.
 3. **This workflow has not been built in n8n.** Every node above is instructions, not evidence. `au-m1` passes the first time node 4 claims a real row.
 4. **No rehearsal has broken a rule**, so `au-m4`'s "one rule I changed" cannot be claimed. `GUARDRAILS.md` R-1 is the rehearsal designed to break one; run it Tuesday, write down what happened, then change the rule. Patch it first and there is nothing true to say.
 5. **Zone scores and cooling projections are sample values**, not KuwaitSat-1 measurements. Every finding row says so. The decision comparing them is real code; the inputs are illustrative.
-6. **A worker that dies mid-run is corrected only when a worker next polls.** `sweep_stalled_runs()` runs at the top of each poll (node 3), so if n8n itself is down, nothing sweeps and the row stays `running` until it comes back. The front end's own 180-second timeout still tells the researcher, so no spinner survives either way — but the row is corrected late. pg_cron would close that gap and is written up in `08_agent_claim.sql` as Option B; it is a second scheduler to explain, and not this week.
+6. **A worker that dies mid-run is corrected only when a worker next polls.** `sweep_stalled_runs()` runs at the top of each poll (node 3), so if n8n itself is down, nothing sweeps and the row stays `running` until it comes back. The front end's own 180-second timeout (`STALL_MS`, the same three minutes) still tells the researcher, so no spinner survives either way — but the row is corrected late. pg_cron would close that gap and is written up in `08_agent_claim.sql` as Option B; it is a second scheduler to explain, and not this week.
 
 ---
 
@@ -472,9 +472,9 @@ Everything the worker touches, it touches through four functions. I need no tabl
 
 1. **Are you building on `03-security/db/`, or on a schema of your own?** If there are two schemas there is no demo. If any column here is named differently in yours, tell me tonight — I name all of them through the four functions and nowhere else.
 2. **Who runs the SQL, and when?** Nothing in 04 exists until 01→06 are executed. Name a person and a time.
-3. **Will `04-agents/db/08_agent_claim.sql` be run with them, and does `mission_runs.claimed_at` clash with anything of yours?** Without that file the worker has no read path at all — `service_role` cannot select `mission_runs`. It adds one nullable column and two functions, and no table grant.
-4. **Which coordinate order does the front end draw?** The database wants GeoJSON, longitude first: `06_validation.sql` checks `(pt->>0)` against 46.5–48.8 E and `(pt->>1)` against 28.5–30.1 N. Leaflet's `L.latLng()` is the other way round. **The sample polygon in `04-agents/tests/decision.test.js` is written `[29.4, 47.6]` — latitude first — which is the wrong order and would draw nothing over Kuwait.** My `phases.js` writes `[lng, lat]`. Confirm which one the map reads so we fix it in one place.
+3. **Will `03-security/db/08_agent_claim.sql` be run with them, and does `mission_runs.claimed_at` clash with anything of yours?** Without that file the worker has no read path at all — `service_role` cannot select `mission_runs`. It adds one nullable column and two functions, and no table grant.
+4. **Which coordinate order does the front end draw?** The database wants GeoJSON, longitude first: `06_validation.sql` checks `(pt->>0)` against 46.5–48.8 E and `(pt->>1)` against 28.5–30.1 N. Leaflet's `L.latLng()` is the other way round. ~~The sample polygon in `tests/decision.test.js` is latitude first.~~ **Fixed on my side:** every polygon in 04 is now `[lng, lat]` with a closed ring — `phases.js`, `app/demo.html` and `tests/decision.test.js`. Confirm the map reads the same order, because a sample in the wrong order is how the wrong order reaches production.
 5. **During a run, what does the mission list show?** `claim_next_run()` sets `mission_runs.status = 'running'` and deliberately leaves `missions.status` at `queued` until the run finishes. So **any screen that badges from `missions.status` reads "Queued" while six steps tick.** The agreed answer in `08_agent_claim.sql` is that the live screen reads `mission_runs.status` and `my_agent_steps`. Confirm that is what the mission list and the mission page actually do — `06_validation.sql` would also allow `'running'` on missions, so if a screen needs it, say so now rather than on Thursday.
-6. **Does the mission screen read `results` by column name, or the `my_mission_results` view?** The view truncates `body` to 240 characters (`left(r.body, 240) as preview`), which cuts the provenance line — *"Sample prototype figure, not a KuwaitSat-1 measurement"* — off the end of every finding. SHOULD 11 is traceability. Name the granted columns on `results` instead, or move the truncation.
+6. **Does the mission screen read `results` by column name, or the `my_mission_results` view?** The view truncates `body` to 240 characters (`left(r.body, 240) as preview`), which cuts the provenance line — *"Sample prototype figure, not a KuwaitSat-1 measurement"* — off the end of every finding. SHOULD 11 is traceability. **My panel reads the `results` table by name** (`id,kind,title,body,geometry,status,created_at`, all granted) and only ever uses the view for step rows. Do the same, or move the truncation — but do not read `preview` and call it the finding.
 7. **Does the Launch button return the run id to the page?** `launch_mission()` returns a uuid. The panel needs it to poll `my_agent_steps` for that run.
 8. **Is `results.body` rendered with `textContent`?** D-2 says plain text, never markdown or `innerHTML`. The agent writes that field, and I would rather it be untrusted on your side too.

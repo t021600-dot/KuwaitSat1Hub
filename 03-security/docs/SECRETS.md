@@ -45,7 +45,7 @@ The publishable key **is meant to be in our JavaScript.** Putting it in a `.env`
 and feeling safe is theatre — the browser has to receive it either way.
 
 It is safe **only because row level security is on**. That is the sentence from
-`CONTRIBUTING.md`, and it is the entire reason `sql/04-policies.sql` exists. Put
+`CONTRIBUTING.md`, and it is the entire reason `db/04_policies.sql` exists. Put
 that comment next to the key in `config.js`, so the next person does not
 "helpfully" hide it and conclude the problem is solved.
 

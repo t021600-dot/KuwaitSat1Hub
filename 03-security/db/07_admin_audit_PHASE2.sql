@@ -94,7 +94,7 @@
 -- >>> COLUMNS, run the BLOCK 9 drops FIRST, then re-paste the file. <<<
 --
 -- 0.5 · WHAT THIS FILE DELIBERATELY DOES NOT DO
---   · It does not touch sql/03-grants.sql. An earlier draft appended a
+--   · It does not touch db/03_grants.sql. An earlier draft appended a
 --     `revoke ... on public.app_admins` line to file 03 — but 03 runs
 --     BEFORE 07 creates that table, so a clean rebuild would abort with
 --     `relation "public.app_admins" does not exist`, and the cut in
@@ -104,7 +104,7 @@
 --     which creates them"), nothing more.
 --   · It does not modify can_read_mission(). See BLOCK 4.
 --   · It creates NO VIEW. See BLOCK 6 — the "who viewed this" read path
---     is a function, so verify query 4 in 99-verify.sql (views without
+--     is a function, so verify query 4 in 99_verify.sql (views without
 --     security_invoker) has nothing new to check and cannot newly fail.
 
 
@@ -754,7 +754,7 @@ select grantee, table_name, column_name, privilege_type
 -- All three functions must show prosecdef = true AND a search_path in
 -- `settings`. A SECURITY DEFINER function without a pinned search_path
 -- is a privilege-escalation hole, not a helper. (This is verify query 8
--- in 99-verify.sql, narrowed to tonight's three.)
+-- in 99_verify.sql, narrowed to tonight's three.)
 -- ---------------------------------------------------------------------
 select p.proname as function_name, p.prosecdef as is_security_definer,
        p.proconfig as settings
@@ -777,7 +777,7 @@ select tablename, policyname, roles, cmd, qual
 -- BLOCK 9 · THE CUT — FIVE STATEMENTS, KEPT WITH THE FILE
 -- =====================================================================
 -- If it is 22:00 and the admin door does not work, uncomment these
--- five, run them, re-run 99-verify.sql queries 1, 3 and 4, and stop.
+-- five, run them, re-run 99_verify.sql queries 1, 3 and 4, and stop.
 -- Run them BEFORE re-pasting this file after changing a column, a
 -- constraint, or a function's return columns (BLOCK 0.4).
 --
@@ -913,18 +913,20 @@ select tablename, policyname, roles, cmd, qual
 -- BLOCK 11 · WHAT THIS FILE ASKS OF EVERYTHING ELSE
 -- =====================================================================
 --
--- ONE EDIT TO ONE EXISTING FILE. NOT THREE.
--- sql/99-verify.sql, query 3, currently says app_settings is the ONLY
--- name allowed to appear there. That is now wrong by design. Replace
--- the comment with:
+-- ONE EDIT TO ONE EXISTING FILE — AND IT HAS ALREADY BEEN MADE.
+-- db/99_verify.sql, query 3, used to say app_settings is the ONLY name
+-- allowed to appear there. Its comment now names `app_admins` as the
+-- one legitimate exception, CONDITIONAL on this file having been run.
+-- That wording is deliberate: in a week where 07 is only READ, the
+-- table does not exist, app_admins must NOT appear, and the check
+-- still reads correctly. Nothing further to change there.
 --
---   -- `app_settings` and `app_admins` are the ONLY names allowed here.
---   -- Both are "RLS on, no policy, no grant" on purpose — the kill
---   -- switch and the admin list. A THIRD name appearing is a bug.
+-- Both tables are "RLS on, no policy, no grant" on purpose — the kill
+-- switch and the admin list. A THIRD name in query 3 is a bug.
 --
 -- (admin_access_log does NOT appear there: it HAS a policy. It has no
 -- grant either, which is belt and braces, and V-C proves it.)
--- Do NOT edit sql/03-grants.sql (BLOCK 0.5). Do not edit files 01, 02,
+-- Do NOT edit db/03_grants.sql (BLOCK 0.5). Do not edit files 01, 02,
 -- 04, 05 or 06 at all.
 --
 -- ---------------------------------------------------------------------

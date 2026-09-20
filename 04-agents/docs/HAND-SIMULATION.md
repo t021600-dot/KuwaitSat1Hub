@@ -69,8 +69,8 @@ mission_runs
 and on the mission itself: `status` → `'queued'`, `launched_at` → `now()`.
 
 → **in the build:** `03-security/db/05_views_rpc.sql` → `launch_mission(p_mission_id uuid)`,
-granted to `authenticated` only. The panel calls it: `04-agents/app/agent-panel.js` →
-`supabaseSource`. Table: `03-security/db/01_tables_rls.sql` → `public.mission_runs`.
+granted to `authenticated` only. The panel calls it: `04-agents/app/js/automation.js` →
+the Launch button's click handler. Table: `03-security/db/01_tables_rls.sql` → `public.mission_runs`.
 
 **Noted while walking this:** `launch_mission()` refuses a second press while a run is
 `queued` **or** `running` — *"This mission is already running."* So a run that is queued and
@@ -89,7 +89,8 @@ browser has stopped. Nothing it did knows n8n exists. n8n polls for rows with
 
 **OUT:** n8n holds a run id, and claims the run.
 
-→ **in the build:** `04-agents/n8n/README.md`, node 2. **This node does not exist yet** — see
+→ **in the build:** `04-agents/n8n/BUILD-GUIDE.md`, node 4 (`Claim a queued run`), which
+POSTs to `/rest/v1/rpc/claim_next_run`. **This node does not exist yet** — see
 the honesty list. The rule it exists to satisfy is `03-security/docs/DECISIONS.md` **D-1**: no
 webhook URL may appear in anything the browser downloads.
 
@@ -502,7 +503,7 @@ is exactly what a process with no decision point looks like.
 **Resolved:** append. Two `recommendation` rows, two `impact_prediction` rows plus the refusal,
 nine rows for a nine-step run. The panel collapses them for reading — *"Recommendation · ran 2
 times"* — but the rows are all there underneath.
-→ `04-agents/app/agent-panel.js`.
+→ `04-agents/app/js/automation.js` → `groupSteps()`.
 
 ### U-3 · What does 0.95 do?
 
@@ -554,34 +555,38 @@ row is still written. The security rule and the rubric test wanted the same shap
 
 ---
 
-# What this walk found that is still open
+# What this walk found
 
-Found by hand, **not fixed as of writing.** They go on Monday's list.
+Found by hand. **O-1 has since been fixed and O-3 half fixed** — each entry says
+which, and what the fix was, because the finding is worth more than the tidy-up.
 
-### O-1 · A zone under the floor is on the map
+### O-1 · A zone under the floor is on the map — ✅ FIXED (option b)
 
-Zone D projects **0.9 °C** — under the 1.0 floor — and it still gets a `site` row and a polygon,
-because the gate tests the **top-ranked zone only**. Meanwhile the `metric` row says *"Zones were
+Zone D projects **0.9 °C** — under the 1.0 floor — and it still got a `site` row and a polygon,
+because the gate tests the **top-ranked zone only**. Meanwhile the `metric` row said *"Zones were
 accepted only at or above 1.0 °C of projected 24-month cooling."*
 
 Those two things cannot both be on screen. A judge who reads the map tooltip and then the metric
 row catches us, and it would look like the guardrail is decorative.
 
-**Pick one before Thursday, and say which:**
-(a) drop zones under the floor from the written results and keep the sentence, or
-(b) keep them as context and change the sentence to *"the recommended zone was accepted at or
-above 1.0 °C; other candidates are shown with their own projections"*.
+**Fixed as (b), which was the preference here:** every candidate still reaches the map, and each
+`site` row now says which side of the floor it is on — `RECOMMENDED`, *clears the floor*, or
+`BELOW THE FLOOR - shown for context only` — while the `metric` row says *"the recommended zone
+was accepted only at or above 1.0 °C … the other candidates are drawn with their own projections,
+N of them below the floor — context, not recommendations."*
+→ `04-agents/agent/run.js` and `04-agents/n8n/phases.js`, the same words in both.
 
-My preference is **(b)** — the rejected-zone story is better with the other numbers visible — but
-either is fine and neither is done.
-→ `04-agents/agent/run.js` → `accepted.forEach(...)` and the `'metric'` body.
+**Say it out loud if a judge points at Zone D:** *"That one is below the floor. It is on the map
+as context and the row says so — the one the run recommends is Zone B."*
 
 ### O-2 · Two coordinate orders in the repo, and nothing converts
 
 - `01-front-end/app/js/seed.js:52` builds `polygon: [[y0, x0], …]` — **latitude first**, because
   that is what Leaflet's `L.polygon` takes (`01-front-end/app/mission.html:164`).
-- `04-agents/app/demo.html:51` uses `[47.60, 29.40]` — **longitude first**, because that is
-  GeoJSON.
+- `04-agents/app/demo.html` uses `[47.60, 29.40]` — **longitude first**, because that is
+  GeoJSON. So does `n8n/phases.js`, and so does `tests/decision.test.js` (it was
+  latitude-first until Sunday night; a sample in the wrong order is how the wrong order
+  reaches the map).
 - `run.js` wraps whichever it is given, unchanged: `{ type: 'Polygon', coordinates: [z.polygon] }`.
 
 So `results.geometry` can be stored the wrong way round, and **nothing catches it** —
@@ -602,6 +607,13 @@ Distinct from the relaunch rehearsal **R-1** in `GUARDRAILS.md`, which is about 
 mission too *often*; this is about not being able to launch it at *all*. Both touch
 `launch_mission()`, so ask Mariam once, not twice.
 
+**Half fixed since.** `sweep_stalled_runs()` (`03-security/db/08_agent_claim.sql`) ages out dead
+`running` runs at three minutes, and the panel's `STALL_MS` now matches it exactly, so the screen
+and the row agree. But the sweeper deliberately never touches `queued` runs — a queued run with
+n8n closed *is* the `au-m1` test in progress, and sweeping it would fail the test it exists to
+protect. So this exact case — queued, never claimed — is still only clearable in the SQL editor.
+Keep that one-liner on paper on the night.
+
 **Before demo night:** know the one-line SQL that clears a stuck queued run, and have it in the
 runbook.
 
@@ -614,7 +626,7 @@ For the judge who picks a line and asks where it is.
 | Line of this simulation | Where it lives in the build |
 |---|---|
 | The press writes one `queued` row | `03-security/db/05_views_rpc.sql` → `launch_mission()` |
-| n8n collects queued runs; the browser never calls n8n | `04-agents/n8n/README.md` node 2 · **not built yet** |
+| n8n collects queued runs; the browser never calls n8n | `04-agents/n8n/BUILD-GUIDE.md` node 4 → `claim_next_run()` · **not built yet** |
 | Six step names, and only six | `01_tables_rls.sql` → `agent_steps.step_name` CHECK |
 | Each step's tool and its one-line limit | `04-agents/agent/steps.js` → `STEPS[].tool` / `.limit` |
 | The order of the whole run | `04-agents/agent/run.js` → `planRun()` |

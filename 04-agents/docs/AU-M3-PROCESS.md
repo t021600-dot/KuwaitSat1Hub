@@ -263,12 +263,14 @@ Six research assistants run in order. One of them can send the work back.
 The agent code stays in `04-agents/`. Nothing of Retag's moves.
 
 ```html
-<!-- 01-front-end/app/mission.html · before </body>, after js/ui.js -->
-<script src="../../04-agents/agent/decision.js"></script>
-<script src="../../04-agents/agent/steps.js"></script>
-<script src="../../04-agents/agent/run.js"></script>
-<script src="../../04-agents/app/agent-panel.js"></script>
+<!-- 01-front-end/app/mission.html · before </body>, after js/config.js -->
+<script src="../../04-agents/app/js/automation.js"></script>
 ```
+
+One file, one global (`Automation`). The three `agent/*.js` files are NOT loaded
+by `mission.html`: the panel reads the database, and the database is what the
+worker wrote. They are only loaded by `app/demo.html`, which replays a run with
+no backend. See `app/INTEGRATION.md` for the mount call.
 
 In `shell()`, make this the **first** section of `#content`, above the title
 block's sibling sections:
@@ -296,7 +298,8 @@ paths become `04-agents/…` with no `../../`.)*
 
 ### See it before touching Retag's file
 
-`04-agents/app/demo.html` mounts the same panel with a local replay of
+`04-agents/app/demo.html` mounts the same panel — literally the same file —
+with a fake Supabase client replaying
 `agent/run.js`. Three buttons: one zone refused, nothing refused, everything
 refused. It needs no Supabase, no n8n and no network.
 
@@ -319,9 +322,10 @@ The honesty rule, applied to this item.
 - **The SQL in `03-security/db/` has not been run.** Until it is,
   `launch_mission()` does not exist and `AgentPanel.supabaseSource` has nothing
   to call. That is the single biggest dependency this item has.
-- **The n8n workflow does not exist yet.** `n8n/README.md` describes five
-  nodes; none of them are built. `au-m1`'s test — close n8n, press the button —
-  passes only once node 2 is polling.
+- **The n8n workflow does not exist yet.** `n8n/BUILD-GUIDE.md` describes
+  22 nodes and `n8n/workflow.json` is ready to import; none of it is built in
+  n8n. `au-m1`'s test — close n8n, press the button — passes only once the
+  claim node is polling.
 - **No rehearsal has broken a rule yet, so `au-m4`'s "one rule I changed" cannot
   be claimed.** That item needs a real rehearsal with a real outcome. It is a
   separate deliverable and it is not covered by this file. Do not invent it.

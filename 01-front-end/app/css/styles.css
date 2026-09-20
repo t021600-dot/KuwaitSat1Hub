@@ -81,6 +81,13 @@ p { margin: 0 0 12px; }
   margin-top: 48px; padding: 20px 0 32px;
   color: var(--muted); font-size: 13px;
 }
+/* Shown on every page when no Supabase project is connected. A demo running
+   on browser storage must never be mistaken for the database answering. */
+.demo-flag {
+  margin-top: 10px; padding: 8px 12px; border-radius: var(--radius);
+  border: 1px solid #5A431A; background: #241B09; color: var(--warn);
+  font-size: 12.5px; font-weight: 600;
+}
 
 /* ---------- buttons ---------- */
 .btn {
@@ -134,6 +141,17 @@ input[aria-invalid=true], textarea[aria-invalid=true] { border-color: var(--dang
 }
 .banner-error { border-color: #5A2730; background: #2A121A; color: #FFC9CF; }
 .banner-note { border-color: var(--border); }
+/* The success half of the loading / success / failure trio. */
+.banner-ok { border-color: #1E4D48; background: #082220; color: #A8EFE4; }
+
+/* Used by the step strip and by 04's automation panel. */
+.bad  { color: var(--danger); }
+.good { color: #4ADE9B; }
+.small.bad  { color: var(--danger); }
+.small.good { color: #4ADE9B; }
+
+/* Character counters: the number turns red before the database refuses. */
+.field .hint.over { color: var(--danger); font-weight: 650; }
 
 /* ---------- badges ---------- */
 .badge {
@@ -148,15 +166,22 @@ input[aria-invalid=true], textarea[aria-invalid=true] { border-color: var(--dang
 .badge-running{ color: var(--warn);  border-color: #5A431A; background: #241B09; }
 .badge-running .pip { animation: pulse 1.4s ease-in-out infinite; }
 .badge-complete { color: var(--accent); border-color: #1E4D48; background: #082220; }
+.badge-review { color: #9BD1FF; border-color: #274866; background: #0B1C2B; }
+.badge-failed { color: var(--danger); border-color: #5A2730; background: #2A121A; }
 @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
 
+/* fe-m4: nothing on this site is set below 12px. 11.5px was the one
+   offender, and on a projector it is the line nobody in row three reads. */
 .chip {
   display: inline-block; padding: 2px 9px; border-radius: 999px;
-  font-size: 11.5px; font-weight: 650; border: 1px solid var(--border);
+  font-size: 12.5px; font-weight: 650; border: 1px solid var(--border);
 }
-.chip-high { color: var(--accent); border-color: #1E4D48; background: #082220; }
-.chip-medium { color: var(--warn); border-color: #5A431A; background: #241B09; }
-.chip-low { color: #A9B6C9; border-color: #33405A; background: #131E32; }
+/* Keyed to results.kind — the four values its CHECK constraint allows. */
+.chip-site { color: var(--accent); border-color: #1E4D48; background: #082220; }
+.chip-map_layer { color: var(--warn); border-color: #5A431A; background: #241B09; }
+.chip-metric,
+.chip-narrative { color: #A9B6C9; border-color: #33405A; background: #131E32; }
+.chip-flag { color: var(--danger); border-color: #5A2730; background: #2A121A; }
 
 /* ---------- progress ---------- */
 .progress { height: 4px; background: #16223A; border-radius: 999px; overflow: hidden; margin-top: 10px; }
@@ -193,6 +218,14 @@ input[aria-invalid=true], textarea[aria-invalid=true] { border-color: var(--dang
 .agent.complete .node { border-color: var(--accent); color: var(--accent); }
 .agent.complete .nm { color: var(--text); }
 .agent.complete .sm { color: #B9C8DC; animation: rise .22s ease-out; }
+/* A refused or failed step is evidence, not an error state to hide. */
+.agent.refused .node,
+.agent.failed .node { border-color: var(--danger); color: var(--danger); }
+.agent.refused .nm,
+.agent.failed .nm { color: var(--text); }
+.agent.refused .st,
+.agent.failed .st { color: var(--danger); }
+.agent.missing .node { border-style: dashed; }
 @keyframes rise { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
 
 .spin {
@@ -215,6 +248,12 @@ input[aria-invalid=true], textarea[aria-invalid=true] { border-color: var(--dang
   display: grid; place-items: center; text-align: center; padding: 20px;
   color: var(--muted); font-size: 14px;
 }
+/* Map popups are built as DOM nodes in js/ui.js (popupNode), never as HTML
+   strings — Leaflet's bindPopup() would render any markup it was handed. */
+.popup { max-width: 260px; }
+.popup strong { display: block; margin-bottom: 4px; }
+.popup .small { font-size: 12.5px; color: #3A4657; }
+
 .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 13px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 7px; }
 .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
@@ -260,6 +299,9 @@ input[aria-invalid=true], textarea[aria-invalid=true] { border-color: var(--dang
 .report { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
 .report h2 { margin-top: 26px; }
 .report .meta { font-size: 13.5px; color: var(--muted); }
+/* reports.body_md is printed with textContent (D-2), so the line breaks the
+   agent wrote have to be preserved here rather than by markup. */
+.report-body { white-space: pre-wrap; word-wrap: break-word; font-size: 15px; }
 .rule { height: 1px; background: var(--border); border: 0; margin: 20px 0; }
 
 @media print {

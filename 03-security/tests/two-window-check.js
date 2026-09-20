@@ -75,7 +75,7 @@ if (one.error) {
               'font-size:16px;font-weight:bold;color:#c00');
   throw new Error('Beat 2 errored. Read the message above. Do not tick this box.');
 }
-console.log('%cA's mission by id | rows: ' + one.data.length,
+console.log("%cA MISSION OWNED BY RESEARCHER A | rows: " + one.data.length,
             'font-size:16px;font-weight:bold;color:' + (one.data.length === 0 ? '#0a0' : '#c00'));
 
 // ---- BEAT 3 · the contrast: B's OWN missions still work --------------

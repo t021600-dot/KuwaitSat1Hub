@@ -207,7 +207,11 @@ check('B4', 'agent/steps.js and the database agree on the six step names',
 head('C · The app the judge actually looks at');
 
 var missionHtml = read(path.join(FRONT, 'mission.html')) || '';
-var panels = ['js/automation.js', 'automation.js', 'agent-panel.js']
+/* 'js/automation.js' is the one panel. The other two names were the
+   duplicates that were deleted on Sunday night - they are still listed
+   because a stale copy pasted back into mission.html is exactly the
+   mistake this check exists to catch. */
+var panels = ['js/automation.js', 'agent-panel.js']
   .filter(function (p) { return missionHtml.indexOf(p) !== -1; });
 if (panels.length === 1) {
   check('C1', 'exactly one automation panel is wired into mission.html', true);
@@ -220,6 +224,22 @@ if (panels.length === 1) {
   check('C1', 'exactly one automation panel is wired into mission.html', false,
         'two panels are referenced: ' + panels.join(', ') + '. Ship one.');
 }
+
+/* THE DUPLICATES STAY DELETED. Three sessions wrote into this folder in
+   parallel and left two extra panels, two extra n8n guides and a second
+   copy of the worker logic. Each pair drifted - different stall
+   timeouts, a table URL in one guide, an injection path that stopped the
+   run in the other. If one comes back, the repo has two answers again
+   and nobody can say which one Thursday runs. */
+var revenants = [
+  'app/automation.js', 'app/agent-panel.js',
+  'n8n/README.md', 'worker/n8n/WORKFLOW.md', 'worker/agent-run.js',
+  'db/REQUEST-TO-03-agent_claim_run.sql'
+].filter(function (r) { return exists(path.join(AGENTS, r)); });
+check('C1b', 'no deleted duplicate has come back', revenants.length === 0,
+      'these are back: ' + revenants.join(', ') +
+      '. The survivors are app/js/automation.js, n8n/BUILD-GUIDE.md, ' +
+      'agent/run.js + n8n/phases.js, and 03-security/db/08_agent_claim.sql.');
 
 var cfg = path.join(FRONT, 'js', 'config.js');
 if (exists(cfg)) {
@@ -265,8 +285,13 @@ check('C4', 'the shipped panel never assigns innerHTML',
 /* Stall timings. The screen must not give up before the sweeper does,
    or a judge sees "Failed - no response" on a run the database still
    believes is healthy, and a contradicting status on the next refresh. */
+/* 08_agent_claim.sql lives in 03-security/db/, not here. 04-agents/db/
+   held the REQUEST for it; the answer was written, reviewed and kept by
+   03, and the request file has been deleted so nobody pastes the older
+   draft into the SQL editor. Reading the wrong path made this check
+   print TODO for days, which reads exactly like "not important". */
 var sweepMin = (/p_idle_minutes\s+int\s+default\s+(\d+)/
-  .exec(read(path.join(AGENTS, 'db', '08_agent_claim.sql')) || '') || [])[1];
+  .exec(read(path.join(SEC, '08_agent_claim.sql')) || '') || [])[1];
 var stallMs = numberIn(panelSrc, 'STALL_MS');
 if (sweepMin && stallMs) {
   check('C5', 'the screen and the sweeper give up at the same moment',
@@ -303,7 +328,7 @@ if (RUN_TESTS) {
    ===================================================================== */
 head('E · Tick these by hand - no script can see them');
 [
-  ['E1', 'Mariam has RUN 03-security/db/01 -> 06 and 04-agents/db/08 against the real project.',
+  ['E1', 'Mariam has RUN 03-security/db/01 -> 06 and 03-security/db/08 against the real project.',
          "select proname from pg_proc where proname in ('launch_mission','claim_next_run','agent_log_step','generate_report'); -- expect 4 rows"],
   ['E2', 'The n8n workflow is ACTIVE, not just saved. An inactive workflow does not poll, and nothing ever leaves "queued".',
          'n8n -> the workflow -> the Active toggle, top right, is ON. Then Executions shows a new row every 15 seconds.'],
@@ -312,9 +337,9 @@ head('E · Tick these by hand - no script can see them');
   ['E4', 'You are signed in as the demo researcher, on the mission page, one tab.',
          'and the browser is zoomed so the six steps fit without scrolling'],
   ['E5', 'The demo missions are CREATED but NOT LAUNCHED, and you have a spare.',
-         'one clean, one for the failure, one for the break test, one spare = 4. The hourly limit is 5 MISSIONS per researcher (rule 10) - count what you created rehearsing.'],
+         'one clean, one for the failure, one for the break test, one spare = 4. TWO hourly limits apply, both 5: missions CREATED (missions_guard) and runs LAUNCHED (launch_mission). Count both from your rehearsal.'],
   ['E6', 'A smoke-test run has completed end to end in the last hour, on a DIFFERENT mission from the demo one.',
-         'if rule 10b (3 runs per mission per hour) is in, a smoke test on the demo mission spends a third of its allowance'],
+         'launch_mission counts runs PER RESEARCHER per hour (5), so a smoke test spends one of the five you have for the demo. It does NOT cap runs per mission - rule 10b is still an ask to 03, not code.'],
   ['E7', 'You have run the R-1 rehearsal and filled in the table in GUARDRAILS.md section 4.',
          'until that table has real numbers in it, do NOT say the au-m4 sentence "one rule I changed because a rehearsal broke it"']
 ].forEach(function (r) {
