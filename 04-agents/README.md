@@ -41,6 +41,13 @@ The n8n workflow, the guardrail list, and notes on the six agent steps.
   **Read it aloud; it is written to be spoken.**
   ⚠️ The rehearsal in its section 4 has **not been run yet**, so the "one rule
   changed" half of `au-m4` cannot be claimed until it has.
+- **[`docs/DEMO-RUNBOOK.md`](docs/DEMO-RUNBOOK.md) — written.** Demo night,
+  beat by beat: the pre-demo checklist, what to click, what to say word for
+  word, the deliberate failure (SHOULD 9), the live break test (COULD 14), and
+  what to say when something unplanned fails. Its section 1 is executable:
+  `node tools/preflight.js` reads the repo and prints which claims are still
+  true. ⚠️ Its section "what is true tonight" lists four things that do not
+  exist yet — read that first.
 - a failure plan per node
 
 ⚠️ **Open the exported JSON before committing it.** n8n exports can contain
