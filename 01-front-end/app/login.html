@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — KuwaitSat-1 Mission Hub</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header id="site-header"></header>
+
+<main class="wrap wrap-narrow" style="max-width:520px">
+
+  <div class="section">
+    <h1 id="form-title">Researcher sign in</h1>
+    <p class="muted small" id="form-sub">Sign in to reach your own missions, data and reports.</p>
+
+    <div class="banner banner-error hidden" id="error" role="alert" aria-live="assertive"></div>
+
+    <form class="card" id="auth-form" novalidate>
+
+      <div class="field" id="f-name" hidden>
+        <label for="name">Full name</label>
+        <input id="name" name="name" type="text" autocomplete="name">
+        <div class="err hidden" id="e-name"></div>
+      </div>
+
+      <div class="field" id="f-org" hidden>
+        <label for="org">Organization</label>
+        <input id="org" name="org" type="text" autocomplete="organization">
+        <div class="err hidden" id="e-org"></div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required>
+        <div class="err hidden" id="e-email"></div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <div class="err hidden" id="e-password"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" type="submit" id="submit-btn">Sign in</button>
+        <button class="btn btn-ghost" type="button" id="toggle">Create an account</button>
+      </div>
+    </form>
+
+    <div class="banner banner-note" style="margin-top:20px">
+      <strong class="small">Demo accounts</strong>
+      <div class="mono" style="margin-top:8px">researcher.a@kuwaitsat.kw &nbsp; demo1234</div>
+      <div class="mono">researcher.b@kuwaitsat.kw &nbsp; demo1234</div>
+      <p class="small muted" style="margin:10px 0 0">Sign in as each one to see that a researcher
+        only ever sees their own work.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="js/agents.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script>
+(function () {
+  var mode = 'signin';
+  var form = $('#auth-form');
+  var errBox = $('#error');
+
+  renderHeader(null);
+  renderFooter();
+
+  // Already signed in? Go straight through.
+  Data.getCurrentUser().then(function (u) {
+    if (u) window.location.replace('missions.html');
+  });
+
+  function setMode(next) {
+    mode = next;
+    var up = mode === 'signup';
+    $('#form-title').textContent = up ? 'Create a researcher account' : 'Researcher sign in';
+    $('#form-sub').textContent = up
+      ? 'Your missions are private to your account from the moment you create it.'
+      : 'Sign in to reach your own missions, data and reports.';
+    $('#f-name').hidden = !up;
+    $('#f-org').hidden = !up;
+    $('#submit-btn').textContent = up ? 'Create account' : 'Sign in';
+    $('#toggle').textContent = up ? 'I already have an account' : 'Create an account';
+    $('#password').setAttribute('autocomplete', up ? 'new-password' : 'current-password');
+    hideError();
+  }
+
+  $('#toggle').addEventListener('click', function () {
+    setMode(mode === 'signin' ? 'signup' : 'signin');
+  });
+
+  function showError(msg) {
+    errBox.textContent = msg;
+    errBox.classList.remove('hidden');
+  }
+  function hideError() {
+    errBox.textContent = '';
+    errBox.classList.add('hidden');
+  }
+
+  function fieldError(id, msg) {
+    var input = $('#' + id), box = $('#e-' + id);
+    if (msg) {
+      input.setAttribute('aria-invalid', 'true');
+      box.textContent = msg; box.classList.remove('hidden');
+    } else {
+      input.removeAttribute('aria-invalid');
+      box.textContent = ''; box.classList.add('hidden');
+    }
+    return !msg;
+  }
+
+  function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function validate() {
+    var ok = true;
+    var email = $('#email').value.trim();
+    var pass = $('#password').value;
+    ok = fieldError('email', email ? (validEmail(email) ? '' : 'Enter a valid email address.') : 'Email is required.') && ok;
+    ok = fieldError('password', pass ? (pass.length >= 8 ? '' : 'Password must be at least 8 characters.') : 'Password is required.') && ok;
+    if (mode === 'signup') {
+      ok = fieldError('name', $('#name').value.trim() ? '' : 'Name is required.') && ok;
+      ok = fieldError('org', $('#org').value.trim() ? '' : 'Organization is required.') && ok;
+    }
+    return ok;
+  }
+
+  ['email', 'password', 'name', 'org'].forEach(function (id) {
+    $('#' + id).addEventListener('blur', function () {
+      if (mode === 'signin' && (id === 'name' || id === 'org')) return;
+      validate();
+    });
+  });
+
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    hideError();
+    if (!validate()) return;
+
+    var btn = $('#submit-btn');
+    var label = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Working…';
+
+    var email = $('#email').value.trim();
+    var pass = $('#password').value;
+    var run = mode === 'signup'
+      ? Data.signUp(email, pass, $('#name').value.trim(), $('#org').value.trim())
+      : Data.signIn(email, pass);
+
+    run.then(function () {
+      window.location.href = 'missions.html';
+    }).catch(function (e) {
+      btn.disabled = false;
+      btn.textContent = label;
+      showError(e.message || 'Something went wrong. Try again.');
+    });
+  });
+
+  setMode('signin');
+})();
+</script>
+
+</body>
+</html>

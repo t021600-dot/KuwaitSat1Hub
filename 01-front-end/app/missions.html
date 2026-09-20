@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My missions — KuwaitSat-1 Mission Hub</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header id="site-header"></header>
+
+<div id="boot" class="boot">Checking access…</div>
+
+<main class="wrap" id="app" hidden>
+
+  <div class="section">
+    <div class="btn-row" style="justify-content:space-between;align-items:flex-end">
+      <div>
+        <h1>My missions</h1>
+        <p class="muted small" id="subtitle"></p>
+      </div>
+      <a class="btn btn-primary" href="new-mission.html">New mission</a>
+    </div>
+  </div>
+
+  <div id="list">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </div>
+
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="js/agents.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script>
+guard(function (user) {
+  $('#subtitle').textContent =
+    'Private to ' + user.name + '. Other researchers cannot see anything on this page.';
+
+  Data.listMissions().then(function (missions) {
+    if (missions.length === 0) {
+      $('#list').innerHTML =
+        '<div class="card empty">' +
+          '<div class="mark">—</div>' +
+          '<h2>No missions yet</h2>' +
+          '<p class="muted small">Create a mission to give the research assistants something to work on.</p>' +
+          '<p><a class="btn btn-primary" href="new-mission.html">New mission</a></p>' +
+        '</div>';
+      return;
+    }
+
+    Promise.all(missions.map(function (m) {
+      return Data.getAgentRuns(m.id).then(function (runs) {
+        var done = runs.filter(function (r) { return r.status === 'complete'; }).length;
+        return { m: m, done: done, total: runs.length || AGENTS.length };
+      });
+    })).then(function (rows) {
+      $('#list').innerHTML = rows.map(function (row) {
+        var m = row.m;
+        var snippet = m.objective.length > 120 ? m.objective.slice(0, 120) + '…' : m.objective;
+        var pct = row.total ? Math.round(row.done / row.total * 100) : 0;
+        return '' +
+          '<a class="card" href="mission.html?id=' + encodeURIComponent(m.id) + '">' +
+            '<div class="btn-row" style="justify-content:space-between;gap:10px">' +
+              '<h2 style="margin:0">' + esc(m.title) + '</h2>' +
+              statusBadge(m.status) +
+            '</div>' +
+            '<p class="small muted" style="margin:10px 0 0">' + esc(snippet) + '</p>' +
+            '<p class="mono muted" style="margin:10px 0 0">' + esc(boundsText(m.area)) + '</p>' +
+            '<div class="btn-row small muted" style="justify-content:space-between;margin-top:10px">' +
+              '<span>' + row.done + ' of ' + row.total + ' agents complete</span>' +
+              '<span>Created ' + fmtDate(m.createdAt) + '</span>' +
+            '</div>' +
+            '<div class="progress"><i style="width:' + pct + '%"></i></div>' +
+          '</a>';
+      }).join('');
+    });
+  });
+});
+</script>
+
+</body>
+</html>

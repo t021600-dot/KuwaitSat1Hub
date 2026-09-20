@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mission — KuwaitSat-1 Mission Hub</title>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header id="site-header"></header>
+
+<div id="boot" class="boot">Checking access…</div>
+
+<main class="wrap" id="app" hidden>
+  <div id="content"></div>
+</main>
+
+<footer id="site-footer"></footer>
+
+<script src="vendor/leaflet.js"></script>
+<script src="js/agents.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script>
+guard(function () {
+  var missionId = qs('id');
+  var mission = null, runs = [], zones = [], report = null;
+  var map = null, zoneLayers = {}, timer = null, launched = true;
+
+  function notFound() {
+    $('#content').innerHTML =
+      '<div class="card empty">' +
+        '<div class="mark">—</div>' +
+        '<h1>Mission not found, or you do not have access to it</h1>' +
+        '<p class="muted small">If another researcher owns this mission, it will not open here.</p>' +
+        '<p><a class="btn btn-primary" href="missions.html">Back to my missions</a></p>' +
+      '</div>';
+  }
+
+  function shell() {
+    $('#content').innerHTML = '' +
+      '<div class="section">' +
+        '<p class="small"><a href="missions.html">← My missions</a></p>' +
+        '<div class="btn-row" style="justify-content:space-between;gap:10px">' +
+          '<h1 style="margin:0" id="m-title"></h1>' +
+          '<span id="m-status"></span>' +
+        '</div>' +
+        '<p id="m-objective" style="margin-top:12px"></p>' +
+        '<dl class="kv" style="margin-top:12px">' +
+          '<dt>Area</dt><dd class="mono" id="m-area"></dd>' +
+          '<dt>Created</dt><dd id="m-created"></dd>' +
+        '</dl>' +
+      '</div>' +
+
+      '<section class="card section" aria-labelledby="pipe-h">' +
+        '<div class="pipeline-head">' +
+          '<h2 id="pipe-h" style="margin:0">Agent pipeline</h2>' +
+          '<span class="small muted" id="pipe-count"></span>' +
+        '</div>' +
+        '<ol class="timeline" id="timeline" aria-live="polite"></ol>' +
+        '<p class="small muted" style="margin-top:14px">The agents assist. They do not command the ' +
+        'satellite and they do not decide anything for you. All figures shown are sample data.</p>' +
+      '</section>' +
+
+      '<section class="section" aria-labelledby="map-h">' +
+        '<h2 id="map-h">Results on the map</h2>' +
+        '<div id="map-slot"></div>' +
+        '<div class="legend" id="legend" hidden>' +
+          '<span><i style="background:#4DD0C0"></i> High priority</span>' +
+          '<span><i style="background:#F5A524"></i> Medium priority</span>' +
+          '<span><i style="background:#64748B"></i> Low priority</span>' +
+          '<span>Teal outline = your selected area</span>' +
+        '</div>' +
+      '</section>' +
+
+      '<section class="section" aria-labelledby="find-h">' +
+        '<h2 id="find-h">Findings</h2>' +
+        '<div id="findings"></div>' +
+      '</section>' +
+
+      '<section class="review" aria-labelledby="rev-h">' +
+        '<h2 id="rev-h" style="margin-top:0">Researcher review</h2>' +
+        '<p class="small muted" id="rev-copy">The agents are still working. Nothing is published ' +
+        'until you approve it.</p>' +
+        '<div class="btn-row">' +
+          '<button class="btn btn-primary" id="gen" disabled>Generate Report</button>' +
+          '<span class="small muted" id="gen-reason">Available when all six agents finish.</span>' +
+        '</div>' +
+      '</section>';
+
+    $('#gen').addEventListener('click', onGenerate);
+  }
+
+  function renderHead() {
+    $('#m-title').textContent = mission.title;
+    $('#m-status').innerHTML = statusBadge(mission.status);
+    $('#m-objective').textContent = mission.objective;
+    $('#m-area').textContent = boundsText(mission.area) + ' — approx. ' +
+      areaKm2(mission.area).toLocaleString('en-GB') + ' km²';
+    $('#m-created').textContent = fmtDateTime(mission.createdAt);
+  }
+
+  function renderTimeline() {
+    var done = runs.filter(function (r) { return r.status === 'complete'; }).length;
+    $('#pipe-count').textContent = done + ' of ' + runs.length + ' complete';
+
+    $('#timeline').innerHTML = runs.map(function (r) {
+      var def = agentByKey(r.agentKey) || { name: r.agentKey, role: '' };
+      var mark = r.status === 'complete' ? '✓' : r.order;
+      var state = r.status === 'complete' ? 'Complete'
+                : r.status === 'running' ? 'Running' : 'Queued';
+      return '' +
+        '<li class="agent ' + r.status + '" aria-label="' + esc(def.name) + ', ' + state.toLowerCase() + '">' +
+          '<span class="node" aria-hidden="true">' + mark + '</span>' +
+          '<span class="body">' +
+            '<span class="nm">' + esc(def.name) + '</span>' +
+            (r.status === 'running'
+              ? '<span class="st"><span class="spin" aria-hidden="true"></span> Running…</span>'
+              : '<span class="st">' + state + '</span>') +
+            (r.summary ? '<span class="sm">' + esc(r.summary) + '</span>' : '') +
+          '</span>' +
+        '</li>';
+    }).join('');
+  }
+
+  function renderMap() {
+    var slot = $('#map-slot');
+    var vizDone = runs.some(function (r) { return r.agentKey === 'visualization' && r.status === 'complete'; });
+
+    if (!vizDone) {
+      slot.innerHTML = '<div class="map-placeholder">Results appear here once the Visualization agent completes.</div>';
+      $('#legend').hidden = true;
+      map = null;
+      return;
+    }
+    if (map) { syncZones(); return; }
+
+    slot.innerHTML = '<div id="results-map" class="map"></div>';
+    try {
+      map = baseMap('results-map');
+      L.rectangle(areaToBounds(mission.area), {
+        color: '#4DD0C0', weight: 2, dashArray: '5,5', fill: false
+      }).addTo(map);
+      map.fitBounds(areaToBounds(mission.area), { padding: [24, 24] });
+      $('#legend').hidden = false;
+      setTimeout(function () { if (map) map.invalidateSize(); }, 150);
+      syncZones();
+    } catch (err) {
+      // The findings below still tell the whole story without the map.
+      map = null;
+      slot.innerHTML = '<div class="map-placeholder">The map could not load. ' +
+        'The ranked zones are listed under Findings below.</div>';
+      $('#legend').hidden = true;
+    }
+  }
+
+  function syncZones() {
+    if (!map) return;
+    zones.forEach(function (z) {
+      if (zoneLayers[z.id]) return;
+      var layer = L.polygon(z.polygon, {
+        color: ZONE_COLOURS[z.level], weight: 2,
+        fillColor: ZONE_COLOURS[z.level], fillOpacity: 0.28
+      }).addTo(map);
+      layer.bindTooltip(z.name + ' — ' + z.score + '/100');
+      layer.on('click', function () {
+        var card = document.getElementById('zone-' + z.id);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.borderColor = ZONE_COLOURS[z.level];
+          setTimeout(function () { card.style.borderColor = ''; }, 1600);
+        }
+      });
+      zoneLayers[z.id] = layer;
+    });
+  }
+
+  function renderFindings() {
+    if (zones.length === 0) {
+      $('#findings').innerHTML =
+        '<p class="small muted">Findings appear as the agents complete their analysis.</p>';
+      return;
+    }
+    $('#findings').innerHTML = zones
+      .slice().sort(function (a, b) { return b.score - a.score; })
+      .map(function (z) {
+        return '' +
+          '<div class="card" id="zone-' + esc(z.id) + '">' +
+            '<div class="btn-row" style="justify-content:space-between;gap:10px">' +
+              '<h3 style="margin:0">' + esc(z.name) + '</h3>' +
+              '<span class="chip chip-' + esc(z.level) + '">' + esc(z.level) + ' · ' + z.score + '/100</span>' +
+            '</div>' +
+            '<p class="small muted" style="margin:10px 0 0">' + esc(z.note) + '</p>' +
+          '</div>';
+      }).join('');
+  }
+
+  function renderReview() {
+    var allDone = launched && runs.length > 0 &&
+      runs.every(function (r) { return r.status === 'complete'; });
+    var gen = $('#gen');
+
+    if (report) {
+      $('#rev-copy').innerHTML = '<strong>Mission Complete ✓</strong> — you approved this report on ' +
+        esc(fmtDateTime(report.generatedAt)) + '.';
+      if (gen) {
+        gen.outerHTML = '<a class="btn btn-primary" href="report.html?id=' +
+          encodeURIComponent(mission.id) + '">View report</a>';
+      }
+      $('#gen-reason').textContent = '';
+      return;
+    }
+    if (!gen) return;
+
+    if (!launched) {
+      $('#rev-copy').textContent = 'This mission has not been launched yet. ' +
+        'Launching starts the six research assistants.';
+      gen.textContent = 'Launch Mission';
+      gen.dataset.action = 'launch';
+      gen.disabled = false;
+      $('#gen-reason').textContent = 'You decide when the agents start.';
+      return;
+    }
+
+    gen.dataset.action = 'report';
+    gen.textContent = 'Generate Report';
+    if (allDone) {
+      $('#rev-copy').textContent = 'The agents have finished their analysis. Nothing is published until you approve it.';
+      gen.disabled = false;
+      $('#gen-reason').textContent = 'You are approving this analysis for release.';
+    } else {
+      gen.disabled = true;
+      $('#gen-reason').textContent = 'Available when all six agents finish.';
+    }
+  }
+
+  function onGenerate() {
+    var btn = $('#gen');
+
+    if (btn.dataset.action === 'launch') {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Launching…';
+      Data.startPipeline(mission.id)
+        .then(function () { return Data.getMission(mission.id); })
+        .then(function (m) {
+          mission = m;
+          renderHead();
+          return refreshAll();
+        })
+        .then(function () { startTicking(); });
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Generating…';
+    Data.generateReport(mission.id).then(function (r) {
+      report = r;
+      return Data.getMission(mission.id);
+    }).then(function (m) {
+      mission = m;
+      renderHead();
+      renderReview();
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = 'Generate Report';
+      $('#gen-reason').textContent = err.message;
+    });
+  }
+
+  function refreshAll() {
+    return Promise.all([
+      Data.getAgentRuns(mission.id),
+      Data.getZones(mission.id),
+      Data.getReport(mission.id)
+    ]).then(function (res) {
+      zones = res[1]; report = res[2];
+      launched = res[0].length > 0;
+      runs = launched ? res[0] : AGENTS.map(function (a, i) {
+        return { id: 'pending_' + i, missionId: mission.id, agentKey: a.key,
+                 order: i + 1, status: 'queued', summary: null, finishedAt: null };
+      });
+      renderTimeline();
+      renderMap();
+      renderFindings();
+      renderReview();
+    });
+  }
+
+  function startTicking() {
+    if (timer) return;
+    timer = setInterval(function () {
+      Data.advanceAgent(mission.id).then(function (completed) {
+        if (!completed) { clearInterval(timer); timer = null; return; }
+        refreshAll();
+      });
+    }, 2000);
+  }
+
+  if (!missionId) { notFound(); return; }
+
+  Data.getMission(missionId).then(function (m) {
+    if (!m) { notFound(); return; }
+    mission = m;
+    shell();
+    renderHead();
+    return refreshAll().then(function () {
+      var anyRunning = runs.some(function (r) { return r.status === 'running'; });
+      if (anyRunning) startTicking();
+    });
+  });
+});
+</script>
+
+</body>
+</html>
