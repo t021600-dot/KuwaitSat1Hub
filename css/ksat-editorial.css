@@ -286,10 +286,14 @@ html, body{ overflow-x:hidden; }
    ===================================================================== */
 
 section.sec.hero{
-  min-height:clamp(600px, 88vh, 1000px) !important;
+  /* A title card fits the frame. max-height keeps the headline on
+     screen on a short laptop; min-height keeps the artwork cinematic
+     on a tall one. */
+  min-height:clamp(560px, 86vh, 920px) !important;
+  max-height:100vh;
   display:grid !important;
   align-items:end;
-  padding-block:0 clamp(48px,6vw,88px) !important;
+  padding-block:0 clamp(32px,4vw,64px) !important;
 }
 
 /* The two-column grid collapses: the artwork goes BEHIND, the words in
@@ -336,10 +340,22 @@ section.sec.hero .orbcard::before{
     linear-gradient(0deg, var(--void) 2%, transparent 26%);
 }
 
-/* The words sit in the scrim's heavy side and take half the measure. */
+/* The words sit in the scrim's heavy side and take half the measure.
+   NO TOP PADDING. The artwork is position:absolute and contributes no
+   height, so a large padding-top here simply made the hero taller than
+   the viewport and pushed the headline below the fold — measured at
+   1194px against a 714px viewport, which meant a visitor landed on a
+   picture with no words on it at all. The hero's own min-height plus
+   `align-items:end` place the block; padding only adds to the stack. */
 section.sec.hero > .grid.g-53 > div:first-child{
   max-width:min(56ch, 58%);
-  padding-top:clamp(120px,16vh,220px);
+  padding-top:0;
+}
+
+/* The whole hero block sits low in the frame, the way a title card
+   does, rather than being centred in it. */
+section.sec.hero{
+  align-content:end;
 }
 
 /* The instrument readouts move onto the image as flight labels. */
