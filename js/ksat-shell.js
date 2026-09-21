@@ -444,7 +444,26 @@
      NAV[i].id)`), so deleting one would misalign every highlight after
      it. Hiding preserves the index.
      =================================================================== */
+  /* index.html's renderNav() does `n.innerHTML = ""` and rebuilds every
+     button from scratch. It runs inside renderAll(), which fires on
+     every language switch and several other paths — so flags set here
+     were being wiped seconds later, and the first build of this simply
+     did not hold. A MutationObserver re-applies them whenever the nav
+     is rebuilt, which is the only reliable hook: we do not own that
+     function and must not fight it for ownership. */
+  var navWatch = null;
+  function watchNav() {
+    if (navWatch) return;
+    var nav = document.querySelector('nav.nav');
+    if (!nav || typeof MutationObserver === 'undefined') return;
+    navWatch = new MutationObserver(function () {
+      paintNavForTier(root.getAttribute('data-ksat-tier') || 'public');
+    });
+    navWatch.observe(nav, { childList: true });
+  }
+
   function paintNavForTier(tier) {
+    watchNav();
     var buttons = document.querySelectorAll('nav.nav button');
     if (!buttons.length) return;
     var nav = (typeof NAV !== 'undefined') ? NAV : null;
