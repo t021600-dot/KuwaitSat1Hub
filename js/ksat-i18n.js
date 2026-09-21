@@ -373,6 +373,99 @@
     }
   }
 
+
+  /* -----------------------------------------------------------------
+     THE PROVENANCE BADGES
+
+     These carry no data-i18n: they are static text inside
+     <span class="badge …">, written straight into the markup. They are
+     also the most important text on the page for honesty, so leaving
+     them English on an Arabic page would be the worst place of all to
+     leave a gap — an Arabic reader would see every figure and not the
+     label saying whether it was measured or modelled.
+
+     Matched on their exact English, with the typographic mark kept:
+     ▦ ◈ ⬡ ↗ 🛰 🏛 carry the meaning across both languages and appear
+     under the same marks in the legend.
+     ----------------------------------------------------------------- */
+  var BADGES = {
+    '🛰 KuwaitSat-1 mission record': '🛰 سجل مهمة KuwaitSat-1',
+    '🛰 Acquisition record · image at source': '🛰 سجل الالتقاط · الصورة في مصدرها',
+    '🛰 Acquisition record': '🛰 سجل الالتقاط',
+    '🛰 Measured footprint': '🛰 بصمة مقاسة',
+    '🛰 Measured': '🛰 مُقاس',
+    '🛰 Published record': '🛰 سجل منشور',
+    '🛰 Published': '🛰 منشور',
+    '🛰 Verified dates': '🛰 تواريخ مُتحقَّق منها',
+    '🛰 Verified': '🛰 مُتحقَّق منه',
+
+    '▦ Reference dataset': '▦ مجموعة بيانات مرجعية',
+    '▦ Reference': '▦ مرجعية',
+
+    '◈ Modelled — not live telemetry': '◈ مُنمذَج — لا قياس حيّ عن بُعد',
+    '◈ Modelled scenario': '◈ سيناريو مُنمذَج',
+    '◈ Modelled scenes': '◈ مشاهد مُنمذَجة',
+    '◈ Modelled scene': '◈ مشهد مُنمذَج',
+    '◈ Modelled': '◈ مُنمذَج',
+
+    '⬡ Derived analysis': '⬡ تحليل مُشتقّ',
+    '⬡ Derived interpretation': '⬡ تفسير مُشتقّ',
+    '⬡ Derived': '⬡ مُشتقّ',
+    '⬡ Model output': '⬡ مخرجات النموذج',
+    '⬡ Agent workflow': '⬡ مسار الوكيل',
+    '⬡ Decision support': '⬡ دعم القرار',
+    '⬡ Rule-based, in-page': '⬡ قائم على قواعد، داخل الصفحة',
+    '⬡ Generated': '⬡ مُولَّد',
+
+    '↗ Projection': '↗ إسقاط',
+    '↗ Estimate': '↗ تقدير',
+
+    '🏛 Public data': '🏛 بيانات عامة',
+    'Assisted workflow': 'مسار مُعان',
+    'Alignment': 'المواءمة',
+    'EXTERNAL MEDIA BLOCKED': 'الوسائط الخارجية محجوبة'
+  };
+
+  var CHAPTERS_AR = {
+    'Chapters': 'الفصول',
+    'Mission Record': 'سجل المهمة',
+    'Kuwait From Space': 'الكويت من الفضاء',
+    'Intelligence': 'التحليل',
+    'Planning': 'التخطيط',
+    'Agents': 'الوكلاء',
+    'Story & Accountability': 'القصة والمصداقية'
+  };
+
+  function translateBadges(code) {
+    var ar = code === 'ar';
+    var nodes = document.querySelectorAll('.badge');
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (!EN.has(n)) EN.set(n, n.textContent.trim());
+      var src = EN.get(n);
+      n.textContent = (ar && BADGES[src]) ? BADGES[src] : src;
+    }
+  }
+
+  function translateChapters(code) {
+    var ar = code === 'ar';
+    /* The chapter control is built by js/ksat-shell.js, which knows
+       nothing about language, so its labels are matched on English. */
+    var nodes = document.querySelectorAll('#ksat-ch-rail *, #ksat-ch-sheet *, #ksat-ch-fab');
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.children.length) continue;                  /* leaf text only */
+      if (!EN.has(n)) EN.set(n, n.textContent.trim());
+      var src = EN.get(n);
+      if (!src) continue;
+      if (ar && CHAPTERS_AR[src]) { n.textContent = CHAPTERS_AR[src]; continue; }
+      /* "Ch 1/6 · Mission Record" — keep the numerals, translate the name */
+      var m = src.match(/^Ch (\d+\/\d+) · (.+)$/);
+      if (ar && m && CHAPTERS_AR[m[2]]) { n.textContent = 'فصل ' + m[1] + ' · ' + CHAPTERS_AR[m[2]]; continue; }
+      n.textContent = src;
+    }
+  }
+
   /* Our own layers carry no data-i18n, so they are named explicitly. */
   function translateOurs(code) {
     var ar = code === 'ar';
@@ -424,6 +517,8 @@
     root.dir  = ar ? 'rtl' : 'ltr';
     translateDom(code);
     translateOurs(code);
+    translateBadges(code);
+    translateChapters(code);
 
     try { localStorage.setItem('ksat.lang', code); } catch (e) {}
     try {
