@@ -87,7 +87,7 @@
     try { return 'onbeforematch' in document.body; } catch (e) { return false; }
   })();
 
-  var stats = { clamped: 0, runs: 0, hidden: 0 };
+  var stats = { clamped: 0, runs: 0, grids: 0, hidden: 0 };
 
   function eligible(p) {
     if (p.dataset.ksatFolded) return false;
@@ -110,7 +110,7 @@
   function clampOne(p) {
     p.dataset.ksatFolded = '1';
     p.classList.add('ksat-fold');
-    if (!p.id) p.id = 'ksat-fold-' + (++stats.clamped);
+    if (!p.id) p.id = 'ksat-fold-' + (stats.clamped + 1);
 
     var b = control('Read more');
     b.setAttribute('aria-controls', p.id);
@@ -176,8 +176,86 @@
     return true;
   }
 
+  /* ---- shape 3 · A CARD GRID -----------------------------------------
+     The measurement that forced this: `trust` carries twenty paragraphs
+     but its longest is 139 characters and eleven are under 100. It is
+     not a wall of prose - it is eighteen CARDS. Clamping a 98-character
+     paragraph does nothing, which is why the first two passes left these
+     sections untouched while they were the densest on the page:
+
+       trust    18 cards in one container   1,253 chars
+       system    6 capability cards            812 chars
+       sources   6 rule cards                  780 chars
+
+     A grid shows its first three cards and folds the rest behind one
+     control that names the total. That is how an agency site handles a
+     long list.
+
+     THE CARDS ARE NOT WRAPPED. Putting them in a container would make
+     THAT the grid item and collapse the layout to a single column. Each
+     extra card is hidden individually and the control goes after the
+     grid, so the CSS grid is untouched.
+     ------------------------------------------------------------------ */
+  var KEEP_CARDS = 3;
+  var gridId = 0;
+
+  function hideCard(node, on) {
+    if (on) {
+      if (UNTIL_FOUND) node.setAttribute('hidden', 'until-found');
+      else node.hidden = true;
+    } else {
+      node.removeAttribute('hidden');
+      node.hidden = false;
+    }
+  }
+
+  function foldGrid(container) {
+    if (container.dataset.ksatGrid) return false;
+    if (container.closest(KEEP_WHOLE)) return false;
+
+    var kids = [].slice.call(container.children).filter(function (c) {
+      return c.querySelector && c.querySelector('p') && c.textContent.trim().length > 30;
+    });
+    if (kids.length < KEEP_CARDS + 2) return false;
+
+    var rest = kids.slice(KEEP_CARDS);
+    var chars = rest.reduce(function (n, c) { return n + c.textContent.trim().length; }, 0);
+    if (chars < 300) return false;
+
+    container.dataset.ksatGrid = '1';
+    var id = 'ksat-grid-' + (++gridId);
+    container.id = container.id || id;
+
+    rest.forEach(function (c) { c.dataset.ksatFolded = '1'; hideCard(c, true); });
+
+    var b = control('Show all ' + kids.length);
+    b.setAttribute('aria-controls', container.id);
+    function setOpen(open) {
+      rest.forEach(function (c) { hideCard(c, !open); });
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      b.querySelector('.ksat-fold-word').textContent =
+        open ? 'Show fewer' : 'Show all ' + kids.length;
+    }
+    b.addEventListener('click', function () {
+      setOpen(b.getAttribute('aria-expanded') !== 'true');
+    });
+    rest.forEach(function (c) {
+      c.addEventListener('beforematch', function () { setOpen(true); });
+    });
+
+    container.insertAdjacentElement('afterend', b);
+    stats.grids = (stats.grids || 0) + 1;
+    stats.hidden += rest.length;
+    return true;
+  }
+
   /* ---- walk each section, grouping consecutive siblings --------------- */
   function doSection(sec) {
+    /* Card grids first: they are the densest shape and folding one
+       removes its paragraphs from consideration below. */
+    var conts = sec.querySelectorAll('div, ul, ol');
+    for (var c = 0; c < conts.length; c++) foldGrid(conts[c]);
+
     var kids = [].slice.call(sec.querySelectorAll('p'));
     var usable = kids.filter(eligible);
     if (!usable.length) return;
@@ -189,8 +267,12 @@
       var p = usable[i];
       if (!cur.length) { cur = [p]; continue; }
       var prev = cur[cur.length - 1];
-      var adjacent = prev.parentElement === p.parentElement &&
-                     prev.nextElementSibling === p;
+      /* SAME PARENT IS ENOUGH. Requiring prev.nextElementSibling === p
+         meant a run only formed when paragraphs were DIRECT siblings,
+         and in this page they almost never are - headings, rules and
+         wrappers sit between them. That is why the first build folded
+         zero runs. */
+      var adjacent = prev.parentElement === p.parentElement;
       if (adjacent) cur.push(p);
       else { groups.push(cur); cur = [p]; }
     }
