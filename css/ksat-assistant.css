@@ -318,7 +318,9 @@ html[data-ksat-assistant="open"] #ksat-ch-fab{
   html[data-ksat-assistant="open"] #ksat-ch-fab{ transition:none; }
 }
 
-/* Stack them clear of one another when both are showing. */
+/* Stack them clear of one another when both are showing. The chapter
+   control is 45px tall and sits at bottom:18px, so the launcher needs
+   to clear 18 + 45 + a real gap. 74px left them touching. */
 @media (min-width: 621px){
-  .ksat-as-fab{ bottom:calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .ksat-as-fab{ bottom:calc(75px + env(safe-area-inset-bottom, 0px)); }
 }
