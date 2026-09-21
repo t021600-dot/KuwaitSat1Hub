@@ -1,0 +1,306 @@
+/* =====================================================================
+   ksat-detail.css — INTERACTION AND FINISH
+   Owner: 01 Front End · loaded after ksat-agency.css
+
+   The rebuild fixed the STRUCTURE — ground, boxes, air, scale. This
+   file is the finish: the states a thing is in while you use it.
+
+   That is most of what separates an agency site from a competent one.
+   The structure you notice once; the finish you feel on every click.
+   A default browser focus ring, a scrollbar in system chrome, a select
+   with an OS arrow, a slider with a round blue thumb — each one is a
+   small tell, and together they are the whole difference.
+
+   THE RULES THIS FILE FOLLOWS
+   · One easing curve and two durations, everywhere.
+   · Focus is ALWAYS visible and always the same shape. Never removed.
+   · Hover changes a line or a colour, never a size — nothing may move
+     under the pointer, because that is how mis-clicks happen.
+   · Square. No radius survives anywhere in the interface.
+   ===================================================================== */
+
+:root{
+  --ease:cubic-bezier(.2,0,.2,1);
+  --t-fast:120ms;
+  --t:180ms;
+  --focus:var(--accent, #3D8BFF);
+}
+
+/* ---------------------------------------------------------------------
+   1 · THE GROUND
+   Flat black is correct but can read as empty. NASA earns its black
+   with photography; we have almost none, so the ground carries a very
+   faint engineering grid instead — the graticule of a chart, at an
+   opacity you notice only as texture. Fixed, so it does not parallax
+   against the content and turn into decoration.
+   --------------------------------------------------------------------- */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(to right,  rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size:96px 96px;
+  /* Fade it out top and bottom so it never competes with the masthead
+     or the footer. */
+  -webkit-mask-image:linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+          mask-image:linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+}
+main, .bar, footer{ position:relative; z-index:1; }
+
+/* ---------------------------------------------------------------------
+   2 · FOCUS — one shape, everywhere, never removed.
+   :focus-visible so a pointer user never sees it and a keyboard user
+   always does.
+   --------------------------------------------------------------------- */
+*:focus{ outline:none; }
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible{
+  outline:2px solid var(--focus);
+  outline-offset:2px;
+  border-radius:0;
+}
+/* On a filled control the ring needs to sit outside the fill to stay
+   readable. */
+.btn.pri:focus-visible,
+.btn.grn:focus-visible,
+.ksat-lang button[aria-pressed="true"]:focus-visible{
+  outline-color:var(--ink, #E8ECF2);
+  outline-offset:3px;
+}
+
+/* ---------------------------------------------------------------------
+   3 · SELECTION
+   --------------------------------------------------------------------- */
+::selection{ background:var(--accent); color:#02060C; }
+::-moz-selection{ background:var(--accent); color:#02060C; }
+
+/* ---------------------------------------------------------------------
+   4 · SCROLLBARS. System chrome is the loudest remaining tell.
+   --------------------------------------------------------------------- */
+*{ scrollbar-width:thin; scrollbar-color:#2A2F39 transparent; }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{
+  background:#232833;
+  border:2px solid var(--void, #020305);   /* inset, so it reads thin */
+}
+::-webkit-scrollbar-thumb:hover{ background:#333B49; }
+::-webkit-scrollbar-corner{ background:transparent; }
+
+/* ---------------------------------------------------------------------
+   5 · BUTTONS. Hover moves a line or a colour, never a size.
+   --------------------------------------------------------------------- */
+.btn,
+.ksat-as-send,
+.ksat-gate-btn{
+  transition:background var(--t) var(--ease),
+             border-color var(--t) var(--ease),
+             color var(--t) var(--ease);
+}
+.btn{ border:1px solid var(--line-3, #2A2F39) !important; }
+.btn:hover{
+  border-color:var(--ink-3, #6B7A8D) !important;
+  background:rgba(255,255,255,.04) !important;
+  transform:none !important;          /* the page lifted on hover; agencies do not */
+}
+.btn:active{ background:rgba(255,255,255,.08) !important; }
+.btn.pri:hover,
+.btn.grn:hover{
+  background:#5AA0FF !important;
+  border-color:#5AA0FF !important;
+}
+.btn[disabled]{ opacity:.4 !important; }
+
+/* ---------------------------------------------------------------------
+   6 · TABS AND SEGMENTED CONTROLS
+   The page uses .chip[aria-pressed] as a tab set in several places.
+   An agency tab is a label with a rule under it, not a filled pill.
+   --------------------------------------------------------------------- */
+.chip{
+  position:relative;
+  border:0 !important;
+  border-bottom:2px solid transparent !important;
+  padding:8px 2px !important;
+  margin-inline-end:20px;
+  background:transparent !important;
+  color:var(--ink-3) !important;
+  font-family:var(--mono);
+  font-size:11.5px !important;
+  letter-spacing:.12em !important;
+  text-transform:uppercase;
+  transition:color var(--t) var(--ease), border-color var(--t) var(--ease);
+}
+.chip:hover{ color:var(--ink) !important; border-bottom-color:var(--line-3) !important; }
+.chip[aria-pressed="true"]{
+  color:var(--ink) !important;
+  border-bottom-color:var(--accent) !important;
+}
+.chips{ gap:0 !important; border-bottom:1px solid var(--line); }
+
+/* ---------------------------------------------------------------------
+   7 · FORM CONTROLS. A native select arrow is an OS tell.
+   --------------------------------------------------------------------- */
+select,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea{
+  appearance:none;
+  -webkit-appearance:none;
+  border-radius:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  border-bottom:1px solid var(--line-3) !important;
+  padding:10px 2px !important;
+  color:var(--ink) !important;
+  font-family:var(--body);
+  font-size:14px;
+  transition:border-color var(--t) var(--ease);
+}
+select{
+  padding-inline-end:26px !important;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+    linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - 12px) calc(50% + 1px),
+    calc(100% - 7px)  calc(50% + 1px);
+  background-size:5px 5px, 5px 5px;
+  background-repeat:no-repeat;
+}
+html[dir="rtl"] select{
+  background-position:12px calc(50% + 1px), 17px calc(50% + 1px);
+  padding-inline-end:2px !important;
+  padding-inline-start:26px !important;
+}
+select:hover,
+input:hover,
+textarea:hover{ border-bottom-color:var(--ink-3) !important; }
+select:focus,
+input:focus,
+textarea:focus{ border-bottom-color:var(--accent) !important; }
+select option{ background:#0A0C10; color:var(--ink); }
+
+/* A field label reads as an instrument label. */
+label,
+.fieldlab{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+}
+
+/* ---------------------------------------------------------------------
+   8 · RANGE SLIDERS — the roundest thing left on the page.
+   --------------------------------------------------------------------- */
+input[type="range"]{
+  appearance:none;
+  -webkit-appearance:none;
+  width:100%;
+  height:24px;
+  background:transparent !important;
+  border:0 !important;
+  padding:0 !important;
+}
+input[type="range"]::-webkit-slider-runnable-track{
+  height:2px;
+  background:var(--line-3);
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:3px;
+  height:16px;
+  margin-top:-7px;
+  background:var(--accent);
+  border:0;
+  border-radius:0;
+  cursor:ew-resize;
+}
+input[type="range"]::-moz-range-track{ height:2px; background:var(--line-3); }
+input[type="range"]::-moz-range-thumb{
+  width:3px; height:16px; background:var(--accent);
+  border:0; border-radius:0; cursor:ew-resize;
+}
+input[type="range"]:focus-visible::-webkit-slider-thumb{ box-shadow:0 0 0 2px var(--ink); }
+
+/* ---------------------------------------------------------------------
+   9 · THE NAV — a measured row with a live rule.
+   --------------------------------------------------------------------- */
+nav.nav button{
+  transition:color var(--t) var(--ease), background var(--t) var(--ease);
+}
+nav.nav button:hover{ background:transparent !important; color:var(--ink) !important; }
+
+/* ---------------------------------------------------------------------
+   10 · TABLES — a hover row, because these are records people read
+   across.
+   --------------------------------------------------------------------- */
+table tbody tr{ transition:background var(--t-fast) var(--ease); }
+table tbody tr:hover{ background:rgba(255,255,255,.022); }
+
+/* ---------------------------------------------------------------------
+   11 · LINKS — the underline grows from the start rather than fading.
+   --------------------------------------------------------------------- */
+section.sec a:not(.btn):not(.chip){
+  text-decoration-thickness:1px;
+  text-underline-offset:4px;
+  transition:text-decoration-color var(--t) var(--ease), color var(--t) var(--ease);
+}
+
+/* ---------------------------------------------------------------------
+   12 · OUR OWN LAYERS, finished to the same standard.
+   --------------------------------------------------------------------- */
+.ksat-fold-more{ transition:color var(--t) var(--ease); }
+.ksat-as-chip{
+  border-radius:0 !important;
+  transition:border-color var(--t) var(--ease), color var(--t) var(--ease);
+}
+.ksat-as-go,
+.ksat-as-send,
+.ksat-gate-btn,
+.ksat-who-out,
+.ksat-gate-reveal{ border-radius:0 !important; }
+.ksat-as-bubble{ border-radius:0 !important; }
+.ksat-as-badge{ border-radius:0 !important; }
+#ksat-whoami{
+  border-radius:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  border-inline-start:1px solid var(--line-2) !important;
+  padding-inline-start:16px !important;
+  backdrop-filter:none !important;
+}
+
+/* ---------------------------------------------------------------------
+   13 · MOTION PREFERENCE. Every transition above is decorative.
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:1ms !important;
+    animation-duration:1ms !important;
+    animation-iteration-count:1 !important;
+    scroll-behavior:auto !important;
+  }
+  body::before{ display:none; }
+}
+
+/* ---------------------------------------------------------------------
+   14 · FORCED COLOURS. If the OS is driving colour, step out of the way.
+   --------------------------------------------------------------------- */
+@media (forced-colors: active){
+  body::before{ display:none; }
+  .btn, .chip, select, input, textarea{ border:1px solid ButtonBorder !important; }
+  *:focus-visible{ outline:2px solid Highlight !important; }
+}

@@ -111,8 +111,13 @@ body{ background:var(--void); }
    Agency pages are mostly empty. Doubling the vertical rhythm is what
    makes a page read as considered rather than crammed.
    --------------------------------------------------------------------- */
+/* 168px proved too much in combination with a 101px sticky masthead:
+   arriving from the nav left the first heading 284px down a 630px
+   viewport. The air is right when scrolling naturally, so the padding
+   comes down only a little and js/ksat-shell.js scrollToId() now lands
+   on the section's heading rather than on its padding edge. */
 section.sec{
-  padding-block:clamp(84px,11vw,168px) !important;
+  padding-block:clamp(72px,9vw,132px) !important;
 }
 .grid { gap:clamp(28px,3.4vw,56px) !important; }
 .mt   { margin-top:clamp(26px,3vw,44px) !important; }
@@ -240,4 +245,13 @@ table tr:last-child td{ border-bottom:0 !important; }
 @media (max-width: 720px){
   section.sec{ padding-block:clamp(52px,14vw,88px) !important; }
   .badge + .badge{ margin-inline-start:12px; }
+}
+
+
+/* The heading is now the scroll target, so IT carries the offset that
+   clears the sticky masthead. */
+section.sec > .eyebrow,
+section.sec > h2,
+section.sec > h3{
+  scroll-margin-top:calc(var(--bar-h, 101px) + 28px);
 }

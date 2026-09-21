@@ -945,9 +945,22 @@
     if (!target) target = sec(id);
     if (!target) return;
     try { void target.offsetTop; } catch (e) {}
+
+    /* LAND ON THE CONTENT, NOT ON THE PADDING.
+       Sections carry a large top padding - that air is what makes the
+       page read as an agency document rather than a dashboard. But
+       scrollIntoView on the SECTION lands at the top of that padding,
+       so arriving from the nav put the first heading 284px down a 630px
+       viewport: nearly half the screen empty, which reads as a broken
+       link rather than as generous spacing.
+
+       Scrolling to the section's own eyebrow or heading instead keeps
+       the air when a reader scrolls naturally, and puts the content
+       where they expect it when they navigate. */
+    var anchor = target.querySelector('.eyebrow, h2, h3') || target;
     try {
-      target.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
-    } catch (e) { target.scrollIntoView(); }
+      anchor.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+    } catch (e) { anchor.scrollIntoView(); }
   }
 
   function pushHash(id, replace) {
