@@ -1246,14 +1246,31 @@ html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
    type rather than a pixel guess. Panels keep their own width: a figure
    caption or a data table is not prose and must not be squeezed.
    --------------------------------------------------------------------- */
-section.sec > p,
-section.sec > .lede,
-section.sec > .sub,
-.panel > p,
-.capcard > p,
-.rule > p,
-.trib-body > p{
-  max-width:68ch;
+/* WHY 56ch AND NOT 68ch, WHICH IS WHAT I SET FIRST.
+   `ch` is the advance width of the digit "0", and in a proportional face
+   a digit is noticeably WIDER than the average lowercase letter. So a
+   `ch` value fits MORE characters than the number suggests: measured on
+   the live page, 68ch produced 79 characters per line — still outside
+   the 65–75 band, and the change looked like it had done nothing.
+   56ch measures at ~70 characters in Inter, which is the middle of the
+   band. Monospace is the only case where Nch really means N characters.
+
+   The descendant selector matters too: the first version used the CHILD
+   combinator, and the hero lede sits inside a grid wrapper, so the one
+   paragraph a visitor reads first was never capped at all. */
+section.sec p,
+section.sec .lede,
+section.sec .sub{
+  max-width:56ch;
+}
+/* Panels, tables and captions set their own width — a data table is not
+   prose and must not be squeezed into a reading measure. */
+section.sec table p,
+section.sec figcaption,
+section.sec .exhud,
+section.sec .cmplab,
+section.sec .ksat-invite p{
+  max-width:none;
 }
 
 /* ---------------------------------------------------------------------
@@ -1288,7 +1305,7 @@ section.sec > .lede:first-of-type{
   color:var(--ink);
   font-weight:400;
   letter-spacing:-.005em;
-  max-width:62ch;
+  max-width:52ch;                  /* a standfirst sits shorter still */
 }
 
 /* ---------------------------------------------------------------------
