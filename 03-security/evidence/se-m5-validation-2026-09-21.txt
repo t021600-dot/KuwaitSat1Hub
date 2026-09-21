@@ -1,0 +1,43 @@
+se-m5 - EVERY FIELD REFUSES EMPTY, FAR TOO LONG, WRONG TYPE
+run: 21 September 2026, against the LIVE database (kqboenytmzagdiweqygl)
+method: insert attempted AS A SIGNED-IN RESEARCHER, the error captured
+
+The judge's test, word for word: "Paste 5,000 characters and submit. It
+refuses, does not freeze, creates no row."
+
+  #  TEST                                   OUTCOME   REFUSED BY
+  1  objective 5,000 characters             refused   missions_objective_len
+  2  objective empty                        refused   missions_objective_has_letter
+  3  objective 40 spaces only               refused   missions_objective_has_letter
+  4  objective digits + punctuation only    refused   missions_objective_has_letter
+  5  area is a string, not a polygon        refused   missions_area_shape
+  6  area valid polygon but over PARIS      refused   missions_area_shape
+  7  title 400 characters                   refused   missions_title_len
+ 10  area with 5,000 vertices               refused   missions_area_shape
+
+  8  ARABIC objective, valid                ACCEPTED  <- must not be refused
+  9  ENGLISH objective, valid               ACCEPTED  <- must not be refused
+
+Every refusal names a DIFFERENT constraint. That matters: it shows each rule
+is doing its own job rather than one blunt rule catching everything.
+
+TESTS 8 AND 9 ARE THE POINT OF THE EXERCISE. A validation suite that only
+proves things are REFUSED has not shown the product works - it has shown the
+form is broken. Arabic is accepted, which is why the length rule uses
+char_length and not octet_length: a 1,500-character Arabic objective is about
+3,000 bytes, and a byte check would refuse a legitimate mission while the
+counter on screen said it was fine. On a bilingual Kuwait platform with a
+language toggle that is a contradiction a judge can trip.
+
+A METHOD NOTE, because the first attempt proved nothing.
+Run in the SQL editor with no session, every single insert was refused by
+"Sign in before launching a mission." - the BEFORE INSERT guard trigger,
+which fires before any CHECK constraint is reached. So the first run proved
+the trigger worked and said nothing at all about se-m5. The run above sets
+request.jwt.claims first, so the guard passes and the constraints get their
+turn. This is exactly the trap VALIDATION-MATRIX.md warns about: a refusal
+is only evidence if you read WHICH thing refused it.
+
+STILL TO DO ON DEMO NIGHT: the same tests through the browser, to show the
+message a researcher actually sees and that the row count does not move.
+The database half is proven here; the screen half is a screenshot away.
