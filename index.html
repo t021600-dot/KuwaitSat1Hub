@@ -2743,7 +2743,7 @@ const NAV = [
   {id:"team", en:"Our team", ar:"الفريق"},
   {id:"sources", en:"Sources", ar:"المصادر"}
 ];
-const L=(o)=> o.en;
+const L=(o)=> (LANG==="ar" && o && o.ar) ? o.ar : (o?o.en:"");  /* restored: this returned o.en unconditionally, which switched off every Arabic label already written into this page - NAV, metrics, region names, ambitions, spec rows. The data was never removed, only the selector. See js/ksat-i18n.js for the rest of the layer. */
 function fillSelect(sel, items, value, labelFn){
   if(!sel) return;
   sel.innerHTML=""; items.forEach(it=>{
