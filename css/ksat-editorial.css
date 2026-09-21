@@ -358,6 +358,16 @@ section.sec.hero .orbcard::before{
 section.sec.hero > .grid.g-53 > div:first-child{
   max-width:min(56ch, 58%);
   padding-top:0;
+  /* THE CANVAS WAS PAINTING OVER THE HEADLINE.
+     The orbit panel is a SIBLING of this block inside the same grid, and
+     it is positioned with z-index:0. A static element has no z-index of
+     its own, so within that stacking context the positioned sibling won
+     and the words were rendered underneath the artwork — present in the
+     DOM, correct in the box model, and invisible on screen.
+     elementFromPoint over the headline returned CANVAS#heroOrb.
+     Position it so it has a z-index to compare. */
+  position:relative;
+  z-index:1;
 }
 
 /* The whole hero block sits low in the frame, the way a title card
