@@ -1430,3 +1430,148 @@ footer a:hover{ color:var(--ink); text-decoration:underline; text-underline-offs
   section.sec > p, .lede, .sub{ max-width:none; }
   .eyebrow{ gap:10px; }
 }
+
+/* =====================================================================
+   16 · ARABIC AND RIGHT-TO-LEFT                 added 21 September 2026
+
+   The page shipped with .lang CSS, 209 data-i18n hooks and an empty
+   dictionary. js/ksat-i18n.js supplies the Arabic and the switch; this
+   supplies the typography and the direction.
+
+   Most of the layout already uses logical properties (inset-inline-*,
+   margin-inline-*, padding-inline), so it mirrors on its own. What is
+   listed below is what does NOT: the face, the numerals, and the small
+   number of places the page uses physical left/right.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   16a · THE FACE.
+   Archivo and Inter carry no Arabic, so an Arabic page in those falls
+   back to whatever the OS supplies — usually Times-like and far too
+   small beside the Latin. IBM Plex Sans Arabic is the matching family
+   to the page's own Plex, and Noto Kufi Arabic is the widely-installed
+   fallback. Both are listed before the generic so nothing lands on a
+   serif default.
+
+   Arabic has no capitals and a taller x-height equivalent, so it reads
+   heavier at the same size — hence the slightly reduced display sizes
+   and the increased line-height below. Setting Arabic at the Latin
+   metrics is the single most common way a bilingual page looks wrong.
+   --------------------------------------------------------------------- */
+html[lang="ar"]{
+  --disp:"IBM Plex Sans Arabic","Noto Kufi Arabic","Segoe UI",Tahoma,sans-serif;
+  --body:"IBM Plex Sans Arabic","Noto Sans Arabic","Segoe UI",Tahoma,sans-serif;
+}
+html[lang="ar"] body{
+  font-family:var(--body);
+  letter-spacing:0;                /* Arabic is cursive: never track it */
+}
+html[lang="ar"] h1,
+html[lang="ar"] h2,
+html[lang="ar"] h3,
+html[lang="ar"] .brand b{
+  letter-spacing:0;
+  line-height:1.3;                 /* descenders and dots need the room */
+}
+html[lang="ar"] h1{ font-size:clamp(34px,5.2vw,62px); }
+html[lang="ar"] h2{ font-size:clamp(25px,3.4vw,42px); }
+
+html[lang="ar"] p,
+html[lang="ar"] .lede,
+html[lang="ar"] .sub{
+  line-height:1.85;                /* was ~1.55; Arabic needs more */
+  max-width:60ch;
+}
+
+/* Numerals, IDs, coordinates and code stay in the Latin mono — Kuwaiti
+   scientific publishing uses Western Arabic numerals and Latin unit
+   symbols, and a monospace column of figures must not reflow RTL. */
+html[lang="ar"] .mono,
+html[lang="ar"] .num,
+html[lang="ar"] .exhud,
+html[lang="ar"] .cmplab,
+html[lang="ar"] code,
+html[lang="ar"] kbd,
+html[lang="ar"] .ksat-as-badge{
+  font-family:var(--mono);
+  direction:ltr;
+  unicode-bidi:isolate;
+  letter-spacing:.04em;
+}
+
+/* An eyebrow mixes an Arabic phrase with a Latin section number, which
+   is exactly the case bidi isolation exists for. */
+html[lang="ar"] .eyebrow{ letter-spacing:.04em; }
+html[lang="ar"] .eyebrow .num{ direction:ltr; unicode-bidi:isolate; }
+
+/* ---------------------------------------------------------------------
+   16b · DIRECTION. Only what does not already use logical properties.
+   --------------------------------------------------------------------- */
+html[dir="rtl"] .ksat-fold-more::after{
+  transform:rotate(45deg) translate(-1px,-1px);   /* chevron is vertical */
+}
+html[dir="rtl"] nav.nav button::after{ inset-inline:10px; }
+
+/* The page draws a few accents with physical borders. */
+html[dir="rtl"] .ksat-amend{
+  border-left:0;
+  border-right:3px solid var(--accent);
+  border-radius:8px 0 0 8px;
+}
+html[dir="rtl"] blockquote,
+html[dir="rtl"] .quote{
+  border-left:0;
+  border-right:3px solid var(--accent-dim);
+  padding-left:0;
+  padding-right:18px;
+}
+
+/* Canvases and their overlays must NOT mirror — a chart's x-axis is
+   data, not text, and flipping it would misstate the record. */
+html[dir="rtl"] canvas,
+html[dir="rtl"] svg,
+html[dir="rtl"] .cmp,
+html[dir="rtl"] table{
+  direction:ltr;
+}
+html[dir="rtl"] table th,
+html[dir="rtl"] table td{ text-align:right; }
+html[dir="rtl"] table th:first-child,
+html[dir="rtl"] table td:first-child{ text-align:right; }
+
+/* ---------------------------------------------------------------------
+   16c · THE LANGUAGE CONTROL
+   --------------------------------------------------------------------- */
+.ksat-lang{
+  display:inline-flex;
+  flex:0 0 auto;
+  border:1px solid var(--line-2);
+  border-radius:8px;
+  overflow:hidden;
+}
+.ksat-lang button{
+  background:none;
+  border:0;
+  cursor:pointer;
+  padding:6px 11px;
+  font-family:var(--mono);
+  font-size:11.5px;
+  font-weight:600;
+  letter-spacing:.10em;
+  color:var(--ink-3);
+  transition:background .15s, color .15s;
+}
+.ksat-lang button:hover{ color:var(--ink); background:rgba(255,255,255,.06); }
+.ksat-lang button[aria-pressed="true"]{
+  background:var(--accent);
+  color:#04121F;
+}
+.ksat-lang button:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+html[lang="ar"] .ksat-lang button[lang="ar"]{ font-family:var(--body); }
+
+@media (max-width: 520px){
+  .ksat-lang button{ padding:6px 9px; }
+}
