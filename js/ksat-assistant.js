@@ -617,15 +617,22 @@
   }
 
   function boot() {
-    /* Wait for the page's own boot, so askAnalyst() exists before we
-       offer to delegate to it, and so the intro sequence owns the
-       screen uninterrupted. */
+    /* THE FIRST VERSION OF THIS WAITED FOR #anLog AND NEVER MOUNTED.
+       #anLog is built by the page when the analyst section renders, and
+       that section is INSIDER - hidden from a signed-out visitor - so
+       for the public tier the element never appears and the launcher
+       never mounted at all. The assistant is for visitors above all.
+
+       There is nothing to wait for: delegate() already checks for
+       askAnalyst at the moment a data question is asked, and degrades
+       to "the analyst is on the AI section" when it is absent. So mount
+       as soon as there is a body, with one frame's delay so the intro
+       sequence owns the screen first. */
     var tries = 0;
     var iv = setInterval(function () {
       tries++;
-      var ready = document.body && document.getElementById('anLog');
-      if (ready || tries > 60) { clearInterval(iv); start(); }
-    }, 120);
+      if (document.body || tries > 40) { clearInterval(iv); start(); }
+    }, 100);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

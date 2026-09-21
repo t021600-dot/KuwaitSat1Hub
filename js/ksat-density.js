@@ -34,10 +34,15 @@
   var KS = window.KSAT = window.KSAT || {};
   if (KS.density) return;
 
-  /* A paragraph shorter than this was never the problem. Chosen by
-     measuring: at the page's measure, ~340 characters is about four
-     lines, which is where a block starts reading as a wall. */
-  var LONG = 340;
+  /* MEASURED ON THE PAGE, NOT GUESSED - AND THE FIRST GUESS WAS WRONG.
+     340 characters folded exactly two paragraphs out of thirty-six,
+     because this page's prose clusters between 240 and 375: the ten
+     longest are 375, 363, 357, 356, 320, 312, 311, 307, 307, 290. A
+     threshold above that range does nothing at all.
+
+     230 is a little over two lines at the page's measure, so a folded
+     block still shows a complete thought before its control. */
+  var LONG = 230;
 
   /* Never touch text living inside these. */
   var KEEP_WHOLE = [
