@@ -13,16 +13,18 @@
 
    What that audit changes about the plan:
 
-   1 · A FULL-BLEED CINEMATIC HERO IS NOT AVAILABLE. The hero visual is
-       a canvas whose own drawing code sizes it at
-       `Math.max(300, Math.min(420, box.clientWidth * 0.72))`. It caps
-       itself at 420px. Making the container edge-to-edge would not make
-       the artwork larger — it would leave a small drawing in a large
-       empty box, which is worse than what is there now. Enlarging it
-       means rewriting Hind's render loop, and the brief says preserve
-       working functionality. So the hero gets height, asymmetry and a
-       full-bleed GROUND instead, and the instrument panel is framed as
-       an instrument rather than stretched.
+   1 · THE HERO ARTWORK WAS CAPPED, AND THE CAP CAME OFF.
+       I first wrote that a cinematic hero was "not available" because
+       the hero canvas capped its own height inside the page's render
+       loop, so an edge-to-edge container would have left a small
+       drawing in a large empty box. That was true of the cap and wrong
+       as a conclusion: the constraint was ONE NUMBER in a loop we are
+       authorised to change. It now follows its container's height, and
+       cy and R are both derived from w and h, so the limb scales.
+       See section 6 at the foot of this file for the hero that made
+       possible — and treat this as the reminder it should be: check
+       whether a constraint is a fact or a default before reporting it
+       as a limit.
 
    2 · IMAGERY-LED LAYOUT IS NOT AVAILABLE EITHER, for the same honest
        reason: one photograph. The brief says do not introduce unrelated
@@ -103,9 +105,9 @@ section.sec.hero .lede{
   color:var(--ink) !important;
 }
 
-/* The orbit panel is an INSTRUMENT, so it is framed like one: a hairline,
-   a corner tick, and the readouts in mono. Not stretched to fill space
-   its artwork cannot fill. */
+/* Orbit panels ELSEWHERE on the page stay framed as instruments — a
+   hairline, a corner tick, mono readouts. Section 6 overrides this for
+   the hero, where the same element becomes the full-bleed image. */
 .orbcard{
   border:1px solid var(--line-2) !important;
   border-radius:0 !important;
@@ -262,3 +264,131 @@ footer .brand i{ color:var(--ink-3) !important; }
 /* No horizontal overflow, ever — the full-bleed hero ground is the one
    element that could cause it. */
 html, body{ overflow-x:hidden; }
+
+/* =====================================================================
+   6 · THE CINEMATIC HERO                        added 21 September 2026
+
+   I said twice that this was not available. That was wrong, and the
+   team was right to push back: the constraint was one number in the
+   page's own render loop, and the brief authorises changing the site.
+
+       fit(cv, Math.max(300, Math.min(420, box.clientWidth * 0.72)))
+
+   That capped the artwork's HEIGHT at 420px however large its container
+   grew — so an edge-to-edge container really would have left a small
+   drawing in a big empty box. The fix was not to work around it. The
+   fix was to lift it: the loop now follows the CONTAINER when the
+   container states a height, and cy and R are both derived from w and
+   h, so the Earth limb simply scales up.
+
+   With that gone, the hero becomes what NASA's is: one full-bleed
+   image, a headline over it, and almost nothing else.
+   ===================================================================== */
+
+section.sec.hero{
+  min-height:clamp(600px, 88vh, 1000px) !important;
+  display:grid !important;
+  align-items:end;
+  padding-block:0 clamp(48px,6vw,88px) !important;
+}
+
+/* The two-column grid collapses: the artwork goes BEHIND, the words in
+   front. Nothing is removed — the same two children, re-composed. */
+section.sec.hero > .grid.g-53{
+  display:block !important;
+  position:relative;
+  z-index:1;
+}
+
+/* The instrument becomes the image: edge to edge, full height. */
+section.sec.hero .orbcard{
+  position:absolute !important;
+  inset:0;
+  margin-inline:calc(50% - 50vw) !important;
+  width:100vw !important;
+  height:100% !important;
+  z-index:0;
+  border:0 !important;
+  padding:0 !important;
+  background:
+    radial-gradient(90% 80% at 62% 34%, #0A1A28, #02060B 72%) !important;
+  overflow:hidden;
+}
+section.sec.hero .orbcard canvas{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover;
+  opacity:.92;
+}
+section.sec.hero .orbcard::after{ display:none; }
+
+/* THE SCRIM. Type over an image is only legible with one, and a real
+   agency scrim is directional — heaviest where the words are, clearing
+   where the subject is. Not a flat wash over the whole picture. */
+section.sec.hero .orbcard::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:
+    linear-gradient(100deg, #02060B 6%, rgba(2,6,11,.86) 34%, rgba(2,6,11,.34) 58%, transparent 78%),
+    linear-gradient(0deg, var(--void) 2%, transparent 26%);
+}
+
+/* The words sit in the scrim's heavy side and take half the measure. */
+section.sec.hero > .grid.g-53 > div:first-child{
+  max-width:min(56ch, 58%);
+  padding-top:clamp(120px,16vh,220px);
+}
+
+/* The instrument readouts move onto the image as flight labels. */
+section.sec.hero .exhud{
+  position:absolute;
+  z-index:2;
+  font-family:var(--mono) !important;
+  font-size:10.5px !important;
+  letter-spacing:.18em !important;
+  color:var(--ink-2) !important;
+  background:transparent !important;
+  border:0 !important;
+}
+section.sec.hero .exhud.tl{ inset-block-start:calc(var(--bar-h,101px) + 20px); inset-inline-end:24px; inset-inline-start:auto; }
+section.sec.hero .exhud.br{ inset-block-end:20px; inset-inline-end:24px; }
+
+/* The fact strip closes the hero as a measured band across the bleed. */
+section.sec.hero .factstrip{
+  position:relative;
+  z-index:1;
+  margin-top:clamp(40px,5vw,80px) !important;
+  border-top:1px solid rgba(255,255,255,.14) !important;
+  padding-top:clamp(20px,2.4vw,32px) !important;
+}
+
+/* ---------------------------------------------------------------------
+   Narrow screens: the artwork stops being a backdrop and becomes a
+   band above the words, because 58% of a phone is not a measure.
+   --------------------------------------------------------------------- */
+@media (max-width: 899px){
+  section.sec.hero{
+    min-height:0 !important;
+    display:block !important;
+    padding-block:0 clamp(32px,8vw,56px) !important;
+  }
+  section.sec.hero > .grid.g-53 > div:first-child{
+    max-width:none;
+    padding-top:clamp(28px,7vw,48px);
+  }
+  section.sec.hero .orbcard{
+    position:relative !important;
+    inset:auto;
+    height:clamp(240px,42vh,360px) !important;
+    margin-inline:calc(50% - 50vw) !important;
+    margin-bottom:clamp(20px,5vw,32px);
+  }
+  section.sec.hero .orbcard::before{
+    background:linear-gradient(0deg, var(--void) 3%, transparent 46%);
+  }
+  section.sec.hero .exhud.tl{ inset-block-start:14px; inset-inline-end:16px; }
+  section.sec.hero .exhud.br{ inset-block-end:14px; inset-inline-end:16px; }
+}
