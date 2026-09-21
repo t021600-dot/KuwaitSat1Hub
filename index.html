@@ -1927,7 +1927,7 @@ const REGIONS = [
     tag:"urban", note:"n.mubarak" }
 ];
 const REG = Object.fromEntries(REGIONS.map(r=>[r.id,r]));
-const regName = r => r.n;
+const regName = r => (LANG==="ar" && r && r.na) ? r.na : (r?r.n:"");  /* restored: returned r.n unconditionally. REGIONS already carry an `na` Arabic name for every governorate. */
 
 const REGION_NOTES = {
   "n.jahra":{en:"Largest governorate by land area, dominated by desert plain and the Jal Az-Zor escarpment; low baseline canopy and high dust loading.",
@@ -1981,7 +1981,7 @@ const METRICS = {
   stress:{ en:"Environmental stress", ar:"الإجهاد البيئي", unit:"/100", dec:0, color:"--c5", hi:"bad" },
   dust:  { en:"Dust indicator", ar:"مؤشر الغبار", unit:"/100", dec:0, color:"--c4", hi:"bad" }
 };
-const metricName = k => METRICS[k].en;
+const metricName = k => { const m=METRICS[k]; return (LANG==="ar" && m && m.ar) ? m.ar : (m?m.en:""); };  /* restored: returned .en unconditionally, though every METRICS entry carries an Arabic name. */
 
 /* Acquisition record — real footprints from the published first series */
 const ACQ = [
@@ -2752,7 +2752,7 @@ function fillSelect(sel, items, value, labelFn){
 }
 function areaOptions(withAll){
   const a=REGIONS.map(r=>({v:r.id,t:regName(r)}));
-  return withAll?[{v:"all",t:"All Kuwait"}].concat(a):a;
+  return withAll?[{v:"all",t:(LANG==="ar"?"كل الكويت":"All Kuwait")}].concat(a):a;
 }
 
 /* ===================== NAV & SPEC TABLE ===================== */
