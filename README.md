@@ -69,7 +69,7 @@ in a private window to check.
 
 ## Run it
 
-**Live:** *to fill in — GitHub Pages URL*
+**Live:** <https://kuwait-sat1-hub.vercel.app/>  ·  deployed on Vercel, database on Supabase
 
 There is no build step. Open `index.html` in a browser.
 
@@ -79,33 +79,55 @@ and they are safe **only because row level security is switched on**.
 
 ---
 
-## Where your work goes
+## Where the code lives
 
-**One folder per member.** Put your own work in your own folder; ask in a PR if
-you need something in someone else's.
-
-```
-01-front-end/   Retag    screen specs, state tables, notes
-02-back-end/    Hind     SQL, table map, seed data
-03-security/    Mariam   RLS, policies, validation, tests, threat model
-04-agents/      Dana     n8n workflow export, guardrails
-```
-
-**These stay at the repo root — GitHub Pages serves the live site from here:**
+The product is **one page** — Hind's research console — with the security and
+agent layers added on top of it rather than woven into it.
 
 ```
-index.html      the landing page
-signin.html     dashboard.html      mission.html      ← 01 adds these
-css/  js/       styles and client code                ← 01
-js/config.js    project URL + publishable key (public by design)
-tools/hooks/    the pre-commit secret guard (everyone installs it)
+index.html              THE SITE. ~6,000 lines. Hind's console: the 3D globe,
+                        the orbit view, imagery compare, charts, the agent
+                        pipeline, 16 numbered sources, EN/AR throughout.
+                        It carries exactly 10 ADDED lines and nothing else.
+
+site-original/          A PRISTINE, UNTOUCHED COPY of that page. Any change to
+                        index.html is caught by diffing against this.
+
+css/ksat-integration.css   the sign-in gate + identity bar
+css/ksat-theme.css         the ESA/NASA visual layer
+js/ksat-integration.js     auth, Supabase persistence, the agent audit trail,
+                           prompt-injection screening, the approved tools
+js/ksat-theme.js           re-points the colours hard-coded in JS (canvas,
+                           charts, globe) to the theme, without editing the page
+js/config.js               Supabase URL + publishable key (public by design)
+vendor/                    supabase-js and Leaflet, self-hosted
+vercel.json                the security response headers
+
+app-retag/              Retag's multi-page app. PRESERVED, not deleted - it has
+                        a full screen set and a swappable data layer, and it is
+                        the fallback if anything in the main page goes wrong.
+
+01-front-end/  02-back-end/  03-security/  04-agents/
+                        each member's own documentation, SQL, tests and evidence
 ```
 
-> Moving `index.html` into a subfolder breaks the live site. Screens and
-> assets stay at root; everything else goes in your folder.
+### The rule that keeps this safe
 
-Each member folder has a `README.md` listing that job's MUST items and what
-the other jobs need from it. **Start with yours.**
+**`index.html` is never edited.** Everything is achieved by adding a file and
+one line that loads it. Prove it at any time:
+
+```bash
+diff site-original/index.html index.html
+```
+
+Every differing line must start with `>`. A `<` or a `c` means something was
+removed or changed, and that is a bug.
+
+### What deploys and what does not
+
+Pushing to `main` puts the **site** live on Vercel in about a minute. It does
+**not** apply the SQL — that is run in the Supabase SQL editor, in order, from
+`03-security/db/`. See `03-security/docs/` and `02-back-end/README.md`.
 
 ---
 
