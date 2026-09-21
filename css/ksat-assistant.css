@@ -299,3 +299,26 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
 @media print{
   .ksat-as-fab, .ksat-as-panel{ display:none !important; }
 }
+
+/* ---------------------------------------------------------------------
+   TWO CORNER CONTROLS, ONE CORNER            added 21 September 2026
+
+   The chapter control and the assistant launcher both live at the
+   bottom inline-end. Stacked they are fine; but when the assistant
+   PANEL opens it is 392px wide and the chapter control sat on top of
+   it. Pushing the chapter control aside while the panel is open keeps
+   both reachable and neither overlapping.
+   --------------------------------------------------------------------- */
+html[data-ksat-assistant="open"] #ksat-ch-fab{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .16s ease;
+}
+@media (prefers-reduced-motion: reduce){
+  html[data-ksat-assistant="open"] #ksat-ch-fab{ transition:none; }
+}
+
+/* Stack them clear of one another when both are showing. */
+@media (min-width: 621px){
+  .ksat-as-fab{ bottom:calc(76px + env(safe-area-inset-bottom, 0px)); }
+}

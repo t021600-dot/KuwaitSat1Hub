@@ -391,6 +391,15 @@
   function applyTier(tier) {
     root.setAttribute('data-ksat-tier', tier);
 
+    /* THE BAR MUST NOT OFFER BOTH STATES AT ONCE.
+       Until 21 Sep the masthead showed "SIGN OUT" beside "Researcher
+       sign in" for a signed-in researcher, because applyTier moved the
+       sections but never touched the button that opens the gate. It read
+       as a broken session and it was the first thing visible in the
+       bar. The identity chip is the signed-in affordance; the sign-in
+       button belongs only to the public tier. */
+    if (signInBtn) signInBtn.hidden = (tier === 'insider');
+
     INSIDER.forEach(function (id) {
       var s = sec(id);
       if (!s) return;                        // no-op safely if an id is missing
@@ -533,6 +542,10 @@
 
     act.appendChild(b);
     signInBtn = b;
+    /* The tier may already have been applied before this button existed
+       (the identity bar arrives asynchronously), so settle it now rather
+       than waiting for the next tier change. */
+    b.hidden = root.getAttribute('data-ksat-tier') === 'insider';
   }
 
   /* Watch <body> for the two elements the integration layer appends. */
