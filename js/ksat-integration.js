@@ -82,14 +82,81 @@
     msg.setAttribute('role', 'status');          // announced to screen readers
     msg.setAttribute('aria-live', 'polite');
 
-    var note = el('p', 'ksat-gate-note',
-      'Prototype - invented data only. Not connected to kuwaitsat.space and carrying no endorsement.');
+    /* ----------------------------------------------------------------
+       SHOW / HIDE, and why the button is inside the field's label.
 
-    [email, pass, go, msg, note].forEach(function (n) { card.appendChild(n); });
+       A password field you cannot read is where typos live, and a typo
+       here produces the same deliberately vague refusal as a wrong
+       password - so the researcher cannot tell the two apart. The
+       reveal control is the fix, and it is a <button type="button"> so
+       it never submits the form by accident.
+
+       aria-pressed carries the state, so a screen-reader user knows
+       whether their password is currently visible on screen.
+       ---------------------------------------------------------------- */
+    var passWrap = el('div', 'ksat-gate-field');
+    var reveal = el('button', 'ksat-gate-reveal', 'Show');
+    reveal.type = 'button';
+    reveal.setAttribute('aria-pressed', 'false');
+    reveal.setAttribute('aria-label', 'Show password');
+    reveal.addEventListener('click', function () {
+      var shown = pass.type === 'text';
+      pass.type = shown ? 'password' : 'text';
+      reveal.textContent = shown ? 'Show' : 'Hide';
+      reveal.setAttribute('aria-pressed', shown ? 'false' : 'true');
+      reveal.setAttribute('aria-label', shown ? 'Show password' : 'Hide password');
+      try { pass.focus(); } catch (e) {}
+    });
+    passWrap.appendChild(pass);
+    passWrap.appendChild(reveal);
+
+    /* Caps Lock is the other invisible cause of a refusal nobody can
+       diagnose. getModifierState is on every current engine. */
+    var caps = el('div', 'ksat-gate-caps', 'Caps Lock is on.');
+    caps.hidden = true;
+    caps.setAttribute('role', 'status');
+    function capsCheck(e) {
+      var on = false;
+      try { on = e.getModifierState && e.getModifierState('CapsLock'); } catch (x) {}
+      caps.hidden = !on;
+    }
+    pass.addEventListener('keyup', capsCheck);
+    pass.addEventListener('keydown', capsCheck);
+    pass.addEventListener('blur', function () { caps.hidden = true; });
+
+    var note = el('p', 'ksat-gate-note',
+      'Accounts are issued by the KuwaitSat-1 research programme. Your password is never sent to or stored by this platform — it is verified by the authentication service, which holds only a hash.');
+
+    [email, passWrap, caps, go, msg, note].forEach(function (n) { card.appendChild(n); });
     g.appendChild(card);
+
+    /* ----------------------------------------------------------------
+       A LOCAL THROTTLE, AND WHAT IT IS AND IS NOT
+
+       Supabase rate-limits authentication server side, and THAT is the
+       control - this cannot be, because anyone can clear it from the
+       console in a second.
+
+       It is here for a different reason: it turns rapid repeated
+       failures into something the person can SEE, rather than a wall of
+       identical refusals. Someone mistyping a password four times
+       deserves to be told to slow down; someone watching an automated
+       attempt against their own browser deserves to notice.
+
+       Never claim this as the rate limit. The server's is the rate limit.
+       ---------------------------------------------------------------- */
+    var fails = 0, lockUntil = 0;
 
     function attempt() {
       msg.className = 'ksat-gate-msg';
+
+      var now = Date.now();
+      if (now < lockUntil) {
+        var wait = Math.ceil((lockUntil - now) / 1000);
+        msg.className = 'ksat-gate-msg bad';
+        msg.textContent = 'Too many attempts. Try again in ' + wait + ' second' + (wait === 1 ? '' : 's') + '.';
+        return;
+      }
       if (!email.value || !pass.value) { msg.textContent = 'Enter your email and password.'; return; }
       if (!haveDb()) { msg.textContent = 'Sign-in is unavailable right now. Please tell the team.'; return; }
 
@@ -99,12 +166,20 @@
       window.sb.auth.signInWithPassword({ email: email.value.trim(), password: pass.value })
         .then(function (r) {
           if (r.error) {
-            // deliberately vague: never reveal whether an account exists
+            /* Deliberately vague, and it must STAY vague: a message that
+               distinguished "no such account" from "wrong password"
+               would turn this form into a way to test which research
+               staff have accounts on the platform. */
+            fails++;
+            if (fails >= 5) { lockUntil = Date.now() + 30000; fails = 0; }
             msg.className = 'ksat-gate-msg bad';
-            msg.textContent = 'Those details were not accepted.';
+            msg.textContent = fails >= 3
+              ? 'Those details were not accepted. Check for Caps Lock, or use the Show control to read what you typed.'
+              : 'Those details were not accepted.';
             go.disabled = false; go.textContent = 'Sign in';
             return;
           }
+          fails = 0;
           KS.user = r.data.user; KS.live = true;
           openConsole(g);
         })

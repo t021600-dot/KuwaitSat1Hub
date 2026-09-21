@@ -196,3 +196,55 @@
 html[dir="rtl"] .ksat-amend { border-left: 0; border-right: 3px solid var(--accent, #3FD0C9); border-radius: 8px 0 0 8px; }
 html[dir="rtl"] .ksat-amend-item { padding-left: 0; padding-right: 16px; }
 html[dir="rtl"] .ksat-amend-item::before { left: auto; right: 0; content: "\2190"; }
+
+/* =====================================================================
+   THE SIGN-IN FIELD AFFORDANCES                 added 21 September 2026
+
+   A password you cannot read is where typos live - and a typo produces
+   the same deliberately vague refusal as a wrong password, so the
+   researcher cannot tell the two apart. The reveal control and the Caps
+   Lock notice exist to remove that ambiguity WITHOUT weakening the
+   refusal message itself, which must stay vague so the form cannot be
+   used to test which staff have accounts.
+   ===================================================================== */
+
+.ksat-gate-field{
+  position:relative;
+  display:block;
+}
+.ksat-gate-field input{
+  /* room for the reveal control, on whichever side the language runs */
+  padding-inline-end:70px;
+}
+.ksat-gate-reveal{
+  position:absolute;
+  inset-inline-end:8px;
+  top:50%;
+  transform:translateY(-50%);
+  margin-top:-6px;                 /* the input carries a 12px bottom margin */
+  padding:6px 10px;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.04em;
+  cursor:pointer;
+  color:var(--ink-2, #A8B2C8);
+  background:rgba(255,255,255,.07);
+  border:1px solid var(--line-2, rgba(255,255,255,.14));
+  border-radius:7px;
+}
+.ksat-gate-reveal:hover{ color:var(--ink, #E8ECF8); background:rgba(255,255,255,.13); }
+.ksat-gate-reveal:focus-visible{ outline:2px solid var(--accent, #3FD0C9); outline-offset:2px; }
+
+.ksat-gate-caps{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:-4px 0 12px;
+  font-size:12.5px;
+  color:#F3C969;
+}
+.ksat-gate-caps::before{
+  content:"\2191";                 /* the shift arrow, not a warning sign */
+  font-weight:700;
+}
