@@ -209,16 +209,59 @@ Full reasoning: [`DECISIONS.md`](docs/DECISIONS.md).
 
 ---
 
-## Status
+## Status — all proven, 21 September 2026
 
-| | |
-|---|---|
-| SQL written and reviewed | ✅ |
-| SQL **run against the live project** | ⬜ |
-| `99_verify.sql` passing | ⬜ |
-| Two-window check passing | ⬜ |
-| `se-m6` audit **run for real**, two fixes shipped | ⬜ |
-| `docs/evidence/` populated | ⬜ |
+| | | Evidence |
+|---|---|---|
+| SQL written and reviewed | ✅ | `db/01` → `db/10`, plus `99_verify.sql` |
+| SQL **run against the live project** | ✅ | 12 migrations applied to `kqboenytmzagdiweqygl` |
+| `99_verify.sql` passing | ✅ | **8 checks, 0 failures** — see below |
+| Two-window check passing | ✅ | [`evidence/se-m1-isolation-matrix-2026-09-21.md`](evidence/se-m1-isolation-matrix-2026-09-21.md) |
+| `se-m6` audit **run for real**, fixes shipped | ✅ | **three** fixes, not two — [`evidence/se-m6-security-advisor-2026-09-21.md`](evidence/se-m6-security-advisor-2026-09-21.md) |
+| `evidence/` populated | ✅ | 8 files, every one a recorded result |
+| **Automated suite** | ✅ | **36 checks, 0 failures** — `node 03-security/tests/security-check.mjs` |
 
-**Everything above the first blank line is written. Nothing below it is proven
-yet.** That is the work, not the typing.
+### `99_verify.sql`, run against the live database
+
+Every check returns rows **only on failure**.
+
+| # | Check | Failures |
+|---|---|---|
+| 1 | RLS enabled on every table | **0** |
+| 2 | Views run as the caller (`security_invoker`) | **0** |
+| 3 | `anon` holds no table grant | **0** |
+| 4 | `service_role` holds no table grant | **0** |
+| 5 | `anon` can execute no function | **0** |
+| 6 | Every `SECURITY DEFINER` function pins `search_path` | **0** |
+| 7 | No password-shaped column anywhere | **0** |
+| 8 | The agent cannot write a report | **0** |
+| 9 | RLS on with no policy | **1 — `app_settings`, correct** |
+
+Check 9 is *meant* to return one row. `app_settings` is the kill switch: RLS
+on with no policy means **no role reads it directly**, and only
+`SECURITY DEFINER` functions can see it. A zero there would mean the switch
+was readable.
+
+Check 2 is the one that matters most and is easiest to get wrong. The views
+are owned by `postgres`, which **bypasses RLS**. With `security_invoker` off
+they would run as their owner and every researcher would read every row.
+
+### The two-window check
+
+Two researchers, each signed in, each holding real work. The database holds
+**3 missions · 2 runs · 16 steps · 5 results · 2 reports**:
+
+| Signed in as | missions | runs | steps | results | reports | `auth.users` |
+|---|---|---|---|---|---|---|
+| Dr Noura | 1 | 1 | 6 | 3 | 1 | refused |
+| Dr Yousef | 2 | 1 | 10 | 2 | 1 | refused |
+| **sum** | **3** | **2** | **16** | **5** | **2** | |
+| **actually present** | **3** | **2** | **16** | **5** | **2** | |
+
+The sums are exact — a **partition**, not just a filter. From the browser,
+Dr Yousef asking for Dr Noura's mission **by its exact primary key** gets
+**0 rows**.
+
+> Written is not proven. Every tick above names the file that proves it, and
+> every one of those files records what the tool actually returned — including
+> the answers that were inconvenient.

@@ -1122,3 +1122,72 @@ html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
             mask-image:linear-gradient(to left, #000 calc(100% - 26px), transparent 100%);
   }
 }
+
+/* =====================================================================
+   PROGRESSIVE DISCLOSURE                        added 21 September 2026
+
+   The brief was "not overwhelming with text" AND "do not remove any
+   content". Those only conflict if the choice is keep-or-delete. A long
+   passage shows its opening and opens on request: every word stays in
+   the DOM, findable, readable in order by a screen reader, and printed
+   in full.
+
+   `-webkit-line-clamp` is used with `display:-webkit-box`, which is the
+   only widely-supported way to clamp to a line count. It is honoured by
+   every current engine including Firefox and Safari.
+   ===================================================================== */
+
+.ksat-fold{
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  position:relative;
+  transition:none;
+}
+.ksat-fold.ksat-fold-open{
+  display:block;
+  -webkit-line-clamp:unset;
+  line-clamp:unset;
+  overflow:visible;
+}
+
+.ksat-fold-more{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-top:8px;
+  padding:5px 0;
+  background:none;
+  border:0;
+  cursor:pointer;
+  font-family:var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size:11.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--accent, #3FD0C9);
+}
+.ksat-fold-more::after{
+  content:"";
+  width:7px; height:7px;
+  border-right:1.5px solid currentColor;
+  border-bottom:1.5px solid currentColor;
+  transform:rotate(45deg) translate(-1px,-1px);
+  transition:transform .18s ease;
+}
+.ksat-fold-more[aria-expanded="true"]::after{
+  transform:rotate(-135deg) translate(-2px,-2px);
+}
+.ksat-fold-more:hover{ color:var(--ink, #E8ECF8); }
+.ksat-fold-more:focus-visible{
+  outline:2px solid var(--accent, #3FD0C9);
+  outline-offset:3px;
+  border-radius:3px;
+}
+
+/* A printed record carries everything. */
+@media print{
+  .ksat-fold{ display:block !important; -webkit-line-clamp:unset !important; overflow:visible !important; }
+  .ksat-fold-more{ display:none !important; }
+}

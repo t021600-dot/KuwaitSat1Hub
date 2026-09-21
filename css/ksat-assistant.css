@@ -1,0 +1,301 @@
+/* =====================================================================
+   ksat-assistant.css — the corner assistant
+   Owner: 03 Security
+
+   Every selector is prefixed .ksat-as- or #ksat-as- so it cannot collide
+   with the page. Delete this file and js/ksat-assistant.js and nothing
+   else changes.
+
+   It reads the page's own custom properties, with fallbacks, so it stays
+   native as the interface moves toward the agency direction.
+   ===================================================================== */
+
+:root{
+  --ksat-as-w: 392px;
+  --ksat-as-r: 14px;
+}
+
+/* ---------------------------------------------------------------------
+   The launcher. Bottom-inline-end, above the safe area, and clear of the
+   chapter control which sits on the same corner.
+   --------------------------------------------------------------------- */
+.ksat-as-fab{
+  position:fixed;
+  inset-inline-end:16px;
+  bottom:calc(74px + env(safe-area-inset-bottom, 0px));
+  z-index:59;                     /* under .bar (60), over the content   */
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  height:44px;                    /* a real touch target                 */
+  padding:0 15px 0 13px;
+  border-radius:999px;
+  cursor:pointer;
+  font-family:var(--font, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.01em;
+  color:var(--ink, #E8ECF8);
+  background:rgba(10,16,30,.92);
+  border:1px solid var(--line-2, rgba(255,255,255,.16));
+  box-shadow:0 8px 26px rgba(0,0,0,.42);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  transition:border-color .18s, background .18s, transform .18s;
+}
+.ksat-as-fab:hover{
+  background:rgba(14,22,38,.96);
+  border-color:var(--accent, #3FD0C9);
+}
+.ksat-as-fab:active{ transform:translateY(1px); }
+.ksat-as-fab:focus-visible{
+  outline:2px solid var(--accent, #3FD0C9);
+  outline-offset:3px;
+}
+.ksat-as-mark{
+  width:20px; height:20px; flex:0 0 auto;
+  color:var(--accent, #3FD0C9);
+}
+.ksat-as-fab-label{ white-space:nowrap; }
+
+/* On a phone the label costs more than it earns. */
+@media (max-width: 520px){
+  .ksat-as-fab{ padding:0; width:48px; height:48px; justify-content:center; }
+  .ksat-as-fab-label{ display:none; }
+}
+
+/* While the assistant is open the launcher steps back rather than
+   sitting on top of the panel it opened. */
+html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
+
+/* ---------------------------------------------------------------------
+   The panel
+   --------------------------------------------------------------------- */
+.ksat-as-panel{
+  position:fixed;
+  inset-inline-end:16px;
+  bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index:61;                     /* above the bar, below the intro(200) */
+  width:min(var(--ksat-as-w), calc(100vw - 32px));
+  max-height:min(620px, calc(100vh - 96px));
+  display:flex;
+  flex-direction:column;
+  border-radius:var(--ksat-as-r);
+  background:var(--panel, #0C1220);
+  border:1px solid var(--line-2, rgba(255,255,255,.14));
+  box-shadow:0 26px 70px rgba(0,0,0,.62);
+  font-family:var(--font, system-ui, sans-serif);
+  overflow:hidden;
+  animation:ksat-as-in .2s ease both;
+}
+@keyframes ksat-as-in{
+  from{ opacity:0; transform:translateY(10px) scale(.99); }
+  to  { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .ksat-as-panel{ animation:none; }
+}
+
+/* Phone: a sheet, not a floating card. */
+@media (max-width: 620px){
+  .ksat-as-panel{
+    inset-inline:0;
+    bottom:0;
+    width:100%;
+    max-height:82vh;
+    border-radius:16px 16px 0 0;
+    border-inline:0;
+    border-bottom:0;
+  }
+}
+
+.ksat-as-head{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:14px 14px 12px 16px;
+  border-bottom:1px solid var(--line, rgba(255,255,255,.09));
+  background:linear-gradient(180deg, rgba(63,208,201,.06), transparent);
+}
+.ksat-as-ttl{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+.ksat-as-eyebrow{
+  font-family:var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size:11px;
+  letter-spacing:.16em;
+  color:var(--accent, #3FD0C9);
+}
+.ksat-as-sub{
+  font-size:12.5px;
+  line-height:1.45;
+  color:var(--ink-3, #8792AE);
+}
+.ksat-as-x{
+  margin-inline-start:auto;
+  flex:0 0 auto;
+  width:30px; height:30px;
+  display:grid; place-items:center;
+  font-size:19px; line-height:1;
+  color:var(--ink-2, #A8B2C8);
+  background:none;
+  border:1px solid transparent;
+  border-radius:8px;
+  cursor:pointer;
+}
+.ksat-as-x:hover{ background:rgba(255,255,255,.07); color:var(--ink,#E8ECF8); }
+.ksat-as-x:focus-visible{ outline:2px solid var(--accent,#3FD0C9); outline-offset:1px; }
+
+/* ---------------------------------------------------------------------
+   Transcript
+   --------------------------------------------------------------------- */
+.ksat-as-log{
+  flex:1 1 auto;
+  overflow-y:auto;
+  padding:14px 16px 6px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  scrollbar-width:thin;
+}
+.ksat-as-row{ display:flex; }
+.ksat-as-row.ksat-as-q{ justify-content:flex-end; }
+
+.ksat-as-bubble{
+  max-width:92%;
+  padding:11px 13px;
+  border-radius:12px;
+  font-size:13.5px;                /* nothing under 12px                 */
+  line-height:1.62;
+  color:var(--ink, #E8ECF8);
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--line, rgba(255,255,255,.08));
+}
+.ksat-as-q .ksat-as-bubble{
+  background:rgba(63,208,201,.12);
+  border-color:rgba(63,208,201,.30);
+  border-end-end-radius:4px;
+}
+.ksat-as-a .ksat-as-bubble{ border-start-start-radius:4px; }
+
+.ksat-as-btitle{
+  font-family:var(--mono, ui-monospace, monospace);
+  font-size:11px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--accent, #3FD0C9);
+  margin-bottom:7px;
+}
+.ksat-as-p{ margin:0 0 7px; }
+.ksat-as-p:last-of-type{ margin-bottom:0; }
+.ksat-as-gap{ height:6px; }
+
+.ksat-as-badge{
+  display:inline-block;
+  margin-top:9px;
+  padding:3px 8px;
+  border-radius:5px;
+  font-family:var(--mono, monospace);
+  font-size:10.5px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--ink-3, #8792AE);
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line, rgba(255,255,255,.09));
+}
+
+.ksat-as-go{
+  display:inline-block;
+  margin-top:10px;
+  padding:7px 12px;
+  border-radius:8px;
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:600;
+  cursor:pointer;
+  color:#041014;
+  background:var(--accent, #3FD0C9);
+  border:0;
+}
+.ksat-as-go:hover{ filter:brightness(1.08); }
+.ksat-as-go:focus-visible{ outline:2px solid var(--ink,#E8ECF8); outline-offset:2px; }
+
+/* working indicator */
+.ksat-as-wait{ display:inline-flex; gap:5px; align-items:center; padding:13px; }
+.ksat-as-dot{
+  width:6px; height:6px; border-radius:50%;
+  background:var(--ink-3, #8792AE);
+  animation:ksat-as-blink 1.1s infinite ease-in-out both;
+}
+.ksat-as-dot:nth-child(2){ animation-delay:.16s; }
+.ksat-as-dot:nth-child(3){ animation-delay:.32s; }
+@keyframes ksat-as-blink{ 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+@media (prefers-reduced-motion: reduce){
+  .ksat-as-dot{ animation:none; opacity:.55; }
+}
+
+/* ---------------------------------------------------------------------
+   Suggestions and composer
+   --------------------------------------------------------------------- */
+.ksat-as-chips{
+  display:flex; flex-wrap:wrap; gap:6px;
+  padding:8px 16px 4px;
+}
+.ksat-as-chip{
+  padding:6px 10px;
+  border-radius:999px;
+  font-family:inherit;
+  font-size:12px;
+  line-height:1.3;
+  cursor:pointer;
+  color:var(--ink-2, #A8B2C8);
+  background:rgba(255,255,255,.045);
+  border:1px solid var(--line, rgba(255,255,255,.10));
+}
+.ksat-as-chip:hover{ color:var(--ink,#E8ECF8); border-color:var(--accent,#3FD0C9); }
+.ksat-as-chip:focus-visible{ outline:2px solid var(--accent,#3FD0C9); outline-offset:1px; }
+
+.ksat-as-form{
+  display:flex; gap:8px;
+  padding:10px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top:1px solid var(--line, rgba(255,255,255,.09));
+}
+.ksat-as-input{
+  flex:1 1 auto;
+  min-width:0;
+  padding:11px 12px;
+  font-family:inherit;
+  font-size:14px;                  /* 16px-ish: iOS will not zoom on focus */
+  color:var(--ink, #E8ECF8);
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line-2, rgba(255,255,255,.14));
+  border-radius:9px;
+}
+.ksat-as-input::placeholder{ color:var(--ink-3, #8792AE); }
+.ksat-as-input:focus{
+  outline:2px solid var(--accent, #3FD0C9);
+  outline-offset:1px;
+  border-color:transparent;
+}
+.ksat-as-send{
+  flex:0 0 auto;
+  padding:0 16px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:650;
+  cursor:pointer;
+  color:#041014;
+  background:var(--accent, #3FD0C9);
+  border:0;
+  border-radius:9px;
+}
+.ksat-as-send:hover{ filter:brightness(1.08); }
+.ksat-as-send:focus-visible{ outline:2px solid var(--ink,#E8ECF8); outline-offset:2px; }
+
+/* Keep clear of the chapter control on the same corner. */
+@media (min-width: 621px){
+  .ksat-as-fab{ bottom:calc(74px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* print: an assistant is not part of a printed record */
+@media print{
+  .ksat-as-fab, .ksat-as-panel{ display:none !important; }
+}
