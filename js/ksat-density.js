@@ -58,7 +58,11 @@
      150 catches the 48 paragraphs that actually build a wall and leaves
      the 61 short ones alone, because short text was never the problem. */
   var LONG_ONE  = 150;   /* a single paragraph worth clamping          */
-  var RUN_MIN   = 2;     /* paragraphs after the first, to fold a run  */
+  var RUN_MIN   = 1;     /* paragraphs after the first, to fold a run.
+                            Was 2. One control plus one visible opening
+                            paragraph still beats two separate clamps,
+                            and two clamps in a row is the stacking this
+                            whole shape exists to avoid. */
   var RUN_CHARS = 240;   /* ...and only if they carry this much text   */
 
   var KEEP_WHOLE = [
@@ -93,8 +97,17 @@
     if (p.dataset.ksatFolded) return false;
     if (p.closest(KEEP_WHOLE)) return false;
     if (!p.textContent || !p.textContent.trim()) return false;
-    /* A paragraph that is mostly links or badges is a control strip. */
-    if (p.querySelectorAll('a,button,.badge').length > 2) return false;
+    /* A control strip is SHORT text carrying several links. Prose with
+       inline citations is still prose, and the first version got this
+       wrong: it rejected everything with more than two links, which
+       excluded a 203-character sentence in `builders` that carried three
+       citations. That exclusion broke the run around it - the two
+       paragraphs after it ended up as two separate clamps instead of one
+       control. Judge by DENSITY, not by count. */
+    var links = p.querySelectorAll('a,button,.badge').length;
+    var chars = p.textContent.trim().length;
+    if (links > 2 && chars < 120) return false;      /* short + linky = a strip */
+    if (links > 6) return false;                     /* a citation list         */
     return true;
   }
 
