@@ -321,17 +321,48 @@
      is what it was carrying before and which names nothing a judge can
      ask about.
 
-     These six are 04's approved list. Each has a stated limit, and the
-     limit lives here in code, one line from the name it belongs to.
-     A decision node has NO tool on purpose: deciding is not a tool call,
-     and an audit row that claims otherwise would be inventing one.
+     Each has a stated limit, and the limit lives here in code, one line
+     from the name it belongs to. A decision node has NO tool on purpose:
+     deciding is not a tool call, and an audit row that claims otherwise
+     would be inventing one.
+
+     THIS REGISTER WAS WRONG UNTIL 21 SEP 2026, AND THAT MATTERED.
+     It listed 04's original six. But the product runs TWO paths that
+     both write agent_steps:
+
+       A - the in-page pipeline demo, wrapped here. Uses five of the six.
+       B - the persisted workflow in js/ksat-workflow.js, which names the
+           TRUE agent identity in `tool` ('spec.match', 'vis.overlay',
+           'zone_reranker.next'...). None of those were declared.
+
+     So six tools ran undeclared, and one declared tool ('geometry.write')
+     never ran at all. A judge reading this list and then reading the
+     audit trail would find four names in the rows that were not on the
+     approved list - which makes "the agent may only call approved tools"
+     a claim the product itself contradicts.
+
+     An allowlist that does not describe what actually runs is decoration.
+     All nine are declared below, marked by path, and checked by:
+         grep -o "logStepAs('[a-z_]*', '[a-z_.]*'" js/ksat-workflow.js
+         grep -A12 'TOOL_FOR_STEP' js/ksat-integration.js
+     If you add a tool call, add its line here in the same sitting.
      ----------------------------------------------------------------- */
   var TOOLS = {
+    /* --- path A: the in-page pipeline demonstration --------------- */
     'scene_index.search':      'May look up stored scenes for an area and period. May NOT task the satellite, request new imagery, or reach any network outside our own project.',
     'ndvi_thermal.summarise':  'May compute vegetation and surface-temperature summaries over a scene already fetched. May NOT invent a reading for a date with no scene.',
     'zone_ranker.rank':        'May score and order candidate zones inside the requested area. May NOT widen the area or propose a zone outside the Kuwait bounds the constraint enforces.',
+
+    /* --- path B: the persisted workflow (js/ksat-workflow.js) ----- */
+    'guard.injection_screen':  'May screen the researcher’s own objective text for instructions aimed at the agent, and flag the mission. May NOT act on anything it finds, and may NOT silently rewrite what the researcher wrote.',
+    'acq.zones':               'May delineate candidate zones inside the selected governorate on the 39 m grid. May NOT delineate outside the area the researcher chose, and may NOT present a delineation as an observed boundary.',
+    'env.rank':                'May combine vegetation index, surface temperature and dust load into a stress ranking over zones already delineated. May NOT rank a zone it was not given, and may NOT present a combined score as a measurement.',
+    'spec.match':              'May suggest planting species for an accepted zone from the stored species table. May NOT invent a species, and may NOT suggest one whose stored tolerances the zone fails.',
+    'zone_reranker.next':      'May drop a REFUSED zone and re-rank what remains, at most twice. May NOT reinstate a refused zone, and may NOT lower the uplift floor to make one pass.',
+    'vis.overlay':             'May write the polygon of a zone it has already ranked and accepted. May NOT write geometry for an area the researcher did not select.',
+
+    /* --- both paths ------------------------------------------------ */
     'impact_model.project':    'May project an effect and MUST label it MODELLED. May NOT present a projection as a measurement.',
-    'geometry.write':          'May write a polygon for a zone it has already ranked. May NOT write geometry for an area the researcher did not select.',
     'draft.compose':           'May draft report text from rows that exist. May NOT publish it - only generate_report(), called by a signed-in researcher, creates a report.'
   };
   KS.TOOLS = TOOLS;
