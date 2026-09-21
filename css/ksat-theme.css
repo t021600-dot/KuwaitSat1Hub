@@ -1223,3 +1223,193 @@ html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
 @media print{
   .ksat-run[hidden]{ display:block !important; }
 }
+
+/* =====================================================================
+   15 · THE EDITORIAL PASS                       added 21 September 2026
+
+   The tokens were already right — ESA blue, Archivo display, Inter body,
+   flat panels. What still read as "web page" rather than "agency" was
+   the TEXT SETTING, and measuring it made that obvious:
+
+       body prose   19px across 750px   ≈ 85 characters per line
+       body colour  #9AA7B8             the SECONDARY grey
+
+   Both agencies hold a measure of 65–75 characters and set primary prose
+   in near-white, keeping grey strictly for metadata. An 85-character
+   line in grey is exactly what "overwhelming with text" feels like, so
+   this section serves the density brief as much as the style one.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   15a · MEASURE. The single highest-impact change in this file.
+   `ch` is the width of "0" in the current face, so the cap follows the
+   type rather than a pixel guess. Panels keep their own width: a figure
+   caption or a data table is not prose and must not be squeezed.
+   --------------------------------------------------------------------- */
+section.sec > p,
+section.sec > .lede,
+section.sec > .sub,
+.panel > p,
+.capcard > p,
+.rule > p,
+.trib-body > p{
+  max-width:68ch;
+}
+
+/* ---------------------------------------------------------------------
+   15b · PROSE IS PRIMARY, METADATA IS GREY.
+   The page set nearly all running text in --ink-2. Lifting prose to
+   --ink and leaving grey to captions, sources and readouts is what makes
+   an agency page feel authoritative rather than tentative.
+   --------------------------------------------------------------------- */
+section.sec > p,
+.lede,
+.trib-body > p,
+.capcard > p,
+.rule > p{
+  color:var(--ink);
+}
+.sub,
+figcaption,
+.cap,
+.src,
+.note,
+.foot,
+small{
+  color:var(--ink-3);
+}
+
+/* The opening paragraph of a section is a STANDFIRST — ESA sets these
+   larger and lighter than the body that follows. It is the sentence a
+   reader decides on, so it earns the extra size. */
+section.sec > .lede:first-of-type{
+  font-size:clamp(17px, 1.15vw + 13px, 21px);
+  line-height:1.55;
+  color:var(--ink);
+  font-weight:400;
+  letter-spacing:-.005em;
+  max-width:62ch;
+}
+
+/* ---------------------------------------------------------------------
+   15c · THE EYEBROW as a filing reference, not a heading.
+   It was Inter at 16px, which competes with the body. Both agencies set
+   this as small, wide-tracked mono — it reads as a catalogue number.
+   --------------------------------------------------------------------- */
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11.5px;                /* our floor is 12px for BODY text;
+                                      this is a label, and it is tracked
+                                      to +0.18em which restores legibility */
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  gap:14px;
+}
+.eyebrow .num{
+  font-size:11.5px;
+  letter-spacing:.18em;
+  color:var(--accent);
+  border-color:var(--accent-dim);
+  background:transparent;
+  padding:2px 7px;
+}
+
+/* ---------------------------------------------------------------------
+   15d · HEADINGS. Tighter tracking at display sizes is what makes
+   Archivo look set rather than typed. Optical sizing only.
+   --------------------------------------------------------------------- */
+section.sec h2,
+h2.st{
+  letter-spacing:-.022em;
+  text-wrap:balance;               /* no orphaned last word on a heading */
+  max-width:20ch;
+}
+section.sec h3{
+  letter-spacing:-.012em;
+  text-wrap:balance;
+}
+
+/* ---------------------------------------------------------------------
+   15e · THE SECTION RULE.
+   An agency page is divided by hairlines, not by shadow. The page
+   already draws a top border on each section; this makes it read as a
+   deliberate rule with the section number sitting on it.
+   --------------------------------------------------------------------- */
+section.sec{
+  border-top:1px solid var(--line);
+}
+section.sec:first-of-type{ border-top:0; }
+
+/* ---------------------------------------------------------------------
+   15f · LINKS. Underline offset and a thin stroke — a publication
+   treatment. The default browser underline sits on the baseline and
+   crosses descenders, which looks careless at this size.
+   --------------------------------------------------------------------- */
+section.sec a:not(.btn):not(.chip){
+  color:var(--ink);
+  text-decoration:underline;
+  text-decoration-color:var(--accent-dim);
+  text-decoration-thickness:1px;
+  text-underline-offset:3px;
+  transition:text-decoration-color .15s ease;
+}
+section.sec a:not(.btn):not(.chip):hover{
+  text-decoration-color:var(--accent);
+}
+
+/* ---------------------------------------------------------------------
+   15g · FIGURES. Let the photographs carry weight, and set the credit
+   as metadata rather than as prose.
+   --------------------------------------------------------------------- */
+figure img,
+.shot img,
+img{
+  border-radius:2px;               /* agencies do not round photographs */
+}
+figcaption,
+.imgcap{
+  font-family:var(--mono);
+  font-size:11.5px;
+  letter-spacing:.06em;
+  line-height:1.5;
+  color:var(--ink-3);
+  margin-top:10px;
+  max-width:60ch;
+}
+
+/* ---------------------------------------------------------------------
+   15h · THE DISCLOSURE CONTROL, restyled to match.
+   It appears 43 times on this page, so it has to read as part of the
+   furniture rather than as a button.
+   --------------------------------------------------------------------- */
+.ksat-fold-more{
+  color:var(--accent);
+  font-size:11px;
+  letter-spacing:.16em;
+}
+.ksat-fold-more:hover{ color:var(--ink); }
+
+/* ---------------------------------------------------------------------
+   15i · FOOTER. Institutional: rules, mono metadata, generous space.
+   --------------------------------------------------------------------- */
+footer{
+  border-top:1px solid var(--line-2);
+  margin-top:0;
+  padding-block:clamp(40px, 5vw, 72px);
+  color:var(--ink-3);
+}
+footer a{
+  color:var(--ink-2);
+  text-decoration:none;
+}
+footer a:hover{ color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+
+/* ---------------------------------------------------------------------
+   15j · Narrow viewports keep the measure but lose the ceremony.
+   --------------------------------------------------------------------- */
+@media (max-width: 720px){
+  section.sec h2, h2.st{ max-width:none; }
+  section.sec > p, .lede, .sub{ max-width:none; }
+  .eyebrow{ gap:10px; }
+}
