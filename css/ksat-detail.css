@@ -304,3 +304,47 @@ section.sec a:not(.btn):not(.chip){
   .btn, .chip, select, input, textarea{ border:1px solid ButtonBorder !important; }
   *:focus-visible{ outline:2px solid Highlight !important; }
 }
+
+/* ---------------------------------------------------------------------
+   15 · SCROLL REVEAL
+
+   The hidden state is applied by js/ksat-motion.js, never by this file
+   alone. It is scoped to html[data-ksat-motion="on"], which that script
+   sets only after it has decided to run — so with JavaScript off, or
+   the observer unsupported, or reduced-motion requested, none of this
+   applies and the page is simply the page.
+
+   Never hide content in CSS and rely on JS to bring it back.
+   --------------------------------------------------------------------- */
+html[data-ksat-motion="on"] [data-ksat-reveal]{
+  opacity:0;
+  transform:translateY(12px);
+  transition:opacity 520ms var(--ease), transform 520ms var(--ease);
+  will-change:opacity, transform;
+}
+html[data-ksat-motion="on"] [data-ksat-reveal][data-ksat-in]{
+  opacity:1;
+  transform:none;
+  will-change:auto;
+}
+
+/* A revealed element must never trap a focus ring in its hidden state. */
+html[data-ksat-motion="on"] [data-ksat-reveal]:focus-within{
+  opacity:1;
+  transform:none;
+}
+
+@media (prefers-reduced-motion: reduce){
+  html[data-ksat-motion="on"] [data-ksat-reveal]{
+    opacity:1 !important;
+    transform:none !important;
+    transition:none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   16 · THE LOCKED NAV ITEM
+   Hidden rather than removed, because index.html's scroll-spy indexes
+   nav buttons POSITIONALLY against the NAV array.
+   --------------------------------------------------------------------- */
+nav.nav button[hidden]{ display:none !important; }

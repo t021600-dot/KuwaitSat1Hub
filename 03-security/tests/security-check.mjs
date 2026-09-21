@@ -116,7 +116,7 @@ async function headers() {
 /* were reported as six changed tags. Removing whole lines is exact,     */
 /* and it is also the unit the team's own constraint is written in.      */
 /* ------------------------------------------------------------------ */
-const LAYER_LINE = /ksat-(integration|theme|shell|workflow|assistant|density|i18n|agency|detail)\.(css|js)|Plex\+Sans\+Arabic|vendor\/supabase\.js|js\/config\.js|^\s*<!--\s*=====\s*integration layer|^\s*(Added by 03 Security|this comment was changed|is kept at site-original)/;
+const LAYER_LINE = /ksat-(integration|theme|shell|workflow|assistant|density|i18n|agency|detail|motion)\.(css|js)|Plex\+Sans\+Arabic|vendor\/supabase\.js|js\/config\.js|^\s*<!--\s*=====\s*integration layer|^\s*(Added by 03 Security|this comment was changed|is kept at site-original)/;
 function withoutLayer(html) {
   return html.split(/\r?\n/).filter(l => !LAYER_LINE.test(l)).join('\n');
 }

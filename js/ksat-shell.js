@@ -391,6 +391,8 @@
   function applyTier(tier) {
     root.setAttribute('data-ksat-tier', tier);
 
+    paintNavForTier(tier);
+
     /* THE BAR MUST NOT OFFER BOTH STATES AT ONCE.
        Until 21 Sep the masthead showed "SIGN OUT" beside "Researcher
        sign in" for a signed-in researcher, because applyTier moved the
@@ -420,6 +422,39 @@
          code of our own. */
       nudgeRedraw();
       if (KS.intent) { var want = KS.intent; KS.intent = null; goToSection(want); }
+    }
+  }
+
+
+  /* ===================================================================
+     THE NAVIGATION IS PART OF THE TIER
+
+     The nav listed all fourteen destinations to everyone. Ten of them
+     are instruments a visitor cannot use, so a stranger was shown a
+     menu that was three-quarters unavailable, and every one of those
+     clicks landed on an invitation rather than on the thing named. That
+     reads as a site that is broken, not as one that is restricted.
+
+     A public visitor now gets the four public destinations. Signing in
+     adds the other ten, which is also the clearest possible statement
+     of what an account is FOR - the menu itself grows.
+
+     The buttons are hidden, not removed: index.html's own scroll-spy
+     indexes them positionally (`$$("#nav button").forEach((b,i)=> …
+     NAV[i].id)`), so deleting one would misalign every highlight after
+     it. Hiding preserves the index.
+     =================================================================== */
+  function paintNavForTier(tier) {
+    var buttons = document.querySelectorAll('nav.nav button');
+    if (!buttons.length) return;
+    var nav = (typeof NAV !== 'undefined') ? NAV : null;
+    for (var i = 0; i < buttons.length; i++) {
+      var id = nav && nav[i] ? nav[i].id : null;
+      if (!id) continue;
+      var locked = isInsiderSection(id) && tier === 'public';
+      buttons[i].hidden = locked;
+      buttons[i].setAttribute('aria-hidden', locked ? 'true' : 'false');
+      buttons[i].tabIndex = locked ? -1 : 0;
     }
   }
 
