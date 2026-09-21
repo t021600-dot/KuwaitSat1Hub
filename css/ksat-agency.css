@@ -1,0 +1,243 @@
+/* =====================================================================
+   ksat-agency.css — THE AGENCY REBUILD
+   Owner: 01 Front End · loaded LAST, so it wins
+
+   The feedback was "it still looks like AI made it", and it was right.
+   Up to here the work had been adjusting TYPE on a structure that was
+   wrong. The structure is the problem, and it is one specific thing:
+
+       56 bordered, rounded, filled boxes.
+
+   Everything sat inside a card with a 1px border, a radius and a raised
+   background. That is the visual signature of a dashboard template, and
+   no amount of better typography rescues it.
+
+   NASA does not box content. Neither does ESA. Content sits directly on
+   the ground; what separates one thing from the next is SPACE, with a
+   hairline only where a real division exists. The ground is near-black
+   rather than blue-grey slate, the type is much larger, and there is
+   far more air than feels comfortable at first.
+
+   Four things, in order of how much they matter:
+     1 · take the ground to near-black
+     2 · remove the borders, fills and radii
+     3 · roughly double the vertical air
+     4 · quieten every badge and chip so the content leads
+
+   WHAT KEEPS A SURFACE
+   Anything containing a CANVAS keeps a faint ground, because a chart
+   drawn in dark ink needs something to sit on and would otherwise float.
+   That is a functional exception, not a decorative one.
+   ===================================================================== */
+
+:root{
+  /* NASA's ground is essentially black. The previous #06090F read as
+     blue-grey, which is the strongest dashboard signal a dark palette
+     can carry. */
+  --void:#020305;
+  --deep:#050608;
+  --surf:#0A0C10;                  /* canvas-bearing surfaces only */
+  --surf-2:#101319;
+  --glass:transparent;
+  --glass-2:transparent;
+
+  /* Hairlines you can barely see: present when looked for, invisible
+     while reading. */
+  --line:#15181E;
+  --line-2:#1E222A;
+  --line-3:#2A2F39;
+
+  --r:0px;                         /* agencies are square */
+  --r-sm:0px;
+}
+
+body{ background:var(--void); }
+
+/* ---------------------------------------------------------------------
+   1 · UNBOX EVERYTHING
+   The page sets background, border and radius on six card classes.
+   All six become plain space.
+   --------------------------------------------------------------------- */
+.panel,
+.tile,
+.capcard,
+.card,
+.kpi,
+.trib{
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  padding-inline:0 !important;
+}
+
+.panel{ padding-block:clamp(18px,2.2vw,30px) !important; }
+.capcard,
+.tile,
+.kpi{ padding-block:clamp(14px,1.6vw,22px) !important; }
+
+/* A hairline only between the items of a list, never around an object. */
+.capcard + .capcard,
+.tile + .tile{
+  border-top:1px solid var(--line) !important;
+}
+
+/* The one functional exception: a chart needs a ground. */
+.panel:has(canvas),
+.tile:has(canvas),
+.cmp,
+.shot{
+  background:var(--surf) !important;
+  padding:clamp(14px,1.6vw,22px) !important;
+  border:1px solid var(--line) !important;
+}
+
+/* A panel header stops being a band and becomes a caption. */
+.phead{
+  padding:0 0 10px !important;
+  margin-bottom:16px !important;
+  border-bottom:1px solid var(--line) !important;
+}
+.phead h3,
+.phead .ttl h3{
+  font-size:clamp(15px,1.1vw,18px);
+  letter-spacing:.01em;
+}
+
+/* ---------------------------------------------------------------------
+   2 · AIR — the biggest lever after unboxing.
+   Agency pages are mostly empty. Doubling the vertical rhythm is what
+   makes a page read as considered rather than crammed.
+   --------------------------------------------------------------------- */
+section.sec{
+  padding-block:clamp(84px,11vw,168px) !important;
+}
+.grid { gap:clamp(28px,3.4vw,56px) !important; }
+.mt   { margin-top:clamp(26px,3vw,44px) !important; }
+.mt-s { margin-top:clamp(14px,1.6vw,22px) !important; }
+.eyebrow{ margin-bottom:clamp(18px,2vw,30px) !important; }
+
+/* ---------------------------------------------------------------------
+   3 · SCALE — bigger, tighter, heavier: the agency headline voice.
+   --------------------------------------------------------------------- */
+section.sec h2,
+h2.st{
+  font-size:clamp(34px,5.4vw,72px) !important;
+  line-height:1.02 !important;
+  letter-spacing:-.03em !important;
+  font-weight:800 !important;
+  margin-bottom:clamp(18px,2.2vw,32px) !important;
+}
+section.sec h3{
+  font-size:clamp(18px,1.5vw,24px) !important;
+  letter-spacing:-.015em;
+}
+h1{
+  line-height:.98 !important;
+  letter-spacing:-.035em !important;
+}
+
+/* ---------------------------------------------------------------------
+   4 · QUIET THE CHROME
+   Badges were filled pills with borders — dozens of them, each
+   demanding as much attention as a headline. An agency label is small,
+   unfilled and tracked.
+   --------------------------------------------------------------------- */
+.badge{
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  font-family:var(--mono) !important;
+  font-size:11px !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  opacity:.72;
+}
+.badge + .badge{ margin-inline-start:20px; }
+
+.chip{
+  background:transparent !important;
+  border:1px solid var(--line-2) !important;
+  border-radius:0 !important;
+  font-size:12px;
+  letter-spacing:.02em;
+}
+.chip[aria-pressed="true"]{
+  border-color:var(--accent) !important;
+  color:var(--accent) !important;
+  background:transparent !important;
+}
+
+.btn{
+  border-radius:0 !important;
+  letter-spacing:.02em;
+}
+.btn.pri,
+.btn.grn{
+  background:var(--accent) !important;
+  border-color:var(--accent) !important;
+  color:#02060C !important;
+  background-image:none !important;
+}
+
+/* ---------------------------------------------------------------------
+   5 · TABLES as records, not as cards.
+   --------------------------------------------------------------------- */
+table{
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+}
+table th{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  border-bottom:1px solid var(--line-3) !important;
+  padding-block:12px !important;
+}
+table td{
+  border-bottom:1px solid var(--line) !important;
+  padding-block:14px !important;
+}
+table tr:last-child td{ border-bottom:0 !important; }
+
+/* ---------------------------------------------------------------------
+   6 · The masthead goes solid. Translucency over near-black reads as
+   haze rather than as glass.
+   --------------------------------------------------------------------- */
+.bar{
+  background:var(--void) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border-bottom:1px solid var(--line-2) !important;
+}
+
+/* Our own layers follow the same rules. */
+.ksat-as-fab,
+.ksat-as-panel,
+#ksat-ch-fab,
+#ksat-ch-rail,
+#ksat-ch-sheet,
+.ksat-gate-card,
+.ksat-lang{
+  border-radius:0 !important;
+}
+.ksat-as-fab,
+#ksat-ch-fab{
+  background:var(--void) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+
+/* ---------------------------------------------------------------------
+   7 · Phone: keep the air proportional, never absolute.
+   --------------------------------------------------------------------- */
+@media (max-width: 720px){
+  section.sec{ padding-block:clamp(52px,14vw,88px) !important; }
+  .badge + .badge{ margin-inline-start:12px; }
+}
