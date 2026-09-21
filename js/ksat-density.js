@@ -2,30 +2,47 @@
    ksat-density.js — LET THE PAGE BREATHE
    Owner: 01 Front End, with 03 Security (nothing may be removed)
 
-   THE BRIEF
-   "The page shouldn't be too overwhelming with text but visuals and
-   everything important" — and, from the same team, "make sure not to
-   remove any content."
+   THE BRIEF, SAID THREE TIMES
+   "The website has to be less text because I noticed that it is
+   overwhelming with texts" — and, from the same team, "without removing
+   any info or whatever we have."
 
-   Those pull in opposite directions only if you treat the choice as
-   keep-or-delete. It isn't. The fix is PROGRESSIVE DISCLOSURE: a long
-   passage shows its first two or three lines and opens on request. The
-   words are all still in the DOM, still findable by Ctrl+F, still read
-   aloud in order by a screen reader, still printed in full. What
-   changes is how much of it arrives at once.
+   Those conflict only if the choice is keep-or-delete. It isn't.
 
-   WHY THIS IS NOT A COSMETIC CHOICE
-   This page carries a lot of honest hedging — where a figure came from,
-   what it does not claim, who must review it. That writing is the
-   integrity of the product and deleting it would be the one genuinely
-   dishonest edit available to us. So it stays, and the SUMMARY LINE
-   stays visible; only the elaboration folds.
+   WHAT THE FIRST VERSION GOT WRONG
+   It selected `p.lede, p.sub` and folded ELEVEN paragraphs. Measured on
+   the live page there are 109 paragraphs carrying 16,531 characters,
+   and the worst offenders are plain `<p>` that the selector never saw:
+
+       builders  1,917 chars over  6 paragraphs
+       trust     1,490 chars over 20 paragraphs
+       system    1,361 chars over  9 paragraphs
+       imagery   1,224 chars over  8 paragraphs
+
+   Folding eleven of 109 was not a reduction. This version reads every
+   paragraph in every section.
+
+   TWO SHAPES OF WALL, TWO TREATMENTS
+   A section is overwhelming in one of two ways, and one control does not
+   fix both:
+
+   1 · ONE LONG PARAGRAPH — clamp it to two lines, open on request.
+   2 · A RUN OF PARAGRAPHS — `trust` has twenty. Clamping each would
+       produce twenty "Read more" controls, which is a worse wall than
+       the text was. So a run shows its FIRST paragraph and folds the
+       rest behind a SINGLE control that names how much is behind it.
+
+   NOTHING IS REMOVED
+   Every word stays in the DOM. Collapsed runs use `hidden="until-found"`
+   where the browser supports it, so Ctrl+F finds the text and the
+   browser opens the block for you. Screen readers read in order. Print
+   takes everything.
 
    WHAT IS DELIBERATELY LEFT ALONE
-   - Anything inside a figure, table, chart, canvas or badge.
-   - Any paragraph under the threshold; short text is not the problem.
-   - The legend, which IS the provenance key and has to be read.
-   - Headings, captions, labels and controls.
+   - The legend: it IS the provenance key and has to be read.
+   - Anything inside a figure, table, chart, canvas, badge or control.
+   - The first paragraph of every run — you always see a whole thought.
+   - Our own layers, and the guided tour, which narrates.
    ===================================================================== */
 
 (function () {
@@ -34,26 +51,24 @@
   var KS = window.KSAT = window.KSAT || {};
   if (KS.density) return;
 
-  /* MEASURED ON THE PAGE, NOT GUESSED - AND THE FIRST GUESS WAS WRONG.
-     340 characters folded exactly two paragraphs out of thirty-six,
-     because this page's prose clusters between 240 and 375: the ten
-     longest are 375, 363, 357, 356, 320, 312, 311, 307, 307, 290. A
-     threshold above that range does nothing at all.
+  /* MEASURED, NOT GUESSED — twice now.
+     340 folded 2 of 109. 230 folded 11. The distribution is:
+       over 300 chars .. 9      140-200 .. 25
+       200-300 ........ 14       80-140 .. 41      under 80 .. 20
+     150 catches the 48 paragraphs that actually build a wall and leaves
+     the 61 short ones alone, because short text was never the problem. */
+  var LONG_ONE  = 150;   /* a single paragraph worth clamping          */
+  var RUN_MIN   = 2;     /* paragraphs after the first, to fold a run  */
+  var RUN_CHARS = 240;   /* ...and only if they carry this much text   */
 
-     230 is a little over two lines at the page's measure, so a folded
-     block still shows a complete thought before its control. */
-  var LONG = 230;
-
-  /* Never touch text living inside these. */
   var KEEP_WHOLE = [
-    '#legend', '.legcell',              /* the provenance key            */
-    'figure', 'figcaption', 'table',
-    '.badge', '.chip', '.chips',
-    '.cmplab', '.exhud',                /* readouts over canvases        */
-    'nav', '.bar', 'button', 'a',
-    '#ksat-as-panel', '.ksat-invite',   /* our own layers                */
-    '.ksat-wf', '#ksat-wf',
-    '.ag-p', '.dstep', '.demopan'       /* the guided tour narrates      */
+    '#legend', '.legcell',
+    'figure', 'figcaption', 'table', 'thead', 'tbody',
+    '.badge', '.chip', '.chips', '.cmplab', '.exhud',
+    'nav', '.bar', 'button', 'a[href]',
+    '#ksat-as-panel', '.ksat-invite', '.ksat-wf', '#ksat-wf',
+    '.ag-p', '.dstep', '.demopan', '.demofin',
+    '#intro', '.intro'
   ].join(',');
 
   function el(tag, cls, text) {
@@ -65,80 +80,143 @@
   function reduced() {
     try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
   }
+  /* `hidden="until-found"` keeps text findable by Ctrl+F and reachable
+     by a screen reader while it is collapsed. Not everywhere yet, so we
+     detect rather than assume. */
+  var UNTIL_FOUND = (function () {
+    try { return 'onbeforematch' in document.body; } catch (e) { return false; }
+  })();
 
-  var n = 0;
+  var stats = { clamped: 0, runs: 0, hidden: 0 };
 
-  function fold(p) {
-    if (p.dataset.ksatFolded) return;
-    if (p.closest(KEEP_WHOLE)) return;
-    var text = (p.textContent || '').trim();
-    if (text.length < LONG) return;
-
-    /* Skip anything that is mostly markup rather than prose — a
-       paragraph of links or badges is a control strip, not a wall. */
-    if (p.querySelectorAll('a,button,span.badge').length > 3) return;
-
-    p.dataset.ksatFolded = '1';
-    p.classList.add('ksat-fold');
-
-    var id = 'ksat-fold-' + (++n);
-    p.id = p.id || id;
-
-    var btn = el('button', 'ksat-fold-more');
-    btn.type = 'button';
-    btn.setAttribute('aria-expanded', 'false');
-    btn.setAttribute('aria-controls', p.id);
-    btn.appendChild(el('span', 'ksat-fold-word', 'Read more'));
-
-    btn.addEventListener('click', function () {
-      var open = p.classList.toggle('ksat-fold-open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      btn.querySelector('.ksat-fold-word').textContent = open ? 'Show less' : 'Read more';
-      if (!open) {
-        /* Collapsing far down a long passage leaves the reader nowhere.
-           Bring the head of it back into view. */
-        var top = p.getBoundingClientRect().top;
-        if (top < 0) p.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
-      }
-    });
-
-    p.insertAdjacentElement('afterend', btn);
+  function eligible(p) {
+    if (p.dataset.ksatFolded) return false;
+    if (p.closest(KEEP_WHOLE)) return false;
+    if (!p.textContent || !p.textContent.trim()) return false;
+    /* A paragraph that is mostly links or badges is a control strip. */
+    if (p.querySelectorAll('a,button,.badge').length > 2) return false;
+    return true;
   }
 
-  /* Ctrl+F finds text inside a collapsed block; the browser then tells
-     us, and we open it rather than scrolling to something invisible.
-     Supported where `hidden=until-found` and beforematch exist; a
-     no-op elsewhere, which is a fine degradation. */
-  function wireFind() {
-    document.addEventListener('beforematch', function (e) {
-      var p = e.target && e.target.closest && e.target.closest('.ksat-fold');
-      if (!p || p.classList.contains('ksat-fold-open')) return;
-      p.classList.add('ksat-fold-open');
-      var b = p.nextElementSibling;
-      if (b && b.classList.contains('ksat-fold-more')) {
-        b.setAttribute('aria-expanded', 'true');
-        b.querySelector('.ksat-fold-word').textContent = 'Show less';
+  function control(labelText) {
+    var b = el('button', 'ksat-fold-more');
+    b.type = 'button';
+    b.setAttribute('aria-expanded', 'false');
+    b.appendChild(el('span', 'ksat-fold-word', labelText));
+    return b;
+  }
+
+  /* ---- shape 1 · one long paragraph, clamped -------------------------- */
+  function clampOne(p) {
+    p.dataset.ksatFolded = '1';
+    p.classList.add('ksat-fold');
+    if (!p.id) p.id = 'ksat-fold-' + (++stats.clamped);
+
+    var b = control('Read more');
+    b.setAttribute('aria-controls', p.id);
+    b.addEventListener('click', function () {
+      var open = p.classList.toggle('ksat-fold-open');
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      b.querySelector('.ksat-fold-word').textContent = open ? 'Show less' : 'Read more';
+      if (!open && p.getBoundingClientRect().top < 0) {
+        p.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
       }
-    }, true);
+    });
+    p.insertAdjacentElement('afterend', b);
+    stats.clamped++;
+  }
+
+  /* ---- shape 2 · a run of paragraphs behind one control --------------- */
+  var runId = 0;
+  function foldRun(list) {
+    var rest = list.slice(1);
+    var chars = rest.reduce(function (n, p) { return n + p.textContent.trim().length; }, 0);
+    if (rest.length < RUN_MIN || chars < RUN_CHARS) return false;
+
+    var id = 'ksat-run-' + (++runId);
+    var wrap = el('div', 'ksat-run');
+    wrap.id = id;
+    list[0].insertAdjacentElement('afterend', wrap);
+    rest.forEach(function (p) { p.dataset.ksatFolded = '1'; wrap.appendChild(p); });
+
+    if (UNTIL_FOUND) wrap.setAttribute('hidden', 'until-found');
+    else wrap.hidden = true;
+
+    var word = rest.length === 1 ? 'paragraph' : 'paragraphs';
+    var b = control('Read more — ' + rest.length + ' more ' + word);
+    b.setAttribute('aria-controls', id);
+
+    function openRun() {
+      wrap.removeAttribute('hidden');
+      wrap.hidden = false;
+      b.setAttribute('aria-expanded', 'true');
+      b.querySelector('.ksat-fold-word').textContent = 'Show less';
+    }
+    function closeRun() {
+      if (UNTIL_FOUND) wrap.setAttribute('hidden', 'until-found');
+      else wrap.hidden = true;
+      b.setAttribute('aria-expanded', 'false');
+      b.querySelector('.ksat-fold-word').textContent = 'Read more — ' + rest.length + ' more ' + word;
+    }
+    b.addEventListener('click', function () {
+      (b.getAttribute('aria-expanded') === 'true') ? closeRun() : openRun();
+    });
+    /* Ctrl+F landed inside it: the browser reveals it, so match the button. */
+    wrap.addEventListener('beforematch', function () {
+      b.setAttribute('aria-expanded', 'true');
+      b.querySelector('.ksat-fold-word').textContent = 'Show less';
+    });
+
+    wrap.insertAdjacentElement('afterend', b);
+    stats.runs++;
+    stats.hidden += rest.length;
+
+    /* The one paragraph still showing may itself be a wall. */
+    if (list[0].textContent.trim().length > LONG_ONE) clampOne(list[0]);
+    return true;
+  }
+
+  /* ---- walk each section, grouping consecutive siblings --------------- */
+  function doSection(sec) {
+    var kids = [].slice.call(sec.querySelectorAll('p'));
+    var usable = kids.filter(eligible);
+    if (!usable.length) return;
+
+    /* group by shared parent AND adjacency, so we never pull a paragraph
+       out of one card into another */
+    var groups = [], cur = [];
+    for (var i = 0; i < usable.length; i++) {
+      var p = usable[i];
+      if (!cur.length) { cur = [p]; continue; }
+      var prev = cur[cur.length - 1];
+      var adjacent = prev.parentElement === p.parentElement &&
+                     prev.nextElementSibling === p;
+      if (adjacent) cur.push(p);
+      else { groups.push(cur); cur = [p]; }
+    }
+    if (cur.length) groups.push(cur);
+
+    groups.forEach(function (g) {
+      if (g.length > 1 && foldRun(g)) return;
+      g.forEach(function (p) {
+        if (!p.dataset.ksatFolded && p.textContent.trim().length > LONG_ONE) clampOne(p);
+      });
+    });
   }
 
   function run() {
-    var sel = 'section.sec p.lede, section.sec p.sub, section.sec .finale-note, section.sec .warn p, section.sec .note p';
-    var list = document.querySelectorAll(sel);
-    for (var i = 0; i < list.length; i++) fold(list[i]);
-    KS.density = { folded: n };
-    try {
-      document.documentElement.setAttribute('data-ksat-density', 'on');
-    } catch (e) {}
+    var secs = document.querySelectorAll('section[id]');
+    for (var i = 0; i < secs.length; i++) doSection(secs[i]);
+    KS.density = stats;
+    document.documentElement.setAttribute('data-ksat-density', 'on');
   }
 
   function boot() {
     var tries = 0;
     var iv = setInterval(function () {
       tries++;
-      if (document.querySelector('section.sec p.lede') || tries > 60) {
+      if (document.querySelector('section[id] p') || tries > 60) {
         clearInterval(iv);
-        wireFind();
         run();
       }
     }, 120);

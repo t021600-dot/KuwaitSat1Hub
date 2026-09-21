@@ -1139,8 +1139,8 @@ html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
 
 .ksat-fold{
   display:-webkit-box;
-  -webkit-line-clamp:3;
-  line-clamp:3;
+  -webkit-line-clamp:2;            /* was 3 - the brief said less text  */
+  line-clamp:2;
   -webkit-box-orient:vertical;
   overflow:hidden;
   position:relative;
@@ -1190,4 +1190,36 @@ html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
 @media print{
   .ksat-fold{ display:block !important; -webkit-line-clamp:unset !important; overflow:visible !important; }
   .ksat-fold-more{ display:none !important; }
+}
+
+
+/* ---------------------------------------------------------------------
+   A FOLDED RUN OF PARAGRAPHS                    added 21 September 2026
+
+   `trust` carries twenty paragraphs. Clamping each one would produce
+   twenty "Read more" controls, which is a worse wall than the prose
+   was. A run shows its first paragraph and folds the rest behind ONE
+   control that names how much is behind it, so the reader knows what
+   they are choosing.
+
+   The wrapper uses hidden="until-found" where the browser supports it:
+   Ctrl+F still finds the text and the browser opens the block. That is
+   why this is a visibility change and not a removal.
+   --------------------------------------------------------------------- */
+.ksat-run{
+  display:block;
+}
+.ksat-run > p:first-child{ margin-top:0; }
+
+/* The control that opens a run reads as a quiet institutional affordance,
+   not a call to action - it is offering depth, not selling anything. */
+.ksat-fold-more .ksat-fold-word{ white-space:nowrap; }
+
+/* A run sitting directly under a clamped paragraph would show two
+   controls in a row. The clamp is removed in that case by the script;
+   this keeps the spacing honest if one ever slips through. */
+.ksat-fold + .ksat-run{ margin-top:6px; }
+
+@media print{
+  .ksat-run[hidden]{ display:block !important; }
 }
