@@ -402,11 +402,23 @@ html[data-ksat-highlight="locked"] .ksat-ch-item[data-ksat-haslock="yes"] {
 }
 .ksat-ch-skip:focus { top: 8px; }
 
-/* Only claim the left edge where there is genuinely room for it:
-   .wrap is max 1240px and centred, so below ~1440px a fixed rail would
-   sit on top of the content rather than beside it. Below that the FAB
-   and the sheet take over — one control, no overlap, no guessing. */
-@media (min-width: 1440px) {
+/* Only claim the left edge where there is genuinely room for it.
+   THE BREAKPOINT IS ARITHMETIC, NOT TASTE — and the first number here
+   was wrong. `.wrap` is centred at max 1240px, so the free gutter on one
+   side is (viewport - 1240) / 2. A 228px fixed rail clears the content
+   only once that gutter reaches 228px:
+
+       1240 + (2 x 228) = 1696px
+
+   At the 1440px this rule originally used, the gutter is 100px and the
+   rail covered 128px of the content's left edge. Measured in the live
+   page at 1424px viewport: 156px of overlap, because the measured
+   content box is wider than the 1240 the first calculation assumed.
+
+   So: 1700px, just above where the arithmetic says it is safe. Every
+   width below that gets the FAB and the sheet, which overlap nothing.
+   If `--maxw` or `--ksat-shell-rail` ever changes, recompute this. */
+@media (min-width: 1700px) {
   #ksat-ch-rail { display: block; }
   #ksat-ch-fab { display: none; }
 }
