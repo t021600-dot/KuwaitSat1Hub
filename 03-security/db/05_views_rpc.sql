@@ -97,17 +97,12 @@ language plpgsql security definer set search_path = public, pg_temp
 as $fn$
 declare v_run uuid; s public.app_settings;
 begin
-  -- ownership is RE-READ from the table. It is never taken from an argument.
   if not public.owns_mission(p_mission_id) then
     raise exception 'Mission not found.' using errcode = 'P0001';
-    -- "not found", not "not yours": a different message for a mission that
-    -- exists-but-is-someone-else's tells a stranger that it exists.
   end if;
 
   select * into s from public.app_settings where id;
   if s is null then
-    -- FAIL CLOSED. If the settings row is missing, refuse — do not
-    -- fall through to "well, nothing said no".
     raise exception 'Mission settings are unavailable.' using errcode = 'P0001';
   end if;
   if not s.accepting_new_missions then
@@ -115,11 +110,36 @@ begin
       using errcode = 'P0001';
   end if;
 
-  -- THE RATE LIMIT, ENFORCED WHERE WE CLAIM IT IS.
-  -- It used to live only in the BEFORE INSERT trigger on missions, which
-  -- limits CREATING a mission. But 04's guardrail list reads these numbers
-  -- out as a limit on the AGENT, and launching is what costs model credit.
-  -- A guardrail you say out loud must be the guardrail the code enforces.
+  -- R-1a · THE FREEZE.  Rule 10b, asked for by 04 in GUARDRAILS.md §4.
+  -- Checked BEFORE any rate limit on purpose: this is a permanent state,
+  -- and a researcher should not be told to wait an hour for something
+  -- waiting will never fix.
+  --
+  -- Why it is a SECURITY control and not a budget one: a report carries
+  -- approved_by — a named human. Without this check that mission could be
+  -- relaunched and fresh `results` rows written against it, so the evidence
+  -- behind a signed conclusion could change after it was signed, with no
+  -- trace. An audit trail that can be edited after the fact is not one.
+  if exists (select 1 from public.reports where mission_id = p_mission_id) then
+    raise exception 'This mission has an approved report. Start a new mission.'
+      using errcode = 'P0001';
+  end if;
+
+  if exists (select 1 from public.mission_runs
+              where mission_id = p_mission_id and status in ('queued','running')) then
+    raise exception 'This mission is already running.' using errcode = 'P0001';
+  end if;
+
+  -- R-1b · per MISSION, per hour. The per-researcher counts below stop one
+  -- ACCOUNT spending everything; this stops one MISSION doing it.
+  if (select count(*) from public.mission_runs
+       where mission_id = p_mission_id
+         and started_at > now() - interval '1 hour') >= 3 then
+    raise exception 'Limit reached: 3 runs per mission per hour.'
+      using errcode = 'P0001';
+  end if;
+
+  -- per RESEARCHER, per hour.
   if (select count(*) from public.mission_runs r
         join public.missions m2 on m2.id = r.mission_id
        where m2.researcher_id = (select auth.uid())
@@ -128,26 +148,20 @@ begin
       using errcode = 'P0001';
   end if;
 
+  -- per RESEARCHER, per day.  ADDED 21 Sep 2026.
+  -- app_settings.max_missions_per_day existed, was selected into `s`, and
+  -- was then never read by anything. "Twenty a day" was written in the
+  -- guardrails and enforced NOWHERE. A limit nobody checks is a comment.
   if (select count(*) from public.mission_runs r
         join public.missions m2 on m2.id = r.mission_id
        where m2.researcher_id = (select auth.uid())
-         and r.started_at > now() - interval '1 day') >= s.max_missions_per_day then
+         and r.started_at > now() - interval '24 hours') >= s.max_missions_per_day then
     raise exception 'Limit reached: % agent runs per day.', s.max_missions_per_day
       using errcode = 'P0001';
   end if;
 
-  if exists (select 1 from public.mission_runs
-              where mission_id = p_mission_id
-                and status in ('queued','running')) then
-    raise exception 'This mission is already running.' using errcode = 'P0001';
-  end if;
-
-  insert into public.mission_runs (mission_id) values (p_mission_id)
-    returning id into v_run;
-  update public.missions
-     set status = 'queued', launched_at = now()
-   where id = p_mission_id;
-
+  insert into public.mission_runs (mission_id) values (p_mission_id) returning id into v_run;
+  update public.missions set status = 'queued', launched_at = now() where id = p_mission_id;
   return v_run;
 end $fn$;
 
@@ -187,39 +201,65 @@ grant  execute on function public.generate_report(uuid,text) to authenticated;
 
 
 -- ---------------------------------------------------------------------
--- share_mission · sharing is a written row, made by the owner only.
+-- share_mission · DELIBERATELY NOT DEPLOYED.  Commented out 21 Sep 2026.
+--
+-- The brief for this platform is explicit: "each researcher has their
+-- privacy as no one can see their colleagues' work and history."
+-- share_mission() is the ONLY way a row can ever enter
+-- mission_collaborators: `authenticated` holds no insert, update, delete
+-- or even select on that table. With this function absent, sharing is
+-- fail-closed by construction -
+--
+--     is_collaborator() can only ever return false
+--       -> the collaborator branch of every policy in 04_policies.sql is
+--          dead code
+--       -> every researcher reads strictly their own rows, full stop.
+--
+-- Verified against the live database on 21 Sep 2026:
+--     share_mission                          absent
+--     mission_collaborators rows             0
+--     authenticated ins/upd/del/sel on it    false, false, false, false
+--
+-- THIS BLOCK IS LEFT IN PLACE ON PURPOSE. Deleting it loses the reason;
+-- running it silently turns colleague-visibility back on and quietly
+-- contradicts the brief. If sharing is ever actually wanted, uncomment
+-- it as a deliberate, reviewed decision - not as a side effect of
+-- rebuilding the schema from this folder.
+--
+-- DO NOT uncomment to "fix" a missing-function error. Nothing in the
+-- product calls it; grep first.
 -- ---------------------------------------------------------------------
-create or replace function public.share_mission(p_mission_id uuid, p_email text,
-                                                p_role text default 'viewer')
-returns void
-language plpgsql security definer set search_path = public, pg_temp
-as $fn$
-declare v_user uuid;
-begin
-  if not public.owns_mission(p_mission_id) then
-    raise exception 'Mission not found.' using errcode = 'P0001';
-  end if;
-  if p_role not in ('viewer','editor') then
-    raise exception 'Unknown role.' using errcode = 'P0001';
-  end if;
-
-  select id into v_user from auth.users where lower(email) = lower(btrim(p_email));
-  if v_user is null then
-    -- deliberately vague: this must not become a way to test which email
-    -- addresses have accounts on the platform.
-    raise exception 'That researcher cannot be added.' using errcode = 'P0001';
-  end if;
-  if v_user = (select auth.uid()) then
-    raise exception 'You already own this mission.' using errcode = 'P0001';
-  end if;
-
-  insert into public.mission_collaborators (mission_id, user_id, role, granted_by)
-  values (p_mission_id, v_user, p_role, (select auth.uid()))
-  on conflict (mission_id, user_id) do update set role = excluded.role;
-end $fn$;
-
-revoke execute on function public.share_mission(uuid,text,text) from public, anon;
-grant  execute on function public.share_mission(uuid,text,text) to authenticated;
+-- create or replace function public.share_mission(p_mission_id uuid, p_email text,
+--                                                 p_role text default 'viewer')
+-- returns void
+-- language plpgsql security definer set search_path = public, pg_temp
+-- as $fn$
+-- declare v_user uuid;
+-- begin
+--   if not public.owns_mission(p_mission_id) then
+--     raise exception 'Mission not found.' using errcode = 'P0001';
+--   end if;
+--   if p_role not in ('viewer','editor') then
+--     raise exception 'Unknown role.' using errcode = 'P0001';
+--   end if;
+--
+--   select id into v_user from auth.users where lower(email) = lower(btrim(p_email));
+--   if v_user is null then
+--     -- deliberately vague: this must not become a way to test which email
+--     -- addresses have accounts on the platform.
+--     raise exception 'That researcher cannot be added.' using errcode = 'P0001';
+--   end if;
+--   if v_user = (select auth.uid()) then
+--     raise exception 'You already own this mission.' using errcode = 'P0001';
+--   end if;
+--
+--   insert into public.mission_collaborators (mission_id, user_id, role, granted_by)
+--   values (p_mission_id, v_user, p_role, (select auth.uid()))
+--   on conflict (mission_id, user_id) do update set role = excluded.role;
+-- end $fn$;
+--
+-- revoke execute on function public.share_mission(uuid,text,text) from public, anon;
+-- grant  execute on function public.share_mission(uuid,text,text) to authenticated;
 
 
 -- ---------------------------------------------------------------------

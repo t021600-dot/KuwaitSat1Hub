@@ -243,11 +243,20 @@ change; see section 4 before you claim it.**
 sentence so the screen quotes the database's own limit. Do not let anyone reword
 one without telling Retag and me the same evening.
 
-> ⚠️ **Still NOT enforced, and do not say it is:** a cap on runs *per mission*,
-> and the lock on relaunching a mission that already has an approved report.
-> Both are written out as SQL for Mariam in section 4. Until they are in
-> `launch_mission()`, one mission can be relaunched until the researcher's
-> five-an-hour is gone, and its findings can change underneath a signed report.
+> ✅ **ENFORCED as of 21 September 2026.** 03 took the SQL from section 4 and
+> put it in `launch_mission()` — the per-mission cap of three runs an hour, and
+> the freeze on relaunching a mission that already has an approved report. The
+> freeze is checked **before** the rate limits, because it is permanent and a
+> researcher should not be told to wait an hour for something waiting will
+> never fix.
+>
+> Two more gaps were found while doing it. `app_settings.max_missions_per_day`
+> (20) was being selected into a variable and then **never read** — "twenty a
+> day" was enforced nowhere, in either function. And the live database had
+> drifted to an older `missions_guard()` than this repository's. Both fixed.
+>
+> Tested five ways against the live database; results in
+> `03-security/evidence/se-m5-checkpoint-2026-09-21.md`.
 
 ### Rule 11 — Twenty thousand characters per result
 
@@ -517,10 +526,14 @@ Rule 10 splits in two. **10b is half landed — say exactly which half.**
 >
 > **10b.** Three agent **runs** per mission per hour, and a mission that already
 > has an approved report cannot be relaunched — a new question is a new mission.
-> ⛔ **not written yet. Do not claim it.**
+> ✅ **in the SQL as of 21 Sep 2026.** `05_views_rpc.sql` → `launch_mission()`.
+> Proven: relaunching mission `1111…` (which has an approved report) returns
+> *"This mission has an approved report. Start a new mission."*, while a clean
+> mission still launches normally.
 
-**The SQL still to ask Mariam for** — inside `launch_mission()`, after the
-per-researcher counts and before the insert:
+**The SQL, now landed** — 03 placed the freeze *before* the rate limits rather
+than after the per-researcher counts as drafted, for the reason given above.
+What went in:
 
 ```sql
   -- R-1 · the relaunch cap. The per-RESEARCHER counts above stop one
@@ -539,11 +552,23 @@ per-researcher counts and before the insert:
   end if;
 ```
 
-**Tell Retag the strings the same evening.** `app/js/automation.js` already
-reads the two `Limit reached: … agent runs per …` sentences and quotes the
-database's own number back at the researcher; `mapError()` on 01's side needs the
-same, plus these two if Mariam adds them. An unmapped P0001 shows the researcher
-a raw Postgres error, which fails `se-m5` while fixing `au-m4`.
+**The strings are mapped.** `js/ksat-workflow.js` → `SAFE` carries all of them
+as of 21 Sep. Cross-checking every `raise exception` in `03-security/db/`
+against that list turned up **two that had been missing all along** —
+`'Limit reached: N missions per hour./per day.'` and `'Sign in before launching
+a mission.'`, both raised by the `missions_guard()` INSERT trigger rather than
+by an RPC. The allowlist had been written by reading `05_views_rpc.sql` alone.
+
+An unmapped P0001 does **not** show a raw Postgres error here — `humanError()`
+falls through to a generic sentence and logs the real one to the console — so
+this was a usability failure rather than an `se-m5` one. Still worth closing.
+
+**Anyone adding a `raise exception` to the schema adds its shape to `SAFE` in
+the same sitting.** Nothing enforces the pairing; it is checked by hand with:
+
+```bash
+grep -rh "raise exception '" 03-security/db/*.sql   | sed "s/.*raise exception '\([^']*\)'.*//" | sort -u
+```
 
 ### ✍️ Fill this in the moment you have run it
 

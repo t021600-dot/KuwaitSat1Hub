@@ -138,9 +138,10 @@ where you actually are; section E of its output is this list, as ticks.
   is no cap on runs *per mission*, and no lock on relaunching a mission that
   already has an approved report. The SQL is drafted in `GUARDRAILS.md` §4.
   Until it runs, an approved report's evidence can change underneath it.
-- **To 03 · Mariam.** The `agent_claim_run()` compatibility shim (block 2 of
-  `08_agent_claim.sql`) can be dropped whenever you like — every caller in 04
-  now says `claim_next_run`, so it holds nothing open.
+- **To 03 · Mariam.** ~~The `agent_claim_run()` compatibility shim (block 2 of
+  `08_agent_claim.sql`) can be dropped whenever you like.~~ **Done, 21 Sep.**
+  Dropped from the file; it had never been created on the live database.
+  `claim_next_run` is now the only name.
 - **To 02 · Hind.** The eight questions in `n8n/BUILD-GUIDE.md` §12 stand,
   except that 4 (coordinate order) and 6 (reading `results`, not the truncating
   view) are now answered from this side.

@@ -173,7 +173,7 @@ update public.mission_runs r
 returning ...
 ```
 
-Call `claim_next_run`, not `agent_claim_run`. The older name still answers — `08_agent_claim.sql` keeps it as a one-line shim so already-written callers do not break — but that block is meant to be deleted, and two names for one door is two things to check in a review.
+Call `claim_next_run`. It is the only name — the older `agent_claim_run` shim was removed from `08_agent_claim.sql` on 21 Sep 2026 once every caller had moved, and it never existed on the live database. A request to `/rest/v1/rpc/agent_claim_run` will 404.
 
 - `for update skip locked` means two polls that overlap **cannot** take the same row: the second one skips the locked row and takes the next queued one, or nothing.
 - The row flips to `running` in the same statement that reads it, so there is no window between "found it" and "claimed it".

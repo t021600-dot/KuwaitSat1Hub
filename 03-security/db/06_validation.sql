@@ -263,6 +263,24 @@ begin
   return new;
 end $fn$;
 
+-- ---------------------------------------------------------------------
+-- missions_guard() IS A TRIGGER FUNCTION AND MUST NOT BE CALLABLE.
+--
+-- This is not theoretical. Supabase's own Security Advisor found it on
+-- 21 Sep 2026 exposed as a PostgREST endpoint reachable by `anon` at
+-- /rest/v1/rpc/missions_guard, without signing in. It is the function
+-- carrying the rate limit, the kill switch, and the line that forces
+-- researcher_id to the calling account.
+--
+-- PostgreSQL grants EXECUTE on new functions to PUBLIC by default. That
+-- default is why this happened, and it is why the revoke has to live in
+-- the file rather than only in the dashboard: a rebuild from this folder
+-- would otherwise re-open the finding silently. Full write-up in
+-- 03-security/evidence/se-m6-security-advisor-2026-09-21.md.
+-- ---------------------------------------------------------------------
+revoke execute on function public.missions_guard()
+  from public, anon, authenticated, service_role;
+
 drop trigger if exists missions_guard_bi on public.missions;
 create trigger missions_guard_bi before insert on public.missions
   for each row execute function public.missions_guard();

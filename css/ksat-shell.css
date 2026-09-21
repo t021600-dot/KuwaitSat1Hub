@@ -1,0 +1,842 @@
+/* =====================================================================
+   ksat-shell.css — the shell, the tier panels and the checkpoint
+   Owner: 01 Front End
+
+   EVERY selector is prefixed .ksat- / #ksat-, or keyed on a data-ksat-*
+   attribute this layer owns. Nothing here restyles an existing element
+   of index.html. Delete this file and the original page is unchanged.
+
+   Colours are read from the prototype's own custom properties, with
+   fallbacks, so the shell looks native rather than bolted on — and so it
+   keeps matching as the ESA/NASA theme layer moves underneath it.
+
+   Direction: restrained, institutional, dark, data-forward. Hairlines,
+   not glow. Mono for identifiers, counts and state. Nothing under 12px.
+   ===================================================================== */
+
+:root {
+  --ksat-shell-rail: 228px;
+  --ksat-shell-gap: 14px;
+}
+
+/* =====================================================================
+   1 · THE TIER
+
+   Hiding is gated on data-ksat-shell="ready", which js/ksat-shell.js
+   sets only AFTER the prototype has booted and every canvas has
+   measured at full width. fit() (index.html:1996) falls back to
+   parentElement.clientWidth, which is 0 while hidden — so hiding a
+   section before init() would produce zero-width canvases.
+   ===================================================================== */
+
+/* A locked section keeps every child it ever had. It is hidden by this
+   one rule and nothing else, and the class comes off on sign-in. */
+html[data-ksat-shell="ready"][data-ksat-tier="public"] .wrap > section.sec.ksat-locked {
+  display: none !important;
+}
+
+/* The invitation panel is the public-tier stand-in, and only that. */
+.ksat-invite { display: none; }
+html[data-ksat-shell="ready"][data-ksat-tier="public"] .ksat-invite { display: block; }
+
+.ksat-invite {
+  padding-block: clamp(34px, 5vw, 60px);
+  border-top: 1px solid var(--line, #1B2230);
+  position: relative;
+  scroll-margin-top: calc(var(--bar-h, 58px) + 14px);
+}
+
+.ksat-invite-eyebrow {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--accent, #3D8BFF);
+  margin-bottom: 14px;
+}
+
+.ksat-invite-h {
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(21px, 3.2vw, 31px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+  color: var(--ink, #E8ECF2);
+}
+.ksat-invite-h:focus-visible {
+  outline: 2px solid var(--accent, #3D8BFF);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+/* The lead line an arriving deep link writes: "You were heading for..." */
+.ksat-invite-lead {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-family: var(--mono, monospace);
+  letter-spacing: 0.02em;
+  color: var(--accent, #3D8BFF);
+}
+
+.ksat-invite-p {
+  margin: 12px 0 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2, #9AA7B8);
+}
+
+.ksat-invite-lab {
+  margin-top: 22px;
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+}
+
+.ksat-invite-list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 7px;
+  max-width: 72ch;
+}
+.ksat-invite-list li {
+  position: relative;
+  padding-inline-start: 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2, #9AA7B8);
+}
+.ksat-invite-list li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.62em;
+  width: 7px;
+  height: 1px;
+  background: var(--line-3, #2E3A4C);
+}
+
+.ksat-invite-btn {
+  margin-top: 22px;
+  padding: 11px 18px;
+  border-radius: 9px;
+  border: 1px solid var(--accent-dim, #1E7F7C);
+  background: rgba(61, 139, 255, 0.10);
+  color: var(--ink, #E8ECF2);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.ksat-invite-btn:hover {
+  background: rgba(61, 139, 255, 0.17);
+  border-color: var(--accent, #3D8BFF);
+}
+
+/* The same footnote on all ten, deliberately: it makes the honesty of
+   the security story a visible product feature rather than a slide. */
+.ksat-invite-foot {
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-inline-start: 2px solid var(--line-2, #232C3C);
+  background: rgba(255, 255, 255, 0.015);
+  border-radius: 0 8px 8px 0;
+  max-width: 78ch;
+}
+.ksat-invite-foot p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-3, #6B7A8D);
+}
+.ksat-invite-foot-ar { margin-top: 8px !important; }
+
+/* Highlighted by the hero note's "Show me which". */
+html[data-ksat-highlight="locked"] .ksat-invite {
+  box-shadow: inset 3px 0 0 var(--accent, #3D8BFF);
+}
+
+/* ---- the hero orientation line ---- */
+.ksat-tier-note {
+  margin-top: 26px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1px solid var(--line-2, #232C3C);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.ksat-tier-note-txt {
+  flex: 1 1 320px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2, #9AA7B8);
+}
+.ksat-tier-note-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent, #3D8BFF);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ksat-tier-note-x {
+  border: 0;
+  background: none;
+  color: var(--ink-3, #6B7A8D);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+/* =====================================================================
+   2 · THE HEADER SIGN-IN CONTROL AND THE GATE
+
+   The sign-in button reuses the page's own .btn.sm so it looks native.
+   Only the additions are declared here.
+   ===================================================================== */
+
+.ksat-signin[disabled] { opacity: 0.55; cursor: not-allowed; }
+
+.ksat-gate-x {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 14px;
+  border: 0;
+  background: none;
+  color: var(--ink-3, #6B7A8D);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.ksat-gate-x:hover { color: var(--ink, #E8ECF2); background: rgba(255, 255, 255, 0.06); }
+
+.ksat-gate-back {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-3, #6B7A8D);
+  cursor: pointer;
+  text-align: center;
+  padding: 6px 0;
+}
+.ksat-gate-back:hover { color: var(--ink-2, #9AA7B8); }
+
+/* The gate card must be a positioning context for the close button. */
+#ksat-gate .ksat-gate-card { position: relative; }
+
+/* Identity sits in the header now, not floating over the page. */
+#ksat-whoami {
+  position: static !important;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  inset: auto !important;
+  box-shadow: none !important;
+}
+
+/* =====================================================================
+   3 · CHAPTERS
+
+   `.chapter` is the story-card class at index.html:488 and is NOT
+   touched. Everything here is .ksat-ch-.
+   ===================================================================== */
+
+/* Collapse the band a hidden section would otherwise leave behind.
+   section.sec carries padding-block:clamp(56px,7.5vw,104px)
+   (index.html:109), so 23 collapsed sections would leave ~3,600px of
+   dead scroll. This matters most under hidden="until-found", which
+   computes to content-visibility:hidden and DOES still generate a box. */
+html[data-ksat-nav="on"] .wrap > section.sec[hidden],
+html[data-ksat-nav="on"] .wrap > .ksat-invite[hidden] {
+  padding-block: 0 !important;
+  border-top: 0 !important;
+  margin-block: 0 !important;
+}
+
+#ksat-ch-rail {
+  position: fixed;
+  inset-inline-start: 0;
+  top: calc(var(--bar-h, 58px) + 18px);
+  z-index: 58;                       /* under .bar (60) and the intro (200) */
+  width: var(--ksat-shell-rail);
+  max-height: calc(100vh - var(--bar-h, 58px) - 36px);
+  overflow-y: auto;
+  padding: 16px 14px 18px;
+  display: none;                     /* shown only where there is room */
+}
+
+.ksat-ch-nav {
+  border: 1px solid var(--line, #1B2230);
+  border-radius: 12px;
+  background: var(--surf, #0B1018);
+  padding: 14px 12px 12px;
+}
+
+.ksat-ch-head {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+  margin-bottom: 10px;
+  padding-inline: 4px;
+}
+
+.ksat-ch-list { display: grid; gap: 2px; }
+
+.ksat-ch-item {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: start;
+  gap: 9px;
+  padding: 8px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink-2, #9AA7B8);
+  border: 1px solid transparent;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+.ksat-ch-item:hover { background: rgba(255, 255, 255, 0.045); color: var(--ink, #E8ECF2); }
+.ksat-ch-item[aria-current="true"] {
+  background: rgba(61, 139, 255, 0.11);
+  border-color: rgba(61, 139, 255, 0.35);
+  color: var(--ink, #E8ECF2);
+}
+.ksat-ch-item:focus-visible {
+  outline: 2px solid var(--accent, #3D8BFF);
+  outline-offset: 2px;
+}
+
+.ksat-ch-num {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3, #6B7A8D);
+  font-variant-numeric: tabular-nums;
+}
+.ksat-ch-item[aria-current="true"] .ksat-ch-num { color: var(--accent, #3D8BFF); }
+
+.ksat-ch-body { display: block; min-width: 0; }
+.ksat-ch-en { display: block; font-size: 13px; font-weight: 600; line-height: 1.32; }
+.ksat-ch-ar {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3, #6B7A8D);
+  margin-top: 1px;
+}
+.ksat-ch-lock {
+  grid-column: 2;
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--sand, #B27F02);
+}
+.ksat-ch-lock:empty { display: none; }
+
+html[data-ksat-highlight="locked"] .ksat-ch-item[data-ksat-haslock="yes"] {
+  border-color: var(--sand, #B27F02);
+}
+
+.ksat-ch-toggle {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-2, #232C3C);
+  background: var(--surf-2, #111823);
+  color: var(--ink-2, #9AA7B8);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.ksat-ch-toggle:hover { color: var(--ink, #E8ECF2); border-color: var(--line-3, #2E3A4C); }
+
+.ksat-ch-note {
+  margin: 9px 2px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3, #6B7A8D);
+}
+
+.ksat-ch-live {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ksat-ch-skip {
+  position: absolute;
+  inset-inline-start: 8px;
+  top: -60px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: var(--accent, #3D8BFF);
+  color: #04121F;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.14s ease;
+}
+.ksat-ch-skip:focus { top: 8px; }
+
+/* Only claim the left edge where there is genuinely room for it:
+   .wrap is max 1240px and centred, so below ~1440px a fixed rail would
+   sit on top of the content rather than beside it. Below that the FAB
+   and the sheet take over — one control, no overlap, no guessing. */
+@media (min-width: 1440px) {
+  #ksat-ch-rail { display: block; }
+  #ksat-ch-fab { display: none; }
+}
+
+/* =====================================================================
+   4 · PHONE PORTRAIT AND EVERY NARROW VIEWPORT
+
+   Not a second horizontal strip: the page already has a horizontally
+   scrolling .navwrap that shrinks at <=700px (index.html:629), and two
+   competing swipe targets in 44px of screen is not navigation.
+   ===================================================================== */
+
+#ksat-ch-fab {
+  position: fixed;
+  inset-inline-end: 16px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 130;                      /* above #demoHud (120), below toast (150) */
+  max-width: min(62vw, 300px);
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line-3, #2E3A4C);
+  background: var(--surf, #0B1018);
+  color: var(--ink, #E8ECF2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#ksat-ch-fab:hover { border-color: var(--accent, #3D8BFF); }
+
+/* Clear the guided-tour HUD when it is on, so the two never stack. */
+body:has(#demoHud.on) #ksat-ch-fab {
+  bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+}
+
+#ksat-ch-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(4, 8, 15, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+#ksat-ch-sheet[hidden] { display: none; }
+
+.ksat-sheet-in {
+  width: 100%;
+  max-width: 560px;
+  max-height: 84vh;
+  overflow-y: auto;
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-radius: 16px 16px 0 0;
+  border: 1px solid var(--line-2, #232C3C);
+  border-bottom: 0;
+  background: var(--surf, #0B1018);
+}
+
+.ksat-sheet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line, #1B2230);
+}
+.ksat-sheet-title {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+}
+.ksat-sheet-x {
+  border: 1px solid var(--line-2, #232C3C);
+  background: var(--surf-2, #111823);
+  color: var(--ink-2, #9AA7B8);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 13px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ksat-sheet-list { display: grid; gap: 2px; }
+
+.ksat-sheet-ch {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 13px 10px;
+  min-height: 44px;                  /* thumb target */
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: none;
+  color: var(--ink-2, #9AA7B8);
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+  cursor: pointer;
+}
+.ksat-sheet-ch[aria-current="true"] {
+  background: rgba(61, 139, 255, 0.11);
+  border-color: rgba(61, 139, 255, 0.32);
+  color: var(--ink, #E8ECF2);
+}
+.ksat-sheet-n {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  color: var(--ink-3, #6B7A8D);
+  font-variant-numeric: tabular-nums;
+}
+.ksat-sheet-name { flex: 1; font-weight: 600; }
+.ksat-sheet-lock {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  color: var(--sand, #B27F02);
+}
+
+.ksat-sheet-subs {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 8px;
+  padding-inline-start: 30px;
+  border-inline-start: 1px solid var(--line, #1B2230);
+  margin-inline-start: 18px;
+}
+.ksat-sheet-sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink-2, #9AA7B8);
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+}
+.ksat-sheet-sub:hover { background: rgba(255, 255, 255, 0.045); color: var(--ink, #E8ECF2); }
+.ksat-sheet-sublock {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  color: var(--sand, #B27F02);
+}
+
+/* =====================================================================
+   5 · THE MISSION WORKFLOW PANEL AND THE HUMAN CHECKPOINT
+   ===================================================================== */
+
+.ksat-wf {
+  margin-top: 26px;
+  padding: 20px;
+  border: 1px solid var(--line-2, #232C3C);
+  border-radius: 12px;
+  background: var(--surf, #0B1018);
+}
+
+.ksat-wf-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line, #1B2230);
+}
+.ksat-wf-eyebrow {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--accent, #3D8BFF);
+}
+.ksat-wf-state {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2, #232C3C);
+  color: var(--ink-2, #9AA7B8);
+}
+
+.ksat-wf-h {
+  margin: 16px 0 0;
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(18px, 2.4vw, 23px);
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  color: var(--ink, #E8ECF2);
+}
+.ksat-wf-p {
+  margin: 8px 0 0;
+  max-width: 74ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2, #9AA7B8);
+}
+
+.ksat-wf-ctl {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.ksat-wf-lab {
+  display: block;
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+  margin-bottom: 6px;
+}
+.ksat-wf-ctl select {
+  min-width: 200px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--line-2, #232C3C);
+  background: var(--surf-2, #111823);
+  color: var(--ink, #E8ECF2);
+  font: inherit;
+  font-size: 13.5px;
+}
+.ksat-wf-launch[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.ksat-wf-gate {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-3, #6B7A8D);
+  max-width: 74ch;
+}
+.ksat-wf-gate:empty { display: none; }
+
+/* ---- the run log: refusals are the most valuable rows on screen ---- */
+.ksat-wf-log { margin-top: 16px; display: grid; gap: 1px; }
+.ksat-wf-log:empty { display: none; }
+
+.ksat-wf-row {
+  display: grid;
+  grid-template-columns: 172px 1fr;
+  gap: 14px;
+  padding: 11px 12px;
+  border-inline-start: 2px solid var(--line-2, #232C3C);
+  background: rgba(255, 255, 255, 0.015);
+}
+.ksat-wf-rk {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+}
+.ksat-wf-rb {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2, #9AA7B8);
+}
+
+.ksat-wf-cand { border-inline-start-color: var(--accent, #3D8BFF); }
+.ksat-wf-cand .ksat-wf-rk { color: var(--accent, #3D8BFF); }
+
+.ksat-wf-ok { border-inline-start-color: var(--green-lt, #8FD8A3); }
+.ksat-wf-ok .ksat-wf-rk { color: var(--green-lt, #8FD8A3); }
+
+.ksat-wf-bad { border-inline-start-color: var(--sand, #B27F02); background: rgba(178, 127, 2, 0.06); }
+.ksat-wf-bad .ksat-wf-rk { color: var(--sand, #B27F02); }
+
+.ksat-wf-rerank { border-inline-start-style: dashed; }
+
+.ksat-wf-note,
+.ksat-wf-verify {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border: 1px dashed var(--line-3, #2E3A4C);
+  border-radius: 9px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2, #9AA7B8);
+}
+.ksat-wf-verify {
+  font-family: var(--mono, monospace);
+  font-size: 12.5px;
+  border-style: solid;
+  color: var(--ink-3, #6B7A8D);
+}
+
+.ksat-wf-budget {
+  margin-top: 10px;
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-3, #6B7A8D);
+}
+.ksat-wf-budget:empty { display: none; }
+
+/* ---- the checkpoint ---- */
+.ksat-wf-check {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--sand, #B27F02);
+  border-radius: 12px;
+  background: rgba(178, 127, 2, 0.06);
+}
+.ksat-wf-ck-head { display: flex; align-items: center; gap: 10px; }
+.ksat-wf-ck-icon { font-size: 17px; line-height: 1; color: var(--sand, #B27F02); }
+.ksat-wf-ck-title {
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(16px, 2.2vw, 20px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink, #E8ECF2);
+}
+.ksat-wf-ck-ok { }
+.ksat-wf-ck-ok .ksat-wf-ck-icon { color: var(--green-lt, #8FD8A3); }
+
+.ksat-wf-ck-ar {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--ink-2, #9AA7B8);
+}
+.ksat-wf-ck-p {
+  margin: 10px 0 0;
+  max-width: 76ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2, #9AA7B8);
+}
+
+.ksat-wf-draft {
+  margin: 14px 0 0;
+  padding: 14px;
+  max-height: 340px;
+  overflow: auto;
+  border: 1px solid var(--line-2, #232C3C);
+  border-radius: 9px;
+  background: var(--deep, #080C14);
+  font-family: var(--mono, monospace);
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink-2, #9AA7B8);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ksat-wf-ck-acts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.ksat-wf-approve[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.ksat-wf-ck-wait,
+.ksat-wf-ck-trace {
+  margin: 10px 0 0;
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3, #6B7A8D);
+}
+.ksat-wf-ck-msg {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--sand, #B27F02);
+}
+.ksat-wf-ck-msg:empty { display: none; }
+
+@media (max-width: 720px) {
+  .ksat-wf { padding: 16px; }
+  .ksat-wf-row { grid-template-columns: 1fr; gap: 4px; }
+  .ksat-wf-ctl select { min-width: 0; width: 100%; }
+  .ksat-wf-ctl > * { flex: 1 1 100%; }
+}
+
+/* =====================================================================
+   6 · REDUCED MOTION
+
+   Evaluated by the layer at call time too (js/ksat-shell.js), so a
+   mid-session OS change is honoured — the page itself caches this once
+   at index.html:1860.
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ksat-ch-item,
+  .ksat-invite-btn,
+  .ksat-ch-skip,
+  #ksat-ch-fab {
+    transition: none !important;
+  }
+  #ksat-ch-sheet { backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+/* =====================================================================
+   7 · PRINT
+
+   Printing or PDF-ing yields all 24 sections, chapters or not. This is
+   the other half of the proof that nothing was removed.
+   ===================================================================== */
+
+@media print {
+  html[data-ksat-nav] .wrap > section.sec,
+  html[data-ksat-shell] .wrap > section.sec.ksat-locked {
+    display: block !important;
+    content-visibility: visible !important;
+    padding-block: 18px !important;
+  }
+  #ksat-ch-rail,
+  #ksat-ch-fab,
+  #ksat-ch-sheet,
+  .ksat-invite,
+  .ksat-tier-note,
+  .ksat-signin {
+    display: none !important;
+  }
+}

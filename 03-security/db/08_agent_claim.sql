@@ -26,7 +26,7 @@
 -- WHAT IS IN HERE
 --   0 · one additive column, claimed_at            (the ONE ask to 02)
 --   1 · claim_next_run()          — take exactly one queued run, safely
---   2 · agent_claim_run()         — compatibility shim, delete Tuesday
+--   2 · agent_claim_run()         — REMOVED 21 Sep 2026 (was a shim)
 --   3 · sweep_stalled_runs()      — a dead run reads "Stopped", not a spinner
 --   4 · how the sweeper gets called
 --   5 · VERIFY — run these yourself, do not take my word for any of it
@@ -162,35 +162,23 @@ grant  execute on function public.claim_next_run() to service_role;
 
 
 -- =====================================================================
--- 2 · agent_claim_run() — COMPATIBILITY SHIM. FOR ALREADY-WRITTEN CODE.
+-- 2 · agent_claim_run() — SHIM REMOVED, 21 Sep 2026.
 --
--- 04-agents/worker/edge/index.ts and the request file both say
--- agent_claim_run. Renaming live code on a three-night build is how you
--- lose Tuesday, so the old name still answers and forwards to the new one.
+-- It existed only so code already written against the older name would
+-- keep working. Every caller in 04 now says claim_next_run:
+--     04-agents/worker/edge/index.ts:144   rpc("claim_next_run", {})
+--     04-agents/n8n/BUILD-GUIDE.md:158     /rest/v1/rpc/claim_next_run
+-- and 04-agents/README.md released it explicitly ("can be dropped
+-- whenever you like ... it holds nothing open").
 --
--- >>> DELETE THIS BLOCK ONCE BOTH CALLERS SAY claim_next_run <<<
--- Two names for one door is two things to check in a review. The drop
--- line is written out below so nobody has to remember the signature:
+-- Dropped rather than kept, because a SECURITY DEFINER function granted
+-- to service_role is attack surface, and one door with two names is two
+-- things to check in every future review. It was never created on the
+-- live database, so there is nothing to drop there — but if you are
+-- rebuilding from an older dump, this is the line:
 --
 --     drop function if exists public.agent_claim_run();
---
--- It holds no logic of its own. If you find yourself editing the body of
--- this one, you are editing the wrong function.
 -- =====================================================================
-create or replace function public.agent_claim_run()
-returns table (run_id uuid, mission_id uuid, title text,
-               objective text, area_geojson jsonb)
-language sql
-security definer
-set search_path = public, pg_temp
-as $fn$
-  select c.run_id, c.mission_id, c.title, c.objective, c.area_geojson
-    from public.claim_next_run() c;
-$fn$;
-
-revoke execute on function public.agent_claim_run()
-  from public, anon, authenticated;
-grant  execute on function public.agent_claim_run() to service_role;
 
 
 -- =====================================================================
@@ -355,7 +343,7 @@ grant  execute on function public.sweep_stalled_runs(int) to service_role;
 -- 5.1 · What can service_role EXECUTE in public?
 --
 -- EXPECTED, exactly these and nothing else:
---     agent_claim_run        (until block 2 is deleted)
+--     (agent_claim_run was here until 21 Sep 2026 — removed)
 --     agent_finish_run
 --     agent_log_step
 --     agent_write_result
@@ -422,17 +410,26 @@ order by 1;
 -- and the column list must be the one 03_grants.sql wrote.
 --
 -- The first query asks the question directly, for both browser roles and
--- all three functions. Six rows, all false.
+-- both functions. Four rows, all false.
+--
+-- agent_claim_run() is NOT in this list any more: the shim was removed on
+-- 21 Sep 2026 and has_function_privilege() RAISES undefined_function on a
+-- name that does not exist, so naming it here would make this verify step
+-- fail rather than report. A verify query that errors is worse than none.
 -- ---------------------------------------------------------------------
 select r.rolname as browser_role,
        f.fn      as function_name,
        has_function_privilege(r.rolname, f.fn, 'EXECUTE') as can_execute
 from (values ('anon'), ('authenticated')) as r(rolname)
 cross join (values ('public.claim_next_run()'),
-                   ('public.sweep_stalled_runs(int)'),
-                   ('public.agent_claim_run()')) as f(fn)
+                   ('public.sweep_stalled_runs(int)')) as f(fn)
 order by 1, 2;
--- expected: false, six times.
+-- expected: false, four times.
+
+-- And the shim really is gone. Expected: zero rows.
+select p.proname
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public' and p.proname = 'agent_claim_run';
 
 -- ...and the column grants on mission_runs, unchanged by block 0.
 -- EXPECTED for `authenticated`: id, mission_id, status, started_at,
