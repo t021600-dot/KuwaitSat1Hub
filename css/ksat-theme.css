@@ -1,0 +1,999 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;700&family=Readex+Pro:wght@300;400;600&display=swap");
+
+/* =====================================================================
+   KuwaitSat-1 Mission Hub — ESA / NASA theme layer
+   Owner: 01 Front-end.  Loaded LAST in <head>, after the prototype's
+   own <style> blocks and after css/ksat-integration.css.
+
+   ---------------------------------------------------------------------
+   READ THIS FIRST (it explains every technique used below)
+   ---------------------------------------------------------------------
+   index.html is Hind's prototype and NOTHING in it may change. So this
+   file restyles the page from the outside, using three tools only:
+
+   1. REDEFINING VARIABLES.  The prototype declares 39 custom properties
+      on :root and then reads them 403 times. Re-declaring :root here
+      re-points all 403 reads at once. This is ~70% of the restyle and it
+      needs no !important, because a later :root beats an earlier one.
+
+   2. SOURCE ORDER.  This file is the LAST stylesheet in <head>. The
+      prototype's big <style> block is lines 15-815, i.e. BEFORE us. When
+      two rules have equal specificity the later one wins, so plain
+      selectors like `.panel` or `.btn.pri` beat the originals with no
+      !important at all.
+
+   3. RAISED SPECIFICITY (`:root ` prefix).  Three more <style> blocks sit
+      inside <body> (lines 1681, 4962, 5153) and therefore come AFTER us.
+      Source order can't beat those. Prefixing a selector with `:root `
+      adds one class-level point of specificity, which wins cleanly and
+      still avoids !important. Those rules are grouped in section 9.
+
+   !important is used only where an inline style="" attribute has to be
+   beaten (there are 152 of them and they outrank every normal rule).
+   Every such line says why, on the line itself.
+
+   DELETE THIS FILE AND ONE <link> AND THE PAGE IS EXACTLY AS IT WAS.
+   ===================================================================== */
+
+
+/* =====================================================================
+   1 · TOKENS — the whole restyle, in one block
+   ---------------------------------------------------------------------
+   Nothing here invents a new variable name for the prototype. Every name
+   below already exists in index.html line 21-40 and is already read by
+   the page and by its canvas code. We are only changing the values.
+   ===================================================================== */
+:root{
+
+  /* ---- 1a · Type families -------------------------------------------
+     Archivo (display) and IBM Plex Mono (numerals) are already loaded by
+     the page's own Google Fonts link and are already the right choice —
+     ESA's identity face is a tight grotesque, and both agencies use a
+     mono strictly for IDs, coordinates and clocks.
+     We change ONE face: body text moves from IBM Plex Sans to Inter,
+     which is nasa.gov's current body face and sits in the Helvetica
+     lineage NASA used for forty years. Plex Sans reads editorial; Inter
+     reads institutional.
+     NOTE: ten canvas font strings inside index.html hard-code
+     "IBM Plex Sans". js/ksat-theme.js rewrites those at runtime so chart
+     labels don't drift out of step with the page.                      */
+  --disp:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --body:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  /* ---- 1b · Grounds --------------------------------------------------
+     Slightly cooler and a touch lighter than the original, so hairlines
+     read as drawn lines rather than as glow.                           */
+  --void:#06090F;          /* page ground                               */
+  --deep:#080C14;
+  --surf:#0B1018;          /* raised surface (panels)                   */
+  --surf-2:#111823;        /* nested surface (inputs, dots, chips)      */
+
+  /* Glass tokens stay defined because the prototype reads them, but they
+     are now near-opaque. Real agency panels are solid; only the sticky
+     masthead is translucent. See section 5.                            */
+  --glass:#0B1018;
+  --glass-2:#111823;
+
+  /* ---- 1c · Hairlines ----------------------------------------------- */
+  --line:#1B2230;          /* default rule                              */
+  --line-2:#232C3C;
+  --line-3:#2E3A4C;        /* emphatic rule (table head, dashed boxes)  */
+
+  /* ---- 1d · Text ----------------------------------------------------
+     Contrast measured against --void #06090F.                          */
+  --ink:#E8ECF2;           /* primary    16.8:1                         */
+  --ink-2:#9AA7B8;          /* secondary   8.2:1                        */
+  --ink-3:#6B7A8D;          /* tertiary / metadata  4.6:1               */
+
+  /* ---- 1e · THE ONE ACCENT ------------------------------------------
+     This is the largest judgement call in the file, so here is the
+     reasoning in full.
+
+     The prototype's accent is teal #3FD0C9. It is not a contrast problem
+     (10.5:1) — it is a MEANING problem. It sits about 8 degrees from
+     --green-lt #8FD8A3, which is the NDVI / vegetation colour. So the
+     brand colour and the single most important data dimension on the
+     page compete for the same read. A saturated cyan is also the
+     strongest "SaaS dashboard" signal a palette can carry.
+
+     Why not NASA red #FC3D21: it clears contrast here (5.6:1) but this
+     console already spends red on danger — --critical, --serious, and
+     the whole heat ramp. Chrome drawn in the same hue as "vegetation is
+     failing here" makes navigation look like an alarm.
+
+     Why not NASA blue #0B3D91: 2.0:1 on this ground. Unusable as a link
+     or focus colour. It works on nasa.gov only because those pages are
+     light.
+
+     #3D8BFF is the ESA answer scaled for a dark ground: institutional
+     blue at 6.0:1, and — decisively — it appears nowhere in the
+     environmental ramps (--g0..--g5 green, --h0..--h5 amber-red,
+     --c1..--c5 categorical). It stays purely structural, so colour on
+     this page always means data.                                       */
+  --accent:#3D8BFF;
+  --accent-dim:#1E4E8F;
+  --accent-glow:rgba(61,139,255,.14);
+
+  /* ---- 1f · Data colours --------------------------------------------
+     These encode meaning, so they are preserved almost exactly. The one
+     change is --c1: it was #279FD7, a blue close enough to the new
+     accent to be confused with it in a chart legend. We hand that slot
+     the old teal instead. Nothing is lost — the teal is demoted from
+     brand colour to chart series colour, which is where it belongs.    */
+  --c1:#3FD0C9;            /* was #279FD7 — now the retired teal        */
+  --c2:#B63B32; --c3:#40AD60; --c4:#8055BE; --c5:#B27F02;
+
+  /* Vegetation, heat and status ramps: untouched. They are the data.   */
+  --green:#40AD60; --green-lt:#8FD8A3; --green-deep:#0B5D2F;
+  --ember:#D9743F; --ember-lt:#ED946C;
+  --sand:#C4B396;
+  --g0:#003E1B; --g1:#0B5D2F; --g2:#317A4A; --g3:#519866; --g4:#70B884; --g5:#8FD8A3;
+  --h0:#642300; --h1:#893A0E; --h2:#AA5830; --h3:#CB764E; --h4:#ED946C; --h5:#FEBDA0;
+  --good:#40AD60; --warn:#B27F02; --serious:#D9743F; --critical:#B63B32;
+
+  /* ---- 1g · Geometry -------------------------------------------------
+     THE SINGLE BIGGEST MOVE IN THIS FILE. The prototype uses --r:14px,
+     and that one number is most of why the page reads as a product
+     rather than as an agency. ESA and NASA panels are 0-4px. Because
+     .panel, .tile, .legcell, .reccard, .photoplate, .btn and every input
+     all read --r or --r-sm, changing these two lines squares off the
+     entire interface at once.                                          */
+  --r:3px;
+  --r-sm:2px;
+
+  --gut:28px;              /* was 20px — agency pages breathe wider     */
+  --maxw:1280px;
+  --bar-h:64px;            /* was 58px — a taller, calmer masthead      */
+
+  /* ---- 1h · Type scale ----------------------------------------------
+     Both reference sites run a large display against a small body. The
+     prototype was 15px body with a 27-44px h2, which is one whole step
+     too timid. Nothing here goes below 11px, and 11px is reserved for
+     uppercase tracked mono metadata — that is the floor both agencies
+     hold. Section 12 raises the 11px tier to 12px on phones.           */
+  --fs-display:clamp(40px,6.2vw,76px);
+  --fs-h2:clamp(30px,4.2vw,50px);
+  --fs-h3:20px;
+  --fs-lede:19px;
+  --fs-body:16px;
+  --fs-small:13.5px;
+  --fs-caption:12px;
+  --fs-eyebrow:11px;
+  --fs-data:13px;
+  --fs-credit:11px;
+
+  /* ---- 1i · Motion ---------------------------------------------------
+     Agencies move very little, and only on entry. Hover may change
+     colour and border; it may not move anything.                       */
+  --t-fast:140ms;
+  --t-base:240ms;
+  --ease-out:cubic-bezier(.2,0,0,1);
+
+  /* ---- 1j · Aliases for the integration layer ------------------------
+     css/ksat-integration.css was written before this theme existed, so
+     it reads var(--panel), var(--muted) and var(--font) with hard-coded
+     fallbacks. Those three names do not exist in the prototype, so the
+     fallbacks were always what showed. Declaring them here makes the
+     sign-in gate and identity bar adopt the theme automatically,
+     without editing 03 Security's file at all.                         */
+  --panel:var(--surf);
+  --muted:var(--ink-2);
+  --font:var(--body);
+}
+
+
+/* =====================================================================
+   2 · BASE TYPOGRAPHY
+   Plain element selectors. We are later in the cascade than the
+   prototype's own body/h rules, so these win on source order alone.
+   ===================================================================== */
+
+body{
+  font-family:var(--body);
+  font-size:var(--fs-body);        /* 15px -> 16px: agency body floor   */
+  line-height:1.65;
+  letter-spacing:0;
+}
+
+/* Headings keep Archivo but gain real weight and tighter tracking.
+   Uppercase is deliberately NOT used here: on both reference sites,
+   uppercase belongs to eyebrows, table heads, credits and tags — never
+   to a headline. */
+h1,h2,h3,h4{ font-family:var(--disp); }
+
+.hero h1{
+  font-size:var(--fs-display);
+  font-weight:800;
+  line-height:1.03;
+  letter-spacing:-.030em;
+}
+
+h2.st{
+  font-size:var(--fs-h2);
+  font-weight:700;
+  line-height:1.08;
+  letter-spacing:-.022em;
+  margin-bottom:16px;
+}
+
+.panel h3,.phead .ttl h3{
+  font-size:var(--fs-h3);
+  font-weight:600;
+  line-height:1.25;
+  letter-spacing:-.010em;
+}
+
+/* MEASURE. Prose must not run past ~72 characters or the eye loses the
+   line start. The lede grew from 16px to 19px, so its character count
+   has to come DOWN to hold the same physical width. */
+.lede{
+  font-size:var(--fs-lede);
+  line-height:1.55;
+  letter-spacing:-.005em;
+  color:var(--ink-2);
+  max-width:64ch;
+}
+.sub{
+  font-size:var(--fs-small);
+  line-height:1.55;
+  color:var(--ink-3);
+  max-width:68ch;
+}
+
+
+/* =====================================================================
+   3 · MASTHEAD
+   The one place translucency is kept. A sticky, slightly transparent
+   masthead over scrolling content is something both agencies do; it is
+   glassmorphism everywhere ELSE that has to go (see section 5).
+   ===================================================================== */
+
+.bar{
+  background:linear-gradient(180deg,rgba(6,9,15,.97),rgba(6,9,15,.88));
+  border-bottom:1px solid var(--line-2);
+}
+
+/* Wordmark: the agency treatment is a confident name and a quiet
+   identifier underneath, not two competing colours. */
+.brand b{
+  font-weight:800;
+  font-size:16px;
+  letter-spacing:.04em;
+}
+.brand i{
+  font-size:11px;                  /* was 10px — below our floor        */
+  letter-spacing:.16em;
+  color:var(--ink-3);              /* was --accent: the identifier is
+                                      metadata, not a brand flourish    */
+}
+
+
+/* =====================================================================
+   4 · SECTION RHYTHM AND THE EYEBROW
+   ===================================================================== */
+
+/* 24 sections at the old spacing read as a stack. Widening the block
+   padding is what turns "content stacked" into "evidence presented". */
+section.sec{
+  padding-block:clamp(72px,9vw,136px);
+  border-top:1px solid var(--line);
+}
+
+/* A heading block and the data block beneath it need real air — 48px
+   minimum. This is the cheapest single change that reads as editorial
+   discipline rather than as a dashboard. */
+.lede + .grid,
+.lede + .panel,
+.sub + .grid,
+.lede + .mt,
+.sub + .panel{ margin-top:clamp(36px,4.5vw,56px); }
+
+/* ---- The eyebrow, restyled to the ESA pattern ----------------------
+   Was: a rounded pill with a tinted background.
+   Now: a hairline tick, a tracked mono number, a tracked label, and a
+   1px rule that runs out to the right edge of the container. That rule
+   is the single most recognisable ESA/NASA page signature.
+   border-inline-start (not border-left) so it flips correctly in Arabic. */
+.eyebrow{
+  gap:14px;
+  margin-bottom:22px;
+  flex-wrap:nowrap;                /* the ::after rule needs one line   */
+}
+.eyebrow .num{
+  font-family:var(--mono);
+  font-size:var(--fs-eyebrow);
+  font-weight:500;
+  letter-spacing:.18em;
+  color:var(--accent);
+  background:none;                 /* kill the tinted pill              */
+  border:0;
+  border-inline-start:2px solid var(--accent);
+  padding:2px 0 2px 10px;
+  border-radius:0;
+  flex:0 0 auto;
+}
+.eyebrow .lab{
+  font-family:var(--body);         /* label is UI text, not data        */
+  font-size:var(--fs-eyebrow);
+  font-weight:600;
+  letter-spacing:.18em;
+  color:var(--ink-3);
+}
+/* the hairline that finishes the line */
+.eyebrow::after{
+  content:"";
+  flex:1 1 auto;
+  height:1px;
+  min-width:20px;
+  background:var(--line-2);
+}
+
+
+/* =====================================================================
+   5 · PANELS, TILES AND CARDS — flatten everything
+   ---------------------------------------------------------------------
+   Removing backdrop-filter also removes a real scrolling cost on phones,
+   because the browser no longer has to re-sample what is behind every
+   panel on every frame.
+   ===================================================================== */
+
+.panel{
+  background:var(--surf);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:clamp(20px,2.4vw,32px);
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+.panel.tight{ padding:16px 18px; }
+.panel.flush{ padding:0; }
+
+/* A panel header is a labelled band with a rule under it, the way a
+   figure is captioned in an agency report. */
+.phead{
+  padding:0 0 16px;
+  margin-bottom:20px;
+  border-bottom:1px solid var(--line);
+}
+
+.grid{ gap:24px; }
+
+/* KPI tiles: flat, not gradient-filled. The number is the content, so
+   it keeps its size; everything around it gets quieter. */
+.tile{
+  background:var(--surf);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:18px 18px 16px;
+}
+.tile .k{
+  font-size:var(--fs-eyebrow);     /* was 10.5px                        */
+  letter-spacing:.16em;
+  color:var(--ink-3);
+}
+.tile .v{
+  font-size:34px;
+  font-weight:700;
+  letter-spacing:-.025em;
+}
+/* A unit is subordinate to its number — never the same size. */
+.tile .u,.unit{
+  font-size:.62em;
+  font-weight:500;
+  color:var(--ink-2);
+  margin-inline-start:.25em;
+  letter-spacing:.02em;
+}
+.tile .d{ font-size:var(--fs-caption); }
+.tile .stripe{ width:2px; }        /* 3px reads decorative, 2px reads
+                                      like a category key              */
+
+.legcell{ border-radius:var(--r); }
+
+/* The giant outlined chapter numerals. They carry one more literal use
+   of the retired teal (index.html:494), and the outline weight wants to
+   come down now that the ground is lighter. */
+.chapter .cn{ -webkit-text-stroke-width:1px; }
+.chapter.lit .cn{
+  -webkit-text-stroke-color:var(--accent-dim);
+  color:var(--accent-glow);
+}
+
+/* The ambient colour wash. Agency grounds are neutral: the imagery
+   supplies all the colour on the page. #veil tinted the entire viewport
+   teal and green, which is what made screenshots read "startup".
+   #stars keeps its neutral radial — that one is the mission ground. */
+#veil{ background:none; }
+
+
+/* =====================================================================
+   6 · CONTROLS — buttons, chips, badges, tags, forms
+   ===================================================================== */
+
+.btn{
+  border-radius:var(--r);
+  font-family:var(--body);
+  font-size:var(--fs-small);
+  font-weight:500;
+  padding:10px 16px;
+  min-height:38px;                 /* grows to 44px on phones, §12      */
+  background:var(--surf-2);
+  border:1px solid var(--line-2);
+  transition:color var(--t-fast) var(--ease-out),
+             border-color var(--t-fast) var(--ease-out),
+             background var(--t-fast) var(--ease-out);
+}
+.btn:hover{ border-color:var(--line-3); background:#161F2C; }
+/* Hover may recolour. Hover may not move. The 1px press bounce is the
+   most "app-like" gesture on the page. */
+.btn:active{ transform:none; }
+
+/* Flat fills. Neither agency gradient-fills a button — a gradient reads
+   as a consumer call-to-action, and these are controls on an instrument. */
+.btn.pri{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#04070D;
+  font-weight:600;
+}
+.btn.pri:hover{ background:#5A9DFF; border-color:#5A9DFF; }
+.btn.grn{
+  background:var(--green);
+  border-color:var(--green);
+  color:#04120A;
+  font-weight:600;
+}
+.btn.grn:hover{ background:#4ABF70; border-color:#4ABF70; }
+.btn.on{
+  border-color:var(--accent);
+  background:var(--accent-glow);
+  color:var(--ink);
+}
+.btn.sm{ padding:7px 12px; font-size:var(--fs-caption); min-height:32px; border-radius:var(--r-sm); }
+
+/* Chips: square, hairline, no fill until pressed. */
+.chip{
+  border-radius:var(--r-sm);
+  background:transparent;
+  border:1px solid var(--line-2);
+  font-size:var(--fs-caption);
+  padding:6px 12px;
+  min-height:32px;
+  transition:color var(--t-fast) var(--ease-out),
+             border-color var(--t-fast) var(--ease-out),
+             background var(--t-fast) var(--ease-out);
+}
+.chip[aria-pressed="true"]{
+  background:var(--accent-glow);
+  border-color:var(--accent);
+  color:var(--ink);
+}
+
+/* ---- Badges -------------------------------------------------------
+   The page uses emoji inside these (a satellite, a test tube, a robot).
+   We cannot remove a glyph without editing index.html — but we can
+   change the container so the emoji reads as an ICON IN A SLOT rather
+   than as decoration. Square, bordered, tracked mono does exactly that.
+   Their per-type colours are kept: those encode provenance (real vs
+   simulated vs AI vs demo), which is evidence, not styling. */
+.badge{
+  border-radius:var(--r-sm);
+  font-size:var(--fs-eyebrow);     /* was 10px                          */
+  font-weight:500;
+  letter-spacing:.12em;
+  padding:3px 8px;
+}
+.tag{
+  border-radius:var(--r-sm);
+  font-size:var(--fs-eyebrow);     /* was 10.5px                        */
+  letter-spacing:.10em;
+  color:var(--ink-2);
+  background:var(--surf-2);
+  border-color:var(--line-2);
+  padding:2px 7px;
+}
+
+/* Form controls inherit the squared geometry via --r, but the font has
+   to be asked for explicitly — inputs never inherit it. */
+input,select,textarea,button{ font-family:var(--body); }
+
+/* The focus ring follows --accent automatically. Re-declared here only
+   to widen the offset, because a 3px radius needs the ring to sit
+   slightly further out to stay legible. */
+:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+
+/* =====================================================================
+   7 · THE DATA DETAILS
+   ---------------------------------------------------------------------
+   This section is what actually separates an institutional page from a
+   corporate one, and it is the cheapest part of the whole file.
+   ===================================================================== */
+
+/* ---- 7a · Every figure aligns in a column --------------------------
+   Tabular (monospaced) digits mean a column of numbers lines up on the
+   decimal even in a proportional face. Without this, a table of figures
+   visibly shimmers as values update. */
+table,.tile .v,.recf b,.delta,.kpi,.metric,.num,
+[class*="val"],tbody td,td.num,th.num,time,.ts,.clock{
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum" 1;
+}
+
+/* ---- 7b · Provenance -----------------------------------------------
+   NASA prints a credit under every single image — "NASA/JPL-Caltech".
+   That one habit is most of why their pages read institutional. The
+   page already has .credit spans; this gives them the agency treatment. */
+.credit,.provline,.photoplate .credit span,.lead .lr{
+  font-family:var(--mono);
+  font-size:var(--fs-credit);
+  font-weight:400;
+  line-height:1.45;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+}
+
+/* ---- 7c · Timestamps and clocks ------------------------------------
+   Mono, tabular, tracked — so a changing clock does not jitter. */
+time,.ts,.tlrow .td{
+  font-family:var(--mono);
+  font-size:var(--fs-caption);
+  font-weight:500;
+  letter-spacing:.03em;
+  color:var(--ink-3);
+}
+
+/* ---- 7d · Identifiers ----------------------------------------------
+   Run ids, scene ids, source refs. Mono in a hairline box says "this is
+   a literal value you could copy", which is exactly what they are. */
+code,.id,.srcref{
+  font-family:var(--mono);
+  font-size:12.5px;
+  font-weight:500;
+  letter-spacing:.06em;
+  color:var(--ink-2);
+  background:var(--surf-2);
+  border:1px solid var(--line);
+  border-radius:var(--r-sm);
+  padding:1px 6px;
+}
+
+/* ---- 7e · Tables: hairlines only ------------------------------------
+   No zebra striping, no fill on the header, no hover wash. An agency
+   table is a set of rules and a set of numbers. Hover changes text
+   colour only, which is enough feedback and costs no repaint area. */
+.tblwrap{ border-radius:var(--r-sm); border-color:var(--line); }
+table{ font-size:var(--fs-small); }
+th{
+  font-family:var(--body);
+  font-size:var(--fs-eyebrow);
+  font-weight:600;
+  letter-spacing:.14em;
+  color:var(--ink-3);
+  background:none;                 /* kill the tinted header band       */
+  padding:10px 12px;
+  border-bottom:1px solid var(--line-3);
+}
+td{
+  padding:11px 12px;
+  color:var(--ink-2);
+  border-bottom:1px solid var(--line);
+}
+tbody tr:hover td{ background:transparent; color:var(--ink); }
+
+/* ---- 7f · The 16 numbered sources -----------------------------------
+   This list is the strongest institutional asset on the page and it is
+   currently styled like everything else. Each row becomes a ruled line
+   with a mono reference marker, the way a reference list is set in a
+   real report. */
+#srcList li{
+  display:flex;
+  gap:12px;
+  align-items:baseline;
+  padding-block:11px;
+  border-top:1px solid var(--line);
+  font-size:var(--fs-small);
+  line-height:1.55;
+}
+#srcList li:first-child{ border-top:0; }
+#srcList .tag{
+  flex:0 0 auto;
+  font-size:var(--fs-credit);
+  letter-spacing:.08em;
+  color:var(--accent);
+  background:none;
+  border:0;
+  padding:0;
+}
+#srcList a{ color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line-3); }
+#srcList a:hover{ border-bottom-color:var(--accent); color:var(--accent); }
+
+
+/* ---- 7g · Inline SVG icons ------------------------------------------
+   34 hard-coded stroke="#..." / fill="#..." attributes sit on the inline
+   SVG icons. Those are PRESENTATION ATTRIBUTES, which lose to any CSS
+   rule at all — so an attribute selector retargets them with no
+   !important and no edit to the markup.
+
+   Only the two retired brand colours are remapped. Status icon colours
+   (green --good, amber --warn, red --critical) are left exactly as they
+   are, because those encode meaning rather than brand. */
+svg [stroke="#3FD0C9"]{ stroke:var(--accent); }
+svg [fill="#3FD0C9"]{ fill:var(--accent); }
+svg [stroke="#1E7F7C"]{ stroke:var(--accent-dim); }
+svg [stroke="#33475F"]{ stroke:var(--line-3); }   /* empty-state glyphs */
+svg [stroke="#64778D"]{ stroke:var(--ink-3); }
+
+
+/* =====================================================================
+   8 · THE AGENT PIPELINE AND THE RECOMMENDATION CARD
+   These two are the demo's centrepiece, so they get explicit attention
+   rather than inheriting whatever the tokens produce.
+   ===================================================================== */
+
+.pstep{
+  border-radius:var(--r-sm);
+  padding:13px 15px;
+  transition:border-color var(--t-base) var(--ease-out),
+             background var(--t-base) var(--ease-out);
+}
+/* The step marker becomes a square-cornered slot with a mono index —
+   a numbered stage in a procedure, not a bubble in a chat. */
+.pstep .dot{
+  border-radius:var(--r-sm);
+  width:28px;
+  height:28px;
+  font-size:var(--fs-eyebrow);
+  letter-spacing:.04em;
+}
+.pstep .pstat{
+  font-size:var(--fs-eyebrow);     /* was 10px                          */
+  letter-spacing:.12em;
+}
+.pstep.run{ border-color:var(--accent-dim); background:var(--accent-glow); }
+.pstep.run .dot{ box-shadow:none; border-color:var(--accent); }  /* the 4px
+      glow ring was the last piece of neon in the pipeline */
+.plink{ width:1px; margin-inline-start:28px; }
+.plink.hot{ background:var(--accent); }
+
+.dnode{ border-radius:var(--r-sm); border-style:solid; border-color:var(--line-3); }
+.dnode .q{ font-size:var(--fs-caption); letter-spacing:.04em; }
+.branch{ border-radius:var(--r-sm); font-size:var(--fs-caption); }
+.branch b{ font-size:var(--fs-eyebrow); letter-spacing:.14em; }
+.branch.taken{ border-color:var(--accent-dim); background:var(--accent-glow); }
+
+
+/* =====================================================================
+   9 · THE THREE <style> BLOCKS INSIDE <body>
+   ---------------------------------------------------------------------
+   These sit at lines 1681, 4962 and 5153 — AFTER this stylesheet in the
+   document, so source order cannot beat them. Every selector here is
+   prefixed with `:root ` purely to add one point of specificity.
+   That is why these look oddly written; it is deliberate, and it is
+   still cleaner than !important.
+   ===================================================================== */
+
+/* ---- 9a · Descent transition (block at 1681) ------------------------
+   Three hard-coded hexes that do not read a variable. */
+:root #descent .dline{ color:var(--ink-3); font-size:var(--fs-eyebrow); }
+:root #descent .dline:nth-child(2){ color:var(--accent); }
+:root #descent .dline:nth-child(3){ color:var(--ink-2); font-size:var(--fs-caption); }
+
+/* Full-bleed imagery against contained text is the core ESA/NASA page
+   move. #descent already breaks out by one gutter; promote it to the
+   true viewport width. */
+:root #descent{
+  width:100vw;
+  margin-inline:calc(50% - 50vw);
+  border-top:1px solid var(--line);
+}
+
+/* ---- 9b · Team photo plate (block at 1681) --------------------------- */
+:root .photoplate{ border-radius:var(--r); background:var(--surf); border-color:var(--line); }
+:root .photoplate .pv{ background:var(--deep); }
+:root .photoplate .pv img{ border-radius:var(--r-sm); }
+:root .photoplate .cap{ background:none; }   /* was a teal gradient wash */
+:root .photoplate .cap h3{ font-weight:700; letter-spacing:-.022em; }
+:root .photoplate .cap p{ font-size:var(--fs-small); max-width:64ch; }
+:root .pholder{ background:var(--surf); }    /* was a teal radial + stripes */
+:root .pholder .fr{ border-radius:var(--r-sm); border-color:var(--line-3); }
+
+/* ---- 9c · Recommendation card (block at 4962) ------------------------ */
+:root .reccard{ border-radius:var(--r); border-color:var(--line); }
+:root .recstate{ background:none; border-bottom:1px solid var(--line); font-size:var(--fs-small); }
+:root .recblk .rh{ font-size:var(--fs-eyebrow); letter-spacing:.14em; }
+:root .recf{ font-size:var(--fs-caption); }
+:root .recnote{ color:var(--sand); background:rgba(178,127,2,.06); font-size:var(--fs-caption); }
+
+/* ---- 9d · Tribute / finale (block at 5153) --------------------------- */
+/* Centre the heading; left-align the prose. Centred body copy is a
+   poster convention, not a document convention — and a reader loses the
+   line start on every wrap. (.trib-body p already sets text-align:start;
+   this fixes the container the rest of the block inherits from.) */
+:root .trib{ text-align:center; max-width:72ch; }
+:root .trib-body{ text-align:start; }
+:root .trib-rule{ background:var(--line-3); width:40px; }
+/* Gradient-filled headline text. Neither agency has ever shipped this.
+   -webkit-text-fill-color has to be reset too, or it keeps overriding
+   `color` on WebKit and Blink. */
+:root .trib-q em{
+  background:none;
+  -webkit-text-fill-color:var(--accent);
+  color:var(--accent);
+}
+:root .crewline{
+  font-family:var(--mono);
+  font-size:var(--fs-credit);
+  letter-spacing:.18em;
+  color:var(--ink-3);              /* was a bright green                */
+}
+
+/* ---- 9e · The other two gradient headlines --------------------------
+   These live in the MAIN style block (line 327) and in an inline
+   style attribute (line 1563). The first wins on source order; the
+   second needs !important because an inline attribute outranks every
+   normal rule. */
+.hero h1 .gr{
+  background:none;
+  -webkit-text-fill-color:var(--accent);
+  color:var(--accent);
+}
+[data-i18n="v35.goal"]{
+  background:none !important;              /* beats inline style=""     */
+  -webkit-text-fill-color:var(--ink) !important;  /* beats inline style="" */
+  color:var(--ink) !important;             /* beats inline style=""     */
+}
+
+
+/* =====================================================================
+   10 · THE INTEGRATION LAYER (.ksat- / #ksat-)
+   ---------------------------------------------------------------------
+   03 Security's sign-in gate and identity bar. Their stylesheet loads
+   immediately before this one, so plain selectors win on source order.
+   Most of it already adopts the theme through the --panel / --muted /
+   --font aliases declared in section 1j; what is left is the geometry,
+   which they wrote as literals.
+   ===================================================================== */
+
+#ksat-gate{
+  background:rgba(6,9,15,.94);
+  font-family:var(--body);
+}
+
+.ksat-gate-card{
+  border-radius:var(--r);          /* was 16px                          */
+  border:1px solid var(--line-2);
+  background:var(--surf);
+  box-shadow:none;                 /* was 0 24px 70px — agencies do not
+                                      float their dialogs               */
+  padding:36px 32px 28px;
+}
+
+/* The gate is the first thing a judge sees, so it gets the full agency
+   treatment: a tracked mono eyebrow over a tight display heading. */
+.ksat-gate-eyebrow{
+  font-family:var(--mono);
+  font-size:var(--fs-caption);
+  font-weight:500;
+  letter-spacing:.18em;
+  color:var(--accent);
+}
+.ksat-gate-card h2{
+  font-family:var(--disp);
+  font-size:30px;
+  font-weight:700;
+  letter-spacing:-.022em;
+}
+.ksat-gate-sub{ font-size:var(--fs-small); color:var(--ink-2); }
+
+.ksat-gate-card input{
+  border-radius:var(--r-sm);
+  background:var(--surf-2);
+  border:1px solid var(--line-2);
+  color:var(--ink);
+  font-size:var(--fs-body);        /* 16px stops iOS zooming on focus   */
+  min-height:46px;
+}
+.ksat-gate-card input:focus{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-color:var(--accent);
+}
+
+.ksat-gate-btn{
+  border-radius:var(--r-sm);
+  background:var(--accent);
+  color:#04070D;
+  font-family:var(--body);
+  font-weight:600;
+  font-size:var(--fs-body);
+  min-height:48px;
+  transition:background var(--t-fast) var(--ease-out);
+}
+.ksat-gate-btn:hover:not(:disabled){ background:#5A9DFF; }
+
+.ksat-gate-msg{ font-size:var(--fs-small); color:var(--ink-2); }
+.ksat-gate-msg.bad{ color:var(--ember-lt); }
+.ksat-gate-note{
+  font-family:var(--mono);
+  font-size:var(--fs-credit);
+  letter-spacing:.06em;
+  line-height:1.7;
+  color:var(--ink-3);
+  opacity:1;
+  border-top:1px solid var(--line);
+  padding-top:16px;
+}
+
+/* The identity bar becomes a squared-off status strip — closer to a
+   mission console readout than to an account pill. */
+#ksat-whoami{
+  border-radius:var(--r-sm);       /* was 999px                         */
+  background:rgba(11,16,24,.92);
+  border:1px solid var(--line-2);
+  font-family:var(--mono);
+  font-size:var(--fs-caption);
+  letter-spacing:.04em;
+  padding:8px 10px 8px 14px;
+  top:calc(var(--bar-h) + 10px);   /* clear of the taller masthead      */
+}
+.ksat-who-name{ font-weight:500; color:var(--ink); }
+.ksat-who-org{ color:var(--ink-3); text-transform:uppercase; letter-spacing:.10em; }
+.ksat-who-out{
+  border-radius:var(--r-sm);       /* was 999px                         */
+  background:transparent;
+  border:1px solid var(--line-2);
+  font-family:var(--mono);
+  font-size:var(--fs-credit);
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:var(--ink-2);
+  padding:6px 11px;
+  min-height:30px;
+  transition:color var(--t-fast) var(--ease-out),
+             border-color var(--t-fast) var(--ease-out);
+}
+.ksat-who-out:hover{ background:transparent; border-color:var(--accent); color:var(--accent); }
+
+
+/* =====================================================================
+   11 · ARABIC AND RIGHT-TO-LEFT
+   ---------------------------------------------------------------------
+   The page switches language by setting document.documentElement.lang
+   and .dir, so html[lang="ar"] and html[dir="rtl"] are live hooks.
+
+   Two real problems are fixed here:
+   · Neither Archivo nor Inter nor IBM Plex covers Arabic, so Arabic copy
+     was falling back to Segoe UI / Tahoma. That is why the AR side
+     looked unstyled next to the EN side. Noto Sans Arabic fixes it.
+   · The page references "Readex Pro" in six rules and never loads it.
+     The @import at the top of this file finally supplies it, so those
+     six rules start working for free.
+   ===================================================================== */
+
+html[lang="ar"]{
+  --disp:"Readex Pro","Noto Sans Arabic",system-ui,sans-serif;
+  --body:"Noto Sans Arabic","Readex Pro",system-ui,sans-serif;
+}
+html[lang="ar"] body{
+  font-size:17px;                  /* Arabic needs slightly more size   */
+  line-height:1.85;                /* and noticeably more leading       */
+}
+/* Negative tracking breaks the joins between Arabic letterforms, so it
+   must be zeroed explicitly wherever the Latin scale applied it. */
+html[lang="ar"] h1,
+html[lang="ar"] h2,
+html[lang="ar"] h3,
+html[lang="ar"] h2.st,
+html[lang="ar"] .hero h1,
+html[lang="ar"] .lede{
+  letter-spacing:0;
+  line-height:1.35;
+}
+/* Uppercase and wide tracking are Latin conventions with no meaning in
+   Arabic — text-transform does nothing useful and tracking actively
+   harms legibility. */
+html[lang="ar"] .eyebrow .lab,
+html[lang="ar"] .credit,
+html[lang="ar"] th{
+  letter-spacing:0;
+  text-transform:none;
+}
+/* The eyebrow's trailing rule must grow from the correct side. It uses
+   flex order, so it flips on its own — but the tick on .num is a
+   logical border, which is why it was written border-inline-start. */
+html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
+
+
+/* =====================================================================
+   12 · PHONE PORTRAIT
+   Target: ~360-430px wide. No horizontal scroll, no text under 12px,
+   every interactive target at least 44px on its short side.
+   ===================================================================== */
+
+@media (max-width:640px){
+  :root{
+    --gut:18px;
+    --fs-lede:17px;
+    --fs-h3:18px;
+    /* On a phone the 11px metadata tier is genuinely hard to read, so
+       the whole tier steps up to 12px. Uppercase tracked mono at 12px
+       is the smallest type on the page and that is the floor. */
+    --fs-eyebrow:12px;
+    --fs-credit:12px;
+  }
+
+  /* Thumb-sized targets. 44px is the accessibility minimum and it is
+     also simply what a control on a handheld instrument feels like. */
+  .btn,.chip{ min-height:44px; padding-block:11px; }
+  .btn.sm{ min-height:40px; }
+  .ksat-who-out{ min-height:40px; }
+
+  /* Long tables and the eyebrow rule are the two things that can push a
+     horizontal scrollbar onto a narrow screen. */
+  .eyebrow{ flex-wrap:wrap; }
+  .eyebrow::after{ display:none; }   /* the rule needs a single line    */
+  .tblwrap{ overflow-x:auto; }
+
+  .panel{ padding:18px 16px; }
+  .grid{ gap:18px; }
+  section.sec{ padding-block:clamp(52px,12vw,72px); }
+
+  /* The identity bar is bottom-docked on phones by 03 Security's own
+     media query; only the offset needs correcting. */
+  #ksat-whoami{ top:auto; }
+}
+
+/* Very narrow phones: stop the display size from forcing a scrollbar. */
+@media (max-width:380px){
+  :root{ --fs-display:clamp(32px,9vw,40px); --fs-h2:clamp(25px,7vw,32px); }
+}
+
+
+/* =====================================================================
+   13 · MOTION PREFERENCES
+   ---------------------------------------------------------------------
+   index.html line 810 already clamps animation and transition DURATION
+   to .01ms globally. That is not sufficient on its own for anything that
+   animates FROM a hidden state: a clamped transition starting at
+   opacity:0 still starts at zero and, if the class that ends it never
+   arrives, stays invisible. So we set end states directly.
+
+   What we deliberately do NOT touch: the countdown intro, the globe
+   auto-rotation, the orbit animation and the starfield. Those are
+   JS-driven requestAnimationFrame loops inside index.html and they are
+   not ours to change.
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce){
+  /* #descent .dline is the only element on the page that starts at
+     opacity:0 and waits for a class to arrive (an IntersectionObserver
+     adds .lit at index.html:4420). If that observer never fires — and
+     with reduced motion the user may well never scroll it into view —
+     the caption is stranded invisible. So we force the finished state.
+     The chapter headings do NOT need this: their reveal only transitions
+     a text colour, so they are readable either way. */
+  #descent .dline{
+    opacity:1 !important;          /* beats the block at index.html:1681 */
+    transform:none !important;     /* beats the block at index.html:1681 */
+    transition:none !important;    /* beats the block at index.html:1681 */
+  }
+  /* Blur is a continuous compositing cost, not an animation, so the
+     global clamp does not reach it. Reduced-motion users on low-power
+     devices benefit from losing it. */
+  .bar{ backdrop-filter:none; -webkit-backdrop-filter:none; }
+}
+
+/* =====================================================================
+   14 · FORCED COLOURS / HIGH CONTRAST
+   If the operating system is driving colour, step out of the way
+   entirely rather than fighting it.
+   ===================================================================== */
+
+@media (forced-colors: active){
+  .panel,.tile,.pstep,.reccard{ border:1px solid CanvasText; }
+  .eyebrow .num{ border-inline-start-color:CanvasText; }
+}
