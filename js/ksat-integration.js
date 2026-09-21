@@ -312,13 +312,64 @@
     rep:  'reporting'
   };
 
+  /* -----------------------------------------------------------------
+     THE APPROVED TOOLS  (au-m5)
+
+     The capstone test is: "point at the tool, state its limit, show
+     where that limit is written." So the tool column in agent_steps
+     must carry the APPROVED TOOL NAME - not the pipeline step id, which
+     is what it was carrying before and which names nothing a judge can
+     ask about.
+
+     These six are 04's approved list. Each has a stated limit, and the
+     limit lives here in code, one line from the name it belongs to.
+     A decision node has NO tool on purpose: deciding is not a tool call,
+     and an audit row that claims otherwise would be inventing one.
+     ----------------------------------------------------------------- */
+  var TOOLS = {
+    'scene_index.search':      'May look up stored scenes for an area and period. May NOT task the satellite, request new imagery, or reach any network outside our own project.',
+    'ndvi_thermal.summarise':  'May compute vegetation and surface-temperature summaries over a scene already fetched. May NOT invent a reading for a date with no scene.',
+    'zone_ranker.rank':        'May score and order candidate zones inside the requested area. May NOT widen the area or propose a zone outside the Kuwait bounds the constraint enforces.',
+    'impact_model.project':    'May project an effect and MUST label it MODELLED. May NOT present a projection as a measurement.',
+    'geometry.write':          'May write a polygon for a zone it has already ranked. May NOT write geometry for an area the researcher did not select.',
+    'draft.compose':           'May draft report text from rows that exist. May NOT publish it - only generate_report(), called by a signed-in researcher, creates a report.'
+  };
+  KS.TOOLS = TOOLS;
+
+  var TOOL_FOR_STEP = {
+    req:  null,                        // the researcher pressing a button
+    col:  'scene_index.search',
+    val:  'scene_index.search',
+    img:  'ndvi_thermal.summarise',
+    env:  'ndvi_thermal.summarise',
+    dec1: null,                        // a decision, not a tool call
+    pot:  'zone_ranker.rank',
+    dec2: null,                        // a decision, not a tool call
+    rec:  'impact_model.project',
+    rep:  'draft.compose'
+  };
+
+  /* -----------------------------------------------------------------
+     THE DECISION CONSTANTS  (au-m3 / au-m4)
+     Mirrored from 04-agents/agent/decision.js so the numbers a judge is
+     told match the numbers the run records. If 04 changes them, change
+     them here too - two sources of truth is how a guardrail becomes a
+     lie you say out loud.
+     ----------------------------------------------------------------- */
+  KS.LIMITS = {
+    MIN_ZONE_SCORE:  40,    // below this a zone is rejected and re-ranked
+    IMPACT_FLOOR_C:  1.0,   // a projected cooling under this is not worth proposing
+    MAX_RERANKS:     2,     // then stop and hand back to the researcher
+    STEP_BUDGET:     40     // enforced in the database, not just here
+  };
+
   KS.logStep = function (pipeId, opts) {
     if (!haveDb() || !KS.runId) return Promise.resolve(null);
     opts = opts || {};
     return window.sb.rpc('researcher_log_step', {
       p_run_id: KS.runId,
       p_step: STEP_MAP[pipeId] || 'satellite_data',
-      p_tool: pipeId,
+      p_tool: (opts.tool !== undefined ? opts.tool : TOOL_FOR_STEP[pipeId]) || null,
       p_args: opts.args || null,
       p_allowed: opts.allowed !== false,
       p_refused_reason: opts.reason || null,

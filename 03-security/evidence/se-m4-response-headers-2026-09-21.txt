@@ -1,0 +1,30 @@
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Age: 121
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline
+Content-Length: 488392
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://kqboenytmzagdiweqygl.supabase.co https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; connect-src 'self' https://kqboenytmzagdiweqygl.supabase.co wss://kqboenytmzagdiweqygl.supabase.co; media-src 'self' data: blob:; frame-src https://www.youtube-nocookie.com https://www.youtube.com; worker-src 'self' blob:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'
+Content-Type: text/html; charset=utf-8
+Date: Mon, 21 Sep 2026 00:27:18 GMT
+Etag: "819394717679cd726ff3634d914bc29e"
+Last-Modified: Mon, 21 Sep 2026 00:25:16 GMT
+Permissions-Policy: accelerometer=(), camera=(), display-capture=(), encrypted-media=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(), screen-wake-lock=(), usb=(), xr-spatial-tracking=()
+Referrer-Policy: strict-origin-when-cross-origin
+Server: Vercel
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Vercel-Cache: HIT
+X-Vercel-Id: bom1::w6d78-1789950438135-ea5248d938fa
+
+
+-- captured 21 September 2026 from the LIVE public URL --
+-- se-m4: HTTPS on every screen, nothing over plain HTTP.
+--
+-- Every header below is a REAL HTTP RESPONSE HEADER. None of them was
+-- possible on GitHub Pages, which cannot set headers at all - the CSP
+-- would have had to ship as a weaker <meta> tag and HSTS and
+-- frame-ancestors would simply have been unavailable. Moving the deploy
+-- to Vercel is what made them reachable.

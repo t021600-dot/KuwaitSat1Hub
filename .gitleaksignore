@@ -25,3 +25,11 @@ vendor/supabase.js:generic-api-key:1
 #    the hook keeps guarding the thing that would actually hurt.
 js/config.js:generic-api-key:16
 app-retag/js/config.js:generic-api-key:16
+
+# 3) The same two findings as above, at the paths they had BEFORE the app was
+#    flattened to the repo root. History keeps the old paths, and a
+#    .gitleaksignore fingerprint is path-specific, so these are needed for a
+#    full-history scan to come back clean. Same two objects, already judged:
+#    the publishable key and the minified vendor bundle.
+01-front-end/app/js/config.js:generic-api-key:16
+01-front-end/app/vendor/supabase.js:generic-api-key:1
