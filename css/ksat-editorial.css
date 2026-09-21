@@ -1,0 +1,264 @@
+/* =====================================================================
+   ksat-editorial.css — HERO, FOOTER, AND EDITORIAL COMPOSITION
+   Owner: 01 Front End · loaded last
+
+   AUDIT FIRST, AS ASKED. What the existing page actually is:
+
+     · one page, 25 sections, inside a single .wrap at max 1240px
+     · a hero built as .grid.g-53 — text left, .orbcard right
+     · a footer already structured as four columns: brand + tagline,
+       Sections, Sources, Status
+     · 26 canvases and exactly ONE photograph (the team, external URL)
+     · brand mark: a teal ring and satellite, #3FD0C9
+
+   What that audit changes about the plan:
+
+   1 · A FULL-BLEED CINEMATIC HERO IS NOT AVAILABLE. The hero visual is
+       a canvas whose own drawing code sizes it at
+       `Math.max(300, Math.min(420, box.clientWidth * 0.72))`. It caps
+       itself at 420px. Making the container edge-to-edge would not make
+       the artwork larger — it would leave a small drawing in a large
+       empty box, which is worse than what is there now. Enlarging it
+       means rewriting Hind's render loop, and the brief says preserve
+       working functionality. So the hero gets height, asymmetry and a
+       full-bleed GROUND instead, and the instrument panel is framed as
+       an instrument rather than stretched.
+
+   2 · IMAGERY-LED LAYOUT IS NOT AVAILABLE EITHER, for the same honest
+       reason: one photograph. The brief says do not introduce unrelated
+       stock imagery, and inventing satellite pictures would break the
+       provenance rules the whole platform rests on. The editorial weight
+       therefore comes from TYPE, RULE and SPACE — which is also how
+       ESA's text-led article pages work.
+
+   3 · THE BRAND STAYS TEAL. An earlier pass moved the accent to an
+       institutional blue for a real reason — the original #3FD0C9 sits
+       close to the vegetation green used in the data — but the logo is
+       still teal, so the page ended up with two identities. The brief is
+       explicit: preserve brand identity, refine around it. So the accent
+       returns to teal, DEEPENED to #2FBDB6 so it separates cleanly from
+       --green-lt #8FD8A3 while remaining unmistakably the brand.
+   ===================================================================== */
+
+:root{
+  /* Refined, not replaced. Deeper and slightly bluer than #3FD0C9, so it
+     reads as institutional rather than neon and no longer competes with
+     the vegetation ramp. Contrast on #020305 is ~9.1:1. */
+  --accent:#2FBDB6;
+  --accent-dim:#186E6A;
+  --accent-glow:rgba(47,189,182,.12);
+  --focus:#2FBDB6;
+}
+
+/* ---------------------------------------------------------------------
+   1 · THE HERO
+   Full-bleed ground, constrained content, real height, asymmetric split.
+   --------------------------------------------------------------------- */
+section.sec.hero{
+  position:relative;
+  min-height:clamp(560px, 82vh, 900px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding-block:clamp(56px,7vw,104px) clamp(40px,5vw,72px) !important;
+  border-top:0 !important;
+}
+
+/* Break the ground out of .wrap to the full viewport while the content
+   stays on the grid. calc(50% - 50vw) is the standard full-bleed
+   escape; the scrollbar is accounted for because 100vw includes it. */
+section.sec.hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  margin-inline:calc(50% - 50vw);
+  width:100vw;
+  z-index:-1;
+  background:
+    radial-gradient(120% 90% at 78% 40%, rgba(47,189,182,.07), transparent 62%),
+    linear-gradient(180deg, #04070C 0%, var(--void) 78%);
+  border-bottom:1px solid var(--line-2);
+}
+
+/* Asymmetric: the headline earns more of the measure than the
+   instrument does. The page's own g-53 is roughly 5:3; this widens it. */
+@media (min-width: 900px){
+  section.sec.hero > .grid.g-53{
+    grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) !important;
+    gap:clamp(40px,5vw,88px) !important;
+  }
+}
+
+section.sec.hero h1{
+  font-size:clamp(44px,7.4vw,104px) !important;
+  line-height:.94 !important;
+  letter-spacing:-.04em !important;
+  font-weight:800 !important;
+  text-wrap:balance;
+}
+section.sec.hero .lede{
+  font-size:clamp(17px,1.3vw,22px) !important;
+  line-height:1.5 !important;
+  max-width:48ch !important;
+  color:var(--ink) !important;
+}
+
+/* The orbit panel is an INSTRUMENT, so it is framed like one: a hairline,
+   a corner tick, and the readouts in mono. Not stretched to fill space
+   its artwork cannot fill. */
+.orbcard{
+  border:1px solid var(--line-2) !important;
+  border-radius:0 !important;
+  background:
+    radial-gradient(70% 70% at 50% 42%, #08141F, #03060B) !important;
+  padding:clamp(10px,1.2vw,18px) !important;
+}
+.orbcard::after{
+  content:"";
+  position:absolute;
+  inset-inline-start:0; top:0;
+  width:22px; height:22px;
+  border-top:1px solid var(--accent);
+  border-inline-start:1px solid var(--accent);
+  opacity:.55;
+  pointer-events:none;
+}
+.exhud{
+  font-family:var(--mono) !important;
+  font-size:10.5px !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase;
+  background:transparent !important;
+  border:0 !important;
+  color:var(--ink-3) !important;
+}
+
+/* The provenance strip under the headline reads as a caption line. */
+section.sec.hero .chips{
+  border-bottom:0 !important;
+  margin-top:clamp(20px,2.4vw,32px) !important;
+  padding-bottom:0 !important;
+}
+
+/* The fact strip becomes a measured data band, not four cards. */
+.factstrip{
+  margin-top:clamp(36px,4.5vw,72px) !important;
+  border-top:1px solid var(--line-2) !important;
+  padding-top:clamp(20px,2.4vw,32px) !important;
+  background:transparent !important;
+  border-inline:0 !important;
+  border-bottom:0 !important;
+}
+.factstrip .k,
+.factstrip dt{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+}
+.factstrip .v,
+.factstrip dd{
+  font-family:var(--disp);
+  font-size:clamp(18px,1.7vw,26px);
+  font-weight:700;
+  letter-spacing:-.01em;
+  color:var(--ink);
+  margin-top:6px;
+}
+
+/* ---------------------------------------------------------------------
+   2 · SECTION SEPARATION
+   A numbered rule across the measure, the way a report divides parts.
+   --------------------------------------------------------------------- */
+section.sec + section.sec{
+  border-top:1px solid var(--line-2) !important;
+}
+.eyebrow .num{
+  font-size:11px !important;
+  padding:3px 8px !important;
+  border:1px solid var(--accent-dim) !important;
+  color:var(--accent) !important;
+  background:transparent !important;
+}
+/* The rule that runs from the eyebrow to the edge of the measure. */
+.eyebrow::after{
+  content:"";
+  flex:1 1 auto;
+  height:1px;
+  background:var(--line-2);
+  margin-inline-start:6px;
+}
+
+/* ---------------------------------------------------------------------
+   3 · THE FOOTER — institutional, and it closes the page with weight.
+   The four columns already exist; this gives them hierarchy.
+   --------------------------------------------------------------------- */
+footer{
+  border-top:1px solid var(--line-2) !important;
+  padding-block:clamp(56px,7vw,104px) clamp(32px,4vw,56px) !important;
+  background:
+    linear-gradient(180deg, transparent, rgba(255,255,255,.012)) !important;
+}
+footer .grid.g4{
+  gap:clamp(28px,4vw,64px) !important;
+  align-items:start;
+}
+footer h4{
+  font-family:var(--mono) !important;
+  font-size:10.5px !important;
+  letter-spacing:.18em !important;
+  text-transform:uppercase !important;
+  color:var(--ink-3) !important;
+  padding-bottom:12px;
+  margin-bottom:16px;
+  border-bottom:1px solid var(--line) !important;
+}
+footer ul{ list-style:none; margin:0; padding:0; }
+footer li{
+  font-size:13px;
+  line-height:1.6;
+  color:var(--ink-3);
+  padding-block:5px;
+}
+footer li a{
+  color:var(--ink-2);
+  text-decoration:none;
+  transition:color var(--t, 180ms) var(--ease, ease);
+}
+footer li a:hover{ color:var(--accent); }
+footer .brand b{ font-size:15px; letter-spacing:.05em; }
+footer .brand i{ color:var(--ink-3) !important; }
+
+/* ---------------------------------------------------------------------
+   4 · GRIDS — not every section deserves the same composition.
+   --------------------------------------------------------------------- */
+@media (min-width: 900px){
+  /* A two-column split where one side is prose and the other a panel
+     should favour the prose, not divide the page in half. */
+  .grid.g-53{ grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); }
+  .grid.g-35{ grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); }
+}
+
+/* ---------------------------------------------------------------------
+   5 · RESPONSIVE — intentional, not a shrunk desktop.
+   --------------------------------------------------------------------- */
+@media (max-width: 899px){
+  section.sec.hero{
+    min-height:0;
+    padding-block:clamp(40px,10vw,72px) clamp(32px,8vw,56px) !important;
+  }
+  section.sec.hero > .grid.g-53{ gap:clamp(24px,6vw,40px) !important; }
+  section.sec.hero h1{ font-size:clamp(34px,9vw,56px) !important; }
+  .eyebrow::after{ display:none; }       /* no room for the rule */
+  footer h4{ margin-bottom:12px; }
+}
+
+@media (max-width: 560px){
+  .factstrip{ gap:20px !important; }
+  section.sec.hero .lede{ font-size:16px !important; }
+}
+
+/* No horizontal overflow, ever — the full-bleed hero ground is the one
+   element that could cause it. */
+html, body{ overflow-x:hidden; }
