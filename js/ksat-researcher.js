@@ -555,6 +555,18 @@
   /* ------------------------------------------------------------------- */
   function boot() {
     wireNav();
+
+    /* The hub redirects a signed-in researcher straight back here, which
+       is what "signing in takes you to your workspace" has to mean. This
+       flag is the one exception: it says "I asked for the hub on
+       purpose". ksat-integration.js reads it once and clears it, so the
+       next visit lands on the workspace again. */
+    $$('a[href="/"]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        try { sessionStorage.setItem('ksat.stayOnHub', '1'); } catch (e) {}
+      });
+    });
+
     var out = doc.getElementById('signout');
     if (out) out.addEventListener('click', signOut);
     var ms = doc.getElementById('missionSearch');

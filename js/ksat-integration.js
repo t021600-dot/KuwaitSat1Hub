@@ -251,7 +251,17 @@
       });
     });
 
-    bar.appendChild(name); bar.appendChild(org); bar.appendChild(out);
+    /* The way back. A signed-in researcher only reaches this page by
+       asking for it from the workspace, so the return trip has to be on
+       screen — otherwise the hub is a room with the door painted over,
+       and the only way out is signing out. */
+    var back = document.createElement('a');
+    back.className = 'ksat-who-back';
+    back.href = 'researcher.html';
+    back.textContent = 'Research workspace';
+
+    bar.appendChild(name); bar.appendChild(org);
+    bar.appendChild(back); bar.appendChild(out);
     document.body.appendChild(bar);
   }
 
@@ -665,6 +675,34 @@
   }
 
   /* -------------------------------------------------------------------
+     Where a signed-in researcher belongs
+     ------------------------------------------------------------------- */
+  var HUB_FLAG = 'ksat.stayOnHub';
+
+  function onWorkspace() {
+    return /\/researcher(\.html)?$/.test(location.pathname);
+  }
+
+  function wantsHub() {
+    try {
+      if (sessionStorage.getItem(HUB_FLAG) === '1') {
+        /* One visit only. Read it and put it down, so the next time this
+           researcher opens the hub they get their workspace again. */
+        sessionStorage.removeItem(HUB_FLAG);
+        return true;
+      }
+    } catch (e) {}
+    return /[?&]hub=1/.test(location.search);
+  }
+
+  /* Returns true when it has taken over and the caller should stop. */
+  function goToWorkspace() {
+    if (onWorkspace() || wantsHub()) return false;
+    location.replace('researcher.html');
+    return true;
+  }
+
+  /* -------------------------------------------------------------------
      6 · Boot
      ------------------------------------------------------------------- */
   function boot() {
@@ -673,13 +711,23 @@
       window.sb.auth.getSession().then(function (r) {
         if (r.data && r.data.session) {
           KS.user = r.data.session.user; KS.live = true;
-          /* Was showIdentity() + ensureProfile(). openConsole(null) is
-             those two plus amendAudit(), which used to run only after a
-             fresh sign-in on this page — and a fresh sign-in now leaves
-             for researcher.html, so this was about to become the only
-             path that reaches it. There is no gate to remove on this
-             path, hence the null. */
-          openConsole(null);
+          /* A SESSION MEANS THE RESEARCH WORKSPACE, HOWEVER IT BEGAN.
+
+             Redirecting only from the sign-in form was the wrong half of
+             the rule. A researcher who signed in yesterday, or who opens
+             a bookmark, or who lands on the hub from anywhere at all,
+             arrives here with a live session and never touches that form
+             — and they were being shown the old insider view of this
+             page instead of their own workspace. Which is exactly what
+             happened: signing in produced the chaptered hub, not
+             researcher.html.
+
+             The escape hatch is the flag below. researcher.html's
+             "Mission hub" link sets it before it navigates, so a
+             researcher can come back and read the public record without
+             being bounced straight out again. It is per-tab and it
+             clears itself, so the next visit goes to the workspace. */
+          if (!goToWorkspace()) openConsole(null);
         } else {
           buildGate();
         }

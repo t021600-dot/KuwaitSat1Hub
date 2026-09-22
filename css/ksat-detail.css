@@ -271,6 +271,7 @@ section.sec a:not(.btn):not(.chip){
 .ksat-as-send,
 .ksat-gate-btn,
 .ksat-who-out,
+.ksat-who-back,
 .ksat-gate-reveal{ border-radius:0 !important; }
 .ksat-as-bubble{ border-radius:0 !important; }
 .ksat-as-badge{ border-radius:0 !important; }

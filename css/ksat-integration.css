@@ -130,8 +130,14 @@
 .ksat-who-name { font-weight: 650; }
 .ksat-who-org  { color: var(--muted, #9aa5c4); }
 
-.ksat-who-out {
+/* .ksat-who-back is the link back to the workspace. It is listed with
+   the sign-out button everywhere that button is styled, rather than
+   given rules of its own, so the pair can never drift apart. */
+.ksat-who-out,
+.ksat-who-back {
   padding: 5px 11px;
+  text-decoration: none;
+  white-space: nowrap;
   font-size: 12.5px;
   font-family: inherit;
   color: var(--ink, #e8ecf8);
@@ -140,7 +146,8 @@
   border-radius: 999px;
   cursor: pointer;
 }
-.ksat-who-out:hover { background: rgba(255, 255, 255, 0.13); }
+.ksat-who-out:hover,
+.ksat-who-back:hover { background: rgba(255, 255, 255, 0.13); }
 
 /* phone portrait: stack, and never let the bar cover the page title */
 @media (max-width: 560px) {
@@ -248,3 +255,4 @@ html[dir="rtl"] .ksat-amend-item::before { left: auto; right: 0; content: "\2190
   content:"\2191";                 /* the shift arrow, not a warning sign */
   font-weight:700;
 }
+

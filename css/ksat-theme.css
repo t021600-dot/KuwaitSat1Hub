@@ -842,7 +842,8 @@ svg [stroke="#64778D"]{ stroke:var(--ink-3); }
 }
 .ksat-who-name{ font-weight:500; color:var(--ink); }
 .ksat-who-org{ color:var(--ink-3); text-transform:uppercase; letter-spacing:.10em; }
-.ksat-who-out{
+.ksat-who-out,
+.ksat-who-back{
   border-radius:var(--r-sm);       /* was 999px                         */
   background:transparent;
   border:1px solid var(--line-2);
@@ -856,7 +857,8 @@ svg [stroke="#64778D"]{ stroke:var(--ink-3); }
   transition:color var(--t-fast) var(--ease-out),
              border-color var(--t-fast) var(--ease-out);
 }
-.ksat-who-out:hover{ background:transparent; border-color:var(--accent); color:var(--accent); }
+.ksat-who-out:hover,
+.ksat-who-back:hover{ background:transparent; border-color:var(--accent); color:var(--accent); }
 
 
 /* =====================================================================
@@ -930,7 +932,8 @@ html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
      also simply what a control on a handheld instrument feels like. */
   .btn,.chip{ min-height:44px; padding-block:11px; }
   .btn.sm{ min-height:40px; }
-  .ksat-who-out{ min-height:40px; }
+  .ksat-who-out,
+  .ksat-who-back{ min-height:40px; }
 
   /* Long tables and the eyebrow rule are the two things that can push a
      horizontal scrollbar onto a narrow screen. */
