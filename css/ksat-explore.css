@@ -564,3 +564,77 @@ html[dir="rtl"] .ksat-ex-fact-k {
   #ksat-ex .ksat-ex-topic[aria-current="page"] { border-block-end-color: Highlight; }
   .ksat-ex-card-art { border-color: CanvasText; }
 }
+
+
+/* =====================================================================
+   THE PLATE IS 4:3 NOW, AND THAT IS ARITHMETIC RATHER THAN TASTE
+
+   "see how when clicking on the explore botton — the quality of work
+   is 4k", said beside a full screenshot of nasa.gov's Explore drawer.
+
+   Two numbers off that screenshot, measured at a 1265px viewport: their
+   card image is 263 x 296, which is TALLER than it is wide, and it has
+   no border and no rounded corner. Ours was 16/9 — a 290 x 163 strip
+   with a hairline box around it — which reads as a thumbnail beside a
+   headline rather than as a photograph a headline belongs to.
+
+   4:3 rather than their 0.89, for a reason that is in the assets: five
+   of the six plates js/ksat-explore.js now draws on were authored at
+   1200 x 900 and feature-limb at 1600 x 1200. Both are exactly 4:3, so
+   at this ratio those six plates are shown WHOLE — object-fit has
+   nothing to crop. Going taller would start cutting the sides off
+   pictures that were framed deliberately, to buy 40px of height.
+
+   The border and the radius go for the same reason they are not on
+   nasa.gov: a photograph does not need a box drawn round it, and on a
+   dark panel that box is the brightest thing in the card.
+   ===================================================================== */
+.ksat-ex-card-art {
+  aspect-ratio: 4 / 3;
+  border: 0;
+  border-radius: 0;
+}
+
+/* THE WIDE PLATE'S ZOOM, RE-DERIVED FOR THE NEW BOX.
+
+   The rule above this section explains why earth-day/night need to be
+   pushed past their box: they are 2400 x 1100 limb views whose bottom
+   45% is the only part worth showing, and object-fit had no vertical
+   overflow to work with. Its 210% was solved for a 16/9 box and is
+   wrong for a 4/3 one — it would now zoom half again as far as
+   intended.
+
+   Same derivation, new box. Let the card be W wide.
+
+       16/9 box   height 0.5625W, element 210%  = 1.181W
+       4/3  box   height 0.75W,   element 155%  = 1.163W
+
+   1.163 against 1.181 is the same shot to within 2%, which is what was
+   wanted: the ratio is what changed, not the framing.
+   ===================================================================== */
+.ksat-ex-card[data-art="wide"] .ksat-ex-card-art img { height: 155%; }
+
+/* A CUT-OUT IS CONTAINED, A SCENE IS COVERED, AND THE MAP SAYS WHICH.
+
+   There used to be one exception here, named by hand:
+   .ksat-ex-card[data-art="mark"]. That was true while the emblem was
+   the only transparent plate in the set. It stopped being true when the
+   flight unit photograph was added, and a stylesheet that knows the
+   exceptions by name goes quietly wrong the next time somebody adds
+   one. js/ksat-explore.js's ART map carries `fit` and stamps it onto
+   the card; this reads it. The old rule stays, because the emblem is
+   still in the map and this file does not get to assume it is
+   unused. */
+.ksat-ex-card[data-fit="contain"] .ksat-ex-card-art img {
+  object-fit: contain;
+  padding: clamp(10px, 1.6vw, 20px);
+}
+/* The hardware photograph is a black frame on transparency. On the
+   panel's near-black ground it needs the same lift the spacecraft
+   block gives it — see css/ksat-spacecraft.css, which has the
+   argument in full. */
+.ksat-ex-card[data-art="unit"] .ksat-ex-card-art {
+  background:
+    radial-gradient(64% 64% at 50% 50%, rgba(61, 139, 255, .16), rgba(61, 139, 255, 0) 72%),
+    #0A0E18;
+}

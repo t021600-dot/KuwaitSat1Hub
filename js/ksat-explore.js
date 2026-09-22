@@ -398,51 +398,76 @@
                  line, because there is no count in that section this
                  file can assert against an array in index.html and the
                  rule is a missing line over a guessed one. */
+  /* ART IS ASSIGNED UNDER TWO RULES, AND BOTH ARE ABOUT THE READER.
+
+     1 · NO PLATE APPEARS TWICE IN ONE TOPIC. Three cards side by side
+         carrying two copies of the same globe is the thing that made
+         this panel look generated. Checked by eye against the list
+         below, topic by topic; it is eight short rows and a test that
+         asserts it would be longer than the data.
+
+     2 · THE PLATE IS ABOUT THE DESTINATION. #orbit gets the low-angle
+         shot where the curve of Earth is across the top, because that
+         is what an orbit looks like from inside one. #imagery gets the
+         closest framing, because that section is about what a frame
+         contains. #mission gets the flight unit, because #mission is
+         about the spacecraft and the spacecraft is the one thing in
+         this panel that is not a picture of the Earth.
+
+     The emblem key stays in ART and is no longer assigned to anything.
+     It was standing in for four different sections, and a logo on a
+     card tells a reader nothing about where the card goes. */
   var TOPICS = [
     { key: 'home',    sec: 'top',
       name: { en: 'Home',               ar: 'الرئيسية' },
       cards: [
-        { sec: 'mission', art: 'disk', meta: 'spec' },
-        { sec: 'imagery', art: 'wide', meta: 'frames' },
-        { sec: 'sources', art: 'mark', meta: 'srcs' }
+        { sec: 'mission', art: 'unit', meta: 'spec' },
+        { sec: 'imagery', art: 'near', meta: 'frames' },
+        /* `region` was here and was pulled after looking at the row:
+           near and region are both wide night views over the same
+           coast and, at 332px, they read as the same picture printed
+           twice. Rule 1 is about what the eye sees, not about what the
+           filenames say. The limb plate is the one framing in the set
+           that is unmistakably a different shot. */
+        { sec: 'sources', art: 'limb', meta: 'srcs' }
       ] },
 
     { key: 'mission', sec: 'mission',
       name: { en: 'The Mission',        ar: 'المهمة' },
       cards: [
-        { sec: 'mission', art: 'disk', meta: 'spec' },
-        { sec: 'legend',  art: 'mark', meta: 'legend' },
-        { sec: 'orbit',   art: 'wide', meta: 'model' }
+        { sec: 'mission', art: 'unit', meta: 'spec' },
+        { sec: 'legend',  art: 'term', meta: 'legend' },
+        { sec: 'orbit',   art: 'low',  meta: 'model' }
       ] },
 
     { key: 'space',   sec: 'imagery',
       name: { en: 'Kuwait From Space',  ar: 'الكويت من الفضاء' },
       cards: [
-        { sec: 'imagery', art: 'wide', meta: 'optics' },
-        { sec: 'globe',   art: 'disk', meta: 'regions' },
-        { sec: 'orbit',   art: 'wide', meta: 'model' }
+        { sec: 'imagery', art: 'near', meta: 'optics' },
+        { sec: 'globe',   art: 'gulf', meta: 'regions' },
+        { sec: 'orbit',   art: 'limb', meta: 'model' }
       ] },
 
     { key: 'orbit',   sec: 'orbit',
       name: { en: 'The Orbit',          ar: 'المدار' },
       cards: [
-        { sec: 'orbit',   art: 'wide', meta: 'model' },
+        { sec: 'orbit',   art: 'low',  meta: 'model' },
         { sec: 'globe',   art: 'disk', meta: 'regions' }
       ] },
 
     { key: 'green',   sec: 'system',
       name: { en: 'A Greener Kuwait',   ar: 'كويت أكثر خضرة' },
       cards: [
-        { sec: 'system',  art: 'disk', meta: 'regions' },
-        { sec: 'vision',  art: 'wide', meta: 'v2035' }
+        { sec: 'system',  art: 'region', meta: 'regions' },
+        { sec: 'vision',  art: 'near',   meta: 'v2035' }
       ] },
 
     { key: 'works',   sec: 'trust',
       name: { en: 'How This Works',     ar: 'كيف يعمل هذا' },
       cards: [
-        { sec: 'trust',   art: 'mark', meta: null },
-        { sec: 'legend',  art: 'mark', meta: 'legend' },
-        { sec: 'sources', art: 'disk', meta: 'notclaim' }
+        { sec: 'trust',   art: 'term', meta: null },
+        { sec: 'legend',  art: 'limb', meta: 'legend' },
+        { sec: 'sources', art: 'gulf', meta: 'notclaim' }
       ] },
 
     { key: 'story',   sec: 'story',
@@ -455,8 +480,8 @@
     { key: 'sources', sec: 'sources',
       name: { en: 'Sources',            ar: 'المصادر' },
       cards: [
-        { sec: 'sources', art: 'mark', meta: 'srcs' },
-        { sec: 'trust',   art: 'wide', meta: null }
+        { sec: 'sources', art: 'region', meta: 'srcs' },
+        { sec: 'trust',   art: 'term',   meta: null }
       ] }
   ];
 
@@ -549,10 +574,46 @@
      cards under it looks like a loading error. So the plate follows the
      page's theme, and swaps when the reader changes it.
      =================================================================== */
+  /* NINE PLATES, NOT THREE.
+
+     The team, holding our Explore panel beside nasa.gov's: "see how when
+     clicking on the explore botton — the quality of work is 4k".
+
+     The shape was already right. What was wrong was that twenty-one
+     cards across eight topics were drawing on THREE images, so opening
+     two topics in a row showed the same globe twice and the same limb
+     twice, and the panel read as a template with the same picture
+     dropped into every slot. On nasa.gov every card in that drawer is a
+     different photograph, and that — more than any spacing or type
+     decision — is what makes the panel look considered.
+
+     assets/cards/ already held six plates that nothing was using, each
+     a different framing and a different altitude over the same region.
+     They are all here now, and so is the flight unit photograph, which
+     is the one card in the panel that is not a picture of the Earth and
+     is the better for it.
+
+     Keys are named for the SHOT, not for the section, because the same
+     plate is correct for more than one destination and a key called
+     `missionCard` would be a lie the first time it moved. */
   var ART = {
-    wide: { day: 'assets/earth/earth-day.jpg',  night: 'assets/earth/earth-night.jpg',  w: 2400, h: 1100 },
-    disk: { day: 'assets/earth/globe-day.jpg',  night: 'assets/earth/globe-night.jpg',  w: 1400, h: 1400 },
-    mark: { day: 'assets/brand/ksat-emblem-256.png', night: 'assets/brand/ksat-emblem-256.png', w: 256, h: 256 }
+    wide:   { day: 'assets/earth/earth-day.jpg',  night: 'assets/earth/earth-night.jpg',  w: 2400, h: 1100 },
+    disk:   { day: 'assets/earth/globe-day.jpg',  night: 'assets/earth/globe-night.jpg',  w: 1400, h: 1400 },
+    mark:   { day: 'assets/brand/ksat-emblem-256.png', night: 'assets/brand/ksat-emblem-256.png', w: 256, h: 256 },
+
+    /* The hardware. Transparent PNG, one file for both themes — it is a
+       cut-out object rather than a lit scene, so there is no day plate
+       and no night plate to choose between. `fit: contain` for the same
+       reason the emblem needs it: cover would crop the antennas off. */
+    unit:   { day: 'assets/cards/ksat1-flight-unit.png',
+              night: 'assets/cards/ksat1-flight-unit.png', w: 752, h: 454, fit: 'contain' },
+
+    near:   { day: 'assets/cards/card-kuwait-day.jpg',    night: 'assets/cards/card-kuwait-night.jpg',    w: 1200, h: 900 },
+    gulf:   { day: 'assets/cards/card-gulf-day.jpg',      night: 'assets/cards/card-gulf-night.jpg',      w: 1200, h: 900 },
+    region: { day: 'assets/cards/card-region-day.jpg',    night: 'assets/cards/card-region-night.jpg',    w: 1200, h: 900 },
+    low:    { day: 'assets/cards/card-limb-low-day.jpg',  night: 'assets/cards/card-limb-low-night.jpg',  w: 1200, h: 900 },
+    term:   { day: 'assets/cards/card-terminator-day.jpg',night: 'assets/cards/card-terminator-night.jpg',w: 1200, h: 900 },
+    limb:   { day: 'assets/cards/feature-limb-day.jpg',   night: 'assets/cards/feature-limb-night.jpg',   w: 1600, h: 1200 }
   };
   /* Alt text describes the PLATE, never the destination, and never
      claims a region. earth-night.jpg is a limb view whose lit half is
@@ -587,6 +648,57 @@
     mark: {
       day:   { en: 'The KuwaitSat Vision emblem.', ar: 'شعار كويت سات فيجن.' },
       night: { en: 'The KuwaitSat Vision emblem.', ar: 'شعار كويت سات فيجن.' }
+    },
+
+    /* WRITTEN AFTER OPENING EVERY PLATE AND LOOKING AT IT, day and night
+       separately, as a contact sheet. The note at the top of this map
+       says alt text describes the plate and never claims a region it
+       cannot see; these six do name regions, because in these six the
+       regions are plainly there in both phases. The night plates are
+       NASA Black Marble and the day plates NASA Blue Marble, reprojected
+       onto a sphere — the same provenance the two originals carry, and
+       it is in assets/earth/CREDITS.txt. */
+    unit: {
+      day:   { en: 'KuwaitSat-1: a black anodised CubeSat frame with four deep blue solar faces, a circuit board on the top deck and four thin whip antennas.',
+               ar: 'كويت سات-١: هيكل مكعّب أسود مؤكسد بأربعة أوجه شمسية زرقاء داكنة، ولوحة إلكترونية على السطح العلوي، وأربعة هوائيات رفيعة.' },
+      night: { en: 'KuwaitSat-1: a black anodised CubeSat frame with four deep blue solar faces, a circuit board on the top deck and four thin whip antennas.',
+               ar: 'كويت سات-١: هيكل مكعّب أسود مؤكسد بأربعة أوجه شمسية زرقاء داكنة، ولوحة إلكترونية على السطح العلوي، وأربعة هوائيات رفيعة.' }
+    },
+    near: {
+      day:   { en: 'NASA Blue Marble composite: the Arabian peninsula filling the frame, the Red Sea on one side and the Gulf on the other.',
+               ar: 'مركّب Blue Marble من ناسا: شبه الجزيرة العربية تملأ الإطار، والبحر الأحمر من جهة والخليج من الأخرى.' },
+      night: { en: 'NASA Black Marble composite at night: the Gulf coast picked out in a continuous line of city light, the desert dark behind it.',
+               ar: 'مركّب Black Marble من ناسا ليلاً: ساحل الخليج مرسوم بخط متصل من أضواء المدن، والصحراء مظلمة خلفه.' }
+    },
+    gulf: {
+      day:   { en: 'NASA Blue Marble composite: the Gulf at the centre, Arabia to the west and the Indian subcontinent to the east.',
+               ar: 'مركّب Blue Marble من ناسا: الخليج في المركز، والجزيرة العربية غرباً وشبه القارة الهندية شرقاً.' },
+      night: { en: 'NASA Black Marble composite at night: Arabia dark between two coastlines of city light.',
+               ar: 'مركّب Black Marble من ناسا ليلاً: الجزيرة العربية مظلمة بين ساحلين من أضواء المدن.' }
+    },
+    region: {
+      day:   { en: 'NASA Blue Marble composite: a wide view from the Horn of Africa across Arabia to the Indian subcontinent.',
+               ar: 'مركّب Blue Marble من ناسا: مشهد واسع من القرن الأفريقي عبر الجزيرة العربية إلى شبه القارة الهندية.' },
+      night: { en: 'NASA Black Marble composite at night: the same span, with the Nile, the Gulf and the Indian coast drawn in light.',
+               ar: 'مركّب Black Marble من ناسا ليلاً: المدى نفسه، والنيل والخليج والساحل الهندي مرسومة بالضوء.' }
+    },
+    low: {
+      day:   { en: 'NASA Blue Marble composite seen at a low angle, with the curve of Earth across the top of the frame.',
+               ar: 'مركّب Blue Marble من ناسا بزاوية منخفضة، وانحناء الأرض يعبر أعلى الإطار.' },
+      night: { en: 'NASA Black Marble composite at night, seen at a low angle, the Caspian dark at the centre and the Gulf below it.',
+               ar: 'مركّب Black Marble من ناسا ليلاً بزاوية منخفضة، وبحر قزوين مظلم في المركز والخليج تحته.' }
+    },
+    term: {
+      day:   { en: 'NASA Blue Marble composite: the snow of the Himalaya at the top of the frame, Arabia at the foot of it.',
+               ar: 'مركّب Blue Marble من ناسا: ثلوج الهيمالايا أعلى الإطار، والجزيرة العربية في أسفله.' },
+      night: { en: 'NASA Black Marble composite at night: the lit coast running away toward the horizon.',
+               ar: 'مركّب Black Marble من ناسا ليلاً: الساحل المضاء يمتدّ بعيداً نحو الأفق.' }
+    },
+    limb: {
+      day:   { en: 'NASA Blue Marble composite of the limb: the curve of the planet against black, Europe and the Mediterranean along it.',
+               ar: 'مركّب Blue Marble من ناسا لحافة الأرض: انحناء الكوكب على سواد، وأوروبا والبحر المتوسط على امتداده.' },
+      night: { en: 'NASA Black Marble composite of the limb at night: city light along the curve, the atmosphere a thin blue line above it.',
+               ar: 'مركّب Black Marble من ناسا لحافة الأرض ليلاً: أضواء المدن على الانحناء، والغلاف الجوي خط أزرق رفيع فوقها.' }
     }
   };
   function isNight() {
@@ -789,6 +901,12 @@
       b.type = 'button';
       b.setAttribute('data-sec', c.sec);
       b.setAttribute('data-art', c.art);
+      /* A cut-out object has to be contained; a photograph of a scene
+         has to be covered. The stylesheet used to know which was which
+         by naming the one exception (data-art="mark"), which stopped
+         being true the moment a second cut-out was added. The map says
+         it now, and the stylesheet reads it off the element. */
+      if (ART[c.art] && ART[c.art].fit) { b.setAttribute('data-fit', ART[c.art].fit); }
 
       var art = el('span', 'ksat-ex-card-art');
       var img = el('img');
