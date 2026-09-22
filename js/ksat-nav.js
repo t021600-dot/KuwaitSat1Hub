@@ -383,14 +383,6 @@
     return v || c.key;
   }
 
-  function chNameAlt(c) {
-    /* The Arabic, shown as a second line only while the page is in
-       English — in Arabic it is already the first line. */
-    if (isRTL()) return '';
-    var n = c.arNode;
-    return n ? (n.textContent || '').trim() : '';
-  }
-
   /* index.html declares NAV as a top-level `const` in a classic script,
      which puts it in the shared global lexical environment — the same
      reason js/ksat-tour.js can read `const S` and `const DEMO` as bare
@@ -598,13 +590,6 @@
 
     var head = el('div', 'ksat-nav-pop-head');
     head.appendChild(el('span', 'ksat-nav-pop-en', chName(c)));
-    var alt = chNameAlt(c);
-    if (alt) {
-      var a = el('span', 'ksat-nav-pop-ar', alt);
-      a.setAttribute('dir', 'rtl');
-      a.setAttribute('lang', 'ar');
-      head.appendChild(a);
-    }
     pop.appendChild(head);
 
     /* THE ORDER INSIDE A GROUP IS THE FLAT NAV'S ORDER, THEN THE PAGE'S.

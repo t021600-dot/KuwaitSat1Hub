@@ -320,3 +320,51 @@ html[dir="rtl"][data-ksat-tier="insider"] #descent[data-ksat-cubesat="on"] .dtex
   .ksat-cs-cap, .ksat-cs-badge { color: #333; }
   .ksat-cs-hint { display: none; }   /* nothing to drag on paper */
 }
+
+/* =====================================================================
+   THE CAPTION IS FOR ASSISTIVE TECHNOLOGY, NOT FOR THE PAGE
+
+   The team asked for the two lines under the model to go: the sentence
+   naming which parts of the illustration are modelled, and the "drag, or
+   use the arrow keys" hint. The public page is meant to be a planet, a
+   masthead and a spacecraft, and four lines of small print under the
+   spacecraft was the opposite of that.
+
+   They are hidden, NOT deleted, and the distinction matters here in a
+   way it did not for the marketing copy this pass removed outright:
+
+     - the hint is the ONLY thing that tells a keyboard user the model is
+       operable at all. Deleting it would take a working control and make
+       it invisible to the people who most need to be told about it;
+     - the caption is the provenance. KuwaitSat-1 is a 2U and the surface
+       detail here is drawn, and this site's whole argument is that you
+       can find out which is which. The visible ◈ Modelled badge still
+       says so in the page's own vocabulary, and the canvas's aria-label
+       carries the full sentence.
+
+   So: clipped out of the visual flow, still in the accessibility tree.
+   This is the standard visually-hidden recipe rather than display:none,
+   which would take it out of that tree too and defeat the point.
+   ===================================================================== */
+.ksat-cs-cap {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* On paper the model is a still picture nobody can drag, and the
+   provenance SHOULD print - a printed figure with no statement of what
+   is drawn is exactly the artefact this site exists not to produce. */
+@media print {
+  .ksat-cs-cap {
+    position: static !important;
+    width: auto; height: auto;
+    margin: 0; overflow: visible;
+    clip: auto; clip-path: none;
+    white-space: normal;
+  }
+}

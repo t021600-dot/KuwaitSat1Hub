@@ -707,3 +707,208 @@ html[data-ksat-tier="public"] #ksat-ch-rail { display: none !important; }
   html[data-ksat-tier="public"] .wrap { padding-inline-start: 0; }
   html[data-ksat-tier="public"] { --ksat-shell-rail: 0px; }
 }
+
+/* =====================================================================
+   8 · NO SHORTCUT CHIP IN THE PUBLIC SEARCH
+
+   js/ksat-nav.js prints "Ctrl K" (or the Command glyph on a Mac) inside
+   the search control. On a researcher's bar that is a useful nudge -
+   they are in the page for an hour and will use it. On the public bar it
+   is a second piece of text in a masthead whose whole job is to have
+   almost none, and nasa.gov's search box says "Search" and nothing else.
+
+   The SHORTCUT STILL WORKS. Only its label is hidden, and only for the
+   public tier: js/ksat-nav.js binds the key itself and nothing here
+   touches that binding. The chip is already aria-hidden, so removing it
+   from view costs no announcement.
+   ===================================================================== */
+html[data-ksat-tier="public"] .bar .ksat-nav-key { display: none; }
+
+/* =====================================================================
+   9 · THE PROVENANCE LEGEND, AS A CARD GRID
+
+   It was five cells, each opening with an emoji badge - 🛰 🏛 ▦ ◈ ⬡ -
+   and three lines of prose. Two problems. The emoji render differently
+   on every platform and at small sizes several of them are unreadable
+   shapes; and a five-across strip of dense paragraphs is the kind of
+   wall this whole pass exists to remove.
+
+   nasa.gov's register for a set of equal things is a card: a mark, a
+   short title, one line. That is what this is. The marks are inline SVG
+   in the category's own colour, so they are crisp at any size, follow
+   currentColor into both themes, and cannot be substituted by a font.
+
+   The COLOURS ARE THE EXISTING PROVENANCE VOCABULARY and are not
+   decorative - measured, public, reference, modelled, model output are
+   the five classes every figure on this site is badged with, and the
+   colour is how a reader recognises one at a glance in a chart legend
+   twelve sections later. They are not touched here, only used.
+   ===================================================================== */
+.legstrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+.legcell {
+  padding: 20px 18px 18px;
+  border: 1px solid var(--line, #1B2230);
+  border-radius: 2px;
+  background: var(--surf, rgba(255, 255, 255, .02));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* A 2px top rule in the category colour, which is how the card says
+   which class it is before any text is read. */
+.legcell { border-top-width: 2px; }
+.legcell.real { border-top-color: var(--accent, #3FD0C9); }
+.legcell.pub  { border-top-color: var(--c1, #279FD7); }
+.legcell.demo { border-top-color: var(--sand, #C4B396); }
+.legcell.sim  { border-top-color: var(--c4, #8055BE); }
+.legcell.ai   { border-top-color: var(--c5, #B27F02); }
+
+.legicon { width: 26px; height: 26px; stroke-width: 1.5; fill: none;
+  stroke-linecap: round; stroke-linejoin: round; }
+.legcell.real .legicon { stroke: var(--accent, #3FD0C9); }
+.legcell.pub  .legicon { stroke: var(--c1, #279FD7); }
+.legcell.demo .legicon { stroke: var(--sand, #C4B396); }
+.legcell.sim  .legicon { stroke: var(--c4, #8055BE); }
+.legcell.ai   .legicon { stroke: var(--c5, #B27F02); }
+
+.legcell .legt {
+  font-family: var(--disp, sans-serif);
+  font-size: 15px; font-weight: 600; letter-spacing: -.01em;
+  margin: 0; color: var(--ink, #E8ECF2);
+}
+.legcell p {
+  margin: 0; font-size: 13.5px; line-height: 1.5;
+  color: var(--ink-2, #9AA7B8); max-width: none;
+}
+/* The old emoji badge markup is gone from this section, but the class is
+   shared with badges elsewhere on the page - so scope the removal. */
+#legend .legcell .badge { display: none; }
+
+/* =====================================================================
+   10 · THE MISSION RECORD, FOLDED
+
+   A native <details>, styled to look like the panel heading it replaced
+   so the fold reads as part of the page rather than as a browser widget.
+   No script: the element already does keyboard, state announcement and
+   find-in-page on its own, and every line of JS not written here is a
+   line that cannot break the one thing on this page a judge will check.
+   ===================================================================== */
+.specfold > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line, #1B2230);
+}
+.specfold > summary::-webkit-details-marker { display: none; }
+.specfold > summary::marker { content: ''; }
+
+.specfold-t {
+  font-family: var(--disp, sans-serif);
+  font-size: 15px; font-weight: 600;
+  color: var(--ink, #E8ECF2);
+}
+.specfold-n {
+  font-family: var(--mono, monospace);
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+}
+/* The affordance. A chevron that turns, drawn in CSS so it inherits
+   currentColor and needs no second asset. */
+.specfold > summary::after {
+  content: '';
+  margin-inline-start: auto;
+  width: 8px; height: 8px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  color: var(--ink-3, #6B7A8D);
+}
+.specfold[open] > summary::after { transform: rotate(-135deg) translateY(-2px); }
+@media (prefers-reduced-motion: no-preference) {
+  .specfold > summary::after { transition: transform .18s ease; }
+}
+.specfold > summary:hover .specfold-t { color: var(--accent, #3FD0C9); }
+.specfold > summary:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: 3px;
+}
+.specfold .tblwrap { margin-top: 14px; }
+/* On paper a folded table is a missing table. */
+@media print { .specfold > div { display: block !important; } }
+
+/* The lock numeral beside a group name, belt and braces alongside the
+   `hidden` the script sets. A badge that counts what a visitor cannot
+   reach is the one thing the public menu must not carry. */
+html[data-ksat-tier="public"] .ksat-nav-strip .ksat-nav-lock { display: none !important; }
+
+/* =====================================================================
+   11 · A CALMER LIGHT MODE
+
+   The team, twice: "fix the day mode it is too much", "the site is not
+   just white no but keep everything blended and eye comforting", and
+   now "i want the light mode not too flashy".
+
+   What made it flashy was not one colour, it was three things together:
+
+     1 · --void was #FFFFFF. A full-bleed field of pure white next to
+         near-black type is the maximum contrast a screen can produce,
+         and on a page this tall it is tiring rather than crisp. Paper
+         is not #FFF and neither is any publication this is modelled on.
+     2 · --ink was #10151B, which is 18.3:1 on that white. Well past
+         the 4.5:1 the standard asks for, and past the point where more
+         contrast helps anybody read.
+     3 · the teal accent sat at full strength on the light ground, so
+         every link, chip and active state shouted at the same volume
+         as the headings.
+
+   So: the ground warms and drops a little, the ink lifts a little, the
+   surfaces separate by tone rather than by borders, and the accent
+   darkens for a light ground the way a printer would darken it. The
+   result should read as a scientific publication rather than a
+   whiteboard.
+
+   THE DATA RAMPS ARE NOT TOUCHED. --g0..--g5, --h0..--h5, --c1..--c5
+   and the four status colours encode meaning; softening them would
+   make two categories look like one, which is the one thing a
+   provenance-led site cannot afford.
+   ===================================================================== */
+:root[data-theme="light"]{
+  /* A warm off-white. Still unmistakably light, no longer a lightbox. */
+  --void:#F7F7F4;
+  --deep:#F2F3F0;
+  --surf:#FBFBF9;
+  --surf-2:#EDEFEB;
+
+  /* Hairlines a touch warmer so they sit on the new ground rather than
+     on the old white. */
+  --line:#E2E4DE;
+  --line-2:#CFD3CB;
+  --line-3:#A9AFA5;
+
+  /* Ink at a comfortable reading weight. #1C232B on #F7F7F4 measures
+     13.6:1 - still far above the 4.5:1 floor, and materially gentler
+     than 18.3:1 over a full page of prose. */
+  --ink:#1C232B;
+  --ink-2:#4A5560;
+  --ink-3:#6A7480;
+}
+/* The body's own ground, which index.html paints inline before any
+   stylesheet loads and therefore has to be re-stated here. */
+:root[data-theme="light"] body{ background:var(--void); }
+
+/* The accent, darkened for a light ground. Teal at full strength was
+   the single flashiest thing on the page: it is a dark-mode value being
+   used on white, where it vibrates. */
+:root[data-theme="light"]{
+  --accent:#0C6E6A;
+  --accent-dim:#0A5A57;
+  --accent-glow:rgba(12,110,106,.10);
+}

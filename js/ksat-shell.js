@@ -187,6 +187,9 @@
     railNote:     { en: 'All {n} sections are present. Chapters only change what is on screen.',
                     ar: 'جميع الأقسام الـ{n} موجودة. الفصول تغيّر ما يظهر على الشاشة فقط.' },
     chAbbr:       { en: 'Ch', ar: 'فصل' },
+    researcherSurface: { en: 'RESEARCHER SURFACE', ar: 'واجهة الباحثين' },
+    signInToOpen:      { en: 'Sign in to open this section',
+                         ar: 'تسجيل الدخول لفتح هذا القسم' },
 
     /* ---------------------------------------------------------------
        THE REST OF THIS LAYER'S CHROME, WHICH WAS STILL ENGLISH.
@@ -792,8 +795,7 @@
     box.id = 'ksat-invite-' + id;
     box.setAttribute('data-ksat-for', id);
 
-    box.appendChild(el('div', 'ksat-invite-eyebrow',
-      'RESEARCHER SURFACE · واجهة الباحثين'));
+    box.appendChild(el('div', 'ksat-invite-eyebrow', t('researcherSurface')));
 
     var h = el('h3', 'ksat-invite-h', panelText(copy.t));
     h.id = 'ksat-invite-h-' + id;
@@ -819,8 +821,7 @@
     copy.lines.forEach(function (line) { ul.appendChild(el('li', null, panelText(line))); });
     box.appendChild(ul);
 
-    var btn = el('button', 'ksat-invite-btn',
-      'Sign in to open this section · تسجيل الدخول لفتح هذا القسم');
+    var btn = el('button', 'ksat-invite-btn', t('signInToOpen'));
     btn.type = 'button';
     btn.addEventListener('click', function () {
       KS.intent = id;                        // where to land after sign-in
@@ -1619,6 +1620,15 @@
       if (link) link.textContent = t('showWhich');
       if (x)    x.setAttribute('aria-label', t('dismissNote'));
     }
+
+    /* The invitation panels are built once and live for the session, so
+       their two strings have to be repainted here rather than rebuilt. */
+    document.querySelectorAll('.ksat-invite-eyebrow').forEach(function (n) {
+      n.textContent = t('researcherSurface');
+    });
+    document.querySelectorAll('.ksat-invite-btn').forEach(function (n) {
+      n.textContent = t('signInToOpen');
+    });
 
     if (skipLink) skipLink.textContent = t('skipToCh');
 

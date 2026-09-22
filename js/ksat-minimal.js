@@ -152,6 +152,11 @@
   function setOpen(on) {
     if (!exploreBtn) return;
     exploreBtn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    /* js/ksat-nav.js builds each group's popover the first time that group
+       is opened, so a filter that ran only at boot would find nothing to
+       filter. Re-running here costs one querySelectorAll over a menu and
+       is the difference between the rule holding and not. */
+    if (on) filterMenu();
     if (on) root.setAttribute('data-ksat-min-explore', 'open');
     else    root.removeAttribute('data-ksat-min-explore');
   }
@@ -174,6 +179,165 @@
     if (nav && nav.contains(e.target)) return;
     setOpen(false);
   });
+
+  /* ===================================================================
+     2b · THE PUBLIC EXPLORE MENU SHOWS ONLY WHAT IS OPEN
+
+     The brief: "when i press explore i want it to have the same things
+     that nasa has that the public user would enjoy looking at and is
+     allowed to look at, they cant see the agent and all the things the
+     researcher would look at".
+
+     js/ksat-nav.js builds every destination and marks the gated ones
+     SIGN-IN. That is the right behaviour for a researcher who has signed
+     out and is looking for something they know is there. It is the wrong
+     behaviour for a stranger: a menu where half the rows are labelled
+     with a door they cannot open is the RESEARCH TOOLS band again, and
+     the team has now objected to that shape twice.
+
+     So for the public tier the locked rows are pulled out of the menu,
+     and any group left with nothing in it goes with them. Two groups do
+     disappear entirely - Intelligence and Agents are wholly researcher
+     surfaces - and that is the point rather than a side effect.
+
+     NOTHING IS DESTROYED AND NOTHING IS RE-ORDERED. The rows are hidden,
+     the popovers keep their own keyboard handling, and sign-in restores
+     every one of them by removing the same attribute.
+     =================================================================== */
+  /* A group's popover appears in the DOM the first time it is opened, which
+     is after both of the hooks above. One observer on the nav catches it. */
+  var menuWatch = null;
+  function watchMenu() {
+    var nav = document.getElementById('ksat-nav');
+    if (!nav || menuWatch || typeof MutationObserver === 'undefined') return;
+    /* A FEEDBACK LOOP LIVED HERE and froze the renderer.
+       filterMenu() sets `hidden`, `tabindex` and textContent on nodes that
+       are themselves inside document.body, so an observer watching the
+       whole body with subtree:true was re-triggered by its own handler,
+       which filtered again, which mutated again. The page locked up hard
+       enough that CDP could not evaluate in it.
+
+       Two fixes, both needed. The observer is muted for the duration of
+       the work, and it only watches for popovers being ADDED - childList
+       on body without subtree, which is exactly where js/ksat-nav.js
+       appends them and nowhere near the attributes we change. */
+    menuWatch = new MutationObserver(function (recs) {
+      var added = false;
+      for (var i = 0; i < recs.length; i++) {
+        var n = recs[i].addedNodes;
+        for (var j = 0; j < n.length; j++) {
+          if (n[j].nodeType === 1 && n[j].classList && n[j].classList.contains('ksat-nav-pop')) added = true;
+        }
+      }
+      if (added) filterMenu();
+    });
+    menuWatch.observe(document.body, { childList: true });
+  }
+
+  /* THE GROUP NAMES ARE THE RESEARCHER'S NAMES, and two of them stop
+     making sense once the researcher's sections are taken out.
+
+     js/ksat-shell.js balanced the six chapters by size, which put one
+     public section into each of two otherwise-gated chapters: "Planning"
+     keeps Kuwait's national ambitions, and "Agents" keeps the page that
+     says what the system will not do. So a stranger opening Explore sees
+     a group called Agents whose single row is a guardrails page, and a
+     group called Planning that is really about the country.
+
+     Renaming per tier rather than re-grouping. The chapters are load
+     bearing - the rail, the FAB, the deep links and the tour all index
+     them - and splitting them to make two menu labels read better would
+     be a change in the wrong place. The researcher keeps every original
+     name the moment they sign in. */
+  var PUBLIC_NAME = {
+    brief:    { en: 'The Mission',        ar: 'المهمة' },
+    space:    { en: 'Kuwait From Space',  ar: 'الكويت من الفضاء' },
+    planning: { en: 'A Greener Kuwait',   ar: 'كويت أكثر خضرة' },
+    agents:   { en: 'How This Works',     ar: 'كيف يعمل هذا' },
+    record:   { en: 'Story & Sources',    ar: 'القصة والمصادر' }
+  };
+
+  function renameGroup(g, key, pub) {
+    var lab = g.querySelector('.ksat-nav-g-en');
+    if (!lab) return;
+    if (!lab.hasAttribute('data-ksat-orig')) lab.setAttribute('data-ksat-orig', lab.textContent || '');
+    var o = PUBLIC_NAME[key];
+    if (pub && o) {
+      lab.textContent = (isRTL() && o.ar) ? o.ar : o.en;
+    } else {
+      lab.textContent = lab.getAttribute('data-ksat-orig') || lab.textContent;
+    }
+    /* The trigger's aria-label is built by js/ksat-nav.js from the old name
+       and replaces the subtree for a screen reader, so renaming the visible
+       span alone would leave the two disagreeing. */
+    g.setAttribute('aria-label', lab.textContent);
+  }
+
+  var filtering = false;
+  function filterMenu() {
+    if (filtering) return;              /* re-entry guard; see watchMenu() */
+    filtering = true;
+    try { filterMenuInner(); } finally { filtering = false; }
+  }
+  function filterMenuInner() {
+    var nav = document.getElementById('ksat-nav');
+    if (!nav) return;
+    var pub = isPublic();
+
+    /* Rows live in popovers that js/ksat-nav.js appends to <body> so they
+       can escape the bar's stacking context. Querying inside #ksat-nav
+       found none of them and the filter quietly did nothing. */
+    document.querySelectorAll('.ksat-nav-pop .ksat-nav-item').forEach(function (it) {
+      var locked = !!it.querySelector('.ksat-nav-item-lock');
+      if (!locked) return;
+      it.hidden = pub;
+      /* hidden alone is not enough for a button: a hidden button is still
+         focusable in some engines, which would put a tab stop on a row
+         the reader cannot see. */
+      if (pub) it.setAttribute('tabindex', '-1');
+      else it.removeAttribute('tabindex');
+    });
+
+    /* WHETHER A GROUP IS EMPTY IS A FACT ABOUT THE SECTIONS, not about a
+       menu that may not have been built yet. js/ksat-nav.js fills a
+       popover only when its group is first opened, so asking the popover
+       gave a different answer depending on what the reader had clicked -
+       Agents stayed visible purely because nobody had opened it.
+
+       The sections know. js/ksat-shell.js stamps data-ksat-ch="<key>" on
+       every one, and in the public tier it adds .ksat-locked to the ten
+       that need an account. A group is empty for a stranger exactly when
+       none of its sections is unlocked. The popover id carries the key
+       (ksat-nav-pop-<key>), which is the join between the two. */
+    nav.querySelectorAll('.ksat-nav-g').forEach(function (g) {
+      var id = g.getAttribute('aria-controls') || '';
+      var key = id.indexOf('ksat-nav-pop-') === 0 ? id.slice('ksat-nav-pop-'.length) : '';
+      if (!key) return;
+
+      var inCh = document.querySelectorAll('section.sec[data-ksat-ch="' + key + '"]');
+      if (!inCh.length) return;                 /* the shell has not stamped yet */
+
+      var anyOpen = false;
+      inCh.forEach(function (sec) {
+        if (!sec.classList.contains('ksat-locked')) anyOpen = true;
+      });
+
+      var empty = pub && !anyOpen;
+      g.hidden = empty;
+      renameGroup(g, key, pub);
+      if (empty) g.setAttribute('tabindex', '-1'); else g.removeAttribute('tabindex');
+
+      /* The numeral beside the group name is the count of LOCKED sections
+         in it. On the researcher's bar that is useful. On the public bar
+         it is the RESEARCH TOOLS band in miniature - a badge whose only
+         message is how much a stranger is missing. */
+      /* The badge is .ksat-nav-lock, not .ksat-nav-count - the latter is a
+         different span and hiding it did nothing, which is why the numerals
+         survived the first attempt. */
+      var cnt = g.querySelector('.ksat-nav-lock');
+      if (cnt) cnt.hidden = pub;
+    });
+  }
 
   /* ===================================================================
      3 · APPLY, AND UNDO ON SIGN-IN
@@ -210,6 +374,7 @@
   function apply() {
     if (isPublic()) toPublic(); else toInsider();
     relabel();
+    filterMenu();
   }
 
   /* ===================================================================
@@ -226,6 +391,7 @@
     buildSeal();
     if (!buildExplore()) return false;
     apply();
+    watchMenu();
     return true;
   }
 

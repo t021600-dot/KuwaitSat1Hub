@@ -101,3 +101,14 @@
   .mk-sat{ offset-distance:18% }
   .mk-star{ opacity:.75; transform:none }
 }
+
+/* The footer's emblem. Sized against the wordmark beside it rather than
+   against the bar's 26px mark, because down here it is the thing being
+   looked at rather than a control being clicked. */
+.ksat-foot-seal{
+  width:52px; height:52px; flex:0 0 auto; border-radius:50%;
+  /* The seal is cut to a transparent circle on its own cream ground; on
+     the void that edge is the only thing separating it from the page. */
+  box-shadow:0 0 0 1px rgba(255,255,255,.10);
+}
+@media (max-width:620px){ .ksat-foot-seal{ width:44px; height:44px } }

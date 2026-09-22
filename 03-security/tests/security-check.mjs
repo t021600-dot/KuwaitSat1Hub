@@ -773,7 +773,8 @@ await check('PG-HOOK', 'every id the original page hangs behaviour off still exi
       bltLeads:    'the named-leads panel inside #builders.',
       bltLinks:    'the source chips inside #builders.',
       bltTimeline: 'the project timeline inside #builders.',
-      cvDescent:   'the downlink-cone canvas in the descent strip. Replaced by the 3D spacecraft in js/ksat-cubesat.js, which the team asked for in its place; the cone and its three lines of narration went with it.'
+      cvDescent:   'the downlink-cone canvas in the descent strip. Replaced by the 3D spacecraft in js/ksat-cubesat.js, which the team asked for in its place; the cone and its three lines of narration went with it.',
+      heroReadout: 'the ALT / GSD / SWATH line over the hero Earth, and the ◈ NASA IMAGERY · ORBIT MODELLED line beside it. Deleted on instruction, 22 Sep: the public page opens on the planet and nothing else. Every one of those figures is still in the page - the hero fact strip carries 39 m and 80 km, and the folded mission record carries all twelve entries.',
     };
     const idsOf = t => [...t.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
     const a = new Set(idsOf(readFileSync(join(ROOT, 'site-original', 'index.html'), 'utf8')));
