@@ -1102,3 +1102,67 @@ html[data-ksat-tier="public"] .ksat-cs-badge { display: none; }
    would misalign every highlight after it.
    ===================================================================== */
 html[data-ksat-tier="public"] .navwrap { display: none !important; }
+
+/* =====================================================================
+   16 · HEADINGS STOP BEING SQUEEZED INTO A COLUMN
+
+   css/ksat-theme.css carries `section.sec h2, h2.st { max-width: 20ch }`.
+   That measure was chosen for the 72px display heading the page used to
+   have, where twenty characters is most of a screen. Section 13 of this
+   file took headings down to clamp(26px, 2.8vw, 40px) and did not touch
+   the measure, so at 40px the limit resolves to about 500px inside a
+   1252px column and every heading of more than three words broke into
+   two short stacked lines.
+
+   Measured in the live page: h2 max-width 500px, parent 1252px. "Every
+   panel declares what it is", "What this system will not do" and the
+   Arabic "ما الذي وضعته الكويت في المدار" all wrapped, which is exactly
+   what the team pointed at.
+
+   36ch at 40px is roughly 900px, so a six word heading sits on one line
+   and a longer one still breaks somewhere sensible. text-wrap: balance
+   stays: when a heading does have to wrap, two even lines beat one long
+   line and one orphan.
+   ===================================================================== */
+html[data-ksat-tier="public"] section.sec h2,
+html[data-ksat-tier="public"] h2.st,
+html[data-ksat-tier="public"] h2.ksf-h2 {
+  max-width: 36ch;
+}
+
+/* =====================================================================
+   17 · SOURCE CHIPS IN THE EDITORIAL LAYER FOLLOW THE PAGE, NOT AN ISLAND
+
+   Measured in light theme: a .tag inside .ksh-feature computed
+   rgb(232,236,242) on rgb(237,239,235). That is 1.02 to 1, which is
+   invisible, and there were 34 of them. The identical chip OUTSIDE the
+   editorial layer computed rgb(28,35,43) and was fine, so the markup and
+   the token were both right and something else was winning.
+
+   I could not find the rule from script: two of the twenty six
+   stylesheets on this page throw "Cannot access rules" when read, so a
+   CSSOM walk silently skips them and reports the wrong winner. The same
+   opacity already cost this project the .navwrap hunt.
+
+   So this states the answer rather than arguing with the cascade. A
+   numbered source chip is page furniture: it belongs to the ground it
+   sits on, and every one of these sits on the page ground, not on a
+   photograph. The band is excluded because its chips DO sit on a dark
+   photograph in both themes and are handled by the island scope in
+   css/ksat-home.css.
+   ===================================================================== */
+html[data-ksat-tier="public"] .ksf-cite a.tag,
+html[data-ksat-tier="public"] .ksh-feature a.tag,
+html[data-ksat-tier="public"] .ksh-row a.tag {
+  color: var(--ink-2, #9DAEC2) !important;
+  border-color: var(--line-2, #24344A);
+}
+html[data-ksat-tier="public"] .ksf-cite a.tag:hover,
+html[data-ksat-tier="public"] .ksh-feature a.tag:hover,
+html[data-ksat-tier="public"] .ksh-row a.tag:hover {
+  color: var(--accent) !important;
+}
+/* The band's chips are the exception: they are over the photograph. */
+html[data-ksat-tier="public"] .ksh-band__copy a.tag {
+  color: var(--ink-2, #C3CEDA) !important;
+}

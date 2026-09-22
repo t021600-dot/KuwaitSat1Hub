@@ -1,0 +1,1171 @@
+/* =====================================================================
+   ksat-home.css - THE HOME PAGE, GIVEN THE NASA TREATMENT
+   Owner: 01 Front End. Pairs with js/ksat-home.js.
+
+   THE BRIEF, IN THE TEAM'S OWN WORDS
+
+     "dont keep text squezed like that"
+     "change the way this presented to this style, it is zoomed out so
+      you see the full pic"
+     "thats all for the home page, not just text but visuals and pics
+      just how the home page is at nasa"
+
+   They attached full page screenshots of nasa.gov beside three of our
+   sections and pointed at the difference. "Like NASA" is a useless
+   instruction until you say what NASA actually does, so here is what
+   was read off those screenshots and built here, in four treatments:
+
+     1  A FULL BLEED EDITORIAL BAND. One large photograph running the
+        whole width of the viewport, with a title, two or three lines of
+        text and one link set over it and held to the left third. Not
+        centred. Not in a card. Not boxed.
+
+     2  A CARD ROW. A section title on the left, one link on the right,
+        then three or four cards that are mostly image with a short
+        label and a small arrow under them.
+
+     3  A SIDE BY SIDE FEATURE. A text column on one side, one image on
+        the other with a caption under it in small type. The reference
+        puts a credit line under that caption and this file used to as
+        well; the team asked for it to come off and it has. See the
+        note where .ksh-credit used to be, in section 4.
+
+     4  A TOPIC GRID at the foot. Eight image tiles in two rows, each
+        with a label over the image and an arrow.
+
+   Everything is image led, text is short, and nothing is centred in the
+   measure.
+
+   ---------------------------------------------------------------------
+   THE SECOND PASS CHANGED THREE THINGS IN THIS FILE AND NOTHING ELSE
+
+   The team came back to the built page with corrections rather than a
+   redesign, and one of them was "but keep this". That is an instruction
+   as much as the others are, so the four treatments, the card rows, the
+   features, the prose plates and every measurement already recorded
+   below are untouched. What moved:
+
+     - .ksh-credit IS GONE. The rule is deleted and js/ksat-home.js no
+       longer builds the element. Where the rule used to be, in section
+       4, there is a note saying so and saying where the provenance now
+       lives, because a reader looking for it should not have to diff
+       two files to find out it was deliberate;
+
+     - .ksh-band gains a negative margin-block-start, so a full bleed
+       photograph stops floating 258px below the section above it. The
+       measurement and the floor that keeps it safe are on the rule;
+
+     - no shape changed. Every box in this file still holds its picture
+       whole. What changed is WHICH picture js/ksat-home.js puts in the
+       topic grid, so that a 2.4:1 plate is no longer letterboxed inside
+       a 4/3 tile. That choice is data, so it is documented over DESTS
+       in the JavaScript rather than here.
+
+   ---------------------------------------------------------------------
+   "ZOOMED OUT SO YOU SEE THE FULL PIC" IS A LAYOUT RULE, NOT A MOOD
+
+   That sentence is the single most specific thing in the brief and it
+   decides every image box in this file. A photograph cropped to fill a
+   box that is the wrong shape for it is the thing they pointed at, so:
+
+     - the full bleed band sets aspect-ratio 24/10, which is the exact
+       shape of band-kuwait-*.jpg (2400 x 1000). At that ratio `cover`
+       and `contain` are the same thing and NOTHING is cropped. Its
+       min-height is deliberately small enough that the aspect ratio
+       always wins above 760px, which is checked in the comment on the
+       rule itself;
+
+     - every card, tile and feature image uses object-fit: contain on a
+       ground rather than cover. The three 1200 x 900 plates fill a 4/3
+       box exactly, so contain and cover agree there too, and the
+       spacecraft stills and the square globe show whole instead of
+       being cropped into a detail of themselves;
+
+     - below 760px the band swaps to the 4/3 plate and the copy moves
+       out from over the photograph and sits under it. A 400px wide
+       viewport cannot hold a title, three lines and a link over a 167px
+       tall strip, and stacking is what NASA does there too.
+
+   ---------------------------------------------------------------------
+   "DONT KEEP TEXT SQUEZED LIKE THAT" IS ALSO A LAYOUT RULE
+
+   css/ksat-minimal.css section 16 already fought this once: headings
+   were capped at 20ch inside a 1252px column and every one of more than
+   three words broke into two short stacked lines. The fix was 36ch.
+
+   A side by side feature is the easiest way to undo that fix by
+   accident, because it halves the column the text lives in. So:
+
+     - the text side of .ksh-feature is the LARGER of the two columns,
+       1.08fr against .92fr, which puts it at roughly 620px inside a
+       1224px measure. That is a comfortable line, not a gutter;
+
+     - .ksf-figs, the four figure tiles js/ksat-facts.js builds, is a
+       four across strip and only drops to two columns at 760px in
+       css/ksat-facts.css. Inside a 620px feature column four columns
+       would be about 145px each, and "Kuwait University" at
+       clamp(22px, 2.2vw, 30px) does not fit in 145px. There is a rule
+       below that forces two columns inside .ksh-feature and repairs the
+       cell borders, which is the same repair that file's own 760px
+       query makes;
+
+     - headings here reuse clamp(26px, 2.8vw, 40px), the size
+       css/ksat-minimal.css section 13 settled on. This file does not
+       get a fourth opinion on heading size. The team called the old one
+       too large once already.
+
+   ---------------------------------------------------------------------
+   THEME: BOTH, AND THE TRAP THIS PROJECT HAS FALLEN INTO TWICE
+
+   Colour is inherited and resolves once. A scope that re-points an ink
+   token WITHOUT also re-declaring `color` leaves every element inside
+   it painting with the colour it inherited from outside the scope, and
+   this project has shipped an invisible headline from exactly that
+   mistake on two occasions.
+
+   So every scope in this file that changes ink states `color` outright
+   on the elements that carry text. .ksh-band__copy and .ksh-tile__label
+   sit on photographs and therefore do not use --ink at all: they carry
+   fixed light values, declared on each element, because a photograph is
+   dark under the scrim in both themes and a token that flips to near
+   black in light mode would put black type on a black scrim.
+
+   Everything that sits on the PAGE rather than on a photograph is
+   written in --ink, --ink-2, --ink-3, --line, --surf and --accent,
+   which css/ksat-nasa.css and css/ksat-minimal.css already redefine for
+   the light theme. That is what makes this file correct in light mode
+   without a single light mode rule of its own.
+
+   ---------------------------------------------------------------------
+   Z-INDEX: THIS FILE CLAIMS NOTHING FROM THE SHARED STACK
+
+   The table is in css/ksat-assistant.css: .bar 60, #demoHud 120,
+   #ksat-ch-fab 130, the assistant 132 and 134, #ksat-ch-sheet 140,
+   #toast 150, #intro 200. Those three corner owners are fixed and this
+   file must stay out of their way.
+
+   Every z-index below is 0, 1 or 2 and every one of them is inside an
+   element that carries `isolation: isolate`, which opens a new stacking
+   context. A `z-index: 2` on the copy over a photograph therefore means
+   "above the scrim in this band" and can never compete with the fixed
+   corners, whatever they are numbered.
+
+   ---------------------------------------------------------------------
+   LOGICAL PROPERTIES THROUGHOUT. The page flips to dir="rtl" in Arabic.
+   padding-inline, inset-inline, border-inline-start and text-align:start
+   flip with it. The one thing that does NOT flip on its own is an arrow
+   glyph, so the arrows are mirrored explicitly at the foot of this file.
+   ===================================================================== */
+
+
+/* ---------------------------------------------------------------------
+   0 - THE EDGE
+
+   A full bleed band spans the viewport, so its copy has to be pushed
+   back in by hand to line up with the content of the section it belongs
+   to. .wrap is max-width var(--maxw) centred with padding-inline
+   var(--gut), so the distance from the viewport edge to the first
+   character of a paragraph is:
+
+       max(gut, 50vw - maxw/2 + gut)
+
+   At 1424px with maxw 1280 and gut 28 that is 100px, which is exactly
+   where the fact strip and the panels below the band begin. At 400px
+   the second term goes negative and max() falls back to the gutter.
+
+   Declared once, used by the band and by nothing else, so there is one
+   number to change if the page measure ever moves.
+   --------------------------------------------------------------------- */
+:root {
+  --ksh-edge: max(var(--gut, 28px), calc(50vw - (var(--maxw, 1280px) / 2) + var(--gut, 28px)));
+
+  /* The plate a contained image sits on. Two jobs: it fills the
+     letterbox bars that `contain` leaves beside a picture whose shape
+     is not the box's shape, and it lifts the spacecraft stills.
+
+     THE SPACECRAFT STILLS ARE NEARLY BLACK. sat-three-quarter.png and
+     its three siblings are a dark body with dark blue solar cells on a
+     TRANSPARENT background. Dropped straight onto the dark theme's
+     --surf they are a black shape on a black ground and the model
+     simply is not there. The radial highlight below is what makes them
+     readable, and it is why these plates are not just var(--surf). */
+  --ksh-plate: radial-gradient(120% 96% at 50% 34%,
+                 rgba(126, 152, 190, .30) 0%,
+                 rgba(126, 152, 190, .10) 46%,
+                 rgba(126, 152, 190, 0) 78%),
+               var(--surf-2, #0E1522);
+
+  /* Ink for type that sits on a photograph. Fixed, not tokenised, and
+     the reason is in the header: the scrim under this type is dark in
+     BOTH themes, so an ink token that flips would go black on black. */
+  --ksh-on-photo:   #F4F8FF;
+  --ksh-on-photo-2: #CBD7E6;
+
+  /* The scrim itself. Two gradients, the same shape the hero uses in
+     css/ksat-minimal.css: one along the leading edge so the copy has a
+     ground, one up from the bottom so the band meets the page. */
+  --ksh-scrim-x: linear-gradient(90deg, rgba(3, 6, 12, .92) 0%, rgba(3, 6, 12, .74) 30%, rgba(3, 6, 12, .18) 58%, rgba(3, 6, 12, 0) 76%);
+  --ksh-scrim-y: linear-gradient(0deg,  rgba(3, 6, 12, .80) 0%, rgba(3, 6, 12, .12) 44%, rgba(3, 6, 12, 0) 68%);
+}
+
+/* In Arabic the page is RTL and the copy sits against the right edge, so
+   the horizontal scrim has to run the other way or the words land on the
+   transparent end of it. Written as a separate declaration rather than
+   with a direction aware gradient because `linear-gradient` has no
+   logical keyword and a 90deg gradient does not flip with dir. */
+html[dir="rtl"] {
+  --ksh-scrim-x: linear-gradient(270deg, rgba(3, 6, 12, .92) 0%, rgba(3, 6, 12, .74) 30%, rgba(3, 6, 12, .18) 58%, rgba(3, 6, 12, 0) 76%);
+}
+
+
+/* =====================================================================
+   1 - TREATMENT 1: THE FULL BLEED EDITORIAL BAND
+   ===================================================================== */
+
+/* THE FULL BLEED TECHNIQUE IS COPIED, NOT REINVENTED.
+
+   css/ksat-minimal.css section 12 breaks the hero out of .wrap with
+   `margin-inline: calc(50% - 50vw); width: 100vw; max-width: 100vw`.
+   That is the whole trick: 50% is half the parent, 50vw is half the
+   viewport, so the difference is exactly the gutter on one side, and a
+   negative margin of that size on both sides puts the element back on
+   the viewport edge. Anything else invented here would behave
+   differently at the one width nobody tests. */
+.ksh-band {
+  position: relative;
+  isolation: isolate;              /* see the z-index note in the header */
+  overflow: hidden;
+  margin-inline: calc(50% - 50vw);
+  width: 100vw;
+  max-width: 100vw;
+
+  display: grid;
+  align-items: end;
+
+  /* THE SHAPE OF THE PHOTOGRAPH, NOT A SHAPE CHOSEN FOR THE LAYOUT.
+     band-kuwait-day.jpg and band-kuwait-night.jpg are 2400 x 1000, so
+     24/10 is their exact ratio and object-fit: cover crops nothing.
+
+     WHY THE MIN-HEIGHT NEVER WINS ABOVE 760px, which is the whole
+     reason it is safe to leave it here. The aspect ratio gives a height
+     of w/2.4, which is 0.4167w. The min-height's middle term is 0.34w.
+     0.34w is smaller than 0.4167w at every width, and the 300px floor
+     only binds below 720px. This rule set only applies above 760px, so
+     the aspect ratio always wins and the photograph is never cropped.
+     The min-height is there purely as a floor for a browser that does
+     not support aspect-ratio. */
+  aspect-ratio: 24 / 10;
+  min-height: clamp(300px, 34vw, 520px);
+
+  /* THE EDGE PADDING IS ON THE BAND, NOT ON THE COPY, AND IT HAS TO BE.
+
+     MEASURED IN THE BROWSER, because the first build got this wrong and
+     the failure was spectacular. .ksh-band__copy carried both
+     `padding-inline: var(--ksh-edge)` and `max-width: min(52ch, 46%)`.
+     The page sets box-sizing: border-box globally, so the max-width is
+     a limit on the BORDER box and the padding is inside it. At a 1738px
+     viewport --ksh-edge resolves to 257px, so the copy was capped at
+     525px total with 514px of that spent on padding:
+
+         .ksh-band__copy   width 525px
+         h2.st inside it   width 10.36px
+
+     A forty pixel headline in a ten pixel column. Every word broke to
+     its own line and the block ran 1256px down past the bottom of a
+     724px band.
+
+     Putting the padding on the BAND fixes it at the root rather than
+     patching it: the grid item is then laid out inside the band's
+     content box, which already starts at the page edge, and its
+     max-width is free to mean what it says. The absolutely positioned
+     photograph is unaffected, because inset:0 resolves against the
+     PADDING box and the padding box still covers the whole band. */
+  padding-inline: var(--ksh-edge);
+  padding-block: clamp(22px, 3vw, 46px);
+
+  background: var(--surf, #0A0F18);
+
+  /* THE BAND IS PULLED UP INTO THE SECTION'S OWN TOP PADDING, AND THE
+     NUMBER IT IS PULLED BY IS MEASURED RATHER THAN CHOSEN.
+
+     css/ksat-agency.css section 2 sets `section.sec { padding-block:
+     clamp(72px, 9vw, 132px) !important }`. At 1424px that resolves to
+     128.13px, and MEASURED IN THE LIVE PAGE the gap between the last
+     line of #legend and the top of this photograph was 258px: #legend's
+     128px of bottom padding, then #mission's 128px of top padding, then
+     the band. Two thirds of a phone screen of empty starfield above the
+     one element on this page that is supposed to read as an opening.
+
+     The reference does not do that. A full bleed editorial band there
+     butts up under what precedes it and the photograph IS the break, so
+     a second break made of air in front of it is the thing the team was
+     looking at when they said the page should work like NASA's.
+
+     WHY A NEGATIVE MARGIN AND NOT A PADDING OVERRIDE. That padding is
+     !important and it belongs to another file that applies it to every
+     section on the site. Overriding it for #mission would make one
+     section march to a different rhythm and would need an !important of
+     our own to do it. A negative margin on OUR OWN element moves only
+     our element: the section box does not move, so the hairline
+     `section.sec + section.sec` draws at the top of #mission stays
+     exactly where it was, and js/ksat-shell.js scrollToId() still lands
+     where it always did.
+
+     THE 28px IS THE AIR THAT IS LEFT and the max() is a floor. The pull
+     can never exceed 100px however large the section padding grows, so
+     a future page that opens a chapter ON this section cannot end up
+     with the photograph shoved under the sticky masthead. At 1424px the
+     floor is what wins, at 28px - 128.13px = -100.13px, and the reader
+     sees the hairline, 28px of page, then the photograph. */
+  margin-block-start: max(-100px, calc(28px - clamp(72px, 9vw, 132px)));
+  margin-block-end: clamp(26px, 3vw, 44px);
+}
+
+/* The photograph. An <img> rather than a background-image because the
+   src is chosen in JavaScript from the theme AND from the viewport
+   width, and because an <img> carries alt text: this page says out loud
+   what every picture on it is, and a background cannot. */
+.ksh-band__img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  display: block;
+}
+
+.ksh-band__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--ksh-scrim-x), var(--ksh-scrim-y);
+  pointer-events: none;
+}
+
+/* The copy, held to the left third and set against the page edge rather
+   than centred in the measure. That is the single most visible
+   difference between the nasa.gov screenshots and what we had. */
+.ksh-band__copy {
+  position: relative;
+  z-index: 2;
+  /* No padding here. See the long note on .ksh-band above: padding and
+     max-width on the same border box is what crushed this column to ten
+     pixels. min() rather than a flat ch value: 58ch is a comfortable
+     measure at this size and 46% keeps the band from being all text on
+     a very wide screen. Neither number is small enough to squeeze a
+     heading, which is the whole complaint this file answers. */
+  max-width: min(58ch, 46%);
+
+  /* THE COLOUR IS DECLARED, NOT INHERITED. See the theme note in the
+     header. Every descendant that carries text re-declares it too,
+     because .eyebrow, h2.st and their children are index.html's nodes
+     and arrive here with their own colour rules already attached. */
+  color: var(--ksh-on-photo);
+}
+
+/* index.html's own eyebrow and h2 are MOVED into this block by
+   js/ksat-home.js rather than copied, so every data-i18n key on them
+   keeps working and js/ksat-i18n.js never knows they travelled. What
+   they need here is ink that survives the photograph. */
+.ksh-band__copy > .eyebrow { margin-bottom: 12px; }
+/* THE `.lab` SELECTOR BELOW MATCHES NOTHING IN #mission AND IS KEPT ONLY
+   FOR THE EYEBROWS THAT DO CARRY ONE.
+
+   MEASURED IN THE LIVE PAGE: the eyebrow this file actually receives is
+   `<div class="eyebrow"><span class="badge real">Measured</span></div>`.
+   There is no `.lab` in it, so this rule painted nothing and the eyebrow
+   was left on whatever ink it inherited. The line under it is the one
+   that does the work; the two below that are the real repair. */
+.ksh-band__copy > .eyebrow .lab { color: var(--ksh-on-photo-2); }
+.ksh-band__copy > .eyebrow { color: var(--ksh-on-photo-2); }
+
+/* THE BAND IS A DARK ISLAND IN THE LIGHT THEME, AND UNTIL THIS BLOCK
+   EXISTED IT WAS THE ONLY ONE ON THE SITE THAT HAD NOT SAID SO.
+
+   THE BUG, MEASURED, NOT GUESSED. In the light theme the provenance
+   badge inside this band came out #0E5F8B, which is the colour
+   css/ksat-nasa.css section 3c picks for a badge sitting on WHITE
+   PAPER. This band is not white paper: the copy sits on the leading
+   edge of the scrim, and sampling the painted ground there at 1424px
+   gave rgb(24, 24, 27). #0E5F8B on rgb(24, 24, 27) is 2.55:1 at 11px.
+   WCAG AA wants 4.5:1. The word "Measured" was present, correctly laid
+   out, and all but unreadable, which is the same failure this project
+   has now shipped three times and which the header of this file warns
+   about in the theme note.
+
+   THE FIX IS NOT A NEW SELECTOR, IT IS THE MECHANISM THAT ALREADY
+   EXISTS. css/ksat-nasa.css section 4 solved this once for the hero and
+   for #intro: a dark island re-points the ink and badge TOKENS on its
+   own scope, and every rule underneath that reads var(--badge-real) or
+   var(--ink) then resolves against the island instead of against the
+   page. One block covers every badge inside this band however deeply it
+   is nested, and it covers any badge a future index.html adds to the
+   eyebrow without this file needing to know about it. Eight more
+   selectors of our own would not have done that.
+
+   THE VALUES ARE COPIED FROM THAT FILE'S HERO BLOCK AND NOT INVENTED.
+   They are index.html's own dark ground values, restored, so the badge
+   in this band reads exactly as the identical badge in the hero does.
+
+   ...AND `color` IS RE-DECLARED, because re-pointing --ink alone is the
+   trap this file's header names: colour is inherited and resolves once,
+   so the eyebrow wrapper would keep the near black it inherited from
+   the light theme body no matter what the token underneath it said. */
+:root[data-theme="light"] .ksh-band__copy {
+  --ink:   #F2F6FA;
+  --ink-2: #C3CEDA;
+  --ink-3: #93A2B3;
+
+  --badge-real:  #9FD9F5;
+  --badge-sim:   #F2C46B;
+  --badge-ai:    #C7A9EE;
+  --badge-demo:  #9FE0B5;
+  --badge-proj:  #F0AF8B;
+  --badge-pub:   #C4D7E8;
+  --badge-unver: #E0C98F;
+  --badge-human: #C9D6E4;
+
+  color: var(--ksh-on-photo);
+}
+/* Below 760px the copy comes out from over the photograph and stands on
+   the page ground, so the island stops being an island and every token
+   above has to go back to whatever the page says. Without this the badge
+   would be a pale #9FD9F5 on the light theme's near white page, which is
+   the same bug pointing the other way.
+
+   `inherit` AND NOT A LIST OF LIGHT VALUES, WHICH IS THE WHOLE POINT.
+   The obvious way to write this block is to paste the light theme's
+   hexes in, and that is wrong: css/ksat-nasa.css declares --ink:#10151B
+   for the light page but the value that actually reaches the screen is
+   #1C232B, because css/ksat-agency.css re-points it further down the
+   cascade. Any hex written here would be a fourth opinion that silently
+   stops matching the page the first time one of those files moves.
+   `inherit` on a custom property takes the parent element's computed
+   value, so these eleven lines mean "whatever this page decided",
+   forever, and there is no number to keep in step.
+
+   THE `color` LINE IS NOT OPTIONAL EITHER. The island rule above is
+   `:root[data-theme="light"] .ksh-band__copy`, three selectors against
+   section 6's single class, so section 6's own `color` declaration for
+   the stacked layout loses the cascade to it. Re-declaring here is what
+   stops the near white band ink following the copy down onto the near
+   white page. Same trap as the header describes, reached by specificity
+   rather than by inheritance. */
+@media (max-width: 760px) {
+  :root[data-theme="light"] .ksh-band__copy {
+    --ink:   inherit;
+    --ink-2: inherit;
+    --ink-3: inherit;
+
+    --badge-real:  inherit;
+    --badge-sim:   inherit;
+    --badge-ai:    inherit;
+    --badge-demo:  inherit;
+    --badge-proj:  inherit;
+    --badge-pub:   inherit;
+    --badge-unver: inherit;
+    --badge-human: inherit;
+
+    color: var(--ink);
+  }
+}
+
+.ksh-band__copy > h2.st {
+  color: var(--ksh-on-photo);
+  /* The size css/ksat-minimal.css section 13 settled on, restated here
+     only because that rule is html[data-ksat-tier="public"] h2.st and
+     the researcher tier renders this band too. No new opinion.
+
+     NO max-width OF ITS OWN. css/ksat-minimal.css section 16 already
+     caps every h2 on the page at 36ch, and the column this one sits in
+     is narrower than that, so the wrap point is decided by the column.
+     An extra cap here would be a third opinion on heading measure and
+     the last one to be added is always the one that squeezes. */
+  margin-bottom: 10px;
+  text-shadow: 0 1px 24px rgba(0, 0, 0, .45);
+}
+
+/* THE HEADLINE SIZE NEEDS !important TO BE NORMAL, AND THE MEASUREMENT
+   IS THE SAME ONE css/ksat-facts.css RECORDS FOR ITS OWN HEADING.
+
+   Measured in the live page inside this band: 72px. The rule that wins
+   is css/ksat-agency.css section 3,
+
+       section.sec h2, h2.st { font-size: clamp(34px,5.4vw,72px)
+                               !important; }
+
+   which is the agency display scale, and clamp(34px, 5.4vw, 72px) is
+   exactly the size the team called too large. css/ksat-minimal.css
+   section 13 already pulled it back to clamp(26px, 2.8vw, 40px), but
+   its selector is html[data-ksat-tier="public"] h2.st and that leaves
+   the band at 72px for a signed in reader, where "KuwaitSat-1 on the
+   record" ran to 147px of headline in a 563px column.
+
+   An !important declaration can only be beaten by another !important
+   one with more specificity, so this takes the SAME value
+   css/ksat-minimal.css settled on, scoped through #mission so the
+   selector clears both of the others and nothing outside this band is
+   touched. Only font-size is claimed: weight, line height and tracking
+   stay with agency.css so the headline matches its neighbours rather
+   than becoming a lookalike that is subtly off. */
+#mission .ksh-band__copy > h2.st {
+  font-size: clamp(26px, 2.8vw, 40px) !important;
+}
+
+.ksh-dek {
+  margin: 0;
+  color: var(--ksh-on-photo-2);
+  font-size: clamp(14px, 1.05vw, 16px);
+  line-height: 1.6;
+  text-align: start;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, .5);
+}
+
+/* One link, which is what the reference does. Not a row of buttons: the
+   hero two sections up already owns the call to action and a second set
+   of them here reads as a page that cannot decide. */
+.ksh-band .ksh-link { margin-top: 16px; }
+
+
+/* =====================================================================
+   2 - THE LINK, USED BY EVERY TREATMENT
+
+   A word, a hairline under it on hover, and a small arrow. No pill, no
+   fill, no border. The reference sets links this way everywhere and it
+   is the reason its pages read as editorial rather than as a control
+   panel.
+   ===================================================================== */
+.ksh-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--disp, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -.005em;
+  text-decoration: none;
+  color: var(--accent, #3FD0C9);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: start;
+}
+/* On a photograph the accent is not the right ink: it is a dark mode
+   teal and it fights the scrim. Declared, not inherited. */
+.ksh-band__copy .ksh-link { color: var(--ksh-on-photo); }
+
+.ksh-link .ksh-arrow {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  /* currentColor, so the arrow follows whichever colour the scope just
+     declared and never has to be re-themed on its own. */
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ksh-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.ksh-link:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+
+/* =====================================================================
+   3 - TREATMENT 2: THE CARD ROW
+
+   Section title on the leading edge, one link on the trailing edge, a
+   hairline under both, then the cards.
+   ===================================================================== */
+.ksh-row { margin-top: clamp(30px, 3.4vw, 48px); }
+
+.ksh-row__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-2, #232C3C);
+}
+
+.ksh-row__title {
+  margin: 0;
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(17px, 1.5vw, 21px);
+  font-weight: 700;
+  letter-spacing: -.012em;
+  line-height: 1.2;
+  color: var(--ink, #E9EFF7);
+  text-align: start;
+  max-width: 30ch;
+}
+
+.ksh-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(14px, 1.5vw, 22px);
+  margin-top: clamp(18px, 2vw, 26px);
+}
+/* The #legend row carries two cards, not four. A modifier rather than a
+   :has() or an nth-child count, because the number of cards is decided
+   in js/ksat-home.js and a stylesheet guessing at it is how a row ends
+   up with two cards stretched across four columns. */
+.ksh-cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Each card is a <button>, because it performs an action inside this
+   page rather than navigating to a document. A button needs its user
+   agent styling taken off completely or it arrives centred, in the
+   system font, with a grey face. */
+.ksh-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  /* Declared: a <button> does not inherit colour from the page the way
+     a <div> does, so without this the label would be the user agent's
+     button text colour, which is near black in both themes. */
+  color: var(--ink, #E9EFF7);
+}
+.ksh-card:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: 4px;
+  border-radius: var(--r, 3px);
+}
+
+/* THE PLATE. 4/3, which is the exact shape of card-*-day.jpg and
+   card-*-night.jpg (1200 x 900), so those three fill it with no crop at
+   all. The spacecraft stills are 756 x 527 and show whole inside it
+   with a little ground either side, which is the "zoomed out so you see
+   the full pic" instruction applied literally. */
+.ksh-card__plate {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r, 3px);
+  overflow: hidden;
+  border: 1px solid var(--line, #182333);
+  background: var(--ksh-plate);
+}
+.ksh-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.ksh-card__body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 13px;
+}
+.ksh-card__t {
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(14.5px, 1.15vw, 16.5px);
+  font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: -.01em;
+  color: var(--ink, #E9EFF7);
+}
+.ksh-card__m {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  /* --ink-2 and not --ink-3. The measurement is in css/ksat-facts.css:
+     --ink-3 comes in at 4.42:1 on the light ground the body actually
+     paints, which misses WCAG AA for body text by 0.08. These meta
+     lines are sentences, so they take the colour that clears. */
+  color: var(--ink-2, #9DAEC2);
+}
+.ksh-card__arrow {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  stroke: var(--accent, #3FD0C9);
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .18s ease;
+}
+.ksh-card:hover .ksh-card__arrow,
+.ksh-card:focus-visible .ksh-card__arrow { transform: translateX(3px); }
+html[dir="rtl"] .ksh-card:hover .ksh-card__arrow,
+html[dir="rtl"] .ksh-card:focus-visible .ksh-card__arrow { transform: translateX(-3px); }
+
+.ksh-card:hover .ksh-card__t { text-decoration: underline; text-underline-offset: 3px; }
+.ksh-card:hover .ksh-card__plate { border-color: var(--line-3, #33475F); }
+
+
+/* ---------------------------------------------------------------------
+   3b - THE PROSE CARDS IN #legend
+
+   The two blocks js/ksat-facts.js builds under the lede, "What the
+   mission set out to do" and "Who built it", are real prose and one
+   quoted specification row. Turning them into image cards with a short
+   label would have deleted the only place on this page where the
+   published objective is quoted verbatim, and that quote is the reason
+   the platform is credible.
+
+   So they keep every word and gain the card row's head and a plate.
+   The plate is 5/2 rather than 4/3 on purpose: at roughly 600px wide a
+   4/3 plate is 450px tall and buries the paragraph under it. 5/2 gives
+   240px, which reads as a banner over an article rather than as a card
+   that has swallowed its own text.
+   --------------------------------------------------------------------- */
+.ksh-plate {
+  position: relative;
+  aspect-ratio: 5 / 2;
+  border-radius: var(--r, 3px);
+  overflow: hidden;
+  border: 1px solid var(--line, #182333);
+  background: var(--ksh-plate);
+  margin-bottom: 16px;
+}
+.ksh-plate img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* THE MOVED BLOCKS BRING THEIR OWN TOP MARGIN WITH THEM.
+
+   css/ksat-facts.css gives .ksf-band `margin-top: 34px`, which is right
+   when the band is one of a stack of bands in a plain column. Once
+   js/ksat-home.js has moved one of them inside a .ksh-row, under a row
+   head that already has its own spacing, or inside a .ksh-feature
+   column where it is the first thing in the column, that 34px is a gap
+   nobody asked for. Reset where the band has a new parent, left alone
+   everywhere else, so nothing changes for a band this file did not
+   move. */
+.ksh-row > .ksf-band { margin-top: clamp(18px, 2vw, 26px); }
+.ksh-feature__copy > .ksf-band { margin-top: 0; }
+
+/* Panels this layer scrolls to. A <section> has scroll-margin-top from
+   index.html and a .panel inside one has none, so a smooth scroll to a
+   panel parks it underneath the sticky masthead and the reader sees the
+   middle of it. js/ksat-home.js adds this class to the node it is about
+   to reveal. */
+.ksh-target { scroll-margin-top: calc(var(--bar-h, 64px) + 18px); }
+
+
+/* =====================================================================
+   4 - TREATMENT 3: THE SIDE BY SIDE FEATURE
+   ===================================================================== */
+.ksh-feature {
+  display: grid;
+  /* The text column is the LARGER one. See the "dont keep text squezed"
+     note in the header: halving the measure is how a side by side
+     feature quietly undoes css/ksat-minimal.css section 16. */
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  gap: clamp(24px, 3vw, 48px);
+  align-items: start;
+}
+.ksh-feature__copy { min-width: 0; }
+
+.ksh-feature__fig { margin: 0; min-width: 0; }
+.ksh-feature__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r, 3px);
+  overflow: hidden;
+  border: 1px solid var(--line, #182333);
+  background: var(--ksh-plate);
+}
+.ksh-feature__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* THE CAPTION KEEPS THE HOUSE CAPTION FACE AND DOES NOT INVENT A FIFTH.
+
+   css/ksat-theme.css section 15g sets every figcaption on this site in
+   var(--mono) at 11.5px with .06em tracking, under a comment that says
+   captions are set "as metadata rather than as prose". That is a
+   deliberate house decision taken across the whole page and a new
+   caption style here would just be the odd one out. So font, size and
+   tracking are inherited untouched.
+
+   THE ONE THING CLAIMED IS THE COLOUR, and the measurement is in
+   css/ksat-facts.css: --ink-3, which that rule hands every figcaption,
+   comes in at 4.42:1 on the light ground the body actually paints,
+   which misses WCAG AA for text this size by 0.08. A caption is a
+   sentence a reader is meant to read, so it takes --ink-2, measured at
+   7.09:1 on the same ground.
+
+   The max-width has to be reclaimed too: `section.sec figcaption
+   { max-width: none }` in that file is more specific than a single
+   class, so this selector carries two. Without it the caption runs the
+   full width of the figure, which at 543px is fine and at 1224px on a
+   stacked phone layout is not. */
+.ksh-feature__fig .ksh-figcap {
+  margin-top: 12px;
+  color: var(--ink-2, #9DAEC2);
+  text-align: start;
+  max-width: 62ch;
+}
+/* THERE IS NO .ksh-credit RULE HERE ANY MORE AND THE ABSENCE IS ON
+   PURPOSE.
+
+   A second line used to sit under each caption, in --ink-3, reading
+   "NASA composite, sampled onto a sphere by this project. Not an image
+   from KuwaitSat-1." The team asked for that text to go. They had
+   already had the three sentence version taken off the Explore cards,
+   and this pass they quoted the long form back and said remove it, so
+   keeping a shorter one under a class of our own would have been
+   ignoring the same instruction twice.
+
+   js/ksat-home.js figureFor() no longer builds the element, and the
+   long comment over that function is where the reasoning lives: the
+   provenance did not move off the page, it is in the ALT table that
+   names the Blue Marble and Black Marble composites on every picture,
+   and in assets/earth/CREDITS.txt.
+
+   IF A FUTURE PASS BRINGS IT BACK, put it in one place in #sources
+   beside the rest of the provenance rather than under every figure,
+   and read the note over figureFor() first. */
+
+/* THE FOUR FIGURE TILES, INSIDE A HALF WIDTH COLUMN.
+
+   css/ksat-facts.css sets .ksf-figs to four equal columns and only
+   breaks it to two at 760px. Inside .ksh-feature__copy the available
+   width at 1424px is about 620px, so four columns would be 155px each
+   and "Kuwait University" at clamp(22px, 2.2vw, 30px) does not fit.
+   That is the squeezed text the team pointed at.
+
+   Two columns, plus the same border repair that file's own 760px query
+   makes: with two columns the third cell starts a new row, so its
+   inline start border would sit on the leading edge of the strip. */
+.ksh-feature .ksf-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ksh-feature .ksf-fig:nth-child(odd) { border-inline-start: 0; padding-inline-start: 0; }
+.ksh-feature .ksf-fig:nth-child(n + 3) { border-top: 1px solid var(--line, #182333); }
+
+
+/* =====================================================================
+   5 - TREATMENT 4: THE TOPIC GRID
+
+   Eight tiles in two rows, each a label over a picture with an arrow.
+   Every tile is a real destination in the public document and every one
+   of them is a call into the router js/ksat-shell.js already owns.
+   ===================================================================== */
+.ksh-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  margin-top: clamp(18px, 2vw, 26px);
+}
+
+.ksh-tile {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r, 3px);
+  overflow: hidden;
+  border: 1px solid var(--line, #182333);
+  background: var(--ksh-plate);
+  appearance: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+  color: var(--ksh-on-photo);      /* declared, not inherited */
+}
+/* A TILE HOLDING A PHOTOGRAPH LOSES THE HIGHLIGHT.
+
+   --ksh-plate is a radial lift and the note on it in section 0 says who
+   it is for: the spacecraft stills and the emblem are transparent PNGs
+   that vanish into a dark ground without it. The Earth frames are not
+   transparent. globe-*.jpg is a disk on black, it is square, a tile is
+   4/3, so contain leaves 12.5 percent of the tile as mat at each side,
+   and MEASURED IN THE LIVE PAGE that mat was painting the highlight:
+   two pale bars either side of a black photograph, which reads as a
+   picture that failed to load.
+
+   A flat near black ground instead, so the mat is the same black the
+   photograph is already on and the disk simply shows whole. On the four
+   1200 x 900 plates this colour is never visible at all, because a 4/3
+   picture fills a 4/3 tile exactly.
+
+   A LITERAL VALUE AND NOT A TOKEN, WHICH IS THE OPPOSITE OF THE RULE
+   THIS FILE FOLLOWS EVERYWHERE ELSE, so the reason is worth stating:
+   this is not a surface, it is the continuation of a specific
+   photograph whose own background is black in both the day and the
+   night plate. A token would flip to near white in the light theme and
+   put the pale bars straight back, which is the bug being fixed.
+   js/ksat-home.js buildGrid() decides which tiles get the class, from
+   the PHOTO_ART list beside artSrc(). */
+.ksh-tile--photo { background: #05080E; }
+
+.ksh-tile__img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* The label sits OVER the picture, which is what treatment 4 does, and
+   it sits on its own scrim so it is legible whatever the tile happens
+   to show. The scrim is dark in both themes and the ink over it is
+   fixed light, for the reason in the header: a token that flipped would
+   put near black type on a near black scrim in light mode. */
+.ksh-tile__label {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 26px 14px 12px;
+  background: linear-gradient(0deg,
+                rgba(3, 6, 12, .92) 0%,
+                rgba(3, 6, 12, .74) 42%,
+                rgba(3, 6, 12, 0) 100%);
+}
+.ksh-tile__t {
+  font-family: var(--disp, sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -.008em;
+  color: var(--ksh-on-photo);
+}
+.ksh-tile__arrow {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin-bottom: 2px;
+  stroke: var(--ksh-on-photo);
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .18s ease;
+}
+.ksh-tile:hover .ksh-tile__arrow,
+.ksh-tile:focus-visible .ksh-tile__arrow { transform: translateX(3px); }
+html[dir="rtl"] .ksh-tile:hover .ksh-tile__arrow,
+html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: translateX(-3px); }
+
+.ksh-tile:hover .ksh-tile__t { text-decoration: underline; text-underline-offset: 3px; }
+.ksh-tile:hover { border-color: var(--line-3, #33475F); }
+.ksh-tile:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: 3px;
+}
+
+
+/* =====================================================================
+   6 - NARROW SCREENS
+
+   Verified at 400px. Three things break and they break in order.
+   ===================================================================== */
+
+/* Four across is too many before the phone breakpoint. Two across keeps
+   the at a glance comparison a row is for; one across is a list. */
+@media (max-width: 1000px) {
+  .ksh-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ksh-grid  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  /* The feature stacks. The picture goes SECOND, under the text, because
+     the text is the content and the picture illustrates it, and because
+     a reader who has scrolled to a heading expects the next thing to be
+     the paragraph that belongs to it. */
+  .ksh-feature { grid-template-columns: minmax(0, 1fr); }
+
+  /* Once the copy is full width again, .ksf-figs can have its own four
+     columns back. Above 760px css/ksat-facts.css still wants four, and
+     this file only overrode that because the column was half width. */
+  .ksh-feature .ksf-figs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ksh-feature .ksf-fig:nth-child(odd) { border-inline-start: 1px solid var(--line, #182333); }
+  .ksh-feature .ksf-fig:first-child { border-inline-start: 0; padding-inline-start: 0; }
+  .ksh-feature .ksf-fig:nth-child(n + 3) { border-top: 0; }
+}
+
+/* THE BAND STOPS BEING AN OVERLAY.
+
+   At 760px the 24/10 band is 317px tall. A title at 26px, three lines
+   of dek and a link need about 190px of that and would sit in a column
+   about 350px wide over a photograph. It is readable and it is ugly.
+   Below this width the band becomes what the reference also does on a
+   phone: the picture, then the words under it on the page ground.
+
+   js/ksat-home.js swaps the art at the same 760px, from the 2400 x 1000
+   band plate to the 1200 x 900 card plate, so the box below is 4/3 and
+   the new picture fills it exactly. One breakpoint, two files, and the
+   number is written in both of them with this comment beside it. */
+@media (max-width: 760px) {
+  .ksh-band {
+    display: block;
+    aspect-ratio: auto;
+    min-height: 0;
+    background: none;
+    overflow: visible;
+    /* The photograph runs to the viewport edge and the words come back
+       inside the page gutter, so the edge padding moves off the band
+       and onto the copy for this layout only. */
+    padding-inline: 0;
+    padding-block: 0;
+  }
+  .ksh-band__img {
+    position: relative;
+    inset: auto;
+    aspect-ratio: 4 / 3;
+    height: auto;
+    object-fit: cover;          /* 4/3 art in a 4/3 box: no crop */
+    border-radius: 0;
+  }
+  /* Nothing to scrim once nothing sits on the photograph. */
+  .ksh-band__scrim { display: none; }
+
+  .ksh-band__copy {
+    max-width: none;
+    /* var(--gut) and not var(--ksh-edge): below 760px the second term
+       of --ksh-edge is negative and max() already falls back to the
+       gutter, so the two are the same number here. Written as --gut
+       because that is what it means at this width. */
+    padding-inline: var(--gut, 20px);
+    padding-block: 20px 0;
+    /* BACK ONTO PAGE INK. The copy is no longer over a photograph, so
+       the fixed light values would now be near white type on the light
+       theme's near white ground. Re-declared on every element that
+       carries text, for the reason in the header: repointing the scope
+       is not enough, colour resolves once. */
+    color: var(--ink, #E9EFF7);
+  }
+  .ksh-band__copy > h2.st { color: var(--ink, #E9EFF7); text-shadow: none; }
+  /* Both selectors, for the reason given at the desktop rule: the
+     eyebrow #mission hands this band carries a `.badge`, not a `.lab`,
+     so the first line alone painted nothing and the eyebrow kept the
+     fixed light ink it wears over the photograph, on the page ground. */
+  .ksh-band__copy > .eyebrow .lab { color: var(--ink-3, #64778D); }
+  .ksh-band__copy > .eyebrow { color: var(--ink-3, #64778D); }
+  .ksh-band__copy .ksh-dek { color: var(--ink-2, #9DAEC2); text-shadow: none; }
+  .ksh-band__copy .ksh-link { color: var(--accent, #3FD0C9); }
+}
+
+@media (max-width: 560px) {
+  /* One card per row at phone width: two 4/3 plates side by side inside
+     a 368px content column are 170px wide, and a two line label under a
+     170px picture is the squeezed text this whole file exists to stop.
+     The tiles stay two across, because a tile label is one short line
+     and eight of them stacked is a very long list. */
+  .ksh-cards, .ksh-cards.two { grid-template-columns: minmax(0, 1fr); }
+  .ksh-plate { aspect-ratio: 16 / 9; }
+  .ksh-row__head { gap: 8px; }
+}
+
+
+/* =====================================================================
+   7 - MOTION
+
+   There is no rAF in js/ksat-home.js and nothing here animates on load.
+   The only motion is a 3px arrow nudge on hover and focus, and the
+   smooth scroll the cards ask for, which js/ksat-home.js turns off by
+   passing behavior:'auto' when the query matches.
+
+   Under prefers-reduced-motion everything below goes to none. Written
+   as `transition: none` rather than a duration of 0 so it cannot be
+   re-enabled by a longhand somewhere else winning the cascade.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .ksh-card__arrow,
+  .ksh-tile__arrow {
+    transition: none;
+  }
+  .ksh-card:hover .ksh-card__arrow,
+  .ksh-card:focus-visible .ksh-card__arrow,
+  .ksh-tile:hover .ksh-tile__arrow,
+  .ksh-tile:focus-visible .ksh-tile__arrow,
+  html[dir="rtl"] .ksh-card:hover .ksh-card__arrow,
+  html[dir="rtl"] .ksh-card:focus-visible .ksh-card__arrow,
+  html[dir="rtl"] .ksh-tile:hover .ksh-tile__arrow,
+  html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow {
+    transform: none;
+  }
+}
+
+
+/* =====================================================================
+   8 - ARROWS IN ARABIC
+
+   An arrow is the one glyph that does not flip with dir, because it is
+   geometry rather than text. The SVG js/ksat-home.js draws points at
+   the inline end in English; in Arabic the inline end is the other side
+   of the screen and an arrow still pointing right is pointing back at
+   the text it came from.
+
+   scaleX(-1) on the SVG itself rather than a second path, so there is
+   one arrow in the codebase and it can never get out of step with its
+   mirror image.
+   ===================================================================== */
+html[dir="rtl"] .ksh-arrow,
+html[dir="rtl"] .ksh-card__arrow,
+html[dir="rtl"] .ksh-tile__arrow {
+  transform: scaleX(-1);
+}
+/* The hover nudge above composes with the mirror, so the RTL hover rules
+   have to restate both transforms or the mirror is lost the moment the
+   pointer arrives. */
+html[dir="rtl"] .ksh-card:hover .ksh-card__arrow,
+html[dir="rtl"] .ksh-card:focus-visible .ksh-card__arrow { transform: scaleX(-1) translateX(3px); }
+html[dir="rtl"] .ksh-tile:hover .ksh-tile__arrow,
+html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: scaleX(-1) translateX(3px); }
+@media (prefers-reduced-motion: reduce) {
+  html[dir="rtl"] .ksh-card:hover .ksh-card__arrow,
+  html[dir="rtl"] .ksh-card:focus-visible .ksh-card__arrow,
+  html[dir="rtl"] .ksh-tile:hover .ksh-tile__arrow,
+  html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: scaleX(-1); }
+}
+
+
+/* =====================================================================
+   9 - PRINT
+
+   The bands and the tiles are navigation and decoration. On paper they
+   are eight pictures of Earth in front of the record somebody printed
+   the page for, so they come off and the copy stays.
+   ===================================================================== */
+@media print {
+  .ksh-band__img, .ksh-band__scrim, .ksh-grid, .ksh-card__plate, .ksh-plate { display: none; }
+  /* margin-block-start comes back to 0 as well as the inline ones. On
+     paper the photograph is gone, so the negative margin that pulled
+     the band up over the section's padding would only drag the heading
+     up into whatever was printed above it. */
+  .ksh-band { aspect-ratio: auto; min-height: 0; margin: 0; width: auto; padding: 0; }
+  .ksh-band__copy { max-width: none; padding-inline: 0; color: #000; }
+  .ksh-band__copy > h2.st, .ksh-band__copy .ksh-dek { color: #000; text-shadow: none; }
+}

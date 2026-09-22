@@ -175,8 +175,6 @@
     featured: { en: 'Featured',                    ar: 'مختارات' },
     /* The imagery credit. assets/earth/CREDITS.txt is the long version;
        this is the short one the reader actually sees. */
-    credit:   { en: 'Imagery on these cards is NASA Blue Marble and Black Marble composites, reprojected onto a sphere by this project. NASA does not endorse this platform. Full provenance in assets/earth/CREDITS.txt.',
-                ar: 'الصور في هذه البطاقات مركّبات Blue Marble وBlack Marble من ناسا، أُعيد إسقاطها على كرة في هذا المشروع. ناسا لا تعتمد هذه المنصة. المنشأ الكامل في assets/earth/CREDITS.txt.' },
     /* The language row. It names the language you would switch TO, so in
        English it reads Arabic and in Arabic it reads English, and each
        carries lang= so a screen reader changes voice for that one word
@@ -642,7 +640,7 @@
   /* ===================================================================
      5 · BUILD
      =================================================================== */
-  var panel = null, list = null, cardWrap = null, cardHead = null, credit = null, navBox = null;
+  var panel = null, list = null, cardWrap = null, cardHead = null, navBox = null;
   var activeKey = TOPICS[0].key;      /* which row is underlined */
   var shownKey  = null;               /* which row's cards are on screen */
 
@@ -668,11 +666,9 @@
     feat.appendChild(cardHead);
     feat.appendChild(cardWrap);
 
-    credit = el('p', 'ksat-ex-credit');
 
     inner.appendChild(navBox);
     inner.appendChild(feat);
-    inner.appendChild(credit);
     panel.appendChild(inner);
 
     /* Inside #ksat-nav on purpose. See the header: this is what makes
@@ -735,7 +731,6 @@
   function paint() {
     navBox.setAttribute('aria-label', t('panel'));
     cardHead.textContent = t('featured');
-    credit.textContent = t('credit');
 
     var ar = isRTL();
     rows().forEach(function (b) {
@@ -1193,7 +1188,7 @@
     if (!nav || typeof MutationObserver === 'undefined') return;
     new MutationObserver(function () {
       if (document.getElementById('ksat-ex')) { adoptButton(); return; }
-      panel = list = cardWrap = cardHead = credit = navBox = null;
+      panel = list = cardWrap = cardHead = navBox = null;
       shownKey = null;
       if (build()) { wire(); sync(); }
     }).observe(nav, { childList: true });
