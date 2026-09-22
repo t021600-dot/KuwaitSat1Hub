@@ -916,6 +916,14 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
      light mode - the door to the research workspace stays dark in both
      themes, for the same reason the masthead does. -->
 <link rel="stylesheet" href="css/ksat-stars.css">
+<!-- ksat-hero-orbit.css pulls the hero spacecraft back and walks it
+     along the arc of its pass over the limb. After ksat-minimal.css,
+     which is where .hero-sat is sized and placed. -->
+<link rel="stylesheet" href="css/ksat-hero-orbit.css">
+<!-- ksat-spacecraft.css dresses the block js/ksat-spacecraft.js adds at
+     the foot of #mission, and folds the specification fold and the
+     concept chain away for the public tier only. -->
+<link rel="stylesheet" href="css/ksat-spacecraft.css">
 
 <!-- ============ THE THREE NEW LAYERS =============================
      nav, export and session. Three separate agents each asked for
@@ -6229,6 +6237,14 @@ addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcD
 <!-- The star field behind the sign-in gate. Order does not matter: it
      owns no existing node and waits for #ksat-gate to be built. -->
 <script src="js/ksat-stars.js"></script>
+<!-- ksat-hero-orbit.js asks js/ksat-cubesat.js for a wider shot through
+     the view() handle that file publishes, and pauses the pass while the
+     model is being dragged. Must come after ksat-cubesat.js. -->
+<script src="js/ksat-hero-orbit.js"></script>
+<!-- ksat-spacecraft.js reads #specTable and #conceptFlow and re-presents
+     them at the foot of #mission beside the flight-unit photograph. After
+     ksat-home.js, whose card row it repoints. -->
+<script src="js/ksat-spacecraft.js"></script>
 
 <!-- ============ THE THREE NEW LAYERS =============================
      All three are CLASSIC scripts, and that is load-bearing rather

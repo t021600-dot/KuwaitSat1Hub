@@ -1,0 +1,105 @@
+/* =====================================================================
+   ksat-hero-orbit.css — THE SPACECRAFT TRAVELS, AND IS FURTHER AWAY
+   Owner: 01 Front End.  Companion to js/ksat-hero-orbit.js.
+
+   ---------------------------------------------------------------------
+   THE BRIEF
+   ---------------------------------------------------------------------
+   "i want our satlight in here to be little zoomed out and moves around
+   earth just like that".
+
+   Two separate things, and only one of them is CSS.
+
+   · ZOOMED OUT is the renderer's job. js/ksat-cubesat.js derives its
+     focal length from the stage height — FOC = Hh * 2.9 * V.zoom — so
+     shrinking the box here would shrink the canvas the model travels
+     inside as well, and the travel is the other half of the brief.
+     js/ksat-hero-orbit.js calls the API that file already publishes,
+     KSAT.cubesat.view(ry, rx, zoom), and leaves the box alone.
+
+   · MOVES AROUND EARTH is CSS, and deliberately so. The renderer's
+     loop redraws only when the model is turning; sliding the canvas
+     with a transform costs no redraw at all, runs on the compositor,
+     and — the reason that matters most here — is switched off by
+     prefers-reduced-motion without a line of script.
+
+   ---------------------------------------------------------------------
+   THE PATH, AND WHY IT IS NOT A CIRCLE
+   ---------------------------------------------------------------------
+   The hero photograph is Earth's limb sweeping across the lower half of
+   the frame; the planet's centre is a long way below the bottom edge. A
+   true circular orbit drawn about that centre would leave the frame at
+   both sides and spend most of its period off screen.
+
+   What is drawn instead is the ARC OF THAT ORBIT THAT IS IN FRAME: the
+   spacecraft comes up over the limb on the right, rides highest and
+   nearest at the middle of the pass, and settles back toward the limb
+   on the left. Three things move together, because all three are what
+   the eye reads as distance:
+
+       translateY   low at both ends, high in the middle
+       scale        .80 at the ends, 1 at the middle — a real pass
+                    brings the spacecraft nearer as well as higher
+       opacity      fades at both ends, where it is over the horizon
+
+   THE PASS STAYS IN THE RIGHT HALF OF THE HERO. Measured at a 1424px
+   viewport: the headline's line box ends at x=562 and the stage's left
+   edge is at x=799, so a -30% travel puts the spacecraft's box at 631 —
+   69px of clearance. Any further and the antennas reach the word
+   "Greener".
+
+   ---------------------------------------------------------------------
+   THE STILL FRAME IS THE MIDDLE OF THE PASS
+   ---------------------------------------------------------------------
+   This machine has Windows animation effects switched off, so this team
+   sees the reduced-motion branch of every page they build — which means
+   the resting pose is not a detail, it is what they will actually look
+   at. The base transform on .ksat-cs is the 50% keyframe: highest,
+   nearest, fully opaque. The animation starts and ends away from it and
+   passes back through it, so the moving page and the still page agree
+   about where the spacecraft belongs.
+   ===================================================================== */
+
+html[data-ksat-tier="public"] .hero-sat .ksat-cs {
+  /* The 50% keyframe, as a still. See the note above. */
+  transform: translate3d(0, -4%, 0);
+  will-change: transform;
+}
+
+@keyframes ksat-hero-orbit {
+  0%   { transform: translate3d(30%, 13%, 0) scale(.80); opacity: 0; }
+  9%   { opacity: 1; }
+  50%  { transform: translate3d(0, -4%, 0) scale(1); opacity: 1; }
+  91%  { opacity: 1; }
+  100% { transform: translate3d(-30%, 13%, 0) scale(.80); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-ksat-tier="public"] .hero-sat .ksat-cs {
+    /* 54 seconds for one pass. KuwaitSat-1's real period is about 93
+       minutes, so this is not a clock and does not pretend to be; it is
+       slow enough that the movement is noticed rather than watched,
+       which is the speed a masthead animation wants. `linear` because
+       an orbit has no ease-out. */
+    animation: ksat-hero-orbit 54s linear infinite;
+  }
+  /* Dragging the model is a direct manipulation and the pass would
+     fight it. js/ksat-hero-orbit.js sets this while a pointer is down
+     on the figure, and clears it on release. */
+  html[data-ksat-tier="public"] .hero-sat .ksat-cs[data-ksat-held] {
+    animation-play-state: paused;
+  }
+}
+
+/* Below 900px css/ksat-minimal.css re-centres the stage with a
+   translateX(50%) on .hero-sat itself and drops it to 55% opacity — the
+   spacecraft is behind the words there rather than beside them. A pass
+   across a 62vw box would run it under the headline, so on a phone it
+   holds the still pose. The transform above is on the FIGURE and the
+   centring is on its PARENT, so the two never contend. */
+@media (max-width: 900px) {
+  html[data-ksat-tier="public"] .hero-sat .ksat-cs {
+    animation: none;
+    transform: none;
+  }
+}

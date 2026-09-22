@@ -1,0 +1,401 @@
+/* =====================================================================
+   ksat-spacecraft.css — THE SPACECRAFT BLOCK
+   Owner: 01 Front End.  Companion to js/ksat-spacecraft.js.
+
+   ---------------------------------------------------------------------
+   WHAT THIS REPLACES, AND WHAT IT DOES NOT DELETE
+   ---------------------------------------------------------------------
+   "remove this — i dont like it like that". The thing pointed at was
+   the bottom half of #mission: a twelve row table folded shut behind a
+   summary, beside a column of four stacked Concept chain boxes. What
+   the reader actually saw was a heading, a chevron, and 300px of empty
+   panel where the table would be if they opened it.
+
+   Section 1 folds that grid away FOR THE PUBLIC TIER ONLY. It is not
+   removed from the page. A signed-in researcher who comes back to the
+   hub still gets the original blocks, unchanged, because the twelve
+   entries and the chain are also working reference for them and this
+   layer has no business deciding that for a different audience.
+
+   The data itself is untouched in both tiers: js/ksat-spacecraft.js
+   READS #specTable and #conceptFlow and re-presents them. Hiding the
+   originals with `display:none` rather than removing them is what makes
+   that possible — a removed table has no rows to read.
+
+   ---------------------------------------------------------------------
+   THE SHAPE, AND WHY IT IS THIS SHAPE
+   ---------------------------------------------------------------------
+   nasa.gov's long pages alternate one full-width picture against one
+   column of prose, then break into a plain grid of figures with no
+   boxes around them. Panels, cards, rounded corners and fills are what
+   made the original read as a dashboard. So there is not one panel in
+   this file: every division below is a hairline and a change of type
+   size. The only filled surface is the plate behind the photograph, and
+   that is a radial glow rather than a box, because the photograph is
+   cut out and would otherwise float on nothing.
+
+   ---------------------------------------------------------------------
+   COLOUR IS ALL TOKENS HERE
+   ---------------------------------------------------------------------
+   Unlike the masthead, this block is in the page body and must follow
+   the theme. css/ksat-nasa.css repoints every token below for the light
+   theme, so not one literal colour appears in this file — with the
+   single exception of the photograph's glow, which is an rgba() of the
+   accent and is documented where it is used.
+   ===================================================================== */
+
+
+/* =====================================================================
+   1 · THE ORIGINAL GRID, FOLDED AWAY FOR THE PUBLIC TIER
+
+   .grid.g-53 inside #mission holds all three: the specification fold,
+   the concept chain panel and the ground segment panel. All three are
+   re-presented below, so showing both would be the same content twice
+   on one screen — which is the actual complaint, stated a different
+   way.
+
+   display:none rather than visibility or height: the grid is 700px tall
+   and anything that leaves it in the flow leaves the hole the team was
+   looking at. The nodes stay in the DOM for js/ksat-spacecraft.js to
+   read and for js/ksat-home.js's twelve-row count assertion, both of
+   which query the document rather than the rendering.
+   ===================================================================== */
+html[data-ksat-tier="public"] #mission > .grid.g-53 { display: none; }
+
+
+/* =====================================================================
+   2 · THE BLOCK
+   ===================================================================== */
+.kss {
+  margin-top: clamp(26px, 3.4vw, 46px);
+  padding-top: clamp(26px, 3.4vw, 46px);
+  border-top: 1px solid var(--line);
+}
+
+/* ---- 2a · the opening ---------------------------------------------- */
+.kss-h {
+  font-family: var(--disp);
+  /* Deliberately below the section's own h2. This is a part of "KuwaitSat-1
+     on the record", not a rival to it, and the team have already said
+     once that the titles on this page are too large. */
+  font-size: clamp(22px, 2.5vw, 31px);
+  font-weight: 600;
+  line-height: 1.16;
+  letter-spacing: -.01em;
+  margin: 0;
+  color: var(--ink);
+  max-width: 22ch;
+}
+.kss-lede {
+  margin: 14px 0 0;
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.62;
+  color: var(--ink-2);
+  /* 62ch, not the page's 56ch: this paragraph sits above a two column
+     split and a shorter measure would leave it looking like a caption
+     for the picture underneath. */
+  max-width: 62ch;
+}
+
+/* ---- 2b · the photograph, then the four readings --------------------
+
+   THIS WAS A TWO COLUMN SPLIT FOR ONE BUILD AND THE SPLIT DID NOT WORK.
+   The picture is 454px tall and the four readings run to about 2,000px,
+   so the left column was a photograph followed by two screens of
+   nothing. The obvious repair is position:sticky on the figure, and it
+   is the wrong repair HERE for a reason worth writing down:
+
+       body carries `overflow-x: hidden`. When one axis of overflow is
+       not `visible`, CSS computes the other axis to `auto` — so body's
+       computed overflow is `hidden auto` and body is a scroll
+       container. It is not the one that scrolls, though; html is. A
+       sticky element's range is its NEAREST scrolling ancestor, which
+       is therefore body, and body's clientHeight equals its
+       scrollHeight. Zero range. The element is `position: sticky` in
+       the computed style and never moves, which is the most confusing
+       way for this to fail.
+
+   So the block takes nasa.gov's actual pattern instead, which is also
+   the simpler one: one picture across the measure, then the reading
+   under it in two columns. No empty column, no dependence on anybody
+   else’s overflow declaration.
+   --------------------------------------------------------------------- */
+.kss-top {
+  margin-top: clamp(24px, 3vw, 40px);
+}
+
+.kss-shot {
+  margin: 0 auto;
+  /* 720px at a 1300px measure is a little over half the page, which is
+     the size a single object photograph wants: large enough to read the
+     hinges and the antenna mounts, not so large that a 752px source is
+     being enlarged past its own resolution. */
+  max-width: min(100%, 720px);
+  /* THE GLOW, AND THE ONE LITERAL IN THIS FILE.
+     assets/cards/ksat1-flight-unit.png is cut out — the spacecraft is a
+     black anodised frame with no ground behind it, and on --void it
+     loses its own silhouette. A radial wash lifts the ground just
+     enough for the edges to read. It is the accent at 15%, written as
+     an rgba() because a colour-mix() of a token is not supported far
+     enough back and the value is a lighting effect rather than a
+     semantic colour. Both themes are served: on the light theme --void
+     is near-white and the same wash reads as a soft shadow. */
+  background:
+    radial-gradient(58% 58% at 50% 46%, rgba(61, 139, 255, .15), rgba(61, 139, 255, 0) 72%);
+  padding: clamp(10px, 2vw, 26px);
+}
+.kss-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* The source is 752x454 with a transparent ground, so there is no box
+     to round and no border to draw. */
+}
+.kss-cap {
+  margin: 14px auto 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  max-width: 62ch;
+  text-align: center;
+}
+
+/* TWO COLUMNS, AND THE MEASURE IS CAPPED INSIDE THEM.
+   Two tracks across a 1300px block give each paragraph about 70
+   characters before the cap and 62 after it, which is inside the 45-75
+   every typographic authority agrees on. The earlier arrangement — two
+   tracks inside the 54% half of the page — gave 30, and "dont keep text
+   squezed like that" is already written on this project once. */
+.kss-read {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 40px) clamp(28px, 3.6vw, 60px);
+  margin-top: clamp(30px, 3.6vw, 48px);
+}
+@media (max-width: 900px) {
+  .kss-read { grid-template-columns: minmax(0, 1fr); }
+}
+.kss-block { margin: 0; }
+.kss-block__t {
+  margin: 0 0 8px;
+  font-family: var(--disp);
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.kss-block__p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.68;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+
+/* =====================================================================
+   3 · THE THREE DECLARED PARTS BELOW IT
+
+   Each one opens with the same head: a title, the mark that says what
+   kind of number is under it, and one line saying where it came from.
+   The page's whole argument is that those three things travel together,
+   so they are one component here rather than three decisions.
+   ===================================================================== */
+.kss-part {
+  margin-top: clamp(30px, 3.6vw, 52px);
+  padding-top: clamp(20px, 2.4vw, 30px);
+  border-top: 1px solid var(--line);
+}
+/* The block lands here from the card row above it. Without this the
+   heading stops under a 76px masthead. */
+.kss-part:focus { outline: none; }
+.kss-part { scroll-margin-top: calc(var(--bar-h, 76px) + 22px); }
+
+.kss-head__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.kss-head__t {
+  margin: 0;
+  font-family: var(--disp);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--ink);
+}
+.kss-head__n {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  max-width: 70ch;
+}
+
+/* ---- 3a · four figures, each showing its working -------------------- */
+.kss-figs {
+  list-style: none;
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 30px);
+}
+@media (max-width: 1080px) { .kss-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px)  { .kss-figs { grid-template-columns: minmax(0, 1fr); } }
+
+.kss-fig {
+  display: grid;
+  gap: 5px;
+  padding-top: 14px;
+  /* A rule above each figure rather than a box around it. This is the
+     one piece of furniture nasa.gov uses for a figure row and it is the
+     reason that row does not read as a set of cards. */
+  border-top: 2px solid var(--line-3);
+}
+.kss-fig__v {
+  font-family: var(--mono);
+  font-size: clamp(20px, 2vw, 25px);
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.kss-fig__l {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.kss-fig__w {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+  letter-spacing: .01em;
+  color: var(--ink-3);
+}
+
+/* ---- 3b · the twelve entries, unfolded ------------------------------
+
+   THE GRID ITEM IS THE ENTRY, NOT THE CELL, and that is the whole of
+   this rule. Loose <dt> and <dd> children of a two track grid flow one
+   per track, so the first build put all twelve LABELS in the left
+   column and all twelve VALUES in the right, each label carrying a rule
+   that stopped halfway across the block and lined up with nothing.
+   js/ksat-spacecraft.js wraps each pair in a div — valid inside a <dl>
+   in HTML5 — and the div is what the grid places.
+   --------------------------------------------------------------------- */
+.kss-dl {
+  margin: clamp(16px, 2vw, 24px) 0 0;
+  display: grid;
+  /* Two entries across on a wide screen. Twelve in one column is the
+     table again, only taller. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(30px, 4vw, 64px);
+}
+@media (max-width: 860px) { .kss-dl { grid-template-columns: minmax(0, 1fr); } }
+
+.kss-e {
+  display: grid;
+  gap: 4px;
+  padding: 13px 0 15px;
+  border-top: 1px solid var(--line);
+  align-content: start;
+}
+.kss-dt {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.kss-dd {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* ---- 3c · the chain, laid along the page ---------------------------- */
+/* THE NUMBER OF STEPS IS THE PAGE'S, NOT THIS FILE'S. #conceptFlow has
+   six of them today and had four when it was written. A fixed four
+   track grid puts 4 on one row and 2 orphaned on the next, which is the
+   worst of both. js/ksat-spacecraft.js publishes the count it actually
+   read, the same way js/ksat-explore.js does on its card list, and the
+   two cases that are not a clean row get a track count that divides. */
+.kss-steps {
+  list-style: none;
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: clamp(16px, 2vw, 30px);
+}
+.kss-steps[data-count="5"],
+.kss-steps[data-count="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1080px) {
+  .kss-steps,
+  .kss-steps[data-count="5"],
+  .kss-steps[data-count="6"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .kss-steps,
+  .kss-steps[data-count="5"],
+  .kss-steps[data-count="6"] { grid-template-columns: minmax(0, 1fr); }
+}
+
+.kss-step {
+  display: grid;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-3);
+}
+.kss-step__n {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--accent);
+}
+.kss-step__t {
+  font-family: var(--disp);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.kss-step__d {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+
+/* =====================================================================
+   4 · RIGHT TO LEFT
+
+   js/ksat-spacecraft.js sets dir on the block itself, so every logical
+   property above flips for free. Two things do not, because they are
+   physical by nature:
+   ===================================================================== */
+.kss[dir="rtl"] .kss-fig__w,
+.kss[dir="rtl"] .kss-fig__v {
+  /* A formula and a numeral are left-to-right runs even inside an
+     Arabic paragraph. Without this the "→" in the working line jumps to
+     the wrong end of it. */
+  direction: ltr;
+  text-align: right;
+}
+.kss[dir="rtl"] .kss-dt { letter-spacing: 0; }   /* tracking is a Latin idea */
+
+
+/* =====================================================================
+   5 · PRINT
+
+   The photograph is 130KB of dark pixels and a page of it is a page of
+   toner. The figures and the record are the part worth carrying out of
+   the room.
+   ===================================================================== */
+@media print {
+  .kss-shot { display: none; }
+  .kss-top, .kss-read, .kss-figs, .kss-dl, .kss-steps { grid-template-columns: 1fr 1fr; }
+  .kss-part { break-inside: avoid; }
+}

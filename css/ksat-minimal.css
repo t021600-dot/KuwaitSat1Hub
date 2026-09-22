@@ -1166,3 +1166,186 @@ html[data-ksat-tier="public"] .ksh-row a.tag:hover {
 html[data-ksat-tier="public"] .ksh-band__copy a.tag {
   color: var(--ink-2, #C3CEDA) !important;
 }
+
+
+/* =====================================================================
+   14 · THE ALIGNMENT, MEASURED OFF nasa.gov RATHER THAN REMEMBERED
+
+   The team looked at the two bars side by side and said ours "should
+   look like this and alligned like this". The three-part shape was
+   already right — Explore and search left, emblem centre, utilities
+   right — so what was left was the geometry and the weight, and those
+   were guessed. They are now measured. Opened www.nasa.gov at a 1265px
+   viewport and read the computed values off the live elements:
+
+       Explore          x = 16      font 14.08px / 400, white
+       search field     x = 161     200 x 32, 0.66px solid #565C65,
+                                    border-radius 0, black ground
+       nav words        weight 700, ~14px, flush to the right gutter
+       masthead ground  rgb(0,0,0), no bottom rule
+
+   TWO NUMBERS MATTERED AND ONE DID NOT.
+
+   · The gutter. nasa.gov's masthead is FULL BLEED with a 16px inset.
+     Ours sat inside .bar-in, which css/ksat-theme.css caps at 1280px
+     and centres, so at a 1424px viewport "Explore" started 92px in —
+     64px of dead margin plus 28px of padding. That is the whole of the
+     "alligned like this": their word is on the edge of the screen and
+     ours was floating in a column. Section 1 already made the bar one
+     row; this makes it one row that reaches the glass.
+
+   · The weight. Theirs is bold white at reading size. Ours was 15px/600
+     on the left (section 6 fixed that much) and a row of filled chips
+     on the right, which is a toolbar, not a masthead.
+
+   · The 0.66px border did not. That is a device-pixel-ratio artefact of
+     the machine it was measured on, not a design decision. 1px.
+
+   WHY THE FILLS COME OFF THE RIGHT-HAND CONTROLS. nasa.gov's right side
+   is three plain words. We have three CONTROLS there — language, theme,
+   sign in — and a control has to show its state. A filled teal segment
+   is one way to show it and an underline is another; the underline is
+   the one that still reads as a masthead. The selected segment keeps
+   the accent, in the text and in the rule beneath it, so nothing about
+   which language or theme is on becomes less visible. Contrast measured
+   on the bar's own black: #F2F6FA is 17.4:1, the teal #3FD0C9 is 10.6:1.
+
+   COLOUR IS LITERAL HERE, and section 6 already argued why: this bar is
+   the one element that stays dark in both themes, so a token that flips
+   with the theme is the wrong tool for it. Every value below is the
+   dark-bar value and is meant to be.
+   ===================================================================== */
+
+/* --- 14a · the bar reaches the edge of the glass -------------------- */
+html[data-ksat-tier="public"] .bar-in {
+  max-width: none;
+  width: 100%;
+  /* 16px at nasa.gov's 1265px is 1.27vw. clamp keeps that proportion in
+     the middle of the range and stops it collapsing on a phone or
+     drifting to a hand's width on a 4K panel. */
+  padding-inline: clamp(16px, 1.5vw, 26px);
+}
+
+/* --- 14b · Explore sits ON the gutter ------------------------------- */
+html[data-ksat-tier="public"] #ksat-min-explore {
+  /* Section 3 gave the button 9px of side padding, which pushed the
+     word off the gutter by 9px and put a pill-shaped hover fill around
+     it. nasa.gov has neither. */
+  padding-inline: 0;
+  padding-block: 8px;
+  border-radius: 0;
+  font-weight: 700;
+  gap: 9px;
+  margin-inline-end: 22px;
+}
+/* The hover fill from section 6 is a pill around a word that is meant
+   to sit on the edge of the screen. An underline is the same signal
+   without the box. */
+html[data-ksat-tier="public"] #ksat-min-explore:hover,
+html[data-ksat-tier="public"] #ksat-min-explore[aria-expanded="true"] {
+  background: none;
+}
+html[data-ksat-tier="public"] #ksat-min-explore:hover .ksat-min-explore-t,
+html[data-ksat-tier="public"] #ksat-min-explore[aria-expanded="true"] .ksat-min-explore-t {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* THE CHEVRON HAD NO CHEVRON IN IT. js/ksat-minimal.js builds an empty
+   aria-hidden span and section 3 sized it, bordered it and rotated it —
+   so what shipped was a bare 16px ring next to the word. On nasa.gov
+   there is a small caret inside the ring, and it is the caret that
+   makes the pair read as "this opens". Drawn as two borders rather than
+   a glyph, because a caret character is a different shape in every
+   fallback font and this one has to be centred inside a circle. */
+html[data-ksat-tier="public"] .ksat-min-chev {
+  width: 19px;
+  height: 19px;
+  border-color: currentColor;
+  opacity: .75;
+}
+html[data-ksat-tier="public"] .ksat-min-chev::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-right: 1.4px solid currentColor;
+  border-bottom: 1.4px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+html[data-ksat-tier="public"] #ksat-min-explore:hover .ksat-min-chev { opacity: 1; }
+
+/* --- 14c · the search field ----------------------------------------- */
+html[data-ksat-tier="public"] .bar .ksat-nav-find {
+  /* 200 x 32 square, exactly as measured. It is a button that opens a
+     search panel rather than an input, but it has to LOOK like the
+     field it stands in for, so it takes the field's geometry and the
+     field's muted placeholder ink. */
+  width: 200px;
+  min-width: 0;
+  height: 32px;
+  border-radius: 0;
+  border: 1px solid #565C65;
+  padding-inline: 11px;
+  justify-content: flex-start;
+  font-size: 14px;
+  margin-inline: 0;
+}
+html[data-ksat-tier="public"] .bar .ksat-nav-find .ksat-nav-find-t {
+  color: #98A1AD;           /* placeholder grey, not label white       */
+  font-weight: 400;
+}
+html[data-ksat-tier="public"] .bar .ksat-nav-find:hover .ksat-nav-find-t { color: #E9EFF7; }
+/* nasa.gov shows no keyboard hint in the bar. The shortcut still works;
+   js/ksat-nav.js binds it on document and never reads this element. */
+html[data-ksat-tier="public"] .bar .ksat-nav-find .ksat-nav-key { display: none; }
+
+/* --- 14d · the utilities read as words, not as chips ---------------- */
+html[data-ksat-tier="public"] .bar-act { gap: 22px; }
+
+html[data-ksat-tier="public"] .bar .lang,
+html[data-ksat-tier="public"] .bar .ksat-appearance {
+  background: none;
+  border: 0;
+  padding: 0;
+  gap: 4px;
+}
+html[data-ksat-tier="public"] .bar .lang button,
+html[data-ksat-tier="public"] .bar .ksat-appearance button {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 6px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: #98A1AD;
+  border-bottom: 2px solid transparent;
+}
+html[data-ksat-tier="public"] .bar .lang button:hover,
+html[data-ksat-tier="public"] .bar .ksat-appearance button:hover { color: #FFFFFF; }
+html[data-ksat-tier="public"] .bar .lang button[aria-pressed="true"],
+html[data-ksat-tier="public"] .bar .lang button.on,
+html[data-ksat-tier="public"] .bar .ksat-appearance button[aria-pressed="true"],
+html[data-ksat-tier="public"] .bar .ksat-appearance button.on {
+  background: none;
+  color: #3FD0C9;
+  border-bottom-color: #3FD0C9;
+}
+/* The theme trio is three 16px icons. Without the chip around them they
+   need their own breathing room or they read as one smudge. */
+html[data-ksat-tier="public"] .bar .ksat-appearance button svg { width: 16px; height: 16px; }
+
+/* Sign in is the only way into the platform and it is the one control
+   here that is not a state — so it keeps a hairline, which is also what
+   nasa.gov does with NASA+ (a word with a box on it). Same square
+   corners as everything else in this bar. */
+html[data-ksat-tier="public"] .bar #ksat-signin {
+  border-radius: 0;
+  border-color: #565C65;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  padding: 8px 14px;
+  min-height: 34px;
+}
