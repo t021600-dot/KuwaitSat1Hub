@@ -133,6 +133,16 @@
     var e = doc.getElementById('entry');
     if (e) e.remove();
 
+    /* Belt and braces. denied() and this are mutually exclusive in the
+       flow as it stands, so this line should never have anything to do
+       — but a refusal panel left standing over an admitted workspace is
+       the failure this page just shipped once, and it cost a live site
+       visit to find. One line is cheap insurance against it coming back
+       by a route nobody has thought of yet. */
+    root.classList.remove('ksat-denied');
+    var d = doc.getElementById('denied');
+    if (d) { d.hidden = true; }
+
     var meta = user.user_metadata || {};
     var nameBox = doc.getElementById('whoName');
     if (nameBox) {
@@ -145,14 +155,56 @@
     show(location.hash.slice(1) || 'overview');
   }
 
+  /* IS THERE A SESSION IN STORAGE AT ALL?
+
+     Supabase persists it under sb-<project ref>-auth-token in
+     localStorage. This does NOT read the token and does not care what is
+     in it — it asks one question: has this browser ever been signed in
+     to this project? That is the only thing settleSession() needs in
+     order to know whether waiting is worth anything. */
+  function persisted() {
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') > 0) { return true; }
+      }
+    } catch (e) { /* private mode, or storage blocked */ }
+    return false;
+  }
+
+  /* WHY THIS RETRIES, AND WHY ONLY SOMETIMES.
+
+     Seen on the live site: a researcher with a valid session was sent
+     here from the hub and got "This workspace is restricted". Reloading
+     the same URL a moment later admitted them. getSession() had resolved
+     with nothing while the client was still coming up from storage —
+     the arrival is a location.replace() from another page, so this page
+     starts its auth client in the same instant the previous one was
+     using it.
+
+     Denying a researcher who IS signed in is the worst thing this page
+     can do, and it is worse than a pause. So: if storage says this
+     browser has a session for this project, ask again, up to five times
+     at 300ms. A visitor who has genuinely never signed in has no such
+     key, persisted() is false on the first pass, and they are refused
+     immediately with no wait at all. The public case costs nothing. */
+  function settleSession(tries) {
+    return window.sb.auth.getSession().then(function (r) {
+      var s = r && r.data && r.data.session;
+      if ((s && s.user) || tries <= 0 || !persisted()) { return (s && s.user) ? s : null; }
+      log('waiting for the session to come up');
+      return new Promise(function (go) { setTimeout(go, 300); })
+        .then(function () { return settleSession(tries - 1); });
+    });
+  }
+
   function gate() {
     if (!haveDb()) {
       denied('This workspace could not reach the mission database, so it cannot verify ' +
              'your session. Please tell the team.');
       return;
     }
-    window.sb.auth.getSession().then(function (r) {
-      var s = r && r.data && r.data.session;
+    settleSession(5).then(function (s) {
       if (!s || !s.user) { denied(); return; }
       admitted(s.user);
       enrol(s.user).then(load);

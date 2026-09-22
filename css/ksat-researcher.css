@@ -47,6 +47,31 @@
 html.ksat-checking body > *:not(#entry):not(#denied){ visibility:hidden }
 html.ksat-denied   body > *:not(#entry):not(#denied){ display:none }
 
+/* =====================================================================
+   THE `hidden` ATTRIBUTE HAS TO ACTUALLY HIDE THINGS, AND HERE IT DID NOT
+
+   Found on the live site, and it is the worst class of bug this page
+   could have had: a researcher signed in, was admitted, their name was
+   in the masthead and all eight payload frames were rendered — and what
+   they SAW was "This workspace is restricted" across the whole screen.
+
+   The cause is one line of the cascade. #denied is `position:fixed;
+   inset:0; z-index:120; display:flex`, and the browser's own rule for
+   the attribute is `[hidden]{ display:none }` — a USER AGENT rule. Any
+   author declaration of `display` beats a user agent one, whatever the
+   specificity, so #denied's own `display:flex` won and the panel stayed
+   painted over an admitted workspace on every single load. Setting
+   `hidden` on it did nothing at all; it had never done anything.
+
+   index.html carries exactly this reset in its own inline style block
+   and has done since it was written. researcher.html came from a
+   different drawing and did not. The rest of this file leans on the
+   attribute in several places — the modal, table rows filtered by the
+   search boxes, the empty states — so this is declared once, at the
+   top, for all of them rather than element by element.
+   ===================================================================== */
+[hidden]{ display:none !important }
+
 #denied{
   position:fixed; inset:0; z-index:120; background:#04070F;
   display:flex; align-items:center; justify-content:center; padding:24px;
