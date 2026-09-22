@@ -1,6 +1,6 @@
 <p align="center">
   <img src="assets/brand/ksat-readme-hero.png"
-       alt="KuwaitSat Vision — the mission emblem beside the wordmark: AI-powered insights for a greener Kuwait. People · Planet · Progress."
+       alt="KuwaitSat Vision, the mission emblem beside the wordmark: AI-powered insights for a greener Kuwait. People · Planet · Progress."
        width="100%">
 </p>
 
@@ -8,7 +8,7 @@
 
 <p align="center">
   <strong>A research console that takes a Kuwaiti environmental question from
-  objective to written study — with a signed-in human at every gate.</strong>
+  objective to written study, with a signed-in human at every gate.</strong>
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@
          gh auth refresh -h github.com -s workflow
          git add .github/workflows/ci.yml && git commit && git push
 
-     then restore the badge block that used to sit here — it is in the git history of
+     then restore the badge block that used to sit here. It is in the git history of
      this file. What the workflow runs is described under "The checks you can run
      locally" below, and you can run all of it by hand today. -->
 
@@ -58,7 +58,7 @@ A researcher signs in, writes a research objective, picks an area of Kuwait and
 a period, and presses **Start**. A pipeline of agents runs: it pulls the
 acquisition record, reads vegetation and surface temperature, matches the site
 against a published Kuwaiti species register, projects the impact with
-published coefficients, prices the proposal, and — once a human releases it —
+published coefficients, prices the proposal, and (once a human releases it)
 monitors the footprint and writes the study up.
 
 Results land on the map and in the console. Refresh the page and the mission is
@@ -77,24 +77,24 @@ findings. Every decision stays with the researcher:
 You will find this project described as having **five**, **six** or **seven**
 agents, depending on which file you opened. All three numbers are correct about
 different things, and the difference is worth understanding before you read the
-code — it is the shape of the system, not a documentation slip.
+code. It is the shape of the system, not a documentation slip.
 
-| # | Agent — the `AGENTS` array in `index.html` | What it does for the researcher | `agent_steps.step_name` |
+| # | Agent (the `AGENTS` array in `index.html`) | What it does for the researcher | `agent_steps.step_name` |
 |---|---|---|---|
 | 1 | **Satellite Data** | Finds and retrieves the imagery so you do not open every frame | `satellite_data` |
 | 2 | **Environmental Analysis** | Reads vegetation, surface temperature and dust, shortlists zones | `environmental_analysis` |
 | 3 | **Species Recommendation** | Matches the site against a published Kuwaiti species register | `recommendation` |
 | 4 | **Impact Prediction** | Projects the effect with published coefficients and their ranges | `impact_prediction` |
 | 5 | **Visualisation & Costing** | Puts the proposal on the imagery and prices it from your unit rates | `visualization` |
-| | ⛔ **Human gate — "Mark as deployed"** | `rcTick()` stops at step 5 and will not continue on its own | — |
+| | ⛔ **Human gate: "Mark as deployed"** | `rcTick()` stops at step 5 and will not continue on its own | *(none)* |
 | 6 | **Monitoring** | Watches the same footprint after deployment and reports what happened | *(none exists)* |
-| | ⛔ **Human gate — "Complete study"** | the report is never written without a person asking for it | — |
+| | ⛔ **Human gate: "Complete study"** | the report is never written without a person asking for it | *(none)* |
 | 7 | **Reporting** | Writes the study up: objective, area, data, findings, limits, references | `reporting` |
 
 - **Seven** is what the page renders. `AGENTS` has seven entries.
 - **Five** is what runs unattended. `rcTick()` in `index.html` stops itself:
   `if(RC.step>=5){ RC.running=false; ... }   // researcher gate before monitoring`
-  — search the file for `researcher gate before monitoring`.
+  (search the file for `researcher gate before monitoring`).
   Agents 6 and 7 each wait for a button. The original prototype hand-off note
   (`site-original/README.txt:52`) counts the pipeline this way and says "let all
   five agents finish".
@@ -115,13 +115,13 @@ The full mapping, including why "Species Recommendation" is stored as
 | | A signed-out visitor | A signed-in researcher |
 |---|---|---|
 | Sees | the record: the mission, the map, the sources, the methodology | the instruments: the console, the pipeline, their own missions |
-| Rows returned from Postgres | **none — `anon` holds no table grants** | only their own |
+| Rows returned from Postgres | **none: `anon` holds no table grants** | only their own |
 
 The tier layer is **product framing, not secrecy**, and the code says so out
-loud — see the header comment of `js/ksat-shell.js`, under *WHAT IS AND IS NOT
+loud: see the header comment of `js/ksat-shell.js`, under *WHAT IS AND IS NOT
 A SECURITY CONTROL*. Every demo constant in the page ships to every visitor
 and always did; you can undo the tier in DevTools in a few seconds.
-What you cannot undo there is row-level security — flip the attribute and you
+What you cannot undo there is row-level security. Flip the attribute and you
 get **empty** panels, because the emptiness is enforced in the database.
 
 ---
@@ -133,18 +133,18 @@ Owned by **03 · Security**. Everything below is evidenced in
 checks were run.
 
 **Isolation**
-- Row-level security is enabled on all **8 tables of the core schema** —
+- Row-level security is enabled on all **8 tables of the core schema**:
   `profiles`, `missions`, `mission_runs`, `agent_steps`, `results`, `reports`,
   `mission_collaborators`, `app_settings`
-  ([`01_tables_rls.sql`](03-security/db/01_tables_rls.sql)) — and on both
-  additional tables in the phase-2 admin/audit file.
-- `anon` — the identity the publishable key gives you — is refused on every
+  ([`01_tables_rls.sql`](03-security/db/01_tables_rls.sql)). It is also
+  enabled on both additional tables in the phase-2 admin/audit file.
+- `anon`, the identity the publishable key gives you, is refused on every
   table, every view and every privileged function.
 - Grants are **column-level, not table-level**
   ([`03_grants.sql`](03-security/db/03_grants.sql)): `authenticated` may select
   named columns and insert named columns, not `*`.
 
-**The human checkpoint — stated honestly**
+**The human checkpoint, stated honestly**
 - `generate_report` is granted to `authenticated` and **refused to
   `service_role`**. The automation engine holds three write paths and is locked
   out of this one, so **an unattended pipeline cannot sign its own conclusion.**
@@ -161,7 +161,7 @@ checks were run.
   agent (section *4c · PROMPT INJECTION SCREEN* in `js/ksat-integration.js`).
   The screen may **flag and refuse**. It
   may not act on what it finds and may not silently rewrite what the researcher
-  wrote — that limit is written into the tool description itself.
+  wrote. That limit is written into the tool description itself.
 - A refusal is logged as an `agent_steps` row with `allowed = false`, so the
   audit trail records what was refused and why.
 
@@ -171,7 +171,7 @@ without a deploy)
 - 5 runs launched per researcher per hour.
 - 3 runs per mission per hour.
 - A hard ceiling of **40 tool calls per run**, as a `CHECK` on
-  `mission_runs.tool_calls` — a wall, not a warning.
+  `mission_runs.tool_calls`: a wall, not a warning.
 - A kill switch: `accepting_new_missions`, checked before any rate limit.
 
 **What is served at all**
@@ -184,7 +184,7 @@ without a deploy)
 
 **The one piece of server-side code**
 - `api/monitor.js` is a Vercel function run by cron at 02:00 UTC. It calls one
-  database function, `public.sweep_stalled_runs(3)`, and decides nothing — the
+  database function, `public.sweep_stalled_runs(3)`, and decides nothing; the
   rule for what counts as a stalled run lives in SQL, in one place. It refuses
   any request without `Authorization: Bearer <CRON_SECRET>`, and `CRON_SECRET`
   is a Vercel environment variable that is **not** in this repository.
@@ -195,7 +195,7 @@ without a deploy)
   `Cross-Origin-Resource-Policy`, `frame-ancestors 'none'`, `base-uri 'none'`,
   `object-src 'none'`, and a `Permissions-Policy` that turns off fourteen
   device APIs.
-- The CSP allows exactly one external origin family — Google Fonts. Everything
+- The CSP allows exactly one external origin family: Google Fonts. Everything
   else, including Supabase, is named explicitly. Leaflet and supabase-js are
   **self-hosted in `vendor/`**; there is no CDN.
 - `gitleaks` runs over the full history in the automated suite and finds no
@@ -205,7 +205,7 @@ without a deploy)
 **What the automated suite says today**
 `node 03-security/tests/security-check.mjs` runs 36 checks against the live
 system as an anonymous visitor. As of the last run: **33 passed, 3 failed.**
-The three failures are `PG-STRUCT`, `PG-MARKUP` and `PG-NUM` — they assert that
+The three failures are `PG-STRUCT`, `PG-MARKUP` and `PG-NUM`. They assert that
 `index.html` is byte-identical to `site-original/index.html`. That invariant was
 retired on purpose. See the next section; it is not a regression, but the check
 has not yet been updated to know that.
@@ -219,8 +219,8 @@ nothing else", and that every line of `diff site-original/index.html index.html`
 had to begin with `>`. That is no longer true, and keeping the claim would have
 been worse than losing the property.**
 
-It was true, and it was valuable while it lasted. The whole integration layer —
-auth, persistence, the audit trail, the theme, the shell, Arabic — was built by
+It was true, and it was valuable while it lasted. The whole integration layer
+(auth, persistence, the audit trail, the theme, the shell, Arabic) was built by
 adding files and one `<script>` line each, so that deleting those files brought
 the original 6,000-line prototype back byte for byte. That constraint is why
 every selector in `css/` is prefixed `.ksat-` and why `js/ksat-theme.js` exists
@@ -241,10 +241,10 @@ diff --strip-trailing-cr site-original/index.html index.html
 At the time of writing that produces **213 `>` lines, 164 `<` lines and 95
 changed hunks**, not additions alone. The numbers will keep moving.
 
-**`site-original/` is therefore no longer a live invariant — it is the
+**`site-original/` is therefore no longer a live invariant; it is the
 historical baseline.** It is kept in the repository, unchanged, so that any
 element, number or source in the original prototype can still be recovered and
-compared — and it is kept **out of the deployment**, by three separate
+compared. It is also kept **out of the deployment**, by three separate
 mechanisms: `.vercelignore` does not upload it, `vercel.json` redirects
 `/site-original/*` to `/`, and an `X-Robots-Tag: noindex, nofollow` covers the
 case neither of those catches. It needs all three because it is a complete,
@@ -267,15 +267,15 @@ git clone https://github.com/t021600-dot/KuwaitSat1Hub.git
 cd KuwaitSat1Hub
 ```
 
-Then either open `index.html` in a browser, or serve the folder over HTTP —
-`python -m http.server 8000` will do — which you need if you want the fonts and
-the tiles to behave exactly as they do in production.
+Then either open `index.html` in a browser, or serve the folder over HTTP
+(`python -m http.server 8000` will do), which you need if you want the fonts
+and the tiles to behave exactly as they do in production.
 
 To point it at your own database, put your Supabase project URL and
 **publishable** key into [`js/config.js`](js/config.js). Both are public by
 design: the browser has to receive them, so hiding them in a `.env` would be
 theatre. **They are safe only because row-level security is on.** Use the
-`sb_publishable_…` key format, not the legacy `eyJ…` anon key — the pre-commit
+`sb_publishable_…` key format, not the legacy `eyJ…` anon key. The pre-commit
 hook in `tools/hooks/` blocks any real JWT in a commit, deliberately, because a
 legacy anon key and a service-role key look identical at a glance.
 
@@ -286,7 +286,7 @@ denies everything, then re-includes `index.html`, `site.webmanifest`,
 `vercel.json` and the `api`, `assets`, `css`, `js` and `vendor` directories.
 The per-job folders, `app-retag/`, `site-original/`, `tools/` and every `.md`
 file stay in git and off the web. Read the comments at the top of that file
-before you add a directory to the site — a directory needs **two** lines, one
+before you add a directory to the site. A directory needs **two** lines, one
 to let the walker in and one for its contents, and getting it wrong removes
 the site's own stylesheet without a word.
 
@@ -308,7 +308,7 @@ Those four need no network, no secrets and no install, and they are what
 
 Two further scripts need more than that and are **not** in CI:
 `node 04-agents/tools/preflight.js` is the demo-night readiness board and
-currently reports one FAIL and two TODOs by design — it is a checklist, not a
+currently reports one FAIL and two TODOs by design. It is a checklist, not a
 test. `node 03-security/tests/security-check.mjs` needs network access to the
 live site and database.
 
@@ -316,7 +316,7 @@ live site and database.
 
 ## Where the code lives
 
-The product is **one page** — the research console — with the security, agent,
+The product is **one page** (the research console) with the security, agent,
 theme and language layers attached from the outside rather than woven in.
 
 ```
@@ -335,7 +335,7 @@ css/                       Hand-written, no preprocessor. Every selector is
   ksat-integration.css       the sign-in gate and the identity bar
   ksat-shell.css             the shell, the tier panels, the checkpoint card
   ksat-theme.css             the ESA/NASA visual layer
-  ksat-agency.css            the structural rebuild — ground, boxes, air, scale
+  ksat-agency.css            the structural rebuild: ground, boxes, air, scale
   ksat-detail.css            interaction and finish: the states a thing is in
   ksat-editorial.css         hero, footer and editorial composition
   ksat-brand.css             the emblem and wordmark
@@ -354,7 +354,7 @@ js/                        Plain browser JavaScript in IIFEs. No modules, no
   ksat-density.js            folds long text without removing any of it
   ksat-motion.js             scroll transitions, off under prefers-reduced-motion
   ksat-assistant.js          the corner assistant for visitors and researchers
-  ksat-tour.js               the guided tour — spotlight, keyboard, announcements
+  ksat-tour.js               the guided tour: spotlight, keyboard, announcements
 
 api/                       The one piece of server-side code in the project.
   monitor.js                 GET /api/monitor, run by Vercel Cron at 02:00 UTC.
@@ -379,26 +379,26 @@ app-retag/                 A parallel multi-page build of the same product.
 
 *This map was written by listing the directories rather than from memory. If a
 file appears here that is not on disk, or the reverse, the directory is right
-and this map is stale — please fix it in your next pull request.*
+and this map is stale. Please fix it in your next pull request.*
 
 ---
 
 ## The team
 
-**Four people, four jobs.** Owning a job means **you answer first** — not that
+**Four people, four jobs.** Owning a job means **you answer first**, not that
 you do it alone. Jobs can overlap; ownership cannot.
 
 | Job | Owner | Owns | GitHub |
 |---|---|---|---|
-| 🖥️ **01 · Front end** | **Retag** | The screens, the forms that answer, the phone-portrait pass | — |
-| 🗄️ **02 · Back end and data** | **Hind** | The tables, accounts, records, the run log | — |
-| 🔐 **03 · Security** | **Mariam Madouh** | Row-level security, secrets, validation, the AI audit — **[full role →](03-security/README.md)** | [`@t021600-dot`](https://github.com/t021600-dot) |
-| 🤖 **04 · Automation and agents** | **Dana** | The workflow, the agents, the guardrails, the tools | — |
+| 🖥️ **01 · Front end** | **Retag** | The screens, the forms that answer, the phone-portrait pass |  |
+| 🗄️ **02 · Back end and data** | **Hind** | The tables, accounts, records, the run log |  |
+| 🔐 **03 · Security** | **Mariam Madouh** | Row-level security, secrets, validation, the AI audit. **[full role →](03-security/README.md)** | [`@t021600-dot`](https://github.com/t021600-dot) |
+| 🤖 **04 · Automation and agents** | **Dana** | The workflow, the agents, the guardrails, the tools |  |
 
-> **Retag, Hind and Dana: replace the `—` in the GitHub column with your own
-> username in your first pull request.** It is left blank rather than guessed,
-> because a wrong handle on a public front page points at a stranger. Correct
-> the spelling of your own name in the same edit if it is wrong.
+> **Retag, Hind and Dana: fill in the blank cell in the GitHub column with
+> your own username in your first pull request.** It is left blank rather than
+> guessed, because a wrong handle on a public front page points at a stranger.
+> Correct the spelling of your own name in the same edit if it is wrong.
 
 Shipping and the demo are shared: there is no fifth job. The live URL and the
 Vercel deploy are Hind's; checking the live site on a laptop that did not build
@@ -456,7 +456,7 @@ team photograph, which was supplied for this academic presentation only.
 
 ## نظرة عامة
 
-**«كويت سات — رؤية خضراء»** منصّة بحثية تجريبية تأخذ سؤالاً بيئياً كويتياً من
+**«كويت سات، رؤية خضراء»** منصّة بحثية تجريبية تأخذ سؤالاً بيئياً كويتياً من
 صياغة الهدف حتى دراسة مكتوبة، مع بقاء القرار في يد باحث مسجَّل الدخول في كل
 مرحلة.
 
