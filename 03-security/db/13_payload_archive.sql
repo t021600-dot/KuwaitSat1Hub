@@ -162,6 +162,14 @@ grant select (frame_no, captured_on, place_label, lat, lon,
               source_note, added_at)
   on public.payload_frames to authenticated;
 
+-- service_role is Supabase's backend identity. Its key is the project
+-- owner's key and it already bypasses row level security everywhere, so
+-- this grant widens nothing: it only lets the payload team load frames
+-- out of band with 03-security/tools/load_payload_frames.py. It is here
+-- because default privileges in this schema were set before this table
+-- existed, so the role had no grant on it and the loader got a 403.
+grant select, update on public.payload_frames to service_role;
+
 
 -- ---------------------------------------------------------------------
 -- 4 · Row level security
