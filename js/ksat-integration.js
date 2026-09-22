@@ -679,6 +679,30 @@
      ------------------------------------------------------------------- */
   var HUB_FLAG = 'ksat.stayOnHub';
 
+  /* ?hub=1 DID NOT WORK ON THE LIVE SITE, AND THE REASON IS EMBARRASSING.
+
+     The test ended in a word-boundary assertion, so that ?hub=10 would
+     not count. What actually reached the file was a literal BACKSPACE,
+     0x08 — the rule was written through a shell heredoc and the escape
+     was eaten on the way in. The regex therefore asked for "hub=1"
+     followed by a control character, which no URL has ever contained,
+     and the flag silently never fired. Tested on the live site, which
+     is where it was caught; nothing about the code READS as wrong,
+     which is the whole trouble with an invisible character.
+
+     The assertion is gone rather than re-escaped. A query string is not
+     a sentence and there was nothing here for it to disambiguate.
+
+     Read at PARSE TIME rather than when boot() asks, which is the other
+     half of making this reliable. boot() waits on the Supabase session,
+     a network round trip, and by then index.html's intro and
+     js/ksat-shell.js's router have both written to the address bar — a
+     history.replaceState() carrying a path and a hash takes the query
+     with it. This file is loaded before either of them (index.html line
+     6201, ahead of ksat-shell.js), so what is read here is what the
+     reader actually typed. */
+  var URL_WANTS_HUB = /[?&]hub=1/.test(location.search);
+
   function onWorkspace() {
     return /\/researcher(\.html)?$/.test(location.pathname);
   }
@@ -692,7 +716,7 @@
         return true;
       }
     } catch (e) {}
-    return /[?&]hub=1/.test(location.search);
+    return URL_WANTS_HUB;
   }
 
   /* Returns true when it has taken over and the caller should stop. */
