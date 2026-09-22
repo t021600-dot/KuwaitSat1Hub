@@ -2079,7 +2079,13 @@
     watchBody();
     buildSignInButton();
     buildAllPanels();
-    buildHeroNote();
+    /* buildHeroNote() is NOT called any more. It wrote the orientation
+       strip under the hero - "You are reading the public record. N working
+       sections ... Show me which" - and the team asked for it gone: the
+       public page is meant to open on the planet, not on an explanation of
+       what the reader is not being shown. The builder is left in place
+       because the copy in it is the clearest statement of what an account
+       is for, and the sign-in gate may want it later; one line restores it. */
     stamp();
     buildRail();
     patchScrollIntoView();

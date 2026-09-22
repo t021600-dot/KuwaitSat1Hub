@@ -1,0 +1,61 @@
+EARTH IMAGERY — PROVENANCE
+==========================
+
+The hero plates are REAL satellite imagery. They are not drawings, and they
+are not this platform's own model output. What stood here before them was a
+canvas drawing — two ellipses standing in for the desert and the Gulf over a
+blue gradient — and on a platform whose whole argument is that a reader can
+see where a figure came from, the largest image on the page should not have
+been invented.
+
+SOURCE DATA
+-----------
+Both source composites are produced by NASA and are in the public domain.
+NASA does not endorse this platform and is not affiliated with it.
+
+  Day plate      NASA Visible Earth — "Blue Marble: Next Generation"
+                 world.topo.bathy.200412 (5400 x 2700 equirectangular)
+                 https://visibleearth.nasa.gov/images/73909/
+                 Credit: NASA Earth Observatory / Reto Stöckli
+
+  Night plate    NASA Earth Observatory — "Earth at Night 2012" (Black Marble)
+                 dnb_land_ocean_ice.2012 (3600 x 1800 equirectangular)
+                 https://earthobservatory.nasa.gov/features/NightLights
+                 Credit: NASA Earth Observatory / NOAA NGDC (Suomi NPP VIIRS)
+
+  Usage terms    https://www.nasa.gov/nasa-brand-center/images-and-media/
+                 NASA imagery is generally not copyrighted and may be used for
+                 educational or informational purposes. NASA insignia are NOT
+                 used anywhere on this site, and nothing here implies NASA
+                 involvement, review or endorsement.
+
+WHAT WE DID TO IT
+-----------------
+Nothing was painted in and no surface detail was invented. The equirectangular
+composite is sampled onto a sphere (ray -> sphere intersection -> lat/lon ->
+bilinear texel), lit by a single directional source, given an atmospheric rim,
+and photographed from an orbital viewpoint placed over 29.3 N, 47.7 E — so the
+Gulf genuinely sits under the camera and Kuwait is genuinely at the centre of
+frame. That is a reprojection of a photograph, which is why the plates are
+badged as imagery rather than as a model.
+
+The renderer is kept with the project so the plates can be regenerated or
+re-aimed: see the notes in js/ — the hero reads the limb geometry out of the
+plate rather than assuming it, so a re-render with a different viewpoint only
+needs the PLATE constants updated.
+
+WHAT IS STILL A MODEL, AND SAYS SO
+----------------------------------
+Drawn over the photograph, in the page's own colours: the orbit path, the
+spacecraft, its swath cone and the Kuwait marker. Those are MODELLED. The
+altitude, ground sample distance and swath quoted in the readout come from the
+published KuwaitSat-1 record in the sources register; their arrangement on
+screen is a diagram, not telemetry. No panel on this site carries live
+satellite telemetry.
+
+FILES
+-----
+  earth-day.jpg     2400 x 1100   hero plate, day theme
+  earth-night.jpg   2400 x 1100   hero plate, dark theme
+  globe-day.jpg     1400 x 1400   full disk, day
+  globe-night.jpg   1400 x 1400   full disk, night

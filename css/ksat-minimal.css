@@ -1,0 +1,680 @@
+/* =====================================================================
+   ksat-minimal.css — THE PUBLIC MASTHEAD, COLLAPSED TO ONE ROW
+   Owner: 01 Front End.  Companion to js/ksat-minimal.js.
+
+   ---------------------------------------------------------------------
+   WHAT THIS FILE IS FOR
+   ---------------------------------------------------------------------
+   The team looked at the signed-out page next to nasa.gov and said the
+   page shows a stranger far too much. nasa.gov's whole chrome is one
+   slim bar: "Explore" with a chevron on the left, a plain search box
+   beside it, the agency emblem dead centre, two or three menu words on
+   the right, and then a full-bleed photograph underneath. Nothing else.
+
+   The signed-out page had a two-row masthead (brand lockup, then six
+   grouped nav triggers carrying lock counts, plus search, plus a guided
+   tour button, plus EN/AR, plus a three-state theme control, plus the
+   sign-in button), a RESEARCH TOOLS band listing seven workspaces a
+   stranger cannot open, and roughly six blocks of methodology prose
+   before the first thing a visitor came to look at.
+
+   ---------------------------------------------------------------------
+   NOTHING HERE IS DELETED, AND THAT IS NOT A TECHNICALITY
+   ---------------------------------------------------------------------
+   The standing rule on this repo is that content is never destroyed.
+   Every rule in this file is scoped to
+
+       html[data-ksat-tier="public"]
+
+   which js/ksat-shell.js writes onto <html> from the Supabase session
+   and from nothing else — not a URL parameter, not localStorage, not a
+   cookie. A signed-in researcher gets `insider` and every selector
+   below stops matching, so the page they see is byte-for-byte the page
+   that shipped yesterday. The nodes stay in the DOM in both tiers.
+
+   Flipping that attribute in DevTools is how you check the insider path
+   without a session. It is presentation only; it grants nothing, and
+   js/ksat-shell.js section 5 already says so in its own words.
+
+   ---------------------------------------------------------------------
+   THIS FILE DELIBERATELY OUT-SPECIFIES TWO OTHER FILES IT MAY NOT EDIT
+   ---------------------------------------------------------------------
+   1 · css/ksat-theme.css builds the two-row masthead at >=860px — it
+       sets :root{--bar-h:101px} and gives .navwrap / #ksat-nav
+       `order:3; flex:0 0 100%` so the navigation owns a second row.
+       Those files belong to other people and are correct for a signed-in
+       researcher with twenty-three destinations. They are simply wrong
+       for a stranger. So the rules below re-specify the same properties
+       for the public tier instead of editing that file. Every one of
+       them wins on specificity alone — html[data-ksat-tier="public"] is
+       (0,1,1) against :root's (0,1,0) — so this is not a load-order
+       gamble.
+
+   2 · js/ksat-nav.js builds the RESEARCH TOOLS band (#ksat-tools) and
+       paints it for both tiers. The team's words were "delete all this
+       cuz why would an outsider know about these Research tools". That
+       file is not ours and another agent is in it, so the band is
+       out-ruled here rather than removed there. If js/ksat-nav.js ever
+       grows its own public-tier rule, delete section 6 below — do not
+       leave two files arguing about the same element.
+
+   ---------------------------------------------------------------------
+   Z-INDEX, FROM THE BUDGET IN css/ksat-assistant.css
+   ---------------------------------------------------------------------
+   That file carries the table. The numbers that matter here:
+
+       1     main / .bar / footer          css/ksat-detail.css
+      60     .bar, as the budget lists it  index.html
+     105     .ksat-nav-pop (group menus)   css/ksat-nav.css
+     120     #demoHud (guided tour)
+     130     #ksat-ch-fab (chapter pill)
+     132/134 the assistant launcher and panel
+
+   This file claims NO new layer. The Explore drawer is a child of .bar
+   and needs nothing of its own — except for one problem, described at
+   section 3c: css/ksat-detail.css knocks .bar down from its documented
+   60 to 1, which puts it UNDER <main>. The drawer is restored to the
+   documented 60 only while it is open, and released again when it
+   closes, so nothing else in the stack moves.
+
+   ---------------------------------------------------------------------
+   COLOUR
+   ---------------------------------------------------------------------
+   Every colour below is a token. Not one literal rgba(), because the
+   light theme in css/ksat-nasa.css repoints the tokens and cannot
+   repoint a literal — that is the exact bug that made the previous
+   light mode look unblended, and this file is not going to add another
+   instance of it.
+   ===================================================================== */
+
+
+/* =====================================================================
+   1 · THE BAR IS ONE ROW AGAIN
+
+   --bar-h is not decoration. index.html drives section scroll-margin-top
+   and two sticky offsets from it, so a bar that is 58px tall while the
+   variable still says 101px lands every in-page anchor 43px too low.
+   The base value in index.html is already 58px; css/ksat-theme.css
+   lifts it to 101px inside @media (min-width:860px) for the second row.
+   The public tier has no second row, so it takes the base value back —
+   declared with no media query, because below 860px it is already 58
+   and re-stating it there costs nothing and cannot drift.
+   ===================================================================== */
+html[data-ksat-tier="public"] {
+  /* 76px, not the 58px base. nasa.gov's masthead is about 90px tall and
+     its emblem about 58px - a ratio of roughly 0.64, which 58/38 already
+     matched, but at two thirds the size. The shape was right and the
+     presence was not. 76 keeps the page from losing a screen of height
+     while giving the seal and the two controls beside it room to read as
+     a masthead rather than as a toolbar.
+
+     This is safe to change only because --bar-h is used consistently:
+     index.html drives section scroll-margin-top and two sticky offsets
+     from it, so every anchor follows automatically. Hard-coding 76
+     anywhere else would break that. */
+  --bar-h: 76px;
+
+  /* The seal, sized once. 38px in a 58px bar leaves 10px of air above
+     and below, which is the proportion nasa.gov gives its meatball. */
+  --ksat-min-seal: 48px;
+}
+
+html[data-ksat-tier="public"] .bar-in {
+  /* css/ksat-theme.css set height:auto and flex-wrap:wrap to allow the
+     second row. Both are reverted: one row, fixed height, no wrapping,
+     ever. A masthead that wraps is the two-row masthead by another
+     name. */
+  height: var(--bar-h);
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+
+  /* The Explore drawer at section 3 is absolutely positioned against
+     this box, so that it spans the full measure of the bar rather than
+     the width of the button that opens it. */
+  position: relative;
+}
+
+/* THE THREE-PART NASA SHAPE.
+
+   Left and right are given equal flex-basis 0 with flex-grow 1, which
+   is what actually centres the emblem: giving the brand `margin:auto`
+   centres it between its neighbours, not in the bar, so it drifts every
+   time the right-hand cluster changes width — and it changes width on
+   every language switch, because EN/AR and "Researcher sign in" are not
+   the same length in Arabic.
+
+   `order` rather than DOM order, because the DOM order is
+   brand / navwrap / #ksat-nav / .bar-act and belongs to index.html and
+   to js/ksat-nav.js. order is also direction-aware, so RTL flips the
+   whole bar for free — verified with dir="rtl". */
+html[data-ksat-tier="public"] #ksat-nav {
+  order: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: flex-start;
+
+  /* css/ksat-nav.css gives #ksat-nav the second row's costume at
+     >=860px: full width, a top hairline and a full-bleed negative
+     margin. All three are second-row furniture. */
+  width: auto;
+  height: auto;
+  border-top: 0;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+html[data-ksat-tier="public"] .brand {
+  order: 2;
+  flex: 0 0 auto;
+  height: var(--bar-h);
+}
+
+html[data-ksat-tier="public"] .bar-act {
+  order: 3;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: flex-end;
+  height: var(--bar-h);
+
+  /* css/ksat-theme.css uses margin-inline-start:auto to push the
+     utilities right in the two-row bar. With flex:1 1 0 on both
+     outer cells that auto margin would eat the left cell's share and
+     pull the emblem off centre. */
+  margin-inline-start: 0;
+}
+
+
+/* =====================================================================
+   2 · THE BRAND: THE REAL SEAL, CENTRED
+
+   The bar carried a 26px vector redrawing of the seal plus a two-line
+   wordmark (KUWAITSAT / GREEN INTELLIGENCE). The team asked for the
+   actual emblem: assets/brand/ksat-emblem-256.png, a circular seal on a
+   cream ground with a navy ring, already cut to a transparent circle.
+
+   THE WORDMARK DOES NOT SURVIVE IN THE PUBLIC BAR, and that is a
+   decision rather than an oversight. nasa.gov centres the meatball with
+   no words beside it; more to the point, this particular emblem already
+   contains its own wordmark inside the ring, so setting the lockup next
+   to it prints the name twice. Hiding it costs the button its
+   accessible name, so js/ksat-minimal.js puts a bilingual aria-label on
+   #brandBtn for exactly as long as the wordmark is hidden — see the
+   note there.
+
+   The vector stays in the DOM. It is what the insider bar and the
+   footer still draw, and css/ksat-brand.css animates it.
+   ===================================================================== */
+html[data-ksat-tier="public"] #brandBtn .mk,
+html[data-ksat-tier="public"] #brandBtn > span {
+  display: none;
+}
+
+/* Built by js/ksat-minimal.js, inserted once, present in both tiers and
+   shown in neither but the public one. */
+.ksat-min-seal {
+  display: none;
+  width: var(--ksat-min-seal, 38px);
+  height: var(--ksat-min-seal, 38px);
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: contain;
+
+  /* The seal is cut to a transparent circle on a cream ground. On the
+     dark theme that cream edge is the only thing separating it from the
+     bar, and on the light theme it is nearly the bar itself — so it
+     gets a hairline in the line token, which follows both themes. */
+  box-shadow: 0 0 0 1px var(--line-2, #232C3C);
+}
+html[data-ksat-tier="public"] .ksat-min-seal { display: block; }
+
+/* Hover and focus are the button's, not the image's. The image is
+   aria-hidden and decorative; #brandBtn is the control. */
+html[data-ksat-tier="public"] #brandBtn:hover .ksat-min-seal {
+  box-shadow: 0 0 0 1px var(--line-3, #AEB8C4);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ksat-min-seal { transition: box-shadow .16s ease; }
+}
+
+
+/* =====================================================================
+   3 · "EXPLORE": SIX CHAPTERS BEHIND ONE WORD
+
+   ---------------------------------------------------------------------
+   3a · WHY THIS REUSES js/ksat-nav.js's TRIGGERS INSTEAD OF REBUILDING
+   ---------------------------------------------------------------------
+   js/ksat-nav.js already derives six groups from the chapter rail that
+   js/ksat-shell.js writes — brief / space / intel / planning / agents /
+   record — with names, Arabic names, membership, lock counts, popovers
+   and keyboard handling. Rebuilding that here would be a SECOND
+   taxonomy over the same twenty-three sections, which is the precise
+   mistake js/ksat-nav.js's own header warns against at length.
+
+   So nothing is rebuilt. .ksat-nav-strip — the row that already holds
+   those six triggers — becomes the drawer, and one new button opens it.
+   The triggers keep their popovers, their counts, their relabelling on
+   ksat:lang and their Escape handling, because they are the same
+   elements they always were, in the same parent, with the same
+   listeners. This file moves no chapter data and invents no seventh
+   group.
+
+   ---------------------------------------------------------------------
+   3b · THE SEARCH CONTROL IS THE ONE NODE THAT MOVES
+   ---------------------------------------------------------------------
+   js/ksat-nav.js appends .ksat-nav-find as the last child of
+   .ksat-nav-strip. It has to sit in the bar, not in the drawer, so
+   js/ksat-minimal.js re-parents that single button to be a direct child
+   of #ksat-nav. Nothing in js/ksat-nav.js reads its parent — place()
+   measures it with getBoundingClientRect, relabel() reaches it through
+   the held reference, and the click-outside guard asks whether #ksat-nav
+   contains the event target, which is still true. The insider rule at
+   the end of this section restores the 4px margin it had inside the
+   strip so the researcher's bar is unchanged.
+   ===================================================================== */
+
+#ksat-min-explore {
+  display: none;               /* public tier only; see the rule below */
+  position: relative;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  font-size: 12.5px;
+  letter-spacing: .02em;
+  color: var(--ink-2, #9AA7B8);
+  padding: 7px 9px;
+  border-radius: 7px;
+}
+html[data-ksat-tier="public"] #ksat-min-explore { display: inline-flex; }
+
+#ksat-min-explore:hover {
+  color: var(--ink, #E8ECF2);
+  background: var(--surf-2, rgba(255, 255, 255, .06));
+}
+#ksat-min-explore[aria-expanded="true"] {
+  color: var(--ink, #E8ECF2);
+  background: var(--surf-2, rgba(255, 255, 255, .08));
+}
+#ksat-min-explore:focus-visible {
+  outline: 2px solid var(--accent, #3D8BFF);
+  outline-offset: 2px;
+}
+
+/* THE CHEVRON IS CIRCLED, which is the detail that makes the nasa.gov
+   control read as a control rather than as a link with an arrow after
+   it. Drawn in CSS rather than as an SVG so it inherits currentColor
+   in both themes with nothing to repoint. */
+.ksat-min-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 8px;
+  line-height: 1;
+  opacity: .8;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ksat-min-chev { transition: transform .16s ease; }
+}
+#ksat-min-explore[aria-expanded="true"] .ksat-min-chev { transform: rotate(180deg); }
+
+/* ---------------------------------------------------------------------
+   3c · THE DRAWER
+
+   .ksat-nav-strip is the six triggers. In the public tier it leaves the
+   bar row and becomes a panel hanging under it, full measure, closed
+   until Explore is pressed. `visibility` and not `display` so that the
+   [hidden] state js/ksat-minimal.js sets is the single source of truth
+   and nothing here can strand a focusable button in a box nobody can
+   see.
+
+   THE STACKING PROBLEM, WRITTEN DOWN BECAUSE IT COST TIME.
+   index.html declares .bar as position:sticky; z-index:60. It is
+   neither. css/ksat-detail.css line 52 later sets
+   `main, .bar, footer { position:relative; z-index:1 }` and wins, so
+   the bar scrolls away with the page and sits at layer 1 — the same
+   layer as <main>, which follows it in the DOM and therefore paints on
+   top of it. A drawer that overflows the bar was covered by the hero.
+   js/ksat-nav.js and css/ksat-tour.css both found the not-sticky half
+   of this and wrote it down; this is the stacking half.
+
+   The fix stays inside the documented budget: while the drawer is open
+   the bar is restored to the 60 the budget already reserves for it, and
+   released the moment it closes. Nothing else in the stack moves, and
+   .ksat-nav-pop at 105 still opens over the drawer, which is correct —
+   a group's menu belongs above the list it was opened from.
+   --------------------------------------------------------------------- */
+html[data-ksat-tier="public"] .ksat-nav-strip {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  z-index: 1;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 2px;
+  padding: 8px var(--gut, 20px) 10px;
+
+  background: var(--void, #04060B);
+  border-bottom: 1px solid var(--line-2, #232C3C);
+
+  /* The row version scrolls sideways and masks its trailing edge. A
+     drawer wraps instead — six short words need no scroll container,
+     and a hidden scrollbar inside a panel is a trap. */
+  overflow: visible;
+  -webkit-mask-image: none;
+          mask-image: none;
+}
+html[data-ksat-tier="public"] .ksat-nav-strip[hidden] { display: none; }
+
+html[data-ksat-tier="public"][data-ksat-min-explore="open"] .bar { z-index: 60; }
+
+/* In the drawer the six triggers are list items, not chips in a row:
+   full-height targets with room for the lock count beside the name. */
+html[data-ksat-tier="public"] .ksat-nav-strip .ksat-nav-g {
+  height: auto;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+/* 3b's compensation. The search control loses the margin it inherited
+   from being the strip's last child, so it is restored here — in BOTH
+   tiers, because the node is re-parented once and stays re-parented. */
+#ksat-nav > .ksat-nav-find { margin-inline-start: 4px; }
+html[data-ksat-tier="public"] #ksat-nav > .ksat-nav-find { margin-inline-start: 2px; }
+
+
+/* =====================================================================
+   4 · THE RIGHT-HAND CLUSTER
+
+   The team asked for the minimum a visitor needs: language, theme,
+   sign-in. That leaves one control in .bar-act that a stranger does not
+   need in the masthead — #demoBtn, "Guided tour".
+
+   IT IS NOT REMOVED AND IT IS NOT UNREACHABLE. The hero carries
+   #heroTour, "Take the guided tour", as one of its two primary buttons,
+   so the tour is one visible click away on the same first screen. The
+   masthead copy of it was the second offer of the same thing.
+   ===================================================================== */
+html[data-ksat-tier="public"] .bar-act #demoBtn { display: none; }
+
+/* The three-state theme control and the EN/AR pair are dense little
+   groups. In a 58px bar beside a 38px seal they want a touch less
+   weight than they carry in a 101px two-row bar. */
+html[data-ksat-tier="public"] .bar-act .lang button { padding: 5px 9px; }
+html[data-ksat-tier="public"] .bar-act .ksat-signin { font-size: 12px; }
+
+
+/* ---------------------------------------------------------------------
+   FOUR SECTIONS USED TO SIT HERE, and they are gone on purpose.
+
+   They hid things from the public tier with display:none: the hero's
+   "Verified specifications" footnote, the "Where a detail could not be
+   confirmed" line, the "Nothing on this site is an official planning
+   proposal" callout, the "Kuwait's first national satellite is a 2U
+   CubeSat" lede, the RESEARCH TOOLS band and the whole #builders
+   section. Hiding was the wrong instrument: the team asked for those
+   deleted, and content that is merely hidden still ships to every
+   visitor, still lands in find-in-page, and still reads back out of
+   view-source. They are now actually removed - from index.html, and by
+   not calling their builders in js/ksat-shell.js and js/ksat-nav.js.
+   git has the history if any of it is ever wanted back.
+   --------------------------------------------------------------------- */
+
+/* =====================================================================
+   5 · NARROW
+
+   At 400px the same shape holds — Explore and search on the left, seal
+   centred, utilities right — but three things have to give: the seal
+   comes down to 30px, the word "Explore" gives way to its chevron
+   alone, and the sign-in button loses its padding rather than its
+   presence. Nothing is hidden that was not already hidden at 1424px.
+
+   The EN/AR pair and the theme control are kept. They were the two
+   things the team named, and a bilingual site that hides its language
+   switch on a phone is not a bilingual site.
+   ===================================================================== */
+@media (max-width: 720px) {
+  html[data-ksat-tier="public"] { --ksat-min-seal: 30px; }
+
+  html[data-ksat-tier="public"] .bar-in { gap: 6px; }
+
+  /* THE WORD IS CLIPPED, NOT DISPLAY:NONE. Both of these words are the
+     accessible name of their button — "Explore" and "Search" — and
+     display:none takes a node out of the accessibility tree, which
+     would leave two unlabelled buttons on a phone. Clipping keeps the
+     name and takes the pixels, and it means neither button needs an
+     aria-label that then has to be kept in sync with the visible text
+     at wider widths (WCAG 2.5.3, label in name). */
+  html[data-ksat-tier="public"] #ksat-min-explore .ksat-min-explore-t,
+  html[data-ksat-tier="public"] .ksat-nav-find .ksat-nav-find-t {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  html[data-ksat-tier="public"] #ksat-min-explore { padding: 7px; }
+
+  /* css/ksat-nav.css already drops the ⌘K keycap below 860px. Below
+     720px the word goes too and the box becomes what it is. */
+  html[data-ksat-tier="public"] .ksat-nav-find::before {
+    content: "⌕";
+    font-size: 15px;
+    line-height: 1;
+  }
+  html[data-ksat-tier="public"] .ksat-nav-find { padding-inline: 8px; }
+
+  html[data-ksat-tier="public"] .bar-act .ksat-signin { padding-inline: 9px; }
+
+  /* One column: six labels side by side in a 400px drawer wrap into an
+     unreadable brick. */
+  html[data-ksat-tier="public"] .ksat-nav-strip { flex-direction: column; }
+  html[data-ksat-tier="public"] .ksat-nav-strip .ksat-nav-g { justify-content: flex-start; }
+}
+
+/* Under about 400px the sign-in button and the two control groups stop
+   fitting beside a centred seal. The sign-in button is the primary
+   action for the one visitor this bar is built for, so the theme
+   control — the only control here that is a preference rather than a
+   destination — is the one that yields. It is still reachable: the OS
+   setting drives it, because js/ksat-appearance.js defaults to
+   `system`. */
+@media (max-width: 400px) {
+  html[data-ksat-tier="public"] .bar-act #ksat-appearance { display: none; }
+}
+
+/* =====================================================================
+   6 · THE BAR IS DARK IN BOTH THEMES
+
+   nasa.gov has one masthead. It is black at every hour, on every page,
+   whatever the reader's system is set to — the theme changes the page
+   under it and never the bar itself. The team asked for that in as many
+   words: "the top panel like nasa exactly stays dark in day mode and
+   dark mode again like nasa".
+
+   This is the one place in the stylesheet where a colour is deliberately
+   NOT a token. Tokens are the mechanism by which light mode repaints
+   everything, and the whole point here is to opt one element out of
+   that mechanism — so the values are literal, and they are literal on
+   purpose. Changing --void will not touch this bar, and should not.
+
+   It also fixes the seam the team called ugly. A white bar butting onto
+   a near-black hero had nothing to blend: two flat fields and a hard
+   line between them. A dark bar over a dark hero has no seam at all,
+   and where the page below is light the bar now reads as a deliberate
+   band rather than as a mistake.
+   ===================================================================== */
+html[data-ksat-tier="public"] .bar {
+  /* !important, and not by reflex. css/ksat-agency.css declares
+     `.bar{ background: var(--void) !important }`, so specificity cannot
+     win this: an !important declaration beats a normal one whatever the
+     selector weight. Matching its weight from a file that loads later is
+     the mechanism this codebase already uses to out-rule an earlier
+     layer without editing it, and the alternative - removing agency's
+     rule - would repaint the insider bar too, which is not the ask. */
+  background: #05070C !important;
+  border-bottom: 1px solid #1A2130 !important;
+  /* The two-row bar leaned on a backdrop blur to sit over the hero.
+     A solid ground does not need it, and dropping it takes a
+     compositing layer off the top of every scroll. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Everything inside the bar is therefore on a dark ground, in BOTH
+   themes, and has to be painted for that ground rather than inheriting
+   the page's ink. Under light mode --ink is near-black, and inheriting
+   it here is exactly the bug that made the hero headline invisible
+   earlier in this project: a token re-pointed on an ancestor does not
+   repaint a `color` that was already resolved further up. So these are
+   literal too, and the scope re-declares colour rather than only the
+   token behind it. */
+html[data-ksat-tier="public"] .bar,
+html[data-ksat-tier="public"] .bar a,
+html[data-ksat-tier="public"] .bar button,
+html[data-ksat-tier="public"] .bar input {
+  color: #E9EFF7;
+}
+html[data-ksat-tier="public"] .bar .brand b { color: #FFFFFF; }
+html[data-ksat-tier="public"] .bar .brand i { color: #3FD0C9; }
+
+/* The search field: a thin outline on the dark, which is the shape
+   nasa.gov uses. No fill, so it reads as a field and not as a button. */
+html[data-ksat-tier="public"] .bar input[type="search"],
+html[data-ksat-tier="public"] .bar .ksat-nav-search input {
+  background: transparent;
+  border: 1px solid #38424F;
+  color: #E9EFF7;
+}
+html[data-ksat-tier="public"] .bar input::placeholder { color: #8A97A6; }
+html[data-ksat-tier="public"] .bar input:focus-visible { border-color: #3FD0C9; }
+
+/* Hover and current-page states, again literal, again for the dark. */
+html[data-ksat-tier="public"] .bar button:hover,
+html[data-ksat-tier="public"] .bar a:hover { color: #FFFFFF; }
+html[data-ksat-tier="public"] .bar [aria-expanded="true"] { color: #3FD0C9; }
+
+/* The drawer that "Explore" opens hangs off the bar, so it belongs to
+   the bar's colour scheme and not to the page's. */
+html[data-ksat-tier="public"] .ksat-min-drawer {
+  background: #080B12;
+  border-color: #1A2130;
+  color: #E9EFF7;
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------
+   THE FOUR NODES THAT PAINT THEIR OWN INK, and therefore had to be
+   named one by one.
+
+   The blanket `.bar button { color }` rule above catches everything
+   that INHERITS. These four do not: each sets colour on itself from a
+   token, and in light mode those tokens resolve to near-black. On a bar
+   that is now dark in both themes that is dark-on-dark — measured at
+   rgb(71,83,95) on rgb(5,7,12), which is about 1.4:1 and unreadable.
+
+   #ksat-min-explore is an ID, so it also out-weighs a class selector;
+   the two ksat-nav spans are set by css/ksat-nav.css, which this file
+   loads after. Both are re-declared here rather than edited there,
+   because those rules are correct for the insider bar that still
+   follows the page's theme.
+   --------------------------------------------------------------------- */
+html[data-ksat-tier="public"] #ksat-min-explore,
+html[data-ksat-tier="public"] #ksat-min-explore .ksat-min-explore-t {
+  color: #9DAEC2;
+}
+html[data-ksat-tier="public"] #ksat-min-explore:hover,
+html[data-ksat-tier="public"] #ksat-min-explore:hover .ksat-min-explore-t,
+html[data-ksat-tier="public"] #ksat-min-explore[aria-expanded="true"],
+html[data-ksat-tier="public"] #ksat-min-explore[aria-expanded="true"] .ksat-min-explore-t {
+  color: #FFFFFF;
+}
+html[data-ksat-tier="public"] #ksat-min-explore:hover,
+html[data-ksat-tier="public"] #ksat-min-explore[aria-expanded="true"] {
+  background: rgba(255, 255, 255, .07);
+}
+html[data-ksat-tier="public"] .bar .ksat-nav-lock,
+html[data-ksat-tier="public"] .bar .ksat-nav-key {
+  color: #7E8B9B;
+}
+/* The search field's own shell, which css/ksat-nav.css gives a light
+   ground in light mode for a light bar that no longer exists here. */
+html[data-ksat-tier="public"] .bar .ksat-nav-find {
+  background: transparent;
+  border-color: #38424F;
+  color: #E9EFF7;
+}
+html[data-ksat-tier="public"] .bar .ksat-nav-find:hover { border-color: #55616F; }
+
+/* The sign-in button is the one control in the bar with a FILL of its
+   own. In light mode css/ksat-nasa.css gives it a pale ground for a
+   pale bar — measured rgb(237,241,245) — and the blanket ink rule above
+   then painted its label near-white on top of that, so it rendered as
+   an empty rectangle. It is the only way into the platform, so it gets
+   painted explicitly for the dark bar rather than left to inherit:
+   a quiet outline at rest, and the accent on hover. */
+html[data-ksat-tier="public"] .bar #ksat-signin {
+  background: transparent;
+  border: 1px solid #38424F;
+  color: #E9EFF7;
+}
+html[data-ksat-tier="public"] .bar #ksat-signin:hover {
+  background: rgba(63, 208, 201, .12);
+  border-color: #3FD0C9;
+  color: #FFFFFF;
+}
+html[data-ksat-tier="public"] .bar #ksat-signin:focus-visible {
+  outline: 2px solid #3FD0C9;
+  outline-offset: 2px;
+}
+
+/* Same trap, same cause: the EN/AR pair and the theme trio are little
+   segmented controls with their own grounds. The selected segment keeps
+   the accent — that is how you see which one is on — and the rest go
+   quiet against the dark. */
+html[data-ksat-tier="public"] .bar .lang,
+html[data-ksat-tier="public"] .bar .ksat-appearance {
+  background: rgba(255, 255, 255, .05);
+  border-color: #2A3341;
+}
+html[data-ksat-tier="public"] .bar .lang button,
+html[data-ksat-tier="public"] .bar .ksat-appearance button {
+  color: #9DAEC2;
+  background: transparent;
+}
+html[data-ksat-tier="public"] .bar .lang button[aria-pressed="true"],
+html[data-ksat-tier="public"] .bar .lang button.on,
+html[data-ksat-tier="public"] .bar .ksat-appearance button[aria-pressed="true"],
+html[data-ksat-tier="public"] .bar .ksat-appearance button.on {
+  background: #3FD0C9;
+  color: #04060B;
+}
+
+/* "Explore" is the only word on the left of nasa.gov's bar and it is set
+   as a heading would be: white, a little heavier, a little larger than
+   the utilities on the right. Ours was inheriting the secondary ink and
+   reading as a caption. */
+html[data-ksat-tier="public"] #ksat-min-explore {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+html[data-ksat-tier="public"] #ksat-min-explore,
+html[data-ksat-tier="public"] #ksat-min-explore .ksat-min-explore-t {
+  color: #F2F6FA;
+}

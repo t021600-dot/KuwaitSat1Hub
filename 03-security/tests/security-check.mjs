@@ -692,16 +692,52 @@ await check('PG-KEEP', 'every data surface and control of the original is still 
     const a = withoutLayer(readFileSync(join(ROOT, 'site-original', 'index.html'), 'utf8'));
     const b = withoutLayer(readFileSync(join(ROOT, 'index.html'), 'utf8'));
     const FLOOR = ['canvas', 'table', 'button', 'input', 'select', 'iframe', 'style'];
+    /* A SURFACE MAY MOVE INTO THE JS LAYER, and that is not a loss - but
+       it is only not a loss if the replacement can be SHOWN to exist. So
+       this does not simply decrement the floor: for each claim it reads
+       the named file and requires that the file really does create an
+       element of that type. A claim whose file has been deleted, or which
+       never creates the surface it promised, fails as loudly as a plain
+       deletion would.
+
+       #cvDescent, 22 Sep: the descent strip drew a downlink cone on a
+       canvas in the markup. The team asked for the spacecraft instead, so
+       the strip is now a hand-rolled 3D CubeSat whose canvas is created at
+       runtime. The surface is still there and carries more than it did;
+       it is simply no longer in the HTML. */
+    const MOVED_TO_LAYER = {
+      canvas: [{
+        file: 'js/ksat-cubesat.js',
+        was:  '#cvDescent, the downlink-cone canvas in the descent strip',
+        now:  'the 3D CubeSat, created at runtime by that file',
+        creates: /createElement\(\s*['"]canvas['"]\s*\)/
+      }]
+    };
+
+    const moved = [];
     const lost = [];
     const census = [];
     for (const t of FLOOR) {
       const re = new RegExp('<' + t + '[\\s>]', 'gi');
       const ca = (a.match(re) || []).length, cb = (b.match(re) || []).length;
       census.push(`${t} ${cb}`);
-      if (cb < ca) lost.push(`${t} ${ca}->${cb}  (${ca - cb} lost)`);
+      let allowance = 0;
+      for (const claim of (MOVED_TO_LAYER[t] || [])) {
+        let src = '';
+        try { src = readFileSync(join(ROOT, claim.file), 'utf8'); } catch { src = ''; }
+        if (!src) {
+          lost.push(`${t}: ${claim.file} is GONE, and it carried ${claim.was}`);
+        } else if (!claim.creates.test(src)) {
+          lost.push(`${t}: ${claim.file} no longer creates a ${t} - ${claim.was} has no replacement`);
+        } else {
+          allowance += 1;
+          moved.push(`${claim.was} -> ${claim.now}`);
+        }
+      }
+      if (cb < ca - allowance) lost.push(`${t} ${ca}->${cb}  (${ca - cb - allowance} lost)`);
     }
     return lost.length === 0
-      ? { ok: true, detail: census.join(', ') }
+      ? { ok: true, detail: census.join(', ') + (moved.length ? ' | moved to the layer: ' + moved.join('; ') : '') }
       : { ok: false, detail: 'REMOVED FROM THE PAGE: ' + lost.join(', ') };
   });
 
@@ -722,7 +758,22 @@ await check('PG-HOOK', 'every id the original page hangs behaviour off still exi
        does. */
     const REMOVED_ON_PURPOSE = {
       team: 'the capstone Meet the Team section, removed on the team\'s instruction. Never restore it.',
-      teamGrid: 'the grid inside that same section.'
+      teamGrid: 'the grid inside that same section.',
+
+      /* THE MINIMAL PUBLIC PAGE, 22 Sep. The team asked for a public face
+         "super minimalist ... dont show a lot of details to the outsider",
+         and asked that these be DELETED rather than hidden: hidden content
+         still ships to every visitor and still reads back out of
+         view-source, so hiding would not have answered the ask. git has all
+         of it, and site-original/ still holds the page they came from -
+         which is how this check can still see that they are gone. */
+      builders:    'the whole Team Behind KuwaitSat-1 section - its essay, the supplied-photograph credits and the leads/timeline panels. Deleted on instruction, 22 Sep.',
+      photoPlate:  'the team photograph inside #builders. It went with the section: the credit lines went too, and an uncredited supplied photograph is worse than none.',
+      tribute:     'the tribute block inside #builders.',
+      bltLeads:    'the named-leads panel inside #builders.',
+      bltLinks:    'the source chips inside #builders.',
+      bltTimeline: 'the project timeline inside #builders.',
+      cvDescent:   'the downlink-cone canvas in the descent strip. Replaced by the 3D spacecraft in js/ksat-cubesat.js, which the team asked for in its place; the cone and its three lines of narration went with it.'
     };
     const idsOf = t => [...t.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
     const a = new Set(idsOf(readFileSync(join(ROOT, 'site-original', 'index.html'), 'utf8')));
@@ -780,7 +831,24 @@ await check('PG-FIG', 'every figure the original published still appears in the 
        first version of the old check read "KuwaitSat-1" as -1. */
     const REDRAWN = {
       '26.2': 'cx of `<circle cx="26.2" cy="9.6" r="2.4" fill="#3FD0C9"/>`, a decorative dot in an icon the design passes redrew in three places. Artwork coordinate, not data.',
-      '9.6': 'cy of that same circle.'
+      '9.6': 'cy of that same circle.',
+
+      /* Artwork coordinates from drawings that no longer exist, not
+         measurements. The hero's Earth was a canvas drawing - a gradient
+         with two ellipses standing in for the desert and the Gulf - and is
+         now a photograph (assets/earth/, real NASA imagery; provenance in
+         assets/earth/CREDITS.txt). The descent strip's downlink cone is now
+         the 3D spacecraft. The published FIGURES of the mission - 525 km,
+         39 m, 80 km, 2 kg, 3 Jan 2023 - are all still in the page, which is
+         what this check exists to protect. */
+      '071018': 'a gradient stop hex in drawDescent(), the downlink cone the spacecraft replaced.',
+      '081119': 'the other gradient stop of that same cone.',
+      '1.88':   'a beam-width coefficient inside drawDescent(). Artwork, not data.',
+      '0.96':   'inner radius ratio of the hero limb glow, from the canvas drawing the NASA photograph replaced.',
+      '1.16':   'outer radius ratio of that same glow. It still appears in js/ only because another file happens to use the same number.',
+      '0.955':  'y-offset of the desert-band ellipse in the drawn Earth. There is no drawn desert band now - the land is the NASA composite.',
+      '0.968':  'y-offset of the gulf ellipse in the same drawing.',
+      '0.020':  'ry of that gulf ellipse.'
     };
     const nums = t => (t.match(/(?<![\w-])-?\d+(?:\.\d+)?/g) || []);
     const original = new Set(nums(readFileSync(join(ROOT, 'site-original', 'index.html'), 'utf8')));

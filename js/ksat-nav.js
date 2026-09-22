@@ -1241,7 +1241,12 @@
        flat nav used to occupy. */
     navwrap.insertAdjacentElement('afterend', navEl);
 
-    buildTools();
+    /* buildTools() is NOT called any more. It built the RESEARCH TOOLS
+       band - the seven workspace chips and the line explaining that they
+       need an account. The team's words: "why would an outsider know about
+       these Research tools". They are reachable from the grouped nav for
+       anyone who signs in, so the band was telling strangers about doors
+       they cannot open. The builder stays for the signed-in surface. */
     watchPageNav();
     mirrorCurrent();
 

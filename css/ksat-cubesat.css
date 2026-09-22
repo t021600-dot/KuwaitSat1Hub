@@ -1,0 +1,322 @@
+/* =====================================================================
+   ksat-cubesat.css — the 2U CubeSat model in the descent strip
+   Companion to js/ksat-cubesat.js. Neither is any use without the other.
+
+   ---------------------------------------------------------------------
+   WHAT THIS REPLACES, AND WHY IT IS A REPLACEMENT RATHER THAN A DELETE
+   ---------------------------------------------------------------------
+   #descent is the transition strip between the orbit console and the
+   team section. Until now it held one canvas, #cvDescent, drawing a
+   downlink cone with three lines of type centred over it. The team
+   looked at that graphic and asked for the spacecraft instead — "as it
+   going to space realistic".
+
+   Nothing here deletes that strip. #cvDescent stays in the DOM exactly
+   where index.html put it; this file sets display:none on it, and only
+   once js/ksat-cubesat.js has successfully mounted and stamped
+   data-ksat-cubesat="on" onto #descent. Delete these two files and the
+   attribute is never written, the rule never matches, and the old
+   downlink cone is back with no edit to index.html at all. That is the
+   whole restore procedure.
+
+   ---------------------------------------------------------------------
+   Z-INDEX: THIS FILE TAKES NOTHING FROM THE SHARED BUDGET
+   ---------------------------------------------------------------------
+   The page-wide stack is documented in css/ksat-assistant.css (.bar 60,
+   #demoHud 120, #ksat-ch-fab 130, .ksat-as-fab 132, .ksat-as-panel 134,
+   #ksat-ch-sheet 140, #toast 150, #intro 200). None of those numbers
+   are used here and none are needed.
+
+   #descent already carries position:relative (index.html), so it opens
+   its own stacking context inside main (z-index:2). Every z-index in
+   this file is a single digit and is scoped inside .ksat-cs or inside
+   #descent, so the highest layer this file can possibly produce still
+   sits entirely underneath the masthead at 60. If you add a rule here,
+   keep it single-digit for the same reason.
+
+   ---------------------------------------------------------------------
+   THE DARK PLATE IN LIGHT MODE
+   ---------------------------------------------------------------------
+   In dark mode this strip is deliberately transparent: the page's fixed
+   starfield (#stars, position:fixed, z-index:0) shows straight through
+   it, so the satellite genuinely sits in the page's own sky rather than
+   on a painted rectangle of its own.
+
+   Light mode cannot do that — css/ksat-nasa.css sets #stars{display:none}
+   on a white page and there is no sky left to show through. The house
+   answer to that is already written down in js/ksat-theme.js: the globe,
+   the orbit diagram and the hero limb are "pictures of space" and stay
+   dark on a white page "the way a printed journal keeps a plate dark".
+   So in light mode this strip becomes exactly that — a contained dark
+   plate with a hairline and a radius, sitting in the white page like a
+   photographic plate in a journal. It is the same decision the rest of
+   the site already made, not a new one.
+   ===================================================================== */
+
+
+/* =====================================================================
+   1 · THE HANDOVER
+
+   Both rules are gated on data-ksat-cubesat="on", which only
+   js/ksat-cubesat.js writes, and only after its canvas is in the DOM
+   and has drawn a first frame. If the script throws, if the browser has
+   no canvas, if the file 404s — the attribute is absent, nothing below
+   matches, and the reader gets the original strip. Never hide the old
+   thing on the assumption that the new thing arrived.
+   ===================================================================== */
+
+#descent[data-ksat-cubesat="on"] > #cvDescent {
+  display: none;
+}
+
+/* The three lines of type — "Downlink", "Ground station · Kuwait
+   University", "The people who built it" — were centred over the old
+   cone. Over the satellite they land across the middle of the
+   spacecraft and read as a caption somebody forgot to move.
+
+   Public tier: hidden. That is the brief — the public page is minimal —
+   and it is a hide, not a delete: the spans are untouched in the DOM and
+   the i18n walker still finds them.
+
+   Insider tier: kept, but docked to the bottom corner as a small mono
+   stack instead of a centred headline, so a signed-in researcher still
+   reads every word and the model is not written over. */
+#descent[data-ksat-cubesat="on"] .dtext {
+  display: none;
+}
+
+html[data-ksat-tier="insider"] #descent[data-ksat-cubesat="on"] .dtext {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 2px;
+  inset: auto auto 14px 20px;
+  text-align: start;
+  padding-inline: 0;
+  z-index: 3;
+}
+
+html[data-ksat-tier="insider"] #descent[data-ksat-cubesat="on"] .dtext .dline {
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  opacity: .72;
+}
+
+/* Arabic runs right to left, so the dock moves to the other corner.
+   Logical properties would do this on their own, but .dtext's `inset`
+   above is physical (there is no logical shorthand for all four), so the
+   flip is written out. */
+html[dir="rtl"][data-ksat-tier="insider"] #descent[data-ksat-cubesat="on"] .dtext {
+  inset: auto 20px 14px auto;
+}
+
+
+/* =====================================================================
+   2 · THE FIGURE
+
+   One <figure> filling #descent, holding the canvas, the provenance
+   badge, the caption and the interaction hint. It is a figure and not a
+   div because it is a picture with a caption that says what the picture
+   is and is not — which on this site is the point of the picture.
+   ===================================================================== */
+
+.ksat-cs {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: block;
+  overflow: hidden;
+  touch-action: none;        /* drag rotates; it must not also scroll   */
+  cursor: grab;
+  z-index: 2;
+}
+
+.ksat-cs[data-drag="on"] {
+  cursor: grabbing;
+}
+
+.ksat-cs-cv {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Focus has to be visible on a canvas that is otherwise pure bitmap.
+   An inset ring rather than an outline, because #descent clips to its
+   own box and an outline drawn outside the figure would be cut off. */
+.ksat-cs:focus {
+  outline: none;
+}
+
+.ksat-cs:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: -4px;
+}
+
+
+/* =====================================================================
+   3 · THE PROVENANCE BADGE
+
+   Styled to match .badge.sim in index.html exactly, but under its own
+   class name rather than reusing .badge — on purpose.
+
+   js/ksat-i18n.js runs translateBadges() over every .badge on the page
+   and caches each node's first-seen text in a WeakMap as "the English".
+   This badge is created by script, possibly long after that pass, and
+   possibly while the page is already in Arabic. If it were a .badge, the
+   walker could cache its Arabic as the English original and then be
+   unable to switch it back. Owning the class means owning both strings,
+   which js/ksat-cubesat.js does.
+   ===================================================================== */
+
+.ksat-cs-badge {
+  position: absolute;
+  top: 14px;
+  inset-inline-start: 20px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono, "IBM Plex Mono", monospace);
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid #6B5210;
+  color: #F2C46B;
+  background: rgba(178, 127, 2, .13);
+  pointer-events: none;
+}
+
+
+/* =====================================================================
+   4 · THE CAPTION
+
+   The sentence that keeps the model honest. It is not decoration and it
+   is not collapsible: the site's whole claim is that it says which parts
+   of a picture are published and which are drawn, and this picture is
+   drawn.
+   ===================================================================== */
+
+.ksat-cs-cap {
+  position: absolute;
+  inset-inline-end: 20px;
+  bottom: 14px;
+  z-index: 3;
+  max-width: min(46ch, 52%);
+  margin: 0;
+  text-align: end;
+  font-family: var(--mono, "IBM Plex Mono", monospace);
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: .04em;
+  color: var(--ink-3, #64778D);
+  pointer-events: none;
+}
+
+/* The interaction hint sits with the caption rather than in its own
+   corner, so the strip has two pieces of furniture and not three. */
+.ksat-cs-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-3, #64778D);
+  opacity: .68;
+}
+
+/* Under reduced motion the model does not turn on its own, so the hint
+   is the only thing telling the reader it can be turned at all. Give it
+   its full weight there. */
+@media (prefers-reduced-motion: reduce) {
+  .ksat-cs-hint { opacity: .85; }
+}
+
+
+/* =====================================================================
+   5 · SMALL SCREENS
+
+   At phone width the caption and the badge would sit on top of the
+   spacecraft, which at 240px of strip height is most of the picture.
+   The caption drops to a full-width line under the model and the badge
+   loses its absolute position with it.
+   ===================================================================== */
+
+@media (max-width: 620px) {
+  .ksat-cs-cap {
+    inset-inline: 16px;
+    max-width: none;
+    text-align: center;
+    font-size: 9.5px;
+  }
+  .ksat-cs-badge {
+    top: 10px;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+  }
+  /* transform:translateX is physical. In RTL the start edge is the right
+     one, so 50% measures from the right and the same -50% still lands
+     the badge on the centre — no flip needed. Noted because it looks
+     like an omission. */
+}
+
+
+/* =====================================================================
+   6 · LIGHT MODE — the printed plate
+
+   See the header. #stars is switched off on a white page, so the strip
+   supplies its own sky, contained rather than full-bleed so it reads as
+   a plate and not as a black band across the document.
+   ===================================================================== */
+
+:root[data-theme="light"] #descent[data-ksat-cubesat="on"] {
+  /* ksat-theme.css promotes #descent to 100vw full bleed. On white that
+     is a black stripe edge to edge. Pull it back to the content column,
+     give it a radius, and it becomes a figure on a page. */
+  width: auto;
+  margin-inline: 0;
+  border-top: 0;
+  border: 1px solid var(--line-2, #D3DAE2);
+  border-radius: var(--r, 14px);
+  overflow: hidden;
+  background:
+    radial-gradient(78% 64% at 50% 34%, #101A2A 0%, #080D16 58%, #04060B 100%);
+}
+
+/* On the dark plate the light-mode --ink-3 is a mid grey that all but
+   disappears. The caption is the honesty text; it does not get to be
+   hard to read because the reader chose day mode. */
+:root[data-theme="light"] .ksat-cs-cap,
+:root[data-theme="light"] .ksat-cs-hint {
+  color: #93A5BA;
+}
+
+:root[data-theme="light"] .ksat-cs:focus-visible {
+  /* var(--accent) in light mode is darkened for white grounds and is
+     nearly invisible against the plate. Use the canvas accent, which
+     css/ksat-nasa.css maintains for exactly this case. */
+  outline-color: var(--accent-canvas, #3FD0C9);
+}
+
+
+/* =====================================================================
+   7 · PRINT
+
+   css/ksat-shell.css brings chapter-hidden blocks back for print,
+   #descent included. A rotating canvas prints as whatever frame it
+   happened to be on, which is fine — it is a picture of a spacecraft.
+   The caption must print with it, because a printed page that carries
+   the model and not the sentence saying the model is drawn is precisely
+   the misstatement this pair of files exists to avoid.
+   ===================================================================== */
+
+@media print {
+  .ksat-cs { position: relative; break-inside: avoid; }
+  .ksat-cs-cap, .ksat-cs-badge { color: #333; }
+  .ksat-cs-hint { display: none; }   /* nothing to drag on paper */
+}
