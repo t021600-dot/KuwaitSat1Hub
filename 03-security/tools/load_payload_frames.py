@@ -35,12 +35,21 @@ HOW TO RUN IT
 Get the service role key from
   Supabase dashboard -> Project Settings -> API Keys -> service_role
 
-Then, in this window, on one line:
+Put it in a FILE rather than on a command line:
 
-  ! SUPABASE_SERVICE_KEY=paste_the_key_here python "03-security/tools/load_payload_frames.py" --docx "C:/Users/senpa/Downloads/data .docx"
+  private/service_key.txt      (one line, just the key)
 
-The key is read from the environment, never from a command line flag, so
-it does not end up in your shell history the way a --key would.
+That path is gitignored, so it cannot be committed by accident. A command
+line would land in shell history and, if you are working through an
+assistant, in the transcript of that window too. Delete the file once the
+load has run.
+
+Then:
+
+  ! python "03-security/tools/load_payload_frames.py" --docx "C:/Users/senpa/Downloads/data .docx"
+
+SUPABASE_SERVICE_KEY in the environment still works if you prefer it, and
+is what CI would use.
 
 WHEN IT IS DONE
 ---------------
@@ -71,6 +80,37 @@ EXPECTED_FRAMES = 8
 def die(msg):
     print(f"\n  STOPPED: {msg}\n", file=sys.stderr)
     sys.exit(1)
+
+
+KEY_FILE = os.path.join("private", "service_key.txt")
+
+
+def read_key():
+    """The service role key, from a file if there is one, else the env.
+
+    The file comes FIRST on purpose. Typing the key on a command line puts
+    it in shell history, and in this project's case also in the transcript
+    of the window it was typed into. A file under private/ is already
+    gitignored, is read once, and can be deleted the moment the load is
+    done. The environment variable still works for CI or for anyone who
+    prefers it.
+    """
+    if os.path.exists(KEY_FILE):
+        with open(KEY_FILE, encoding="utf8") as fh:
+            key = fh.read().strip()
+        if key:
+            print("  using the key in " + KEY_FILE)
+            return key
+
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+    if key:
+        return key
+
+    die("no service role key found. Put it in a file rather than typing "
+        "it in the open, because a command line ends up in shell history: "
+        "create " + KEY_FILE + ", paste the key into it, save, and run this "
+        "again. That path is gitignored. Delete the file when the load is "
+        "done.")
 
 
 def frames_from_docx(path):
@@ -158,13 +198,17 @@ def main():
     ap.add_argument("--url", default=PROJECT_URL)
     args = ap.parse_args()
 
-    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
-    if not key:
-        die("SUPABASE_SERVICE_KEY is not set. See the notes at the top of "
-            "this file for the one line that sets it.")
+    key = read_key()
     if key.startswith("sb_publishable_"):
         die("that is the publishable key. The archive has no write grant "
             "for it on purpose — this needs the service_role key.")
+    # A real key is either sb_secret_... or a JWT (eyJ...). Anything else is
+    # almost always the placeholder pasted verbatim, and saying so here beats
+    # a bare 401 from the other end of the wire.
+    if not (key.startswith("sb_secret_") or key.startswith("eyJ")):
+        die("that does not look like a service_role key. Copy the real one "
+            "from Supabase -> Project Settings -> API Keys -> service_role; "
+            "it starts with sb_secret_ (or eyJ on older projects).")
 
     print(f"\nLoading payload frames into {args.url}\n")
     ok = 0
