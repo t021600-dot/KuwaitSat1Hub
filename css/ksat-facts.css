@@ -1,0 +1,428 @@
+/* =====================================================================
+   ksat-facts.css - THE FIRST SECTION AFTER THE HERO, MADE INTO CONTENT
+   Owner: 01 Front End
+   Pairs with js/ksat-facts.js. Nothing here styles anything that file
+   does not build, except one rule that hides an index.html heading; that
+   rule is flagged below and is meant to be deleted once index.html
+   catches up.
+
+   WHAT THIS REPLACES, AND WHY
+
+   #legend used to open with five cards explaining the site's own badge
+   vocabulary: Measured, Public data, Reference dataset, Modelled, Model
+   output. That is a key, and a key is housekeeping. It sat in the first
+   content slot on the page, which on nasa.gov carries an actual mission:
+   a heading, a short paragraph, and a number that means something.
+
+   So the vocabulary moves to #sources, where the register that uses it
+   lives, and this slot becomes KuwaitSat-1 itself. The JS moves the
+   cards; this file only has to make the new blocks look like they were
+   always there.
+
+   EVERY COLOUR IS A TOKEN. --ink, --ink-2, --ink-3, --line, --surf,
+   --accent and --green are all redefined by css/ksat-nasa.css under
+   :root[data-theme="light"], so writing only in tokens is what makes
+   this section correct in both themes without a single light mode rule
+   of its own.
+
+   LOGICAL PROPERTIES THROUGHOUT. html[dir] flips to rtl for Arabic, and
+   padding-inline-start / border-inline-start / text-align:start mean the
+   rails, the indents and the ragged edge all flip with it. A single
+   padding-left in here would put the timeline rail on the wrong side of
+   an Arabic page, which is the bug this comment exists to prevent.
+
+   Z-INDEX: this file claims none. Nothing here is layered, positioned
+   above the page, or allowed near the shared budget documented in
+   css/ksat-assistant.css.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   0 - THE ONE RULE THAT REACHES INTO index.html
+
+   #legend still carries its own section heading, the one whose sentence
+   titles the badge vocabulary. The vocabulary is no longer in this
+   section, so that heading now titles something it does not describe.
+
+   It is NOT removed from the DOM and its text is NOT rewritten.
+   js/ksat-i18n.js walks every [data-i18n] node on each language switch
+   and caches its English on the first pass; rewriting the text would
+   make the i18n layer remember our sentence as the page's original
+   English and then hand back the stored Arabic for that key in Arabic
+   mode. Hiding is the only move that leaves that machinery telling the
+   truth.
+
+   display:none also takes it out of the accessibility tree, so the
+   heading order a screen reader hears is our own h2 followed by our h3s,
+   with no silent duplicate above it.
+
+   WHEN index.html DELETES THAT HEADING, DELETE THIS RULE. It is scoped
+   to .ksf-on so it can never hide a heading on a page where our JS did
+   not run and therefore did not supply a replacement.
+   --------------------------------------------------------------------- */
+#legend.ksf-on > h2.st[data-i18n="leg.h"] { display: none; }
+
+/* ---------------------------------------------------------------------
+   1 - THE SECTION HEAD
+   --------------------------------------------------------------------- */
+.ksf { display: block; }
+
+.ksf-eyebrow {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+.ksf-lab {
+  font-family: var(--mono, monospace);
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+}
+/* A short accent rule beside the eyebrow. It is the only decoration in
+   the section and it is 34px wide, because anything longer starts to
+   read as a divider rather than as a mark. */
+.ksf-rule {
+  flex: 0 0 auto; width: 34px; height: 2px;
+  background: var(--accent, #3FD0C9); border-radius: 2px;
+}
+
+h2.ksf-h2 {
+  color: var(--ink, #E8ECF2);
+  text-align: start;
+  max-width: 22ch;
+}
+
+/* THE TITLE SIZE, AND WHY IT NEEDS !important TO BE NORMAL
+
+   MEASURED IN THE BROWSER, not assumed. A plain `h2.ksf-h2` font-size
+   computed to 64.07px at a 1187px viewport. The rule that beat it is in
+   css/ksat-agency.css section 3:
+
+       section.sec h2, h2.st { font-size: clamp(34px,5.4vw,72px)
+                               !important; ... }
+
+   That is the agency headline scale, and clamp(34px,5.4vw,72px) is
+   exactly the size the team called too large. css/ksat-minimal.css
+   section 13 already pulled it back for the page's own headings, and it
+   had to use !important too, because an !important declaration can only
+   be beaten by another !important one with more specificity. Its
+   selector, html[data-ksat-tier="public"] h2.st, does not reach our
+   heading: ours is .ksf-h2, not .st.
+
+   So this rule takes the SAME size minimal.css settled on rather than a
+   fourth opinion, scoped through #legend so the specificity clears
+   section.sec h2 and nothing outside this section is touched. Measured
+   after: 33.22px, identical to every other section title on the page.
+
+   Only font-size is claimed. Weight, line height and tracking are left
+   to agency.css on purpose, so this heading matches its neighbours in
+   every respect rather than becoming a lookalike that is subtly off. */
+#legend h2.ksf-h2 {
+  font-size: clamp(26px, 2.8vw, 40px) !important;
+}
+.ksf-lede {
+  margin: 0; color: var(--ink-2, #9AA7B8);
+  font-size: 16px; line-height: 1.62;
+  max-width: 74ch; text-align: start;
+}
+.ksf-lede-2 { margin-top: 10px; }
+
+/* ---------------------------------------------------------------------
+   2 - THE FIGURE STRIP
+
+   Four numbers across the full column width, divided by hairlines rather
+   than boxed into cards. Boxes would make a row of bordered rectangles
+   again, which is exactly the shape this section was asked to stop
+   being.
+   --------------------------------------------------------------------- */
+.ksf-figs {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0; margin-top: 30px;
+  border-top: 1px solid var(--line-2, #232C3C);
+  border-bottom: 1px solid var(--line-2, #232C3C);
+}
+.ksf-fig {
+  padding: 18px 20px;
+  border-inline-start: 1px solid var(--line, #1B2230);
+  min-width: 0;
+}
+.ksf-fig:first-child { border-inline-start: 0; padding-inline-start: 0; }
+.ksf-fig .k {
+  font-family: var(--mono, monospace);
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+  display: block;
+}
+.ksf-fig .v {
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(22px, 2.2vw, 30px); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.08; margin-top: 7px;
+  color: var(--ink, #E8ECF2);
+  font-variant-numeric: tabular-nums;
+  display: block; overflow-wrap: break-word;
+}
+.ksf-fig .d {
+  font-size: 12.5px; color: var(--ink-2, #9AA7B8);
+  margin-top: 5px; display: block;
+}
+
+/* ---------------------------------------------------------------------
+   3 - THE BLOCK GRID
+   --------------------------------------------------------------------- */
+.ksf-band { display: grid; gap: 22px; margin-top: 34px; }
+.ksf-band.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+.ksf-block { min-width: 0; }
+.ksf-block > h3 {
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(16px, 1.3vw, 19px); font-weight: 600;
+  letter-spacing: -.01em; margin: 0 0 10px;
+  color: var(--ink, #E8ECF2);
+  text-align: start;
+}
+.ksf-block p {
+  margin: 0 0 10px; font-size: 14.5px; line-height: 1.68;
+  color: var(--ink-2, #9AA7B8); max-width: 66ch; text-align: start;
+}
+.ksf-block p:last-child { margin-bottom: 0; }
+
+/* The quoted objective. A rail rather than quote marks, because the
+   sentence is a specification row and not a piece of oratory. */
+.ksf-quote {
+  margin: 0 0 12px;
+  padding-block: 12px;
+  padding-inline-start: 16px; padding-inline-end: 0;
+  border-inline-start: 2px solid var(--accent, #3FD0C9);
+  font-family: var(--disp, sans-serif);
+  font-size: 16px; line-height: 1.45; font-weight: 600;
+  color: var(--ink, #E8ECF2); text-align: start;
+}
+
+/* ---------------------------------------------------------------------
+   4 - THE PEOPLE
+   --------------------------------------------------------------------- */
+.ksf-people { list-style: none; margin: 0 0 12px; padding: 0; }
+.ksf-person {
+  padding: 10px 0;
+  border-top: 1px solid var(--line, #1B2230);
+}
+.ksf-person:first-child { border-top: 0; padding-top: 0; }
+.ksf-person .n {
+  display: block; font-size: 14.5px; font-weight: 600;
+  color: var(--ink, #E8ECF2);
+}
+/* --ink-2, NOT --ink-3, AND THE REASON IS MEASURED.
+
+   --ink-3 is the page's metadata colour and it is right for a 10px mono
+   label. Measured on the light ground the body actually paints,
+   rgb(247,247,244) rather than the #FFFFFF the token was set against,
+   --ink-3 comes in at 4.42:1. That clears nothing: WCAG AA for text
+   this size is 4.5:1, and it misses by 0.08.
+
+   For the mono micro labels in this file that is the whole page's
+   existing behaviour and not ours to change unilaterally. This line is
+   different: it is a SENTENCE, and it is the sentence that admits the
+   published record does not say which of the two men holds which post.
+   An honesty caveat is the last thing on the page that should be set in
+   the faintest ink available. --ink-2 measures 7.09:1 here. */
+.ksf-person .r {
+  display: block; margin-top: 3px;
+  font-size: 12.5px; line-height: 1.5; color: var(--ink-2, #9AA7B8);
+}
+
+/* ---------------------------------------------------------------------
+   5 - THE RECORD
+
+   A dated rail. The date column is fixed and monospaced so five dates
+   line up as a column of dates rather than as five sentences that happen
+   to begin with numbers.
+   --------------------------------------------------------------------- */
+.ksf-rec { list-style: none; margin: 14px 0 0; padding: 0; }
+.ksf-rec li {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: 0 18px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line, #1B2230);
+  align-items: baseline;
+}
+.ksf-rec li:first-child { border-top: 0; }
+.ksf-rec .d {
+  font-family: var(--mono, monospace);
+  font-size: 11.5px; letter-spacing: .06em;
+  color: var(--accent, #3FD0C9);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.ksf-rec .t {
+  font-size: 14px; line-height: 1.6; color: var(--ink-2, #9AA7B8);
+  min-width: 0;
+}
+/* Arabic month names are long enough that a nowrap date column at 116px
+   pushes the body text off a narrow screen. In Arabic the column is
+   allowed to wrap instead of forcing a horizontal scroll. */
+html[lang="ar"] .ksf-rec .d { white-space: normal; }
+
+/* The elapsed figure sitting under the record. One derived number, said
+   on screen to be derived. */
+.ksf-elapsed {
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--line-2, #232C3C);
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+/* GREEN TYPE USES --green-text, NEVER --green OR --green-lt.
+
+   MEASURED IN LIGHT MODE, and this was wrong on the first pass. The
+   ramp colours are deliberately identical in both themes, because they
+   encode data: css/ksat-nasa.css says so and leaves --green #40AD60 and
+   --green-lt #8FD8A3 untouched when the page goes light. That is right
+   for a fill and wrong for a letter. #40AD60 on the light ground
+   #F7F7F4 measures about 2.6:1, under the 3:1 floor even at this size,
+   and --green-lt is paler still.
+
+   --green-text exists for exactly this: #1C6B3B in light mode, and
+   UNDEFINED in dark, which is why index.html always writes it as
+   var(--green-text, #9FE0B5). The fallback IS the dark value. Same
+   idiom here, so the number is legible on paper and on the void. */
+.ksf-elapsed .v {
+  font-family: var(--disp, sans-serif);
+  font-size: 26px; font-weight: 700; letter-spacing: -.02em;
+  color: var(--green-text, #9FE0B5); font-variant-numeric: tabular-nums;
+}
+.ksf-elapsed .t {
+  font-size: 13px; line-height: 1.55; color: var(--ink-2, #9AA7B8);
+  max-width: 54ch;
+}
+
+/* ---------------------------------------------------------------------
+   6 - THE NATIONAL PICTURE
+   --------------------------------------------------------------------- */
+.ksf-pillars { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+.ksf-pill {
+  font-size: 12.5px; line-height: 1.4;
+  padding: 5px 11px; border-radius: 20px;
+  border: 1px solid var(--line-2, #232C3C);
+  color: var(--ink-2, #9AA7B8);
+  background: var(--surf-2, transparent);
+}
+/* The one environmental pillar, which is the only reason this list is on
+   the page at all. PILLARS in index.html flags it with key:true. */
+.ksf-pill.key {
+  border-color: var(--green-deep, #0B5D2F);
+  /* --green-text, not --green-lt. Same measurement as .ksf-elapsed .v
+     above: #8FD8A3 is a vegetation ramp colour and is near invisible as
+     type on the light ground. */
+  color: var(--green-text, #9FE0B5);
+  background: rgba(64, 173, 96, .13);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------
+   7 - CITATIONS
+
+   Reuses .tag, the chip index.html's own srcChips() builds, so a source
+   chip looks identical whether this file drew it or the page did.
+   --------------------------------------------------------------------- */
+.ksf-cite {
+  display: inline-flex; gap: 4px; flex-wrap: wrap;
+  vertical-align: baseline; margin-inline-start: 4px;
+}
+.ksf-cite a.tag { text-decoration: none; }
+.ksf-cite a.tag:hover { color: var(--accent, #3FD0C9); border-color: var(--accent-dim, #1E7F7C); }
+
+/* THE ONLY TRANSITION LEFT IN THIS FILE, AND IT IS BEHIND THE GUARD.
+
+   It was declared unguarded on the rule above. A colour fade is not
+   motion in the sense the accessibility rule is aimed at, and it would
+   almost certainly have been fine. But the house rule here is flat:
+   motion is optional and everything that moves goes behind
+   prefers-reduced-motion. css/ksat-explore.css, the other half of this
+   pair, already guards its own identical colour transition. One file
+   quietly holding the other standard is how a rule stops being a rule,
+   and the hover state still works with the fade switched off because
+   the colour change itself is in the :hover rule, not in the
+   transition. */
+@media (prefers-reduced-motion: no-preference) {
+  .ksf-cite a.tag { transition: color .16s, border-color .16s; }
+}
+
+/* The closing pointer to the relocated vocabulary. */
+.ksf-note {
+  margin-top: 30px; padding-top: 16px;
+  border-top: 1px solid var(--line, #1B2230);
+  /* Prose, so --ink-2. See the note on .ksf-person .r for the
+     measurement that moved every sentence in this file off --ink-3. */
+  font-size: 13px; line-height: 1.6; color: var(--ink-2, #9AA7B8);
+  max-width: 78ch; text-align: start;
+}
+.ksf-note a { color: var(--accent, #3FD0C9); }
+
+/* ---------------------------------------------------------------------
+   8 - THE RELOCATED VOCABULARY, IN #sources
+
+   .legstrip and .legcell keep every rule css/ksat-minimal.css already
+   gives them. All this adds is the frame it now sits in, so it reads as
+   one panel of the sources section rather than as five loose cards
+   dropped into the middle of an audit trail.
+   --------------------------------------------------------------------- */
+.ksf-vocab { margin-top: 26px; }
+.ksf-vocab > h3 {
+  font-family: var(--disp, sans-serif);
+  font-size: clamp(15px, 1.2vw, 17px); font-weight: 600;
+  letter-spacing: -.01em; margin: 0;
+  color: var(--ink, #E8ECF2);
+}
+.ksf-vocab > p {
+  margin: 8px 0 0; font-size: 13.5px; line-height: 1.6;
+  /* Prose, so --ink-2, for the same measured reason. */
+  color: var(--ink-2, #9AA7B8); max-width: 78ch;
+}
+.ksf-vocab > .legstrip { margin-top: 14px; }
+
+/* ---------------------------------------------------------------------
+   9 - NARROW SCREENS
+
+   The figure strip is the only thing that genuinely breaks. Four columns
+   become two at tablet width and stay two on a phone, because a single
+   column of four numbers is a list, not a strip, and loses the
+   at a glance comparison that is the whole point of it.
+   --------------------------------------------------------------------- */
+@media (max-width: 960px) {
+  .ksf-band.two { grid-template-columns: minmax(0, 1fr); }
+  h2.ksf-h2 { max-width: none; }
+}
+@media (max-width: 760px) {
+  .ksf-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* With two columns the third cell starts a new row, so its inline
+     border would be the one on the leading edge of the strip. Reset it. */
+  .ksf-fig:nth-child(odd) { border-inline-start: 0; padding-inline-start: 0; }
+  .ksf-fig:nth-child(n + 3) { border-top: 1px solid var(--line, #1B2230); }
+}
+@media (max-width: 560px) {
+  .ksf-rec li { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .ksf-fig { padding: 14px 12px; }
+  .ksf-fig:nth-child(odd) { padding-inline-start: 0; }
+}
+
+/* ---------------------------------------------------------------------
+   10 - MOTION: NONE, ON PURPOSE
+
+   This section used to end with a scroll reveal: .ksf-rev on the
+   section set the figures, the blocks and the closing note to opacity 0
+   with a 10px offset, and js/ksat-facts.js added .in to each one as an
+   IntersectionObserver reported it in view. The hiding was opt in, so
+   that a page where the script never ran still showed everything.
+
+   It was removed after being tested in the browser. The observer never
+   delivered a callback there, and the whole section stayed at opacity 0
+   after being scrolled right past: figures 0 of 4, blocks 0 of 4. The
+   full reasoning, and the measurements, are in the matching comment in
+   js/ksat-facts.js section 5.
+
+   The short version: this is the first content block on the page, and a
+   fade is not worth even a small chance of it not being there. There is
+   no .ksf-rev rule in this file any more, so nothing here can set the
+   content to opacity 0 under any condition.
+
+   If motion is ever wanted back, do it as a CSS animation that runs
+   FROM a visible state, never one that has to be switched off to become
+   visible, and put it behind
+   @media (prefers-reduced-motion: no-preference).
+   --------------------------------------------------------------------- */

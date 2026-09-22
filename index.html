@@ -907,6 +907,8 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
      which means out-specifying ksat-theme.css, ksat-nav.css AND ksat-nasa.css.
      Last wins, so last it goes. -->
 <link rel="stylesheet" href="css/ksat-cubesat.css">
+<link rel="stylesheet" href="css/ksat-explore.css">
+<link rel="stylesheet" href="css/ksat-facts.css">
 <link rel="stylesheet" href="css/ksat-minimal.css">
 
 <!-- ============ THE THREE NEW LAYERS =============================
@@ -6194,6 +6196,12 @@ addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcD
 <!-- Last: it reshapes the masthead that ksat-nav.js builds, so it has to
      run after that file and after ksat-shell.js has settled the tier. -->
 <script src="js/ksat-minimal.js"></script>
+<!-- After ksat-minimal.js: the Explore panel mirrors the open state that
+     file owns, and ksat-facts.js rewrites #legend, which the panel links
+     to and counts. Order here is the difference between the panel showing
+     the right card and showing a stale one. -->
+<script src="js/ksat-explore.js"></script>
+<script src="js/ksat-facts.js"></script>
 
 <!-- ============ THE THREE NEW LAYERS =============================
      All three are CLASSIC scripts, and that is load-bearing rather

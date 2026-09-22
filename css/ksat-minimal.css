@@ -1079,3 +1079,26 @@ html[data-ksat-tier="public"] .phead .ttl h3 {
    canvas aria-label. What goes is the sticker, not the honesty.
    ===================================================================== */
 html[data-ksat-tier="public"] .ksat-cs-badge { display: none; }
+
+/* =====================================================================
+   15 · index.html's OWN FLAT NAV STAYS DOWN
+
+   css/ksat-nav.css carries `html[data-ksat-navup="on"] .navwrap
+   { display:none !important }` and the attribute is set, but the rule
+   was not winning: measured in the live page, .navwrap computed `block`
+   with the grouped nav built and the attribute on. Reading that sheet's
+   cssRules from script throws "Cannot access rules", so whatever it is
+   loading through is not giving the page a rule it can apply.
+
+   The consequence was not subtle. .navwrap is index.html's own row of
+   thirteen section buttons; with it visible the masthead had two navs in
+   one row, the brand and the search control were crushed into the left
+   corner, and the Explore panel opened under a bar that was already
+   broken.
+
+   Restated here, in a file that demonstrably loads, scoped to the public
+   tier so a researcher's bar is untouched. The buttons stay in the DOM:
+   index.html's scroll spy indexes them POSITIONALLY, so removing one
+   would misalign every highlight after it.
+   ===================================================================== */
+html[data-ksat-tier="public"] .navwrap { display: none !important; }

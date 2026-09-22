@@ -422,6 +422,47 @@
     });
   }
 
+  /* ===================================================================
+     renderAll() STILL HAS TO SEE THE SECTIONS IT PAINTS
+
+     Parking the ten researcher sections broke index.html's own render
+     pass. renderAll() writes into #kpiGrid, #dashTable, #chVeg and
+     thirty or so other nodes that live inside them, and $() returns
+     null for a node that is not in the document, so the page threw
+     "Cannot set properties of null" twice on every load. A fact check
+     found it; it was invisible on screen because the sections it
+     failed to paint were the ones nobody could see.
+
+     The fix is the pattern this codebase already uses for exactly this
+     situation (js/ksat-integration.js wraps runAgent the same way):
+     wrap the function rather than edit thirty call sites. The sections
+     come back, the page paints them as it always did, and they go
+     straight back out. The reader never sees them because the whole
+     thing happens inside one synchronous call, before a frame is drawn.
+
+     Wrapping rather than editing also means index.html keeps working
+     unchanged if this file is ever removed.
+     =================================================================== */
+  var wrappedRenderAll = false;
+  function wrapRenderAll() {
+    if (wrappedRenderAll) return;
+    if (typeof window.renderAll !== 'function') return;
+    var inner = window.renderAll;
+    window.renderAll = function () {
+      var parked = Object.keys(PARKED).length > 0;
+      if (parked) restoreInsiderSections();
+      try {
+        return inner.apply(this, arguments);
+      } finally {
+        /* finally, not after the call: if the page's own render throws
+           for some unrelated reason we must not leave the researcher's
+           sections in the public document. */
+        if (parked) parkInsiderSections();
+      }
+    };
+    wrappedRenderAll = true;
+  }
+
   function restoreInsiderSections() {
     Object.keys(PARKED).forEach(function (id) {
       var p = PARKED[id];
@@ -1019,6 +1060,7 @@
        button belongs only to the public tier. */
     if (signInBtn) signInBtn.hidden = (tier === 'insider');
 
+    wrapRenderAll();
     if (tier === 'public') parkInsiderSections(); else restoreInsiderSections();
 
     INSIDER.forEach(function (id) {

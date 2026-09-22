@@ -1,0 +1,566 @@
+/* =====================================================================
+   ksat-explore.css — THE EXPLORE PANEL, IN THE NASA SHAPE
+   Companion to js/ksat-explore.js. Owner: 01 Front End.
+
+   THE BRIEF, in the team's own words: "in here how when clicking on
+   explore the way it is shown i want the exact same thing but for
+   kuwait", and "make my explore botton the tabs inside it real, every
+   tab takes me to its page and has content in it".
+
+   WHAT NASA'S EXPLORE PANEL ACTUALLY IS, because "like NASA" has to
+   mean something specific before it can be built: pressing Explore
+   drops one full width dark panel under the masthead. On its left, a
+   single column of plain topic words, generously spaced, the current
+   one underlined. To the right of that column, a small FEATURED
+   heading and a row of large image cards, each with a headline and one
+   short line of meta under it. No second row of chips, no counts, no
+   badges, no icons.
+
+   ---------------------------------------------------------------------
+   WHAT THIS SUPERSEDES, AND WHY NOTHING IS DELETED
+   ---------------------------------------------------------------------
+   Until now Explore revealed .ksat-nav-strip: the six chapter triggers
+   that js/ksat-nav.js builds, restyled by css/ksat-minimal.css section 3
+   into a drawer. That is a menu of anchors into one long page, and the
+   team asked for destinations instead.
+
+   So the strip is HIDDEN here rather than removed. js/ksat-nav.js still
+   builds it, js/ksat-minimal.js still filters it by tier, and the
+   researcher's two row masthead still uses it exactly as before, because
+   every rule below is scoped to the public tier AND to the attribute
+   js/ksat-explore.js sets once it has successfully mounted. If this
+   layer ever fails to boot, that attribute is never set, the strip is
+   never hidden, and the reader gets the old drawer back. A fallback that
+   costs one attribute selector is worth having.
+
+   A BUG THIS INHERITS AND FIXES. Measured on the live page before this
+   file existed: .ksat-nav-strip had display:flex and visibility:visible
+   with data-ksat-min-explore unset, i.e. the drawer stood open under the
+   masthead at all times and Explore only ever toggled a chevron. There
+   is no closed state for it anywhere in css/ksat-minimal.css. Hiding it
+   from here closes it for good, which is why the masthead gets 54px
+   shorter the moment this stylesheet loads.
+
+   ---------------------------------------------------------------------
+   STACKING: NOTHING NEW IS SPENT
+   ---------------------------------------------------------------------
+   The z-index budget documented in css/ksat-assistant.css is
+   .bar 60, #demoHud 120, #ksat-ch-fab 130, .ksat-as-fab 132,
+   .ksat-as-panel 134, #ksat-ch-sheet 140, #toast 150, #intro 200.
+
+   This panel takes NONE of it. It is a child of #ksat-nav, which is a
+   child of .bar-in, which is position:relative, so it lives inside the
+   bar's own stacking context and needs only to beat its siblings there.
+   z-index 2 does that (the strip sits at 1). The existing rule
+   `[data-ksat-min-explore="open"] .bar { z-index: 60 }` in
+   css/ksat-minimal.css is what lifts the whole bar over <main> while the
+   panel is open, and that rule is already inside the budget. The chapter
+   pill and the assistant launcher are fixed to the BOTTOM of the
+   viewport at 130 and 132, so they never meet this panel at all.
+
+   ---------------------------------------------------------------------
+   COLOUR: THE PANEL BELONGS TO THE BAR, NOT TO THE PAGE
+   ---------------------------------------------------------------------
+   The public masthead is deliberately dark in light mode and dark mode
+   both, and css/ksat-minimal.css does that with literal hex rather than
+   tokens because the tokens flip with the theme. A panel that hangs off
+   that bar has to follow the bar, so the same literals are used here,
+   for the same reason, and colour-scheme:dark is set so that focus rings
+   and scrollbars inside the panel come out light on dark.
+   ===================================================================== */
+
+/* =====================================================================
+   0 · THE OLD DRAWER STANDS DOWN
+
+   Scoped to the public tier and to [data-ksat-explore="on"], which
+   js/ksat-explore.js sets only after its panel is in the DOM.
+   ===================================================================== */
+html[data-ksat-explore="on"][data-ksat-tier="public"] .ksat-nav-strip {
+  display: none !important;
+}
+
+/* The panel itself is only ever for the public masthead. A researcher
+   navigating twenty three working sections gets the two row bar and the
+   strip that js/ksat-nav.js built, untouched. */
+html:not([data-ksat-tier="public"]) #ksat-ex { display: none !important; }
+
+
+/* =====================================================================
+   1 · THE PANEL BOX
+
+   inset-inline:0 rather than left/right:0 so the panel spans the bar in
+   both directions; the whole file is written in logical properties
+   because the page genuinely flips to RTL for Arabic and a panel that
+   only works one way is half a panel.
+   ===================================================================== */
+#ksat-ex {
+  position: absolute;
+
+  /* FULL BLEED, FROM A MEASUREMENT. The containing block is .bar-in,
+     which css/ksat-theme.css caps at 1280px and centres, so inset 0
+     leaves the panel floating 66px in from each edge of a 1424px window
+     and it reads as a dropdown rather than as NASA's edge to edge panel.
+
+     js/ksat-explore.js measures the real gap between .bar and .bar-in
+     and writes it here. The fallback of 0px is the correct answer for
+     every window narrower than the cap, which is why the panel looked
+     right at 1186px before any of this existed, and it is also what a
+     reader gets for the one frame before the first measurement lands.
+     See the long note in that file for why 100vw is the wrong tool. */
+  inset-inline: calc(-1 * var(--ksat-ex-bleed-s, 0px))
+                calc(-1 * var(--ksat-ex-bleed-e, 0px));
+  top: 100%;
+  z-index: 2;
+
+  background: #080B12;
+  border-bottom: 1px solid #1A2130;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
+  color: #E9EFF7;
+  color-scheme: dark;
+
+  /* The panel must never be taller than the space under the bar, or its
+     last card ends up below the fold with no way to reach it. Its own
+     scroll container, not the document's.
+
+     THE 76px RESERVE AT THE BOTTOM IS NOT PADDING, IT IS THE LAUNCHERS.
+     #ksat-ch-fab and .ksat-as-fab are fixed to the bottom of the
+     viewport at z-index 130 and 132, and this panel lives inside .bar at
+     60, so on a short viewport they paint straight over its last row of
+     cards. Measured at a 1186 x 525 window: the panel wanted 449px,
+     reached y=519, and both launchers sat on top of it. Capping the
+     panel so it stops short of them means it scrolls on a laptop in
+     landscape instead of hiding a card under a button. On a tall
+     viewport the cap never binds, because max-height only ever removes
+     height the content did not ask for. */
+  max-height: calc(100vh - var(--bar-h, 76px) - 76px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Closed is the default. `hidden` alone would be enough in a modern
+   engine, but css/ksat-detail.css sets display on [hidden] elsewhere in
+   this codebase and the shell's chapter machinery depends on [hidden]
+   NOT being forced to display:none, so the state is spelled out here
+   rather than left to the UA sheet. */
+#ksat-ex[hidden] { display: none !important; }
+
+/* The open animation is 120ms of nothing very much: NASA's panel does
+   not bounce and neither does this one. Under prefers-reduced-motion it
+   simply appears, per the house rule that motion is optional. */
+@media (prefers-reduced-motion: no-preference) {
+  #ksat-ex { animation: ksat-ex-in .12s ease-out both; }
+  @keyframes ksat-ex-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+.ksat-ex-in {
+  display: grid;
+  grid-template-columns: minmax(200px, 268px) 1fr;
+  gap: clamp(20px, 3vw, 52px);
+  align-items: start;
+  padding: clamp(18px, 2.4vw, 34px) var(--gut, 28px) clamp(22px, 3vw, 38px);
+
+  /* The panel bleeds to the window; its CONTENT does not. This measure
+     comes from the same JS measurement as the bleed and is .bar-in's own
+     width, so the topic column starts under the word Explore and the
+     last card ends under the sign in button. Hard coding 1280 here would
+     work today and quietly break the day somebody changes the cap. */
+  max-width: var(--ksat-ex-measure, 1280px);
+  margin-inline: auto;
+}
+
+
+/* =====================================================================
+   2 · THE TOPIC COLUMN
+
+   Plain words in a column, generously spaced, the current one
+   underlined. That underline is the only decoration NASA gives the
+   active row and it is the only one given here.
+
+   border-inline-start on the list, not a vertical rule between the two
+   halves, because in RTL the rule has to move to the other side and a
+   logical border does that by itself.
+   ===================================================================== */
+.ksat-ex-topics { min-width: 0; }
+
+.ksat-ex-topics ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ksat-ex-topic {
+  /* inline-block, NOT block. With width:100% the underline that marks
+     the current topic ran the full width of the column, which reads as a
+     divider rule rather than as an underline and made the list look like
+     a table. nasa.gov underlines the word. So does this, and the click
+     target is the word plus its padding, which at 16px and 9px of
+     vertical padding still clears the 24px minimum comfortably. */
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+  appearance: none;
+  background: none;
+  border: 0;
+  border-radius: 2px;
+
+  padding: 9px 2px;
+  text-align: start;
+  font: inherit;
+  /* MEDIUM, not large. The team's note on the rest of the page was that
+     the titles were "too large"; a topic list that shouts is the same
+     mistake in a smaller box. 16px with 1.3 leading reads as a list of
+     places rather than as a stack of headlines. */
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -.005em;
+  color: #C7D3E2;
+  cursor: pointer;
+
+  border-block-end: 1px solid transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ksat-ex-topic { transition: color .12s ease, border-color .12s ease; }
+}
+
+/* EVERY COLOUR BELOW IS SCOPED THROUGH #ksat-ex, AND THAT IS NOT TIDINESS.
+   css/ksat-minimal.css paints the public bar with
+   `html[data-ksat-tier="public"] .bar button { color: #E9EFF7 }`, which
+   is specificity 0,2,2 and beats a bare class at 0,1,0. Measured in the
+   light theme: every topic resolved to #E9EFF7, so the resting colour
+   and the current-page colour came out identical and the only thing
+   still separating them was the underline. The id takes these to 1,1,0
+   and the three states read as three states again. */
+#ksat-ex .ksat-ex-topic { color: #C7D3E2; }
+#ksat-ex .ksat-ex-topic:hover { color: #FFFFFF; border-block-end-color: #2E3A4B; }
+
+/* The current page, underlined. aria-current carries the same fact to a
+   screen reader, so the underline is not the only signal. */
+#ksat-ex .ksat-ex-topic[aria-current="page"] {
+  color: #FFFFFF;
+  border-block-end-color: #3FD0C9;
+}
+
+/* A roving tabindex means only one of these is in the tab order at a
+   time, so the focus ring has to be unmissable when it does land. */
+#ksat-ex .ksat-ex-topic:focus-visible {
+  outline: 2px solid #3FD0C9;
+  outline-offset: 3px;
+  color: #FFFFFF;
+}
+
+/* The language row is a control, not a destination, so it is set apart
+   by a rule above it exactly as nasa.gov sets Espanol apart. */
+.ksat-ex-topics li.ksat-ex-sep {
+  margin-block-start: 10px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid #1A2130;
+}
+
+
+/* =====================================================================
+   3 · FEATURED
+
+   THE HEADLINES ARE NOT WRITTEN, THEY ARE QUOTED. Every card headline
+   below is the real heading of the section it opens, and every meta line
+   is a fact this platform can already source. That is a content rule
+   enforced in js/ksat-explore.js, but it shapes the CSS too: there is no
+   room here for a read time or a date, because inventing either would be
+   the one thing this platform cannot do.
+   ===================================================================== */
+.ksat-ex-feat { min-width: 0; }
+
+.ksat-ex-feat-h {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8A97A6;
+}
+
+.ksat-ex-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 24px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Two cards should sit at two thirds width rather than stretching to
+   fill three columns, which is what makes a short row look like a
+   mistake instead of a choice. */
+.ksat-ex-cards[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 68%; }
+.ksat-ex-cards[data-count="1"] { grid-template-columns: minmax(0, 1fr);            max-width: 34%; }
+
+.ksat-ex-card {
+  display: block;
+  width: 100%;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ksat-ex-card-art {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #0D1220;
+  border: 1px solid #1A2130;
+}
+
+.ksat-ex-card-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* The emblem is a seal on a transparent circle, not a photograph. Cover
+   would crop the ring off; contain on a tinted ground keeps it whole. */
+.ksat-ex-card[data-art="mark"] .ksat-ex-card-art img {
+  object-fit: contain;
+  padding: 14px;
+}
+
+/* THE WIDE PLATE NEEDS A ZOOM, AND HERE IS THE ARITHMETIC.
+
+   earth-day.jpg and earth-night.jpg are 2400 x 1100, aspect 2.18, and
+   they are limb views: the Earth occupies roughly the bottom 45% and the
+   rest is empty sky. Dropped into a 16/9 box, object-fit:cover matches
+   the LARGER scale factor, which for an image wider than its box means
+   it matches height and crops the sides. So the whole plate's height was
+   shown, sky included, and at 253 x 142 the night card came out as a
+   flat dark rectangle with no Earth in it worth seeing. Verified in the
+   browser: naturalWidth 2400, image fully loaded, card visibly empty.
+
+   object-position could not fix that, because there was no vertical
+   overflow to reposition. The image has to be made taller than its box
+   first. At 210% of a 142px box the plate renders 298px tall, pinned to
+   the bottom, so the box shows its bottom 142px, which is the limb and
+   the atmosphere and nothing else.
+
+   The disk plates need none of this: they are square, so a 16/9 crop of
+   them is already all Earth. */
+.ksat-ex-card[data-art="wide"] .ksat-ex-card-art img {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  width: 100%;
+  height: 210%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ksat-ex-card-art img { transition: transform .22s ease; }
+  .ksat-ex-card:hover .ksat-ex-card-art img { transform: scale(1.03); }
+}
+
+/* Both of these are <span> inside a <button>, because a button may not
+   contain a heading or a paragraph. display:block is what lets them take
+   a margin at all, and is the reason the headline is not glued to the
+   image. */
+.ksat-ex-card-h {
+  display: block;
+  margin: 11px 0 0;
+  /* Medium again. These are card headlines, not page titles. */
+  font-family: var(--disp, "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif);
+  font-size: 15.5px;
+  font-weight: 650;
+  line-height: 1.32;
+  letter-spacing: -.012em;
+  color: #FFFFFF;
+}
+
+.ksat-ex-card-m {
+  display: block;
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #8A97A6;
+}
+
+.ksat-ex-card:hover .ksat-ex-card-h { color: #3FD0C9; }
+
+.ksat-ex-card:focus-visible {
+  outline: 2px solid #3FD0C9;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* The imagery on these cards is NASA's and the reader is told so here
+   rather than only in a text file nobody opens. */
+.ksat-ex-credit {
+  grid-column: 1 / -1;
+  margin: clamp(16px, 2vw, 26px) 0 0;
+  padding-block-start: 12px;
+  border-block-start: 1px solid #141A26;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #6F7C8C;
+}
+
+
+/* =====================================================================
+   4 · NARROW
+
+   At 900px the two columns stop fitting side by side without the cards
+   becoming stamps, so the panel stacks: topics first, featured under
+   them. Below 640px it is a sheet, full height, scrolling on its own,
+   with the cards in a single column. Nothing is hidden at any width:
+   a topic a reader cannot reach on a phone is a topic that does not
+   exist on a phone.
+   ===================================================================== */
+@media (max-width: 900px) {
+  .ksat-ex-in {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+  .ksat-ex-topics ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0 18px;
+  }
+  .ksat-ex-topics li.ksat-ex-sep {
+    grid-column: 1 / -1;
+  }
+  .ksat-ex-cards[data-count="2"],
+  .ksat-ex-cards[data-count="1"] { max-width: none; }
+}
+
+@media (max-width: 640px) {
+  #ksat-ex {
+    /* A dropdown that is three quarters of a phone screen tall is a
+       sheet whether it admits it or not, so it admits it. */
+    max-height: calc(100dvh - var(--bar-h, 76px));
+    box-shadow: none;
+  }
+  .ksat-ex-in {
+    padding-inline: max(16px, var(--gut, 20px));
+    padding-block: 16px 24px;
+  }
+  .ksat-ex-topics ul { grid-template-columns: minmax(0, 1fr); }
+  .ksat-ex-topic { padding-block: 11px; font-size: 16.5px; }
+  .ksat-ex-cards { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .ksat-ex-cards[data-count="2"],
+  .ksat-ex-cards[data-count="3"] { grid-template-columns: minmax(0, 1fr); }
+  .ksat-ex-card-art { aspect-ratio: 2 / 1; }
+}
+
+/* At 400px the gutter is the last thing standing between the text and
+   the edge of the glass, so it is pinned rather than clamped away. */
+@media (max-width: 420px) {
+  .ksat-ex-in { padding-inline: 16px; }
+  .ksat-ex-card-h { font-size: 15px; }
+}
+
+
+/* =====================================================================
+   4b · THE MISSION FACT STRIP
+
+   The other half of the Explore brief. The team asked that the
+   specification table, the concept chain and the ground segment be
+   "splashed on the page like that but should be organized in in the
+   correct tab in the explore", and the Explore row that carries them is
+   The Mission. A NASA mission page opens with its quick facts and puts
+   the detail underneath, so js/ksat-explore.js mounts six of the twelve
+   SPECS rows as a strip immediately under #mission's heading, and the
+   three existing panels keep their place below it.
+
+   UNLIKE THE PANEL, THIS IS IN THE PAGE, so it follows the page's theme
+   through tokens rather than the bar's literals. That is the whole
+   difference between the two halves of this stylesheet.
+
+   Every figure carries its source chips, which are index.html's own
+   .tag anchors produced by its own srcChips(). Styling them is
+   deliberately left to css/ksat-theme.css: a second opinion about what a
+   source chip looks like is how two chips end up looking different on
+   one page.
+   ===================================================================== */
+#ksat-ex-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  margin-block: 18px 4px;
+
+  /* The 1px gap over a ruled ground is what draws the hairlines between
+     tiles, so the grid needs no borders of its own and no :last-child
+     exception at the end of a wrapped row. */
+  background: var(--line-2, #1E222A);
+  border: 1px solid var(--line-2, #1E222A);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ksat-ex-fact {
+  background: var(--panel, #0A0C10);
+  padding: 14px 16px 13px;
+  min-width: 0;
+}
+
+.ksat-ex-fact-k {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+}
+
+.ksat-ex-fact-v {
+  margin-block-start: 7px;
+  font-family: var(--disp, "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif);
+  /* Medium. The team's note was that the titles on this page run too
+     large, and a fact strip that competes with the section heading above
+     it is the same complaint one element further down. */
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.34;
+  color: var(--ink, #E8ECF2);
+
+  /* "Gecko RGB imager (multi-colour camera)" is the longest value in
+     SPECS and it has to wrap inside a 190px tile without pushing the
+     grid wider than its column. */
+  overflow-wrap: anywhere;
+}
+
+.ksat-ex-fact-s { margin-block-start: 8px; }
+
+/* text-transform:uppercase on Arabic does nothing useful and the wide
+   letter-spacing pulls a joined script apart, so both come off in the
+   RTL build. */
+html[dir="rtl"] .ksat-ex-fact-k {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11.5px;
+}
+
+@media (max-width: 420px) {
+  #ksat-ex-facts { grid-template-columns: minmax(0, 1fr); }
+}
+
+
+/* =====================================================================
+   5 · FORCED COLOURS
+
+   In a high contrast mode the literal hex above is discarded by the UA
+   and the underline that marks the current topic goes with it, so the
+   one piece of state the panel carries is restated in a system colour.
+   ===================================================================== */
+@media (forced-colors: active) {
+  #ksat-ex { border: 1px solid CanvasText; }
+  #ksat-ex .ksat-ex-topic[aria-current="page"] { border-block-end-color: Highlight; }
+  .ksat-ex-card-art { border-color: CanvasText; }
+}
