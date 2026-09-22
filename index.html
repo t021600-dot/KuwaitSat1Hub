@@ -3113,8 +3113,16 @@ function kpiTile(k,label,value,unit,delta,good,spark,color){
     '<canvas class="spark" data-spark="'+k+'" data-color="'+color+'"></canvas></div>';
 }
 function renderDashboard(){
-  const {out,prev,ids}=agg(S.dash.area,S.dash.period);
   const g=$("#kpiGrid");
+  /* The dashboard is insider tier. js/ksat-shell.js parks those sections
+     for a public reader, so this host is simply not in the document then,
+     and every caller that did not know that threw here. The resize
+     handler is the one that mattered: renderDashboard() sits in the
+     middle of a sequence, so one throw stopped renderViz, drawBA and
+     renderCalcOut from redrawing at all. Nothing to draw is not an
+     error. */
+  if(!g) return;
+  const {out,prev,ids}=agg(S.dash.area,S.dash.period);
   g.innerHTML=[
     kpiTile("lst",T("k.temp","Mean surface temp"),round(out.lst,1),"°C",out.lst-(prev.lst||out.lst),false,null,css("--c2")),
     kpiTile("ndvi",T("k.veg","Vegetation index"),round(out.ndvi,3),"",(out.ndvi-(prev.ndvi||out.ndvi))*100,true,null,css("--c3")),
@@ -3408,6 +3416,11 @@ function renderCalcControls(){
   $("#calcAssum").innerHTML=CALC_ASSUM.map((a,i)=>'<div class="rule"><span class="rn">'+(i+1)+'</span><p>'+esc(L(a))+'</p></div>').join("");
 }
 function renderCalcOut(){
+  /* Insider tier. drawExplorer, drawCompare and drawBA all guard their
+     hosts this way already; renderDashboard, renderViz and this one did
+     not, and all three sit in the resize sequence where one throw stops
+     the rest of the redraw. */
+  if(!$("#calcOut")) return;
   const r=REG[S.calc.area];
   const canopy=18, survival=0.8;
   const canopyM2=S.calc.trees*canopy*survival;
@@ -3433,6 +3446,10 @@ function renderCalcOut(){
 
 /* ======================== DATA VIZ ========================== */
 function renderViz(){
+  /* Insider tier, same as renderDashboard: these hosts are parked out of
+     the document for a public reader. Guard once, at the top, rather than
+     at each of the six writes below. */
+  if(!$("#vTitle1")) return;
   const m=METRICS[S.viz.metric];
   const ids = S.viz.area==="all"? REGIONS.map(r=>r.id):[S.viz.area];
   const n=S.viz.range;

@@ -1133,8 +1133,17 @@
     if (!host) {
       host = el('div', 'ksat-ex-facts');
       host.id = 'ksat-ex-facts';
+      /* Insert relative to the h2's OWN parent, not to the section.
+         querySelector('h2') searches the whole subtree, so the heading is
+         not necessarily a direct child of sec — and once the home page
+         was rebuilt around wrapper elements it stopped being one. Calling
+         sec.insertBefore() with a reference node that belongs to a
+         different parent throws NotFoundError, which killed boot() before
+         it reached watch(), which is the function that attaches the
+         observer the Explore button depends on. The button then toggled
+         an attribute nothing was listening to. */
       var h2 = sec.querySelector('h2');
-      if (h2 && h2.nextSibling) sec.insertBefore(host, h2.nextSibling);
+      if (h2 && h2.parentNode) h2.parentNode.insertBefore(host, h2.nextSibling);
       else sec.appendChild(host);
     }
 
@@ -1179,7 +1188,21 @@
     root.setAttribute('data-ksat-explore', 'on');   /* the CSS waits for this */
     measure();
     sync();
-    mountFacts();
+    /* The fact strip is decoration. Opening the panel is the feature.
+       They were in the same try-nothing sequence, so one throw inside
+       mountFacts() took boot() down with it, start() never reached
+       watch(), and the Explore button silently stopped working while
+       every other symptom looked fine: the button existed, it was
+       clickable, it flipped aria-expanded, and the panel was built and
+       sitting in the DOM. Decoration must not be able to do that. */
+    try {
+      mountFacts();
+    } catch (e) {
+      if (window.console && console.error) {
+        console.error('[ksat-explore] the fact strip did not mount. The ' +
+                      'panel itself is unaffected.', e);
+      }
+    }
     return true;
   }
 
