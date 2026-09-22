@@ -678,3 +678,32 @@ html[data-ksat-tier="public"] #ksat-min-explore,
 html[data-ksat-tier="public"] #ksat-min-explore .ksat-min-explore-t {
   color: #F2F6FA;
 }
+
+/* =====================================================================
+   7 · THE CHAPTER RAIL IS NOT PART OF THE PUBLIC PAGE
+
+   The rail appears at >=1700px and lists the six chapters down the left
+   margin with a lock count under four of them - "2 locked", "3 locked",
+   "3 locked". That is the RESEARCH TOOLS band's mistake in a different
+   shape: telling a stranger the number of doors they cannot open. It is
+   also a second navigation for the same six chapters that Explore now
+   holds, three inches away.
+
+   Hidden for the public tier only. A signed-in researcher keeps it, and
+   keeps it for the reason it was built: they are working across
+   twenty-three sections and want a map of them on screen.
+
+   The FAB stays for everyone. It is the mode switch as well as the
+   chapter label, and css/ksat-shell.css documents at length why losing
+   it strands a reader in the 31,000px scroll with no way back.
+   ===================================================================== */
+html[data-ksat-tier="public"] #ksat-ch-rail { display: none !important; }
+
+/* The rail reserved a left gutter on the page for itself. With the rail
+   gone that gutter is dead space, and at the widths where the rail used
+   to appear it is a lot of it. */
+@media (min-width: 1700px) {
+  html[data-ksat-tier="public"] body,
+  html[data-ksat-tier="public"] .wrap { padding-inline-start: 0; }
+  html[data-ksat-tier="public"] { --ksat-shell-rail: 0px; }
+}
