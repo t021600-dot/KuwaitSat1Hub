@@ -110,7 +110,7 @@
          ar: 'المركبة، وما الذي تستطيع صورة واحدة أن تخبرك به' },
 
     lede: {
-      en: 'Everything on this platform begins as a frame from a box about the size of two milk cartons stacked. What that box can see is not a matter of opinion — it follows from its orbit, its lens and its three colours. This is the machine, and the line where its measurements stop.',
+      en: 'Everything on this platform begins as a frame from a box about the size of two milk cartons stacked. What that box can see is not a matter of opinion. It follows from its orbit, its lens and its three colours. This is the machine, and the line where its measurements stop.',
       ar: 'كل ما تقدّمه هذه المنصة يبدأ من صورة تلتقطها عُلبة بحجم عبوتَي حليب فوق بعضهما. وما تستطيع هذه العلبة رؤيته ليس مسألة رأي، بل نتيجة لمدارها وعدستها وألوانها الثلاثة. هذه هي المركبة، وهذا هو الحدّ الذي تتوقف عنده قياساتها.'
     },
 
@@ -127,12 +127,12 @@
 
       { t: { en: 'What 39 metres a pixel buys',
              ar: 'ما الذي تشتريه ٣٩ متراً لكل بكسل' },
-        p: { en: 'One pixel covers 39 m of ground — about 1,520 m², a fifth of a football pitch. A road, a car and a single tree are all smaller than that and are simply not in the picture. A farm, a landfill cell, a new district, a dust plume, a stretch of ground that has greened or been stripped are all far larger than that, and are. Eighty kilometres of swath at 39 m makes a frame roughly 2,050 pixels across: the sensor of a modest phone, pointed at a country.',
+        p: { en: 'One pixel covers 39 m of ground: about 1,520 m², a fifth of a football pitch. A road, a car and a single tree are all smaller than that and are simply not in the picture. A farm, a landfill cell, a new district, a dust plume, a stretch of ground that has greened or been stripped are all far larger than that, and are. Eighty kilometres of swath at 39 m makes a frame roughly 2,050 pixels across: the sensor of a modest phone, pointed at a country.',
              ar: 'تغطّي البكسل الواحدة ٣٩ متراً على الأرض، أي نحو ١٥٢٠ متراً مربعاً، خُمس ملعب كرة قدم. فالطريق والسيارة والشجرة المفردة أصغر من ذلك، ولا وجود لها في الصورة. أما المزرعة وخلية الردم والحي الجديد وعمود الغبار والرقعة التي اخضرّت أو جُرّدت فكلها أكبر من ذلك بكثير، ولها وجود. وعرض مسح يبلغ ثمانين كيلومتراً بدقة ٣٩ متراً يعطي إطاراً بعرض ٢٠٥٠ بكسل تقريباً: مستشعر هاتف متواضع، موجَّه نحو بلد.' } },
 
       { t: { en: 'Three colours, and where measurement stops',
              ar: 'ثلاثة ألوان، وأين يتوقف القياس' },
-        p: { en: 'The payload is a colour camera: red, green and blue, all of it inside the visible band. Chlorophyll’s strongest signature is not in the visible band — it is the jump in reflectance just past red, in the near infrared — so NDVI, the index most people mean when they say "vegetation index", cannot be computed from this spacecraft at all. What visible light does separate is built surface from bare sand from growing cover, and a visible-band greenness index such as 2G − R − B is computable from every frame here. Anything on this platform that goes further than that is modelled, and is labelled as modelled.',
+        p: { en: 'The payload is a colour camera: red, green and blue, all of it inside the visible band. Chlorophyll’s strongest signature is not in the visible band. It is the jump in reflectance just past red, in the near infrared, so NDVI, the index most people mean when they say "vegetation index", cannot be computed from this spacecraft at all. What visible light does separate is built surface from bare sand from growing cover, and a visible-band greenness index such as 2G − R − B is computable from every frame here. Anything on this platform that goes further than that is modelled, and is labelled as modelled.',
              ar: 'الحمولة كاميرا ملوّنة: أحمر وأخضر وأزرق، وكلها داخل النطاق المرئي. أما البصمة الأقوى للكلوروفيل فليست في النطاق المرئي، بل في القفزة الانعكاسية خلف الأحمر مباشرة، في الأشعة تحت الحمراء القريبة؛ ولذلك فإن مؤشر NDVI، وهو ما يقصده أكثر الناس بعبارة «مؤشر الغطاء النباتي»، لا يمكن حسابه من هذه المركبة إطلاقاً. والذي يفصله الضوء المرئي فعلاً هو السطح المبني عن الرمل العاري عن الغطاء النامي، ويمكن من كل إطار هنا حساب مؤشر خُضرة مرئي مثل 2G − R − B. وكل ما يتجاوز ذلك في هذه المنصة فهو محسوب بنموذج، ومعلَّم بوصفه كذلك.' } },
 
       { t: { en: 'The link is the bottleneck, not the lens',
