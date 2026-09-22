@@ -50,8 +50,8 @@
   var TXT = {
     explore: { en: 'Explore',                    ar: 'استكشف' },
     exploreA:{ en: 'Explore the platform',       ar: 'استكشف المنصة' },
-    brand:   { en: 'KuwaitSat Green Intelligence — back to the top',
-               ar: 'كويت سات — الذكاء البيئي — العودة إلى الأعلى' },
+    brand:   { en: 'KuwaitSat Green Intelligence, back to the top',
+               ar: 'كويت سات, الذكاء البيئي, العودة إلى الأعلى' },
     seal:    { en: 'KuwaitSat Vision',           ar: 'كويت سات فيجن' }
   };
   function isRTL() { return root.getAttribute('dir') === 'rtl'; }

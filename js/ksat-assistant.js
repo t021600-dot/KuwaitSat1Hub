@@ -329,8 +329,8 @@
           en: 'This describes the platform, not the state of any governorate. For the environmental figures themselves, the analyst in the AI section reads the reference dataset and states its own confidence.',
           ar: 'هذا وصف للمنصة، لا لحالة أي محافظة. أما الأرقام البيئية نفسها فيقرأها المحلّل في قسم الذكاء الاصطناعي من مجموعة البيانات المرجعية ويذكر درجة ثقته.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this answer describes the platform itself and makes no measured claim. The numbered primary sources behind the mission facts are in the Sources register.',
-          ar: 'لا ينطبق — هذه الإجابة تصف المنصة نفسها ولا تتضمن أي ادعاء مقاس. والمصادر الأولية المرقّمة خلف حقائق المهمة موجودة في سجل المصادر.' }
+          en: 'Not applicable, this answer describes the platform itself and makes no measured claim. The numbered primary sources behind the mission facts are in the Sources register.',
+          ar: 'لا ينطبق, هذه الإجابة تصف المنصة نفسها ولا تتضمن أي ادعاء مقاس. والمصادر الأولية المرقّمة خلف حقائق المهمة موجودة في سجل المصادر.' }
       ]
     },
     {
@@ -342,8 +342,8 @@
       see: 'legend',
       rows: [
         { id: 'data', prov: 'platform',
-          en: 'The four marks the page puts on every figure it draws.\n🛰 MISSION RECORD — published, attributable fact about KuwaitSat-1. The source is always linked.\n▦ REFERENCE DATASET — thirty-six monthly records per governorate, modelled on published Kuwaiti climate and land-cover patterns.\n◈ MODELLED — produced by the platform’s environmental model. Physically consistent, derived rather than measured.\n⬡ DERIVED ANALYSIS — an interpretation by the analyst in this page. Decision support, never a decision.',
-          ar: 'العلامات الأربع التي تضعها الصفحة على كل رقم ترسمه.\n🛰 سجل المهمة — حقيقة منشورة ومنسوبة عن KuwaitSat-1، ومصدرها مرتبط دائماً.\n▦ مجموعة بيانات مرجعية — ستة وثلاثون سجلاً شهرياً لكل محافظة، مُنمذَجة على أنماط المناخ والغطاء الأرضي الكويتية المنشورة.\n◈ مُنمذَج — ناتج عن النموذج البيئي للمنصة. متّسق فيزيائياً، مُشتق لا مقاس.\n⬡ تحليل مُشتق — تفسير من المحلّل في هذه الصفحة. دعم للقرار، لا قرار.' },
+          en: 'The four marks the page puts on every figure it draws.\n🛰 MISSION RECORD, published, attributable fact about KuwaitSat-1. The source is always linked.\n▦ REFERENCE DATASET, thirty-six monthly records per governorate, modelled on published Kuwaiti climate and land-cover patterns.\n◈ MODELLED, produced by the platform’s environmental model. Physically consistent, derived rather than measured.\n⬡ DERIVED ANALYSIS, an interpretation by the analyst in this page. Decision support, never a decision.',
+          ar: 'العلامات الأربع التي تضعها الصفحة على كل رقم ترسمه.\n🛰 سجل المهمة, حقيقة منشورة ومنسوبة عن KuwaitSat-1، ومصدرها مرتبط دائماً.\n▦ مجموعة بيانات مرجعية, ستة وثلاثون سجلاً شهرياً لكل محافظة، مُنمذَجة على أنماط المناخ والغطاء الأرضي الكويتية المنشورة.\n◈ مُنمذَج, ناتج عن النموذج البيئي للمنصة. متّسق فيزيائياً، مُشتق لا مقاس.\n⬡ تحليل مُشتق, تفسير من المحلّل في هذه الصفحة. دعم للقرار، لا قرار.' },
         { id: 'method', prov: 'platform',
           en: 'The mark is attached to the figure, not to the page, and is written at the moment the panel renders. A panel that mixes classes therefore shows more than one mark rather than averaging them into a single reassuring label.',
           ar: 'ترتبط العلامة بالرقم لا بالصفحة، وتُكتب لحظة رسم اللوحة. ولذلك تُظهر اللوحة التي تمزج أصنافاً أكثر من علامة واحدة بدل دمجها في تسمية واحدة مطمئنة.' },
@@ -376,8 +376,8 @@
           en: 'Isolation is enforced inside Postgres. Every policy is keyed to the account identifier carried in your signed session token, and it is evaluated on the server for every statement.',
           ar: 'يُفرَض العزل داخل Postgres. وكل سياسة مربوطة بمعرّف الحساب المحمول في رمز جلستك الموقّعة، وتُقيَّم على الخادم مع كل عبارة.' },
         { id: 'analysis', prov: 'platform',
-          en: 'Nobody but you. Not your colleagues, not the agents, not an administrator through this site.\nYour missions, runs, agent steps, results and reports are filtered in the database by row-level security, keyed to the account in your signed session. It is not the page choosing what to draw — the database refuses to return the rows at all.',
-          ar: 'لا أحد سواك. لا زملاؤك، ولا الوكلاء، ولا مسؤول عبر هذا الموقع.\nتُرشَّح مهماتك وتشغيلاتك وخطوات الوكلاء ونتائجك وتقاريرك داخل قاعدة البيانات بأمن الصفوف، مربوطةً بالحساب في جلستك الموقّعة. ليست الصفحة هي التي تختار ما ترسمه — بل قاعدة البيانات ترفض إعادة الصفوف أصلاً.' },
+          en: 'Nobody but you. Not your colleagues, not the agents, not an administrator through this site.\nYour missions, runs, agent steps, results and reports are filtered in the database by row-level security, keyed to the account in your signed session. It is not the page choosing what to draw, the database refuses to return the rows at all.',
+          ar: 'لا أحد سواك. لا زملاؤك، ولا الوكلاء، ولا مسؤول عبر هذا الموقع.\nتُرشَّح مهماتك وتشغيلاتك وخطوات الوكلاء ونتائجك وتقاريرك داخل قاعدة البيانات بأمن الصفوف، مربوطةً بالحساب في جلستك الموقّعة. ليست الصفحة هي التي تختار ما ترسمه, بل قاعدة البيانات ترفض إعادة الصفوف أصلاً.' },
         { id: 'result', prov: 'platform',
           en: 'Tested rather than claimed: a researcher asking for a colleague’s mission by its exact primary key gets zero rows back, and the anonymous role holds no grant on any table, view or function.',
           ar: 'مُختبَر لا مُدّعى: باحث يطلب مهمة زميله بمفتاحها الأساسي بالضبط يستعيد صفراً من الصفوف، ولا يملك الدور المجهول أي صلاحية على أي جدول أو عرض أو دالة.' },
@@ -385,8 +385,8 @@
           en: 'This covers what this platform will return to a browser. It says nothing about what the database provider can see on its own infrastructure, and it cannot protect anything you paste into a third-party tool yourself.',
           ar: 'يغطي هذا ما تعيده هذه المنصة إلى المتصفح. ولا يقول شيئاً عمّا يمكن لمزوّد قاعدة البيانات رؤيته على بنيته التحتية، ولا يحمي شيئاً تلصقه أنت في أداة خارجية.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this describes the platform’s own configuration. The governance section carries the checks and what each one returned.',
-          ar: 'لا ينطبق — هذا وصف لإعدادات المنصة نفسها. ويحمل قسم الحوكمة الفحوص وما أعاده كل فحص منها.' }
+          en: 'Not applicable, this describes the platform’s own configuration. The governance section carries the checks and what each one returned.',
+          ar: 'لا ينطبق, هذا وصف لإعدادات المنصة نفسها. ويحمل قسم الحوكمة الفحوص وما أعاده كل فحص منها.' }
       ]
     },
     {
@@ -404,8 +404,8 @@
           en: 'Six stages in order. Stage four is a real branch: the outcome depends on the number the analysis produced, not on what was requested.',
           ar: 'ست مراحل بالترتيب. المرحلة الرابعة تفرّع حقيقي: النتيجة تتوقف على الرقم الذي أنتجه التحليل لا على ما طُلب.' },
         { id: 'analysis', prov: 'platform',
-          en: '1 · You state an objective and an area, and press Launch Mission.\n2 · The data collection agent delineates candidate zones on the 39 m grid.\n3 · Environmental analysis ranks them by observed stress.\n4 · THE DECISION. Each zone is checked against a projected cover-uplift floor. Below the floor the zone is REJECTED, a re-ranking subroutine drops it, and the next candidate comes forward — at most {reranks} times.\n5 · The accepted zone is written to the map.\n6 · A report is drafted — and stops, awaiting your approval.',
-          ar: '١ · تحدّد هدفاً ومنطقة وتضغط إطلاق المهمة.\n٢ · يرسم وكيل جمع البيانات المناطق المرشّحة على شبكة ٣٩ متراً.\n٣ · يرتّبها التحليل البيئي حسب الإجهاد المرصود.\n٤ · القرار. تُقاس كل منطقة مقابل أرضية ارتفاع الغطاء المتوقّعة. ودون الأرضية تُرفَض المنطقة، ويُسقطها روتين إعادة الترتيب، ويتقدّم المرشّح التالي — بحد أقصى {reranks} مرات.\n٥ · تُكتب المنطقة المقبولة على الخريطة.\n٦ · يُصاغ تقرير — ثم يتوقف بانتظار اعتمادك.' },
+          en: '1 · You state an objective and an area, and press Launch Mission.\n2 · The data collection agent delineates candidate zones on the 39 m grid.\n3 · Environmental analysis ranks them by observed stress.\n4 · THE DECISION. Each zone is checked against a projected cover-uplift floor. Below the floor the zone is REJECTED, a re-ranking subroutine drops it, and the next candidate comes forward, at most {reranks} times.\n5 · The accepted zone is written to the map.\n6 · A report is drafted, and stops, awaiting your approval.',
+          ar: '١ · تحدّد هدفاً ومنطقة وتضغط إطلاق المهمة.\n٢ · يرسم وكيل جمع البيانات المناطق المرشّحة على شبكة ٣٩ متراً.\n٣ · يرتّبها التحليل البيئي حسب الإجهاد المرصود.\n٤ · القرار. تُقاس كل منطقة مقابل أرضية ارتفاع الغطاء المتوقّعة. ودون الأرضية تُرفَض المنطقة، ويُسقطها روتين إعادة الترتيب، ويتقدّم المرشّح التالي, بحد أقصى {reranks} مرات.\n٥ · تُكتب المنطقة المقبولة على الخريطة.\n٦ · يُصاغ تقرير, ثم يتوقف بانتظار اعتمادك.' },
         { id: 'result', prov: 'platform',
           en: 'Every pass is written to the audit trail, including every refusal and the number that caused it. The highest-ranked zone is often not the one that reaches the map, and that is the point.',
           ar: 'تُكتب كل دورة في سجل التدقيق، بما في ذلك كل رفض والرقم الذي سبّبه. وكثيراً ما لا تكون المنطقة الأعلى ترتيباً هي التي تصل إلى الخريطة، وهذا هو المقصود.' },
@@ -413,8 +413,8 @@
           en: 'The floor and the re-ranking limit are configuration: a different deployment can hold different values, and the numbers above are read from this one at the moment you asked. The ranking itself runs over the reference dataset, so it is a screening order and not a survey.',
           ar: 'الأرضية وحد إعادة الترتيب إعدادات: يمكن لنسخة أخرى أن تحمل قيماً مختلفة، والأرقام أعلاه مقروءة من هذه النسخة لحظة سؤالك. ويجري الترتيب نفسه على مجموعة البيانات المرجعية، فهو ترتيب فرز لا مسح ميداني.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this describes the platform’s own workflow. The 39 m grid it works on is a published mission characteristic and is cited in the Sources register.',
-          ar: 'لا ينطبق — هذا وصف لسير عمل المنصة نفسها. أما شبكة ٣٩ متراً التي تعمل عليها فخاصية منشورة من خصائص المهمة ومُستشهد بها في سجل المصادر.' }
+          en: 'Not applicable, this describes the platform’s own workflow. The 39 m grid it works on is a published mission characteristic and is cited in the Sources register.',
+          ar: 'لا ينطبق, هذا وصف لسير عمل المنصة نفسها. أما شبكة ٣٩ متراً التي تعمل عليها فخاصية منشورة من خصائص المهمة ومُستشهد بها في سجل المصادر.' }
       ]
     },
     {
@@ -432,8 +432,8 @@
           en: 'The approver is taken from the verified session on the server side at the moment the report is written. The browser is not asked who is approving, so it cannot answer wrongly.',
           ar: 'يُؤخَذ المعتمِد من الجلسة المُتحقَّق منها على الخادم لحظة كتابة التقرير. ولا يُسأل المتصفح عمّن يعتمد، فلا يستطيع أن يجيب خطأً.' },
         { id: 'analysis', prov: 'platform',
-          en: 'No report exists without a named, signed-in person who owns that mission.\nWhen the agents finish, the workflow pauses and shows the draft with an Approve control. The report is written only when a person presses it, and the approver recorded against it is taken from the verified session — it cannot be pointed at somebody else.',
-          ar: 'لا يوجد تقرير دون شخص مُسمّى ومسجَّل الدخول يملك تلك المهمة.\nعند انتهاء الوكلاء يتوقف سير العمل ويعرض المسودة مع زر اعتماد. ولا يُكتب التقرير إلا حين يضغطه شخص، والمعتمِد المسجَّل مقابله مأخوذ من الجلسة المُتحقَّق منها — ولا يمكن توجيهه إلى شخص آخر.' },
+          en: 'No report exists without a named, signed-in person who owns that mission.\nWhen the agents finish, the workflow pauses and shows the draft with an Approve control. The report is written only when a person presses it, and the approver recorded against it is taken from the verified session, it cannot be pointed at somebody else.',
+          ar: 'لا يوجد تقرير دون شخص مُسمّى ومسجَّل الدخول يملك تلك المهمة.\nعند انتهاء الوكلاء يتوقف سير العمل ويعرض المسودة مع زر اعتماد. ولا يُكتب التقرير إلا حين يضغطه شخص، والمعتمِد المسجَّل مقابله مأخوذ من الجلسة المُتحقَّق منها, ولا يمكن توجيهه إلى شخص آخر.' },
         { id: 'result', prov: 'platform',
           en: 'The part that genuinely cannot happen: the automation engine is refused the report function outright. An unattended pipeline cannot sign its own conclusion, which is the whole reason a checkpoint exists in an AI system.',
           ar: 'الجزء الذي لا يمكن حدوثه فعلاً: يُمنع محرّك الأتمتة من دالة التقرير منعاً تاماً. فلا يستطيع مسار غير مراقَب أن يوقّع استنتاجه بنفسه، وهذا هو سبب وجود نقطة الاعتماد في نظام ذكاء اصطناعي.' },
@@ -441,8 +441,8 @@
           en: 'The checkpoint proves that a named person approved a draft. It does not prove that they read it, and no software can. It is an accountability record, not a quality guarantee.',
           ar: 'تُثبت نقطة الاعتماد أن شخصاً مُسمّى اعتمد مسودة. ولا تثبت أنه قرأها، ولا يستطيع ذلك أي برنامج. فهي سجل مساءلة لا ضمان جودة.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this describes the platform’s own guardrail.',
-          ar: 'لا ينطبق — هذا وصف لضابط الأمان في المنصة نفسها.' }
+          en: 'Not applicable, this describes the platform’s own guardrail.',
+          ar: 'لا ينطبق, هذا وصف لضابط الأمان في المنصة نفسها.' }
       ]
     },
     {
@@ -460,17 +460,17 @@
           en: 'Authentication is delegated to Supabase Auth. The page exchanges credentials for a short-lived session token and never handles the secret itself.',
           ar: 'تُفوَّض المصادقة إلى Supabase Auth. تستبدل الصفحة بيانات الاعتماد برمز جلسة قصير العمر ولا تتعامل مع السر نفسه إطلاقاً.' },
         { id: 'analysis', prov: 'platform',
-          en: 'This platform never sees your password and has nowhere to put one — there is no password column in any table we own.\nAuthentication is handled by Supabase Auth: your password is hashed with bcrypt on their side, and this page receives only a short-lived session token.',
-          ar: 'لا ترى هذه المنصة كلمة مرورك ولا مكان لديها لوضعها — لا يوجد عمود لكلمة المرور في أي جدول نملكه.\nتتولّى Supabase Auth المصادقة: تُجزَّأ كلمة مرورك بخوارزمية bcrypt لديهم، ولا تستقبل هذه الصفحة سوى رمز جلسة قصير العمر.' },
+          en: 'This platform never sees your password and has nowhere to put one, there is no password column in any table we own.\nAuthentication is handled by Supabase Auth: your password is hashed with bcrypt on their side, and this page receives only a short-lived session token.',
+          ar: 'لا ترى هذه المنصة كلمة مرورك ولا مكان لديها لوضعها, لا يوجد عمود لكلمة المرور في أي جدول نملكه.\nتتولّى Supabase Auth المصادقة: تُجزَّأ كلمة مرورك بخوارزمية bcrypt لديهم، ولا تستقبل هذه الصفحة سوى رمز جلسة قصير العمر.' },
         { id: 'result', prov: 'platform',
-          en: 'The key that ships in the page is a publishable key, which grants nothing on its own — every table, view and function refuses it.',
-          ar: 'المفتاح المشحون في الصفحة مفتاح قابل للنشر، ولا يمنح شيئاً بذاته — فكل جدول وعرض ودالة يرفضه.' },
+          en: 'The key that ships in the page is a publishable key, which grants nothing on its own, every table, view and function refuses it.',
+          ar: 'المفتاح المشحون في الصفحة مفتاح قابل للنشر، ولا يمنح شيئاً بذاته, فكل جدول وعرض ودالة يرفضه.' },
         { id: 'limits', prov: 'platform',
           en: 'This covers what the platform stores. It cannot protect an account whose password is reused elsewhere, and it makes no claim about the provider’s own internal handling.',
           ar: 'يغطي هذا ما تخزّنه المنصة. ولا يحمي حساباً أُعيد استخدام كلمة مروره في مكان آخر، ولا يدّعي شيئاً عن المعالجة الداخلية لدى المزوّد.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this describes the platform’s own authentication arrangement.',
-          ar: 'لا ينطبق — هذا وصف لترتيب المصادقة في المنصة نفسها.' }
+          en: 'Not applicable, this describes the platform’s own authentication arrangement.',
+          ar: 'لا ينطبق, هذا وصف لترتيب المصادقة في المنصة نفسها.' }
       ]
     },
     {
@@ -488,8 +488,8 @@
           en: 'The checks run as an anonymous visitor against the live system. They try the door rather than asking whether it is locked.',
           ar: 'تجري الفحوص بصفة زائر مجهول على النظام الحيّ. فهي تجرّب الباب بدل أن تسأل هل هو مقفل.' },
         { id: 'analysis', prov: 'platform',
-          en: 'The short version: the database decides, not the page.\n· Row-level security on every table, and column-level grants on top — the anonymous role holds nothing.\n· Every write goes through a function that re-reads ownership inside the transaction rather than trusting what the browser sent.\n· Real response headers: HSTS, a content security policy with frame-ancestors, object-src and base-uri all set to none, nosniff, a referrer policy, and a permissions policy denying camera, microphone and location.',
-          ar: 'الخلاصة: قاعدة البيانات هي التي تقرّر، لا الصفحة.\n· أمن صفوف على كل جدول، وصلاحيات على مستوى الأعمدة فوقه — ولا يملك الدور المجهول شيئاً.\n· تمرّ كل عملية كتابة عبر دالة تعيد قراءة الملكية داخل المعاملة بدل الوثوق بما أرسله المتصفح.\n· ترويسات استجابة حقيقية: HSTS، وسياسة محتوى بـ frame-ancestors وobject-src وbase-uri مضبوطة كلها على none، وnosniff، وسياسة مُحيل، وسياسة صلاحيات تمنع الكاميرا والميكروفون والموقع.' },
+          en: 'The short version: the database decides, not the page.\n· Row-level security on every table, and column-level grants on top, the anonymous role holds nothing.\n· Every write goes through a function that re-reads ownership inside the transaction rather than trusting what the browser sent.\n· Real response headers: HSTS, a content security policy with frame-ancestors, object-src and base-uri all set to none, nosniff, a referrer policy, and a permissions policy denying camera, microphone and location.',
+          ar: 'الخلاصة: قاعدة البيانات هي التي تقرّر، لا الصفحة.\n· أمن صفوف على كل جدول، وصلاحيات على مستوى الأعمدة فوقه, ولا يملك الدور المجهول شيئاً.\n· تمرّ كل عملية كتابة عبر دالة تعيد قراءة الملكية داخل المعاملة بدل الوثوق بما أرسله المتصفح.\n· ترويسات استجابة حقيقية: HSTS، وسياسة محتوى بـ frame-ancestors وobject-src وbase-uri مضبوطة كلها على none، وnosniff، وسياسة مُحيل، وسياسة صلاحيات تمنع الكاميرا والميكروفون والموقع.' },
         { id: 'result', prov: 'platform',
           en: 'Thirty-six automated checks run against the live system as an anonymous visitor, and they pass.',
           ar: 'ستة وثلاثون فحصاً آلياً تجري على النظام الحيّ بصفة زائر مجهول، وتنجح.' },
@@ -497,8 +497,8 @@
           en: 'One gap is documented rather than hidden: the policy still allows inline script, because the page contains twenty-seven inline blocks and a strict policy would blank it. The write-up says exactly how that closes.',
           ar: 'ثغرة واحدة موثّقة لا مخفية: لا تزال السياسة تسمح بالنصوص البرمجية المضمّنة، لأن الصفحة تحوي سبعة وعشرين كتلة مضمّنة ولأن سياسة صارمة ستُفرغها. ويشرح التوثيق بدقة كيف تُغلق.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this describes the platform’s own configuration and its own test results.',
-          ar: 'لا ينطبق — هذا وصف لإعدادات المنصة نفسها ونتائج اختباراتها.' }
+          en: 'Not applicable, this describes the platform’s own configuration and its own test results.',
+          ar: 'لا ينطبق, هذا وصف لإعدادات المنصة نفسها ونتائج اختباراتها.' }
       ]
     },
     {
@@ -522,11 +522,11 @@
           en: 'At the end the draft report waits for your approval. Nothing is written under your name until you give it.',
           ar: 'وفي النهاية تنتظر مسودة التقرير اعتمادك. ولا يُكتب شيء باسمك حتى تمنحه.' },
         { id: 'limits', prov: 'platform',
-          en: 'Not applicable to the data — this is a navigational answer. What a run produces depends on the area and thresholds you choose, and on the reference dataset behind them.',
-          ar: 'لا ينطبق على البيانات — هذه إجابة إرشادية. وما تنتجه أي تشغيلة يتوقف على المنطقة والعتبات التي تختارها وعلى مجموعة البيانات المرجعية خلفها.' },
+          en: 'Not applicable to the data, this is a navigational answer. What a run produces depends on the area and thresholds you choose, and on the reference dataset behind them.',
+          ar: 'لا ينطبق على البيانات, هذه إجابة إرشادية. وما تنتجه أي تشغيلة يتوقف على المنطقة والعتبات التي تختارها وعلى مجموعة البيانات المرجعية خلفها.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this is a navigational answer about the platform’s own controls.',
-          ar: 'لا ينطبق — هذه إجابة إرشادية عن أدوات المنصة نفسها.' }
+          en: 'Not applicable, this is a navigational answer about the platform’s own controls.',
+          ar: 'لا ينطبق, هذه إجابة إرشادية عن أدوات المنصة نفسها.' }
       ]
     },
     {
@@ -544,17 +544,17 @@
           en: 'The split follows ownership, not sensitivity: a panel is gated when the rows it would draw live behind row-level security in the database.',
           ar: 'يتبع الفصل الملكية لا الحساسية: تُغلَق اللوحة حين تكون الصفوف التي سترسمها محميةً بأمن الصفوف في قاعدة البيانات.' },
         { id: 'analysis', prov: 'platform',
-          en: 'Nothing is hidden for secrecy.\nThe panels behind sign-in are the ones that PRODUCE work — a mission, a run, a scored recommendation. They are where a signed-in researcher’s own rows are drawn, and those rows live in the database behind row-level security. They were never in this page to begin with, so unlocking the panel in your browser would show you empty instruments.',
-          ar: 'لا شيء مخفي بدافع السرية.\nاللوحات خلف تسجيل الدخول هي التي تُنتج عملاً — مهمة، أو تشغيلة، أو توصية مُقيَّمة. وهي المكان الذي تُرسم فيه صفوف الباحث المسجَّل نفسه، وتلك الصفوف تقيم في قاعدة البيانات خلف أمن الصفوف. ولم تكن في هذه الصفحة أصلاً، ولذلك فإن فتح اللوحة في متصفحك سيُظهر لك أجهزة فارغة.' },
+          en: 'Nothing is hidden for secrecy.\nThe panels behind sign-in are the ones that PRODUCE work, a mission, a run, a scored recommendation. They are where a signed-in researcher’s own rows are drawn, and those rows live in the database behind row-level security. They were never in this page to begin with, so unlocking the panel in your browser would show you empty instruments.',
+          ar: 'لا شيء مخفي بدافع السرية.\nاللوحات خلف تسجيل الدخول هي التي تُنتج عملاً, مهمة، أو تشغيلة، أو توصية مُقيَّمة. وهي المكان الذي تُرسم فيه صفوف الباحث المسجَّل نفسه، وتلك الصفوف تقيم في قاعدة البيانات خلف أمن الصفوف. ولم تكن في هذه الصفحة أصلاً، ولذلك فإن فتح اللوحة في متصفحك سيُظهر لك أجهزة فارغة.' },
         { id: 'result', prov: 'platform',
           en: 'Everything that explains, evidences or attributes the work is public: the mission record, the imagery story, the governance pages, the team behind KuwaitSat-1 and every source.',
           ar: 'وكل ما يشرح العمل أو يوثّقه أو ينسبه فهو عام: سجل المهمة، وقصة الصور، وصفحات الحوكمة، والفريق وراء KuwaitSat-1، وكل مصدر.' },
         { id: 'limits', prov: 'platform',
-          en: 'Not applicable to the data — this is a navigational answer about how the page is arranged.',
-          ar: 'لا ينطبق على البيانات — هذه إجابة إرشادية عن كيفية ترتيب الصفحة.' },
+          en: 'Not applicable to the data, this is a navigational answer about how the page is arranged.',
+          ar: 'لا ينطبق على البيانات, هذه إجابة إرشادية عن كيفية ترتيب الصفحة.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this describes the platform’s own arrangement.',
-          ar: 'لا ينطبق — هذا وصف لترتيب المنصة نفسها.' }
+          en: 'Not applicable, this describes the platform’s own arrangement.',
+          ar: 'لا ينطبق, هذا وصف لترتيب المنصة نفسها.' }
       ]
     },
     {
@@ -579,8 +579,8 @@
           en: 'A four-person team, each owning one part: front end, back end, AI agents and automation, and security.',
           ar: 'فريق من أربعة أشخاص، يملك كل منهم جزءاً: الواجهة الأمامية، والواجهة الخلفية، ووكلاء الذكاء الاصطناعي والأتمتة، والأمن.' },
         { id: 'result', prov: 'record', src: [0, 6],
-          en: 'The KuwaitSat-1 satellite itself is the work of the project team at Kuwait University with the Kuwait Foundation for the Advancement of Sciences — they built it, and this platform only looks at what it sees.',
-          ar: 'أما القمر الصناعي KuwaitSat-1 نفسه فهو عمل فريق المشروع في جامعة الكويت مع مؤسسة الكويت للتقدم العلمي — هم بنوه، وهذه المنصة تنظر فقط إلى ما يراه.' },
+          en: 'The KuwaitSat-1 satellite itself is the work of the project team at Kuwait University with the Kuwait Foundation for the Advancement of Sciences, they built it, and this platform only looks at what it sees.',
+          ar: 'أما القمر الصناعي KuwaitSat-1 نفسه فهو عمل فريق المشروع في جامعة الكويت مع مؤسسة الكويت للتقدم العلمي, هم بنوه، وهذه المنصة تنظر فقط إلى ما يراه.' },
         { id: 'limits', prov: 'platform',
           en: 'This platform is a student capstone and is not affiliated with the KuwaitSat-1 project team. Nothing here should be read as an official mission product.',
           ar: 'هذه المنصة مشروع تخرّج طلابي وليست تابعة لفريق مشروع KuwaitSat-1. ولا ينبغي قراءة أي شيء هنا بوصفه مُنتَجاً رسمياً للمهمة.' },
@@ -604,11 +604,11 @@
           en: 'The path is integrated from the two-body model at draw time. The readout beside it quotes published mission figures instead of computed ones.',
           ar: 'يُشتق المسار من نموذج الجسمين لحظة الرسم. أما القراءة بجانبه فتقتبس أرقام المهمة المنشورة بدل الأرقام المحسوبة.' },
         { id: 'analysis', prov: 'derived',
-          en: 'The 3D orbit view draws KuwaitSat-1’s path from a circular two-body model at a fixed inclination. It is marked as modelled rather than live telemetry, because that is what it is — the platform does not carry a live tracking feed.',
-          ar: 'يرسم عرض المدار ثلاثي الأبعاد مسار KuwaitSat-1 من نموذج جسمين دائري عند ميل ثابت. وهو موسوم بأنه مُنمذَج لا بيانات حيّة، لأن هذا ما هو عليه — فالمنصة لا تحمل تغذية تتبّع حيّة.' },
+          en: 'The 3D orbit view draws KuwaitSat-1’s path from a circular two-body model at a fixed inclination. It is marked as modelled rather than live telemetry, because that is what it is, the platform does not carry a live tracking feed.',
+          ar: 'يرسم عرض المدار ثلاثي الأبعاد مسار KuwaitSat-1 من نموذج جسمين دائري عند ميل ثابت. وهو موسوم بأنه مُنمذَج لا بيانات حيّة، لأن هذا ما هو عليه, فالمنصة لا تحمل تغذية تتبّع حيّة.' },
         { id: 'result', prov: 'record', src: [2, 3, 4],
-          en: 'Altitude, ground sample distance and swath in the readout are the published mission figures — 39 m ground sample distance and roughly 80 km per frame.',
-          ar: 'أما الارتفاع ومسافة العيّنة الأرضية وعرض المسح في القراءة فهي أرقام المهمة المنشورة — ٣٩ متراً لمسافة العيّنة الأرضية ونحو ٨٠ كيلومتراً لكل إطار.' },
+          en: 'Altitude, ground sample distance and swath in the readout are the published mission figures, 39 m ground sample distance and roughly 80 km per frame.',
+          ar: 'أما الارتفاع ومسافة العيّنة الأرضية وعرض المسح في القراءة فهي أرقام المهمة المنشورة, ٣٩ متراً لمسافة العيّنة الأرضية ونحو ٨٠ كيلومتراً لكل إطار.' },
         { id: 'limits', prov: 'platform',
           en: 'The drawn path is illustrative. It is not propagated from a two-line element set, it is not corrected for drag or for the oblateness of the Earth, and it must not be used to predict a pass.',
           ar: 'المسار المرسوم توضيحي. فهو غير مُستنتَج من مجموعة عناصر ثنائية السطر، وغير مُصحَّح للسحب أو لتفلطح الأرض، ولا يجوز استخدامه للتنبؤ بمرور.' },
@@ -632,8 +632,8 @@
           en: 'The report is assembled from the audit trail rather than from the screen, so a figure in it points back to the step that produced it.',
           ar: 'يُجمَّع التقرير من سجل التدقيق لا من الشاشة، فيشير كل رقم فيه إلى الخطوة التي أنتجته.' },
         { id: 'analysis', prov: 'platform',
-          en: 'A report is produced only after you approve the draft. It carries a provenance mark on every figure, the run identifier that produced it, and the identifiers of the agent steps behind it — including the zones that were rejected and the numbers that rejected them.',
-          ar: 'لا يُنتَج التقرير إلا بعد اعتمادك للمسودة. ويحمل علامة مصدر على كل رقم، ومعرّف التشغيلة التي أنتجته، ومعرّفات خطوات الوكلاء خلفه — بما في ذلك المناطق التي رُفضت والأرقام التي رفضتها.' },
+          en: 'A report is produced only after you approve the draft. It carries a provenance mark on every figure, the run identifier that produced it, and the identifiers of the agent steps behind it, including the zones that were rejected and the numbers that rejected them.',
+          ar: 'لا يُنتَج التقرير إلا بعد اعتمادك للمسودة. ويحمل علامة مصدر على كل رقم، ومعرّف التشغيلة التي أنتجته، ومعرّفات خطوات الوكلاء خلفه, بما في ذلك المناطق التي رُفضت والأرقام التي رفضتها.' },
         { id: 'result', prov: 'platform',
           en: 'Anyone reading it can trace any figure back to the step that made it.',
           ar: 'ويستطيع أي قارئ له أن يتتبّع أي رقم رجوعاً إلى الخطوة التي صنعته.' },
@@ -641,8 +641,8 @@
           en: 'Traceability is not validity. A report carries modelled figures where the platform has only modelled figures, and it says so on each one rather than promoting them on the way to the conclusion.',
           ar: 'قابلية التتبّع ليست صحّة. فالتقرير يحمل أرقاماً مُنمذَجة حيث لا تملك المنصة سواها، ويقول ذلك على كل رقم بدل ترقيتها في الطريق إلى الاستنتاج.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — this describes the platform’s own reporting format.',
-          ar: 'لا ينطبق — هذا وصف لصيغة التقارير في المنصة نفسها.' }
+          en: 'Not applicable, this describes the platform’s own reporting format.',
+          ar: 'لا ينطبق, هذا وصف لصيغة التقارير في المنصة نفسها.' }
       ]
     }
   ];
@@ -668,14 +668,14 @@
         en: 'I don’t have a grounded answer for that, and I would rather say so than invent one.',
         ar: 'ليست لديّ إجابة مسنَدة عن ذلك، وأفضّل قول هذا على اختلاق إجابة.' },
       { id: 'result', prov: 'platform',
-        en: 'I can explain how the agent workflow reaches a decision, who can see your work, where any number on this page came from, what the approval checkpoint protects, or how sign-in and security are handled.\nFor questions about the environmental data itself — greening potential, surface heat, change between epochs — the analyst in the AI section answers from the dataset and shows its sources.',
-        ar: 'أستطيع شرح كيف يصل مسار الوكلاء إلى قرار، ومن يستطيع رؤية عملك، ومن أين جاء أي رقم على هذه الصفحة، وما الذي تحميه نقطة الاعتماد، وكيف يُعالَج تسجيل الدخول والأمن.\nأما أسئلة البيانات البيئية نفسها — إمكانية التشجير، وحرارة السطح، والتغير بين الحقب — فيجيب عنها المحلّل في قسم الذكاء الاصطناعي من مجموعة البيانات ويعرض مصادره.' },
+        en: 'I can explain how the agent workflow reaches a decision, who can see your work, where any number on this page came from, what the approval checkpoint protects, or how sign-in and security are handled.\nFor questions about the environmental data itself, greening potential, surface heat, change between epochs, the analyst in the AI section answers from the dataset and shows its sources.',
+        ar: 'أستطيع شرح كيف يصل مسار الوكلاء إلى قرار، ومن يستطيع رؤية عملك، ومن أين جاء أي رقم على هذه الصفحة، وما الذي تحميه نقطة الاعتماد، وكيف يُعالَج تسجيل الدخول والأمن.\nأما أسئلة البيانات البيئية نفسها, إمكانية التشجير، وحرارة السطح، والتغير بين الحقب, فيجيب عنها المحلّل في قسم الذكاء الاصطناعي من مجموعة البيانات ويعرض مصادره.' },
       { id: 'limits', prov: 'platform',
         en: 'A miss here is not evidence that the platform has no answer. It means this assistant has no written entry for the question, and the wording may simply be unfamiliar to it.',
         ar: 'إخفاق هنا ليس دليلاً على أن المنصة بلا إجابة. بل يعني أن هذا المساعد لا يملك مدخلاً مكتوباً للسؤال، وقد تكون الصياغة غير مألوفة له فحسب.' },
       { id: 'sources', prov: 'platform',
-        en: 'Not applicable — no claim was made.',
-        ar: 'لا ينطبق — لم يُقدَّم أي ادعاء.' }
+        en: 'Not applicable, no claim was made.',
+        ar: 'لا ينطبق, لم يُقدَّم أي ادعاء.' }
     ];
   }
 
@@ -1001,8 +1001,8 @@
           en: 'This is a fault in the assistant, not a refusal by the guardrail. Nothing was withheld from you.',
           ar: 'هذا خلل في المساعد لا رفض من ضابط الأمان. ولم يُحجب عنك شيء.' },
         { id: 'sources', prov: 'platform',
-          en: 'Not applicable — no answer was produced.',
-          ar: 'لا ينطبق — لم تُنتَج أي إجابة.' }
+          en: 'Not applicable, no answer was produced.',
+          ar: 'لا ينطبق, لم تُنتَج أي إجابة.' }
       ],
       goto: 'ai',
       gotoLabel: UI.openAnalyst
@@ -1088,8 +1088,8 @@
         ar: 'خصائص المهمة خلف هذه الإجابة موجودة في السجل المرقّم.' });
     } else {
       rows.push({ id: 'sources', prov: 'platform',
-        en: 'Not applicable — this answer was computed inside the page over the reference dataset, which is modelled on published Kuwaiti climate and land-cover patterns rather than taken from a cited measurement. The platform’s numbered primary sources are in the Sources register.',
-        ar: 'لا ينطبق — حُسبت هذه الإجابة داخل الصفحة على مجموعة البيانات المرجعية، وهي مُنمذَجة على أنماط المناخ والغطاء الأرضي الكويتية المنشورة لا مأخوذة من قياس مُستشهد به. والمصادر الأولية المرقّمة للمنصة موجودة في سجل المصادر.' });
+        en: 'Not applicable, this answer was computed inside the page over the reference dataset, which is modelled on published Kuwaiti climate and land-cover patterns rather than taken from a cited measurement. The platform’s numbered primary sources are in the Sources register.',
+        ar: 'لا ينطبق, حُسبت هذه الإجابة داخل الصفحة على مجموعة البيانات المرجعية، وهي مُنمذَجة على أنماط المناخ والغطاء الأرضي الكويتية المنشورة لا مأخوذة من قياس مُستشهد به. والمصادر الأولية المرقّمة للمنصة موجودة في سجل المصادر.' });
     }
 
     return rows;
@@ -1247,11 +1247,11 @@
       who: 'a',
       title: UI.greetTitle,
       text: {
-        en: 'I am a scientific analysis assistant, not a general chatbot. Every answer comes back in the same seven fields — question, data used, method, analysis, result, limitations, sources — so you can see what it rests on before you read what it concludes.\n\n' +
+        en: 'I am a scientific analysis assistant, not a general chatbot. Every answer comes back in the same seven fields, question, data used, method, analysis, result, limitations, sources, so you can see what it rests on before you read what it concludes.\n\n' +
             'I can explain how this platform works, how the agents reach a decision, who can see your work, and where any number on this page came from. Data questions go to the page’s own analyst and come back marked with the class of data it used.\n\n' +
             who.en + '\n\n' +
             'Everything I answer comes from this page. There is no external model and no network call.',
-        ar: 'أنا مساعد تحليل علمي، لا روبوت محادثة عام. وتعود كل إجابة في الحقول السبعة نفسها — السؤال، والبيانات المستخدمة، والمنهج، والتحليل، والنتيجة، وحدود الإجابة، والمصادر — لترى على ماذا تستند قبل أن تقرأ ما تستنتجه.\n\n' +
+        ar: 'أنا مساعد تحليل علمي، لا روبوت محادثة عام. وتعود كل إجابة في الحقول السبعة نفسها, السؤال، والبيانات المستخدمة، والمنهج، والتحليل، والنتيجة، وحدود الإجابة، والمصادر, لترى على ماذا تستند قبل أن تقرأ ما تستنتجه.\n\n' +
             'أستطيع شرح كيف تعمل هذه المنصة، وكيف يصل الوكلاء إلى قرار، ومن يستطيع رؤية عملك، ومن أين جاء أي رقم على هذه الصفحة. أما أسئلة البيانات فتذهب إلى محلّل الصفحة نفسه وتعود موسومة بصنف البيانات الذي استخدمه.\n\n' +
             who.ar + '\n\n' +
             'كل ما أجيب به يأتي من هذه الصفحة. لا نموذج خارجي ولا اتصال بالشبكة.'

@@ -217,16 +217,16 @@
        file's own comments describe at length. It is INSIDER counted
        against the page now, like everything else here.
        --------------------------------------------------------------- */
-    tierNote:     { en: 'You are reading the public record. {n} working sections — the dashboards, the maps, the numbers and the agent console — open for signed-in researchers.',
-                    ar: 'أنت تطالع السجل العام. {n} أقسام عاملة — اللوحات والخرائط والأرقام وكونسول الوكلاء — تُفتح للباحثين المسجَّلين.' },
+    tierNote:     { en: 'You are reading the public record. {n} working sections, the dashboards, the maps, the numbers and the agent console, open for signed-in researchers.',
+                    ar: 'أنت تطالع السجل العام. {n} أقسام عاملة, اللوحات والخرائط والأرقام وكونسول الوكلاء, تُفتح للباحثين المسجَّلين.' },
     showWhich:    { en: 'Show me which',
                     ar: 'أرِني أيّ الأقسام' },
     dismissNote:  { en: 'Dismiss this note',
                     ar: 'إخفاء هذه الملاحظة' },
     signIn:       { en: 'Researcher sign in',
                     ar: 'دخول الباحثين' },
-    signInNoDb:   { en: 'Sign in — database not connected',
-                    ar: 'تسجيل الدخول — قاعدة البيانات غير متصلة' },
+    signInNoDb:   { en: 'Sign in, database not connected',
+                    ar: 'تسجيل الدخول, قاعدة البيانات غير متصلة' },
     signInNoDbWhy:{ en: 'js/config.js has no Supabase project configured.',
                     ar: 'لا يوجد مشروع Supabase مهيّأ في js/config.js.' },
     closeSignIn:  { en: 'Close sign in',
@@ -256,8 +256,8 @@
        here, because what is substituted is a title rather than a
        count, and a count and a title cannot share a token name and
        still read clearly at the call site. */
-    leadFor:      { en: 'You were heading for this section — {x}.',
-                    ar: 'كنت متوجهاً إلى هذا القسم — {x}.' },
+    leadFor:      { en: 'You were heading for this section, {x}.',
+                    ar: 'كنت متوجهاً إلى هذا القسم, {x}.' },
     closeLabel:   { en: 'Close',
                     ar: 'إغلاق' }
   };
@@ -385,6 +385,54 @@
   function isInsiderSection(id) { return INSIDER.indexOf(id) !== -1; }
 
   /* ===================================================================
+     THE PUBLIC PAGE DOES NOT SHIP THE RESEARCHER'S SECTIONS AT ALL
+
+     The team: "whatever tab that needs to be signed in in order to view
+     it, dont put it in the website, it should only be in the page of
+     once the researcher signs in".
+
+     Until now those ten sections were in the markup and hidden with CSS.
+     That was always a weak answer: hidden content still downloads, still
+     matches find-in-page, and reads straight out of view source, so a
+     "researcher only" section was one DevTools toggle from anybody. It
+     also made the public page carry several hundred kilobytes it never
+     drew.
+
+     They are REMOVED from the document for a signed out visitor, and the
+     nodes are kept in memory so signing in can put them back in their
+     original positions without a reload. A marker comment holds each
+     one's place, which is what makes the restore exact rather than
+     approximate.
+
+     This is still not an access control. The sections hold demo data and
+     the real guarantee is row level security in the database, which is
+     where it belongs. What this buys is that the public page is actually
+     the public page.
+     =================================================================== */
+  var PARKED = {};                 /* id -> { node, mark } */
+
+  function parkInsiderSections() {
+    INSIDER.forEach(function (id) {
+      if (PARKED[id]) return;
+      var n = document.getElementById(id);
+      if (!n || !n.parentNode) return;
+      var mark = document.createComment(' ksat:parked ' + id + ' ');
+      n.parentNode.replaceChild(mark, n);
+      PARKED[id] = { node: n, mark: mark };
+    });
+  }
+
+  function restoreInsiderSections() {
+    Object.keys(PARKED).forEach(function (id) {
+      var p = PARKED[id];
+      if (p.mark && p.mark.parentNode) p.mark.parentNode.replaceChild(p.node, p.mark);
+      delete PARKED[id];
+    });
+  }
+
+
+
+  /* ===================================================================
      THE TEN BESPOKE INVITATION PANELS
 
      One shell, ten first lines. `lines` are the three real instruments
@@ -442,8 +490,8 @@
     explorer: {
       t: { en: 'The imagery explorer',
            ar: 'مستكشف الصور' },
-      p: { en: 'Pan, zoom and step back through epochs on a 39 m sampling grid — the KuwaitSat-1 ground sample distance — with the analytical layers switched on.',
-           ar: 'حرّك وقرّب وتنقّل رجوعاً بين الحقب الزمنية على شبكة أخذ عيّنات مقدارها 39 م — وهي دقة KuwaitSat-1 الأرضية — مع تشغيل الطبقات التحليلية.' },
+      p: { en: 'Pan, zoom and step back through epochs on a 39 m sampling grid, the KuwaitSat-1 ground sample distance, with the analytical layers switched on.',
+           ar: 'حرّك وقرّب وتنقّل رجوعاً بين الحقب الزمنية على شبكة أخذ عيّنات مقدارها 39 م, وهي دقة KuwaitSat-1 الأرضية, مع تشغيل الطبقات التحليلية.' },
       lines: [
         { en: 'True-colour, vegetation and thermal layers',
           ar: 'طبقات اللون الطبيعي والغطاء النباتي والحرارة' },
@@ -498,8 +546,8 @@
     impact: {
       t: { en: 'Impact calculator',
            ar: 'حاسبة الأثر' },
-      p: { en: 'Move the inputs and watch the conceptual indicators respond — every assumption open for inspection, because arithmetic you cannot see is not evidence.',
-           ar: 'حرّك المُدخَلات وراقب استجابة المؤشرات المفاهيمية — كل افتراض متاح للفحص، لأن حساباً لا تراه ليس دليلاً.' },
+      p: { en: 'Move the inputs and watch the conceptual indicators respond, every assumption open for inspection, because arithmetic you cannot see is not evidence.',
+           ar: 'حرّك المُدخَلات وراقب استجابة المؤشرات المفاهيمية, كل افتراض متاح للفحص، لأن حساباً لا تراه ليس دليلاً.' },
       lines: [
         { en: 'The input sliders and presets',
           ar: 'مُنزلِقات المُدخَلات والإعدادات الجاهزة' },
@@ -526,8 +574,8 @@
     compare: {
       t: { en: 'Change detection',
            ar: 'كشف التغيّر' },
-      p: { en: 'Put two epochs side by side and wipe between them. The change mask is produced by differencing the scenes — the method is real, the scenes are simulated.',
-           ar: 'ضع حقبتين جنباً إلى جنب وامسح بينهما. يُنتَج قناع التغيّر بحساب الفرق بين المشهدين — الطريقة حقيقية، والمشاهد مُحاكاة.' },
+      p: { en: 'Put two epochs side by side and wipe between them. The change mask is produced by differencing the scenes, the method is real, the scenes are simulated.',
+           ar: 'ضع حقبتين جنباً إلى جنب وامسح بينهما. يُنتَج قناع التغيّر بحساب الفرق بين المشهدين, الطريقة حقيقية، والمشاهد مُحاكاة.' },
       lines: [
         { en: 'Wipe, side-by-side and change-mask views',
           ar: 'عروض المسح وجنباً إلى جنب وقناع التغيّر' },
@@ -550,8 +598,8 @@
          left to go stale when the analyst gains a sixth row. */
       t: { en: 'The analyst',
            ar: 'المحلّل' },
-      p: { en: 'Ask a question about the dataset. The answer always comes back in the same parts — what it looked at, what it found, its confidence, what it suggests next, and what class of data the answer rests on.',
-           ar: 'اطرح سؤالاً عن مجموعة البيانات. يعود الجواب دائماً بالأجزاء نفسها — ما نظر إليه، وما وجده، ودرجة ثقته، وما يقترحه تالياً، ونوع البيانات التي يستند إليها.' },
+      p: { en: 'Ask a question about the dataset. The answer always comes back in the same parts, what it looked at, what it found, its confidence, what it suggests next, and what class of data the answer rests on.',
+           ar: 'اطرح سؤالاً عن مجموعة البيانات. يعود الجواب دائماً بالأجزاء نفسها, ما نظر إليه، وما وجده، ودرجة ثقته، وما يقترحه تالياً، ونوع البيانات التي يستند إليها.' },
       lines: [
         { en: 'The analyst session',
           ar: 'جلسة المحلّل' },
@@ -564,8 +612,8 @@
     agent: {
       t: { en: 'The agent console',
            ar: 'كونسول الوكلاء' },
-      p: { en: 'The whole route: collect, validate, analyse, decide, recommend, report — with the decision gates, the re-ranking loop, and the approval that a report cannot be written without.',
-           ar: 'المسار كاملاً: يجمع، ويتحقق، ويحلّل، ويقرّر، ويوصي، ويكتب التقرير — مع بوابات القرار، وحلقة إعادة الترتيب، والموافقة التي لا يُكتب التقرير بدونها.' },
+      p: { en: 'The whole route: collect, validate, analyse, decide, recommend, report, with the decision gates, the re-ranking loop, and the approval that a report cannot be written without.',
+           ar: 'المسار كاملاً: يجمع، ويتحقق، ويحلّل، ويقرّر، ويوصي، ويكتب التقرير, مع بوابات القرار، وحلقة إعادة الترتيب، والموافقة التي لا يُكتب التقرير بدونها.' },
       lines: [
         { en: 'The {steps}-step pipeline with its {gates} decision nodes',
           ar: 'المسار بخطواته الـ{steps} وعقد القرار الـ{gates} فيه' },
@@ -668,8 +716,8 @@
 
   /* The same footnote on all ten, deliberately. It makes the honesty of
      the security story a visible product feature rather than a slide. */
-  var FOOT_EN = 'Nothing here is hidden for secrecy. This is where a signed-in researcher’s own missions, runs and results are drawn, and those live in the database behind row-level security — they were never in this page.';
-  var FOOT_AR = 'لا شيء هنا مخفي بدافع السرّية. هنا تُرسم مهام الباحث المسجّل ونتائجه، وهي محفوظة في قاعدة البيانات خلف أمان مستوى الصف — ولم تكن يوماً جزءاً من هذه الصفحة.';
+  var FOOT_EN = 'Nothing here is hidden for secrecy. This is where a signed-in researcher’s own missions, runs and results are drawn, and those live in the database behind row-level security, they were never in this page.';
+  var FOOT_AR = 'لا شيء هنا مخفي بدافع السرّية. هنا تُرسم مهام الباحث المسجّل ونتائجه، وهي محفوظة في قاعدة البيانات خلف أمان مستوى الصف, ولم تكن يوماً جزءاً من هذه الصفحة.';
 
   /* ===================================================================
      3 · THE CHAPTERS
@@ -971,6 +1019,8 @@
        button belongs only to the public tier. */
     if (signInBtn) signInBtn.hidden = (tier === 'insider');
 
+    if (tier === 'public') parkInsiderSections(); else restoreInsiderSections();
+
     INSIDER.forEach(function (id) {
       var s = sec(id);
       if (!s) return;                        // no-op safely if an id is missing
@@ -1111,7 +1161,7 @@
       card.appendChild(x);
 
       var back = el('button', 'ksat-gate-back',
-        'Continue without signing in — the public record stays open');
+        'Continue without signing in, the public record stays open');
       back.type = 'button';
       back.addEventListener('click', function () { closeGate(); });
       card.appendChild(back);

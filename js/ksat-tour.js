@@ -219,8 +219,8 @@
     'tour.step':      { en: 'Step',      ar: 'الخطوة' },
     'tour.of':        { en: 'of',        ar: 'من' },
 
-    'tour.locked':    { en: 'Behind sign-in. What you are looking at is a description of the instrument, not the instrument itself — nothing has been removed.',
-                        ar: 'خلف تسجيل الدخول. ما تراه الآن وصف للأداة وليس الأداة نفسها — لم يُحذف أي شيء.' },
+    'tour.locked':    { en: 'Behind sign-in. What you are looking at is a description of the instrument, not the instrument itself, nothing has been removed.',
+                        ar: 'خلف تسجيل الدخول. ما تراه الآن وصف للأداة وليس الأداة نفسها, لم يُحذف أي شيء.' },
 
     'tour.offer.eye': { en: 'GUIDED TOUR',
                         ar: 'جولة إرشادية' },

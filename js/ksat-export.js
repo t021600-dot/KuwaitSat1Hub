@@ -240,8 +240,8 @@
              en: 'Published, attributable record of KuwaitSat-1, carrying a source.',
              ar: 'سجل منشور ومنسوب عن كويت سات-١، يحمل مصدره.' },
     pub:   { token: 'PUBLIC DATA',
-             en: 'Official open statistics — World Bank, WMO, Kuwaiti government publications.',
-             ar: 'إحصاءات رسمية مفتوحة — البنك الدولي والمنظمة العالمية للأرصاد ومنشورات حكومية كويتية.' },
+             en: 'Official open statistics, World Bank, WMO, Kuwaiti government publications.',
+             ar: 'إحصاءات رسمية مفتوحة, البنك الدولي والمنظمة العالمية للأرصاد ومنشورات حكومية كويتية.' },
     demo:  { token: 'REFERENCE DATASET',
              en: 'Invented for this prototype, shaped on published Kuwaiti climate and land-cover patterns. Not a measurement.',
              ar: 'مُختلَقة لهذا النموذج الأولي، ومصمَّمة على أنماط مناخ وغطاء أرضي كويتية منشورة. وليست قياساً.' },
@@ -277,8 +277,8 @@
      ================================================================= */
 
   var PLATFORM = {
-    nameEn: 'KuwaitSat Green Intelligence — KuwaitSat-1 Mission Hub',
-    nameAr: 'كويت سات — الذكاء الأخضر · مركز مهمة كويت سات-١',
+    nameEn: 'KuwaitSat Green Intelligence, KuwaitSat-1 Mission Hub',
+    nameAr: 'كويت سات, الذكاء الأخضر · مركز مهمة كويت سات-١',
     url:    'https://kuwait-sat1-hub.vercel.app/',
     repo:   'https://github.com/t021600-dot/KuwaitSat1Hub',
     licence: 'MIT'
@@ -327,8 +327,8 @@
                       ar: 'عدد الصفوف: {rows} · المحافظات: {areas} · الحقول لكل محافظة: {fields} · موسومة {token} عدا درجة التشجير فهي {token2}' },
     'w.change':     { en: '{rows} difference rows plus the written interpretation · both inputs are {token} scenes, not acquisitions',
                       ar: 'عدد الصفوف: {rows} · الفروق مع التفسير المكتوب · كلا المدخلين مشهد {token}، وليس التقاطاً فعلياً' },
-    'w.changeNone': { en: 'Nothing to export yet — run change detection first.',
-                      ar: 'لا شيء للتصدير بعد — شغّل كشف التغيّر أولاً.' },
+    'w.changeNone': { en: 'Nothing to export yet, run change detection first.',
+                      ar: 'لا شيء للتصدير بعد, شغّل كشف التغيّر أولاً.' },
     'w.prov':       { en: '{rows} register entries · every dataset and layer the platform uses, with its class and its sources',
                       ar: 'عدد مدخلات السجل: {rows} · كل مجموعة بيانات وطبقة تستخدمها المنصة، بصنفها ومصادرها' },
     'w.src':        { en: '{rows} references · name, URL and what each one supports',
@@ -347,13 +347,13 @@
     'f.epochA':     { en: 'Image A', ar: 'الصورة أ' },
     'f.epochB':     { en: 'Image B', ar: 'الصورة ب' },
     'f.scene':      { en: 'Scene', ar: 'المشهد' },
-    'f.none':       { en: 'None — the full register is exported', ar: 'لا شيء — يُصدَّر السجل كاملاً' },
+    'f.none':       { en: 'None, the full register is exported', ar: 'لا شيء, يُصدَّر السجل كاملاً' },
 
     /* --- status --- */
     'st.done':      { en: 'Downloaded {file}', ar: 'تم تنزيل {file}' },
     'st.copied':    { en: 'Copied to the clipboard.', ar: 'نُسخ إلى الحافظة.' },
-    'st.copyfail':  { en: 'The clipboard is not available here. The text is selected — copy it with Ctrl+C.',
-                      ar: 'الحافظة غير متاحة هنا. النص محدَّد — انسخه بـ Ctrl+C.' },
+    'st.copyfail':  { en: 'The clipboard is not available here. The text is selected, copy it with Ctrl+C.',
+                      ar: 'الحافظة غير متاحة هنا. النص محدَّد, انسخه بـ Ctrl+C.' },
     'st.nodata':    { en: 'That view has no data to export right now.',
                       ar: 'لا توجد بيانات قابلة للتصدير في هذا العرض الآن.' },
     'st.nocanvas':  { en: 'That chart has not been drawn yet. Scroll it into view and try again.',
@@ -361,8 +361,8 @@
 
     /* --- the provenance and citation panel --- */
     'p.h':          { en: 'Data provenance, export and citation', ar: 'مصدر البيانات والتصدير والاستشهاد' },
-    'p.lede':       { en: 'Everything the platform lets you take away, and the labels that go with it. Each export carries a bilingual header naming this platform, stating that its figures are a prototype’s invented and modelled data, listing the filters that were in force, and timestamping the file — and then repeats the provenance label on every single row, so that sorting, filtering or pasting the numbers into another sheet cannot strip it off.',
-                      ar: 'كل ما تتيح المنصة أخذه، والعلامات المرافقة له. يحمل كل تصدير ترويسة ثنائية اللغة تسمّي المنصة، وتنص على أن أرقامها بيانات مُختلَقة ومُنمذَجة لنموذج أولي، وتُدرج المرشّحات السارية، وتؤرّخ الملف — ثم يُكرَّر وسم المصدر في كل صف، حتى لا يُسقطه الفرز أو التصفية أو النسخ إلى جدول آخر.' },
+    'p.lede':       { en: 'Everything the platform lets you take away, and the labels that go with it. Each export carries a bilingual header naming this platform, stating that its figures are a prototype’s invented and modelled data, listing the filters that were in force, and timestamping the file, and then repeats the provenance label on every single row, so that sorting, filtering or pasting the numbers into another sheet cannot strip it off.',
+                      ar: 'كل ما تتيح المنصة أخذه، والعلامات المرافقة له. يحمل كل تصدير ترويسة ثنائية اللغة تسمّي المنصة، وتنص على أن أرقامها بيانات مُختلَقة ومُنمذَجة لنموذج أولي، وتُدرج المرشّحات السارية، وتؤرّخ الملف, ثم يُكرَّر وسم المصدر في كل صف، حتى لا يُسقطه الفرز أو التصفية أو النسخ إلى جدول آخر.' },
     'p.vocab':      { en: 'The vocabulary every export uses', ar: 'المفردات التي يستخدمها كل تصدير' },
     'p.vocabp':     { en: 'These eight tokens are written in English in the data column of every file, untranslated, for the same reason a unit symbol is not translated: a filter value that changes with the reader’s language cannot be filtered on. Both languages are defined here and in the header of every file.',
                       ar: 'تُكتب هذه المفردات الثماني بالإنجليزية في عمود البيانات في كل ملف دون ترجمة، للسبب نفسه الذي لا يُترجَم لأجله رمز الوحدة: قيمة تصفية تتغيّر بلغة القارئ لا يمكن التصفية عليها. واللغتان معرَّفتان هنا وفي ترويسة كل ملف.' },
@@ -388,14 +388,14 @@
     'p.copyAll':    { en: 'Copy all sixteen references', ar: 'نسخ المراجع الستة عشر' },
 
     /* --- header block, written into every file in both languages --- */
-    'x.notice':     { en: 'PROTOTYPE EXPORT — NOT MEASURED DATA',
-                      ar: 'تصدير من نموذج أولي — ليست بيانات مُقاسة' },
+    'x.notice':     { en: 'PROTOTYPE EXPORT, NOT MEASURED DATA',
+                      ar: 'تصدير من نموذج أولي, ليست بيانات مُقاسة' },
     'x.body':       { en: 'This file comes from a student capstone prototype. The environmental figures in it are invented or modelled for demonstration. They are not measurements, and KuwaitSat-1 did not produce them: the spacecraft carries an RGB camera at 39 m ground sample distance, with no thermal sensor and no near-infrared band.',
                       ar: 'هذا الملف صادر عن نموذج أولي لمشروع تخرج طلابي. الأرقام البيئية فيه مُختلَقة أو مُنمذَجة لأغراض العرض. وهي ليست قياسات، ولم ينتجها كويت سات-١: تحمل المركبة كاميرا RGB بدقة عيّنة أرضية 39 متراً، دون مستشعر حراري ودون نطاق قريب من تحت الحمراء.' },
     'x.rowlabel':   { en: 'Every data row below carries its own provenance label, so that sorting, filtering or pasting these numbers into another file cannot separate the label from the number it describes.',
                       ar: 'يحمل كل صف بيانات أدناه وسم مصدره، حتى لا يفصل الفرز أو التصفية أو النسخ إلى ملف آخر الوسمَ عن الرقم الذي يصفه.' },
-    'x.shape':      { en: 'Shape: long — one observation per row.',
-                      ar: 'الشكل: طولي — رصدة واحدة في كل صف.' },
+    'x.shape':      { en: 'Shape: long, one observation per row.',
+                      ar: 'الشكل: طولي, رصدة واحدة في كل صف.' },
     'x.noauth':     { en: 'Authority: none. Nothing in this file has been reviewed by any competent authority, and none of it may be used for planning.',
                       ar: 'الصفة الرسمية: لا شيء. لم تُراجع أي من محتويات هذا الملف من أي جهة مختصة، ولا يجوز استخدام أي منها في التخطيط.' },
     'x.platform':   { en: 'Platform', ar: 'المنصة' },
@@ -522,7 +522,7 @@
   function sourcesPlain() {
     var SRC = gSOURCES();
     if (!SRC) { return ''; }
-    var lines = [PLATFORM.nameEn + ' — source register (' + SRC.length + ' entries), ' +
+    var lines = [PLATFORM.nameEn + ', source register (' + SRC.length + ' entries), ' +
                  t('x.from') + ' ' + PLATFORM.url];
     lines.push('');
     SRC.forEach(function (s, i) {
@@ -675,7 +675,7 @@
         exported_from: location.href,
         generated_utc: isoStamp(now),
         generated_local: localStamp(now),
-        shape: meta.longShape ? 'long — one observation per row' : 'one entity per row',
+        shape: meta.longShape ? 'long, one observation per row' : 'one entity per row',
         row_count: rows.length
       },
       provenance_vocabulary: vocab,
@@ -1179,8 +1179,8 @@
 
       return {
         meta: {
-          titleEn: 'Environmental Intelligence Dashboard — governorate monthly series',
-          titleAr: 'لوحة الذكاء البيئي — السلاسل الشهرية للمحافظات',
+          titleEn: 'Environmental Intelligence Dashboard, governorate monthly series',
+          titleAr: 'لوحة الذكاء البيئي, السلاسل الشهرية للمحافظات',
           filtersEn: 'Area: ' + areaLabelIn(area, false) + '; Period: last ' + months + ' months; Metrics: all five',
           filtersAr: 'المنطقة: ' + areaLabelIn(area, true) + '؛ الفترة: آخر ' + months + ' شهراً؛ المؤشرات: الخمسة جميعاً',
           classes: ['demo', 'ai'],
@@ -1232,8 +1232,8 @@
 
       return {
         meta: {
-          titleEn: 'Reading the record — ' + mEn,
-          titleAr: 'قراءة السجل — ' + mAr,
+          titleEn: 'Reading the record, ' + mEn,
+          titleAr: 'قراءة السجل, ' + mAr,
           filtersEn: 'Area: ' + areaLabelIn(area, false) + '; Metric: ' + mEn + '; Range: last ' + months + ' months',
           filtersAr: 'المنطقة: ' + areaLabelIn(area, true) + '؛ المؤشر: ' + mAr + '؛ المدى: آخر ' + months + ' شهراً',
           classes: ['demo'],
@@ -1281,10 +1281,10 @@
       var R = gREGIONS();
       return {
         meta: {
-          titleEn: 'Greening potential — governorate scorecard',
-          titleAr: 'إمكانية التشجير — بطاقة أداء المحافظات',
-          filtersEn: 'None — all six governorates, all eight fields',
-          filtersAr: 'لا شيء — المحافظات الست جميعاً، والحقول الثماني جميعاً',
+          titleEn: 'Greening potential, governorate scorecard',
+          titleAr: 'إمكانية التشجير, بطاقة أداء المحافظات',
+          filtersEn: 'None, all six governorates, all eight fields',
+          filtersAr: 'لا شيء, المحافظات الست جميعاً، والحقول الثماني جميعاً',
           classes: ['demo', 'ai'],
           longShape: true
         },
@@ -1321,8 +1321,8 @@
 
       return {
         meta: {
-          titleEn: 'Compare From Space — change readout',
-          titleAr: 'المقارنة من الفضاء — قراءة التغيّر',
+          titleEn: 'Compare From Space, change readout',
+          titleAr: 'المقارنة من الفضاء, قراءة التغيّر',
           filtersEn: 'Scene: ' + sceneLabel(scene, false) + '; A: ' + epochLabel(a, false) +
                      '; B: ' + epochLabel(b, false) +
                      '. Both scenes are rendered by this page on a 39 m grid. They are not acquisitions, ' +
@@ -1539,7 +1539,7 @@
 
   function relabel(rec) {
     rec.lab.textContent = t('bar.lab');
-    rec.bar.setAttribute('aria-label', t('bar.lab') + ' — ' + sectionTitle(rec.target.section));
+    rec.bar.setAttribute('aria-label', t('bar.lab') + ', ' + sectionTitle(rec.target.section));
     rec.buttons.forEach(function (b) {
       b.textContent = t(b.getAttribute('data-ksx-label'));
       b.title = t(b.getAttribute('data-ksx-title'));

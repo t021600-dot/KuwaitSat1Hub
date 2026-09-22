@@ -176,7 +176,7 @@
       badge: '◈ Modelled',
       cap: '2U form factor from the published mission record. Surface detail, ' +
            'panel layout, deck components and antenna geometry are modelled for ' +
-           'this illustration — not taken from a published drawing.',
+           'this illustration, not taken from a published drawing.',
       hint: 'Drag, or use the arrow keys, to turn',
       alt: 'Illustration of a 2U CubeSat, the form factor published for ' +
            'KuwaitSat-1: a black anodised aluminium frame roughly 100 by 100 by ' +
@@ -191,7 +191,7 @@
       badge: '◈ مُنمذَج',
       cap: 'شكل الهيكل 2U مأخوذ من سجل المهمة المنشور. أما تفاصيل السطح وتوزيع ' +
            'الألواح ومكوّنات السطح العلوي وهندسة الهوائيات فهي مُنمذَجة لأغراض هذا ' +
-           'الرسم التوضيحي — وليست مأخوذة من مخطط منشور.',
+           'الرسم التوضيحي, وليست مأخوذة من مخطط منشور.',
       hint: 'اسحب، أو استخدم مفاتيح الأسهم، للتدوير',
       alt: 'رسم توضيحي لقمر مكعّب من فئة 2U، وهو الشكل المنشور لـ KuwaitSat-1: ' +
            'هيكل ألمنيوم أسود مؤكسد بأبعاد تقارب ١٠٠ × ١٠٠ × ٢٢٧ مليمتراً، ' +
@@ -958,8 +958,13 @@
      ================================================================= */
 
   function mount() {
-    strip = document.getElementById('descent');
-    if (!strip) { KS.cubesat = { mounted: false, reason: 'no #descent' }; return; }
+    /* THE SPACECRAFT OPENS THE PAGE NOW.
+       It was mounted in #descent, a decorative band between two sections.
+       The team asked for the real model in the hero instead of the small
+       drawn glyph that was there, so .hero-sat is the first choice and
+       #descent is kept as a fallback for any page that still has one. */
+    strip = document.querySelector('.hero-sat') || document.getElementById('descent');
+    if (!strip) { KS.cubesat = { mounted: false, reason: 'no mount point' }; return; }
     if (strip.querySelector('.ksat-cs')) { return; }   /* already there */
 
     if (!buildStage(strip)) {
@@ -1027,13 +1032,21 @@
   }
 
   function boot() {
-    /* #descent is in the initial markup, but the chapter system in
-       js/ksat-shell.js can hide and reveal it, and the page's own
-       scripts run after it. Poll briefly rather than assume. */
+    /* The mount point is in the initial markup, but the chapter system in
+       js/ksat-shell.js can hide and reveal it and the page's own scripts
+       run after it, so poll briefly rather than assume.
+
+       THIS POLLED FOR #descent ALONE and kept doing so after the model
+       moved into the hero: the element never appeared, the loop ran its
+       sixty tries, and mount() was called against a page that no longer
+       had the thing it was waiting for. KSAT.cubesat was simply absent,
+       which is a quieter failure than a thrown error and took longer to
+       find. Wait for whichever mount point exists. */
     var tries = 0;
     var iv = setInterval(function () {
       tries++;
-      if (document.getElementById('descent') || tries > 60) {
+      var ready = document.querySelector('.hero-sat') || document.getElementById('descent');
+      if (ready || tries > 60) {
         clearInterval(iv);
         ensureStyles(mount);
       }

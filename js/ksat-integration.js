@@ -125,7 +125,7 @@
     pass.addEventListener('blur', function () { caps.hidden = true; });
 
     var note = el('p', 'ksat-gate-note',
-      'Accounts are issued by the KuwaitSat-1 research programme. Your password is never sent to or stored by this platform — it is verified by the authentication service, which holds only a hash.');
+      'Accounts are issued by the KuwaitSat-1 research programme. Your password is never sent to or stored by this platform, it is verified by the authentication service, which holds only a hash.');
 
     [email, passWrap, caps, go, msg, note].forEach(function (n) { card.appendChild(n); });
     g.appendChild(card);

@@ -711,6 +711,17 @@ await check('PG-KEEP', 'every data surface and control of the original is still 
         was:  '#cvDescent, the downlink-cone canvas in the descent strip',
         now:  'the 3D CubeSat, created at runtime by that file',
         creates: /createElement\(\s*['"]canvas['"]\s*\)/
+      }, {
+        /* #heroOrb, 22 Sep. This one did NOT move to another canvas: the
+           hero's Earth is now a photograph set as a background image, so
+           the surface it carried is still on the page but is no longer a
+           drawing surface at all. A claim like that has to be checked
+           differently - the proof is the CSS rule that paints it, not a
+           createElement call - or the allowance would be a rubber stamp. */
+        file: 'css/ksat-minimal.css',
+        was:  '#heroOrb, the hero canvas that drew the Earth and the orbit',
+        now:  'a full bleed NASA photograph painted by .hero-sky',
+        creates: /\.hero-sky[\s\S]{0,400}?background-image:\s*url\(['"]?\.\.\/assets\/earth\//
       }]
     };
 
@@ -775,6 +786,8 @@ await check('PG-HOOK', 'every id the original page hangs behaviour off still exi
       bltTimeline: 'the project timeline inside #builders.',
       cvDescent:   'the downlink-cone canvas in the descent strip. Replaced by the 3D spacecraft in js/ksat-cubesat.js, which the team asked for in its place; the cone and its three lines of narration went with it.',
       heroReadout: 'the ALT / GSD / SWATH line over the hero Earth, and the ◈ NASA IMAGERY · ORBIT MODELLED line beside it. Deleted on instruction, 22 Sep: the public page opens on the planet and nothing else. Every one of those figures is still in the page - the hero fact strip carries 39 m and 80 km, and the folded mission record carries all twelve entries.',
+      heroOrb:     'the hero canvas. It drew the Earth, the orbit path, the swath cone and a small satellite glyph. The Earth is now a full bleed NASA photograph in CSS and the satellite is the 3D model from js/ksat-cubesat.js, so the canvas and its renderer both went. Deleted on instruction, 22 Sep.',
+      descent:     'the decorative transition band between the console and imagery sections. Its downlink cone and narration were removed earlier; the 3D spacecraft it then held has moved into the hero, so the band had nothing left to hold.',
     };
     const idsOf = t => [...t.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
     const a = new Set(idsOf(readFileSync(join(ROOT, 'site-original', 'index.html'), 'utf8')));
@@ -849,7 +862,30 @@ await check('PG-FIG', 'every figure the original published still appears in the 
       '1.16':   'outer radius ratio of that same glow. It still appears in js/ only because another file happens to use the same number.',
       '0.955':  'y-offset of the desert-band ellipse in the drawn Earth. There is no drawn desert band now - the land is the NASA composite.',
       '0.968':  'y-offset of the gulf ellipse in the same drawing.',
-      '0.020':  'ry of that gulf ellipse.'
+      '0.020':  'ry of that gulf ellipse.',
+
+      /* The hero canvas is gone entirely, 22 Sep. heroOrbit() drew the
+         orbit path, the swath cone, the Kuwait marker and the small
+         satellite glyph over the Earth plate; the team asked for the
+         real 3D spacecraft in its place, so the whole renderer went and
+         the Earth became a full bleed background image. Every value
+         below is an artwork coordinate or an rgba component from that
+         drawing, not a measurement. The mission's published FIGURES are
+         all still in the page: 525 km, 39 m, 80 km, 2 kg, 3 Jan 2023. */
+      '201':   'a colour component of the hero limb stroke rgba(150,210,255,.45) and of the orbit dash.',
+      '075':   'an alpha component in the same drawing.',
+      '232':   'a colour component of the drawn satellite body.',
+      '045':   'an alpha component of the swath cone gradient.',
+      '154':   'a colour component of the Kuwait marker ring.',
+      '1.34':  'cy multiplier that placed the drawn limb below the canvas.',
+      '1.115': 'orbit radius ratio for the dashed path.',
+      '1.27':  'start angle of that dashed arc, in radians over pi.',
+      '1.73':  'end angle of the same arc.',
+      '1.30':  'start angle of the satellite travel along it.',
+      '0.085': 'half angle of the swath cone.',
+      '0.995': 'where the cone met the drawn surface.',
+      '241':   'a colour component of the marker label.',
+      '-7.5':  'the y offset of the drawn satellite body rect, fillRect(-5,-7.5,10,15). Artwork, and the satellite it drew is now a 3D model.'
     };
     const nums = t => (t.match(/(?<![\w-])-?\d+(?:\.\d+)?/g) || []);
     const original = new Set(nums(readFileSync(join(ROOT, 'site-original', 'index.html'), 'utf8')));

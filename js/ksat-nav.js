@@ -240,8 +240,8 @@
        no gain, since the number is right there. */
     lockedN:    { en: '# behind sign-in',       ar: '# خلف تسجيل الدخول' },
     toolsEye:   { en: 'Research tools',         ar: 'أدوات البحث' },
-    toolsPub:   { en: 'The seven researcher workspaces. They need an account — open one and it tells you what it does and how to get in.',
-                  ar: 'مساحات عمل الباحثين السبع. تحتاج إلى حساب — افتح أيّاً منها وسيوضّح لك ما تفعله وكيفية الدخول.' },
+    toolsPub:   { en: 'The seven researcher workspaces. They need an account, open one and it tells you what it does and how to get in.',
+                  ar: 'مساحات عمل الباحثين السبع. تحتاج إلى حساب, افتح أيّاً منها وسيوضّح لك ما تفعله وكيفية الدخول.' },
     toolsIns:   { en: 'Your seven workspaces, straight from here.',
                   ar: 'مساحات عملك السبع، من هنا مباشرة.' },
     toolsLabel: { en: 'Researcher workspaces',  ar: 'مساحات عمل الباحثين' },
@@ -572,7 +572,7 @@
          words of mono capitals; a screen reader user gets the sentence
          instead, because "SIGN-IN" read out after a destination name is
          ambiguous about which of the two it describes. */
-      b.setAttribute('aria-label', destLabel(id) + ' — ' + T('lockedLong'));
+      b.setAttribute('aria-label', destLabel(id) + ', ' + T('lockedLong'));
     }
 
     var sub = eyebrowOf(id);
@@ -623,7 +623,7 @@
 
   function groupName(c) {
     var n = lockedCount(c);
-    return n ? chName(c) + ' — ' + fill('lockedN', n) : chName(c);
+    return n ? chName(c) + ', ' + fill('lockedN', n) : chName(c);
   }
 
   function buildGroups() {
@@ -842,9 +842,9 @@
 
       if (isLocked(h.id)) {
         b.appendChild(el('span', 'ksat-nav-item-lock', T('locked')));
-        b.setAttribute('aria-label', h.title + ' — ' + h.chName + ' — ' + T('lockedLong'));
+        b.setAttribute('aria-label', h.title + ', ' + h.chName + ', ' + T('lockedLong'));
       } else {
-        b.setAttribute('aria-label', h.title + ' — ' + h.chName);
+        b.setAttribute('aria-label', h.title + ', ' + h.chName);
       }
 
       /* The chapter is part of every result line, because opening a
@@ -1133,7 +1133,7 @@
       b.appendChild(dot);
       b.appendChild(el('span', null, toolLabel(id)));
 
-      if (locked) b.setAttribute('aria-label', toolLabel(id) + ' — ' + T('lockedLong'));
+      if (locked) b.setAttribute('aria-label', toolLabel(id) + ', ' + T('lockedLong'));
 
       b.addEventListener('click', function () {
         closePop(false);

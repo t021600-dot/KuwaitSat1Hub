@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="KuwaitSat Green Intelligence — a research console for KuwaitSat-1 researchers: state an objective, seven agents take it from satellite acquisition to a written report.">
+<meta name="description" content="KuwaitSat Green Intelligence, a research console for KuwaitSat-1 researchers: state an objective, seven agents take it from satellite acquisition to a written report.">
 <meta name="author" content="KuwaitSat Green Intelligence capstone team">
 <style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{margin:0;background:#04060B}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>KuwaitSat Green Intelligence</title>
@@ -26,14 +26,14 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KuwaitSat Green Intelligence">
-<meta property="og:title" content="KuwaitSat Vision — Green Intelligence">
+<meta property="og:title" content="KuwaitSat Vision, Green Intelligence">
 <meta property="og:description" content="An Earth-observation research platform for KuwaitSat-1. State an objective; the agents take it from satellite acquisition to a written, sourced report.">
 <meta property="og:image" content="https://kuwait-sat1-hub.vercel.app/assets/brand/ksat-og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The KuwaitSat Vision seal: a satellite over a map of Kuwait inside an orbit ring.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="KuwaitSat Vision — Green Intelligence">
+<meta name="twitter:title" content="KuwaitSat Vision, Green Intelligence">
 <meta name="twitter:description" content="An Earth-observation research platform for KuwaitSat-1.">
 <meta name="twitter:image" content="https://kuwait-sat1-hub.vercel.app/assets/brand/ksat-og.png">
 
@@ -43,16 +43,16 @@
 
 <style>
 /* ============================================================
-   KuwaitSat — Green Intelligence Platform
+   KuwaitSat, Green Intelligence Platform
    Single visual world: deep-space mission console (dark only,
    every colour painted explicitly so the page holds on any host).
    ============================================================ */
 :root{
   --void:#04060B; --deep:#080D16; --surf:#0A0F18; --surf-2:#0E1522;
-  --glass:rgba(13,20,32,.74); --glass-2:rgba(18,27,42,.62);
+  --glass:rgba(13,20,32.74); --glass-2:rgba(18,27,42.62);
   --line:#182333; --line-2:#24344A; --line-3:#33475F;
   --ink:#E9EFF7; --ink-2:#9DAEC2; --ink-3:#64778D;
-  --accent:#3FD0C9; --accent-dim:#1E7F7C; --accent-glow:rgba(63,208,201,.18);
+  --accent:#3FD0C9; --accent-dim:#1E7F7C; --accent-glow:rgba(63,208,201.18);
   --green:#40AD60; --green-lt:#8FD8A3; --green-deep:#0B5D2F;
   --ember:#D9743F; --ember-lt:#ED946C;
   --sand:#C4B396;
@@ -82,19 +82,19 @@ a:hover{text-decoration:underline}
 button,input,select,textarea{font-family:inherit; font-size:inherit; color:inherit}
 :focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
 img{max-width:100%}
-::selection{background:rgba(63,208,201,.28)}
+::selection{background:rgba(63,208,201.28)}
 
 /* ---------- backdrop ---------- */
 #stars{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;
   background:radial-gradient(130% 90% at 50% 0%,#0A1524 0%,#05080F 46%,#03050A 100%)}
 #veil{position:fixed; inset:0; z-index:1; pointer-events:none;
   background:
-    radial-gradient(60% 40% at 8% 6%, rgba(63,208,201,.075), transparent 62%),
-    radial-gradient(50% 42% at 96% 78%, rgba(64,173,96,.075), transparent 64%)}
+    radial-gradient(60% 40% at 8% 6%, rgba(63,208,201.075), transparent 62%),
+    radial-gradient(50% 42% at 96% 78%, rgba(64,173,96.075), transparent 64%)}
 
 /* ---------- mission bar ---------- */
 .bar{position:sticky; top:env(safe-area-inset-top,0px); z-index:60;
-  background:linear-gradient(180deg,rgba(4,6,11,.96),rgba(4,6,11,.80));
+  background:linear-gradient(180deg,rgba(4,6,11.96),rgba(4,6,11.80));
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line)}
 .bar-in{max-width:var(--maxw); margin:0 auto; padding-inline:var(--gut);
@@ -110,8 +110,8 @@ img{max-width:100%}
 nav.nav{display:flex; gap:2px; align-items:center}
 nav.nav button{background:none; border:0; cursor:pointer; white-space:nowrap;
   font-size:12.5px; color:var(--ink-2); padding:7px 9px; border-radius:7px; letter-spacing:.005em}
-nav.nav button:hover{color:var(--ink); background:rgba(255,255,255,.05)}
-nav.nav button[aria-current="true"]{color:var(--accent); background:rgba(63,208,201,.1)}
+nav.nav button:hover{color:var(--ink); background:rgba(255,255,255.05)}
+nav.nav button[aria-current="true"]{color:var(--accent); background:rgba(63,208,201.1)}
 .bar-act{display:flex; gap:8px; align-items:center; flex:0 0 auto}
 .lang{display:flex; border:1px solid var(--line-2); border-radius:8px; overflow:hidden}
 .lang button{background:none; border:0; cursor:pointer; padding:6px 10px; font-size:11.5px;
@@ -130,7 +130,7 @@ nav.nav button[aria-current="true"]{color:var(--accent); background:rgba(63,208,
 .btn.grn{background:linear-gradient(180deg,#4EC273,#2E8B4E); color:#03130A; border-color:#5FD68A; font-weight:600}
 .btn.grn:hover{background:linear-gradient(180deg,#5ED082,#36995A)}
 .btn.sm{padding:6px 11px; font-size:12px; border-radius:7px}
-.btn.on{border-color:var(--accent); background:rgba(63,208,201,.14); color:#BFF4F1}
+.btn.on{border-color:var(--accent); background:rgba(63,208,201.14); color:#BFF4F1}
 
 /* ---------- layout ---------- */
 main{position:relative; z-index:2}
@@ -151,8 +151,8 @@ h2.st{font-size:clamp(27px,4vw,44px); font-weight:700; margin-bottom:12px}
 .g-35{grid-template-columns:minmax(0,3fr) minmax(0,5fr)}
 .g-11{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 @media(max-width:960px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .g3,.g-53,.g-35,.g-11{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:620px){.g2,.g4{grid-template-columns:minmax(0,1fr)}}
+  .g3.g-53.g-35.g-11{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:620px){.g2.g4{grid-template-columns:minmax(0,1fr)}}
 .mt{margin-top:26px}
 .mt-s{margin-top:14px}
 
@@ -171,15 +171,15 @@ h2.st{font-size:clamp(27px,4vw,44px); font-weight:700; margin-bottom:12px}
 .badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono);
   font-size:10px; letter-spacing:.09em; padding:3px 8px; border-radius:20px;
   border:1px solid; white-space:nowrap; text-transform:uppercase; line-height:1.5}
-.badge.real{color:#9FD9F5; border-color:#1D5A7D; background:rgba(39,159,215,.12)}
-.badge.sim{color:#F2C46B; border-color:#6B5210; background:rgba(178,127,2,.13)}
-.badge.ai{color:#C7A9EE; border-color:#4C3374; background:rgba(128,85,190,.14)}
-.badge.demo{color:#9FE0B5; border-color:#1F5D37; background:rgba(64,173,96,.12)}
-.badge.proj{color:#F0AF8B; border-color:#7A4526; background:rgba(217,116,63,.13)}
-.badge.pub{color:#C4D7E8; border-color:#3A5170; background:rgba(120,160,200,.12)}
-.badge.src{color:var(--ink-2); border-color:var(--line-2); background:rgba(255,255,255,.03)}
-.badge.unver{color:#E0C98F; border-color:#6B5210; background:rgba(178,127,2,.10)}
-.badge.human{color:#C9D6E4; border-color:#3E5064; background:rgba(200,215,232,.08)}
+.badge.real{color:#9FD9F5; border-color:#1D5A7D; background:rgba(39,159,215.12)}
+.badge.sim{color:#F2C46B; border-color:#6B5210; background:rgba(178,127,2.13)}
+.badge.ai{color:#C7A9EE; border-color:#4C3374; background:rgba(128,85,190.14)}
+.badge.demo{color:#9FE0B5; border-color:#1F5D37; background:rgba(64,173,96.12)}
+.badge.proj{color:#F0AF8B; border-color:#7A4526; background:rgba(217,116,63.13)}
+.badge.pub{color:#C4D7E8; border-color:#3A5170; background:rgba(120,160,200.12)}
+.badge.src{color:var(--ink-2); border-color:var(--line-2); background:rgba(255,255,255.03)}
+.badge.unver{color:#E0C98F; border-color:#6B5210; background:rgba(178,127,2.10)}
+.badge.human{color:#C9D6E4; border-color:#3E5064; background:rgba(200,215,232.08)}
 
 /* ---------- kpi tiles ---------- */
 .tile{background:linear-gradient(170deg,var(--surf-2),var(--surf)); border:1px solid var(--line);
@@ -193,16 +193,16 @@ h2.st{font-size:clamp(27px,4vw,44px); font-weight:700; margin-bottom:12px}
 .tile .spark{margin-top:9px; display:block; width:100%; height:30px}
 .tile .stripe{position:absolute; inset-inline-start:0; top:0; bottom:0; width:3px}
 .delta{font-family:var(--mono); font-size:11px; padding:1px 5px; border-radius:4px}
-.delta.up{color:var(--green-text, #9FE0B5); background:rgba(64,173,96,.14)}
-.delta.dn{color:#F0A49E; background:rgba(182,59,50,.16)}
-.delta.fl{color:var(--ink-3); background:rgba(255,255,255,.05)}
+.delta.up{color:var(--green-text, #9FE0B5); background:rgba(64,173,96.14)}
+.delta.dn{color:#F0A49E; background:rgba(182,59,50.16)}
+.delta.fl{color:var(--ink-3); background:rgba(255,255,255.05)}
 
 /* ---------- pills / chips ---------- */
 .chips{display:flex; gap:7px; flex-wrap:wrap}
-.chip{background:rgba(255,255,255,.04); border:1px solid var(--line-2); color:var(--ink-2);
+.chip{background:rgba(255,255,255.04); border:1px solid var(--line-2); color:var(--ink-2);
   padding:5px 11px; border-radius:20px; font-size:12px; cursor:pointer; transition:.16s}
 .chip:hover{border-color:var(--line-3); color:var(--ink)}
-.chip[aria-pressed="true"]{background:rgba(63,208,201,.14); border-color:var(--accent-dim); color:#BFF4F1}
+.chip[aria-pressed="true"]{background:rgba(63,208,201.14); border-color:var(--accent-dim); color:#BFF4F1}
 .tag{display:inline-block; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em;
   color:var(--ink-3); border:1px solid var(--line); border-radius:4px; padding:2px 6px}
 
@@ -222,7 +222,7 @@ input[type="range"]::-webkit-slider-runnable-track{height:4px; border-radius:3px
 input[type="range"]::-moz-range-track{height:4px; border-radius:3px; background:var(--line-2)}
 input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none; width:17px; height:17px;
   border-radius:50%; background:var(--accent); border:2px solid #052225; margin-top:-6.5px;
-  box-shadow:0 0 0 4px rgba(63,208,201,.16)}
+  box-shadow:0 0 0 4px rgba(63,208,201.16)}
 input[type="range"]::-moz-range-thumb{width:15px; height:15px; border-radius:50%;
   background:var(--accent); border:2px solid #052225}
 .rowf{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end}
@@ -233,11 +233,11 @@ input[type="range"]::-moz-range-thumb{width:15px; height:15px; border-radius:50%
 table{border-collapse:collapse; width:100%; font-size:13px; min-width:460px}
 th,td{text-align:start; padding:9px 12px; border-bottom:1px solid var(--line)}
 th{font-family:var(--mono); font-size:10.5px; letter-spacing:.11em; text-transform:uppercase;
-  color:var(--ink-3); background:rgba(255,255,255,.02)}
+  color:var(--ink-3); background:rgba(255,255,255.02)}
 td{color:var(--ink-2)}
 td.num,th.num{text-align:end; font-family:var(--mono); font-variant-numeric:tabular-nums; color:var(--ink)}
 tbody tr:last-child td{border-bottom:0}
-tbody tr:hover td{background:rgba(255,255,255,.025)}
+tbody tr:hover td{background:rgba(255,255,255.025)}
 
 /* ---------- notes ---------- */
 .note{display:flex; gap:9px; align-items:flex-start; font-size:12.5px; color:var(--ink-3);
@@ -250,7 +250,7 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
 .chartbox canvas{display:block; width:100%; height:100%}
 .ctip{position:absolute; pointer-events:none; opacity:0; transition:opacity .12s;
   background:#0B1220; border:1px solid var(--line-3); border-radius:8px; padding:8px 10px;
-  font-size:12px; box-shadow:0 8px 26px rgba(0,0,0,.55); z-index:5; min-width:104px}
+  font-size:12px; box-shadow:0 8px 26px rgba(0,0,0.55); z-index:5; min-width:104px}
 .ctip .ct{font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--ink-3);
   text-transform:uppercase; margin-bottom:4px}
 .ctip .cr{display:flex; align-items:center; gap:7px; justify-content:space-between; margin-top:3px}
@@ -264,7 +264,7 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
 .startgate{display:flex; flex-direction:column; align-items:center; text-align:center; gap:0;
   animation:gatein .9s ease both}
 @keyframes gatein{from{opacity:0; transform:translateY(12px)}to{opacity:1; transform:none}}
-.gate-mark{margin-bottom:16px; filter:drop-shadow(0 0 22px rgba(63,208,201,.35))}
+.gate-mark{margin-bottom:16px; filter:drop-shadow(0 0 22px rgba(63,208,201.35))}
 .gate-kw{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.46em; color:#4FD3CC;
   margin-bottom:14px}
 .gate-h{font-family:var(--disp); font-size:clamp(24px,5.4vw,50px); font-weight:800; letter-spacing:-.03em;
@@ -291,8 +291,8 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
   padding-inline:var(--gut); text-align:center}
 .count{font-family:var(--disp); font-weight:800; font-size:clamp(90px,22vw,230px);
   line-height:.9; color:#EAF6FF; letter-spacing:-.04em; font-variant-numeric:tabular-nums;
-  text-shadow:0 0 70px rgba(120,200,255,.35)}
-.count.pulse{animation:cpulse .92s cubic-bezier(.2,.8,.3,1)}
+  text-shadow:0 0 70px rgba(120,200,255.35)}
+.count.pulse{animation:cpulse .92s cubic-bezier(.2.8.3,1)}
 @keyframes cpulse{0%{opacity:0; transform:scale(1.5); filter:blur(7px)}
   22%{opacity:1; transform:scale(1); filter:blur(0)} 78%{opacity:1} 100%{opacity:.12; transform:scale(.96)}}
 .mplate{font-family:var(--mono); font-size:11px; letter-spacing:.3em; color:#6FE3DC;
@@ -308,23 +308,23 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
 .tcard .kw{font-family:var(--mono); font-size:12px; letter-spacing:.42em; color:#4FD3CC;
   margin-bottom:18px}
 .crewplate{margin-top:26px; opacity:0; transform:translateY(14px) scale(.985);
-  transition:opacity 1s ease .35s, transform 1s cubic-bezier(.2,.8,.3,1) .35s}
+  transition:opacity 1s ease .35s, transform 1s cubic-bezier(.2.8.3,1) .35s}
 .tcard.in .crewplate{opacity:1; transform:none}
 .crewlab{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.34em; color:#6FE3DC;
   text-transform:uppercase; margin-bottom:11px}
 .crewimg{position:relative; width:min(660px,86vw); margin:0 auto; border-radius:12px; overflow:hidden;
-  border:1px solid rgba(95,214,138,.38); box-shadow:0 24px 70px rgba(0,0,0,.72), 0 0 0 1px rgba(63,208,201,.12)}
+  border:1px solid rgba(95,214,138.38); box-shadow:0 24px 70px rgba(0,0,0.72), 0 0 0 1px rgba(63,208,201.12)}
 .crewimg img{display:block; width:100%; height:auto}
 .crewimg::after{content:""; position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(180deg,rgba(4,6,11,.10),transparent 30%,transparent 62%,rgba(4,6,11,.55))}
+  background:linear-gradient(180deg,rgba(4,6,11.10),transparent 30%,transparent 62%,rgba(4,6,11.55))}
 .crewcap{font-size:11.5px; color:#8AA3BC; margin-top:10px; max-width:min(660px,86vw);
   margin-inline:auto; line-height:1.5}
 .audiobtn{position:absolute; z-index:6; bottom:calc(20px + env(safe-area-inset-bottom,0px));
-  inset-inline-start:20px; background:rgba(10,16,26,.7); border:1px solid #223247; color:#A8BACE;
+  inset-inline-start:20px; background:rgba(10,16,26.7); border:1px solid #223247; color:#A8BACE;
   padding:8px 14px; border-radius:22px; font-size:12.5px; cursor:pointer; backdrop-filter:blur(6px);
   display:inline-flex; align-items:center; gap:8px}
 .audiobtn:hover{color:#fff; border-color:#3B5170}
-.audiobtn.on{color:#BFF4F1; border-color:#1E7F7C; background:rgba(63,208,201,.14)}
+.audiobtn.on{color:#BFF4F1; border-color:#1E7F7C; background:rgba(63,208,201.14)}
 .audiobtn .wv{display:inline-flex; align-items:flex-end; gap:2px; height:11px}
 .audiobtn .wv i{width:2px; background:currentColor; border-radius:1px; height:3px}
 .audiobtn.on .wv i{animation:wv .9s ease-in-out infinite}
@@ -335,7 +335,7 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
 .subcount{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.3em; color:#5C7086;
   margin-top:6px}
 .skip{position:absolute; z-index:5; bottom:calc(20px + env(safe-area-inset-bottom,0px));
-  inset-inline-end:20px; background:rgba(10,16,26,.7); border:1px solid #223247;
+  inset-inline-end:20px; background:rgba(10,16,26.7); border:1px solid #223247;
   color:#A8BACE; padding:8px 14px; border-radius:22px; font-size:12.5px; cursor:pointer;
   backdrop-filter:blur(6px)}
 .skip:hover{color:#fff; border-color:#3B5170}
@@ -346,7 +346,7 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
 #vidStage.on{opacity:1; pointer-events:auto}
 #vidStage iframe{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
   width:177.78vh; height:100vh; min-width:100%; min-height:56.25vw; border:0}
-.vmask{position:absolute; inset:0; background:radial-gradient(70% 70% at 50% 50%,transparent 30%,rgba(0,0,0,.72) 100%);
+.vmask{position:absolute; inset:0; background:radial-gradient(70% 70% at 50% 50%,transparent 30%,rgba(0,0,0.72) 100%);
   pointer-events:none}
 .vcap{position:absolute; bottom:6vh; inset-inline-start:0; right:0; text-align:center;
   font-family:var(--mono); font-size:11px; letter-spacing:.2em; color:#8AA3BC; z-index:3}
@@ -409,14 +409,14 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .explorer.drag{cursor:grabbing}
 .explorer canvas{position:absolute; inset:0; width:100%; height:100%}
 .exhud{position:absolute; z-index:3; pointer-events:none; font-family:var(--mono); font-size:10.5px;
-  letter-spacing:.08em; color:#9FB4C9; background:rgba(5,9,16,.72); border:1px solid var(--line-2);
+  letter-spacing:.08em; color:#9FB4C9; background:rgba(5,9,16.72); border:1px solid var(--line-2);
   padding:5px 9px; border-radius:6px}
 .exhud.tl{top:10px; inset-inline-start:10px}
 .exhud.br{bottom:10px; inset-inline-end:10px}
 .exhud.bl{bottom:10px; inset-inline-start:10px; display:flex; align-items:center; gap:7px}
 .scalebar{width:54px; height:4px; border:1px solid #9FB4C9; border-top:0}
 .exctl{position:absolute; z-index:4; top:10px; inset-inline-end:10px; display:flex; flex-direction:column; gap:6px}
-.exctl button{width:32px; height:32px; border-radius:8px; background:rgba(5,9,16,.8);
+.exctl button{width:32px; height:32px; border-radius:8px; background:rgba(5,9,16.8);
   border:1px solid var(--line-2); color:var(--ink-2); cursor:pointer; font-size:16px; line-height:1;
   display:flex; align-items:center; justify-content:center}
 .exctl button:hover{color:#fff; border-color:var(--line-3)}
@@ -428,14 +428,14 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .cmp canvas{position:absolute; inset:0; width:100%; height:100%}
 .cmp .clipwrap{position:absolute; inset:0; overflow:hidden}
 .cmp .handle{position:absolute; top:0; bottom:0; width:2px; background:#EAF6FF;
-  box-shadow:0 0 14px rgba(255,255,255,.5); z-index:4; cursor:ew-resize}
+  box-shadow:0 0 14px rgba(255,255,255.5); z-index:4; cursor:ew-resize}
 .cmp .handle::after{content:""; position:absolute; top:50%; left:50%; width:36px; height:36px;
-  transform:translate(-50%,-50%); border-radius:50%; background:rgba(8,13,22,.86);
+  transform:translate(-50%,-50%); border-radius:50%; background:rgba(8,13,22.86);
   border:2px solid #EAF6FF}
 .cmp .handle b{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
   z-index:2; font-size:13px; color:#EAF6FF; letter-spacing:-2px}
 .cmplab{position:absolute; top:10px; z-index:5; font-family:var(--mono); font-size:10px;
-  letter-spacing:.12em; padding:4px 9px; border-radius:5px; background:rgba(5,9,16,.8);
+  letter-spacing:.12em; padding:4px 9px; border-radius:5px; background:rgba(5,9,16.8);
   border:1px solid var(--line-2); text-transform:uppercase}
 .cmplab.l{left:10px; color:#9FD9F5} .cmplab.r{right:10px; color:#9FE0B5}
 
@@ -471,7 +471,7 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .pstep .pd{font-size:12px; color:var(--ink-3); margin-top:2px}
 .pstep .pstat{margin-inline-start:auto; font-family:var(--mono); font-size:10px; letter-spacing:.1em;
   color:var(--ink-3); text-transform:uppercase; flex:0 0 auto; padding-top:5px}
-.pstep.run{border-color:var(--accent-dim); background:rgba(63,208,201,.07)}
+.pstep.run{border-color:var(--accent-dim); background:rgba(63,208,201.07)}
 .pstep.run .dot{border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 4px var(--accent-glow)}
 .pstep.run .pstat{color:var(--accent)}
 .pstep.done{border-color:#1F5D37}
@@ -493,13 +493,13 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
    :root, so in dark mode every var() below falls through to the ramp
    value that is there today and not one pixel moves. Do not "tidy" the
    fallbacks away. */
-.pstep.done .dot{border-color:var(--green); color:var(--green-text, var(--green)); background:rgba(64,173,96,.14)}
+.pstep.done .dot{border-color:var(--green); color:var(--green-text, var(--green)); background:rgba(64,173,96.14)}
 .pstep.done .pstat{color:var(--green-text, var(--green))}
 .pstep.skip{opacity:.55}
 .plink{width:2px; height:13px; background:var(--line-2); margin-inline-start:26px}
 .plink.hot{background:linear-gradient(180deg,var(--accent),var(--green))}
 .dnode{border:1px dashed var(--line-3); border-radius:var(--r-sm); padding:13px;
-  background:rgba(178,127,2,.05)}
+  background:rgba(178,127,2.05)}
 .dnode .q{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--amber-text, #E0C98F)}
 .branches{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:11px}
 @media(max-width:560px){.branches{grid-template-columns:1fr}}
@@ -507,7 +507,7 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
   color:var(--ink-3); background:var(--surf)}
 .branch b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; margin-bottom:4px}
 .branch.yes b{color:var(--green-text, var(--green))} .branch.no b{color:var(--ink-3)}
-.branch.taken{border-color:var(--accent-dim); background:rgba(63,208,201,.08); color:var(--ink)}
+.branch.taken{border-color:var(--accent-dim); background:rgba(63,208,201.08); color:var(--ink)}
 .branch.taken b{color:var(--accent)}
 
 /* ---------- analyst chat ---------- */
@@ -516,7 +516,7 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .chat::-webkit-scrollbar{width:7px}
 .chat::-webkit-scrollbar-thumb{background:var(--line-2); border-radius:4px}
 .msg{border-radius:11px; padding:12px 14px; font-size:13.5px; max-width:94%}
-.msg.u{background:rgba(63,208,201,.1); border:1px solid var(--accent-dim); align-self:flex-end}
+.msg.u{background:rgba(63,208,201.1); border:1px solid var(--accent-dim); align-self:flex-end}
 .msg.a{background:var(--surf); border:1px solid var(--line); align-self:flex-start; width:94%}
 .msg .who{font-family:var(--mono); font-size:10px; letter-spacing:.14em; color:var(--ink-3);
   text-transform:uppercase; margin-bottom:7px; display:flex; align-items:center; gap:8px}
@@ -532,7 +532,7 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .arow.arow-derived dd{border-inline-start:3px solid var(--c4); padding-inline-start:9px;
   background:color-mix(in srgb, var(--c4) 8%, transparent); border-radius:0 4px 4px 0}
 @supports not (background:color-mix(in srgb, red 8%, transparent)){
-  .arow.arow-derived dd{background:rgba(128,85,190,.08)}
+  .arow.arow-derived dd{background:rgba(128,85,190.08)}
 }
 @media(max-width:520px){.arow{grid-template-columns:1fr; gap:2px}}
 .conf{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px}
@@ -552,7 +552,7 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .chapter .cn{font-family:var(--disp); font-size:clamp(40px,7vw,86px); font-weight:800;
   color:transparent; -webkit-text-stroke:1px var(--line-3); line-height:.9;
   font-variant-numeric:tabular-nums; transition:-webkit-text-stroke-color .5s,color .5s}
-.chapter.lit .cn{-webkit-text-stroke-color:var(--accent-dim); color:rgba(63,208,201,.08)}
+.chapter.lit .cn{-webkit-text-stroke-color:var(--accent-dim); color:rgba(63,208,201.08)}
 .chapter h3{font-size:clamp(22px,3.6vw,36px); font-weight:700}
 .chapter .q{font-size:clamp(15px,2vw,19px); color:var(--ink-2); margin-top:10px; max-width:52ch}
 .chapter .ar{font-family:"Readex Pro",sans-serif; direction:rtl; color:var(--ink-3);
@@ -583,8 +583,8 @@ html[lang="ar"] .chapter .ar{direction:ltr; font-family:var(--body)}
 .bacell{border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden}
 .bacell .bh{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
   padding:7px 11px; border-bottom:1px solid var(--line)}
-.bacell.bad .bh{color:var(--red-text, #F0A49E); background:rgba(182,59,50,.1)}
-.bacell.good .bh{color:var(--green-text, #9FE0B5); background:rgba(64,173,96,.1)}
+.bacell.bad .bh{color:var(--red-text, #F0A49E); background:rgba(182,59,50.1)}
+.bacell.good .bh{color:var(--green-text, #9FE0B5); background:rgba(64,173,96.1)}
 .bacell pre{margin:0; padding:11px; font-family:var(--mono); font-size:11.5px; line-height:1.65;
   overflow-x:auto; color:var(--ink-2); white-space:pre; direction:ltr; text-align:left}
 
@@ -605,9 +605,9 @@ html[lang="ar"] .chapter .ar{direction:ltr; font-family:var(--body)}
 #demoHud{position:fixed; z-index:120; inset-inline:0; bottom:0;
   padding:0 var(--gut) calc(16px + env(safe-area-inset-bottom,0px)); display:none; pointer-events:none}
 #demoHud.on{display:block}
-.demopan{max-width:760px; margin:0 auto; background:rgba(8,13,22,.94); border:1px solid var(--line-3);
+.demopan{max-width:760px; margin:0 auto; background:rgba(8,13,22.94); border:1px solid var(--line-3);
   border-radius:var(--r); padding:14px 16px; backdrop-filter:blur(14px); pointer-events:auto;
-  box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  box-shadow:0 18px 50px rgba(0,0,0.6)}
 .demopan .dtop{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
 .demopan .dstep{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; color:var(--accent);
   text-transform:uppercase}
@@ -638,9 +638,9 @@ html[lang="ar"] .chapter .ar{direction:ltr; font-family:var(--body)}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center; padding:28px 16px; color:var(--ink-3); font-size:13px}
 .empty .ic{opacity:.4; margin-bottom:10px}
-.errbox{border:1px solid #6B241E; background:rgba(182,59,50,.09); border-radius:var(--r-sm);
+.errbox{border:1px solid #6B241E; background:rgba(182,59,50.09); border-radius:var(--r-sm);
   padding:12px 14px; font-size:13px; color:var(--red-text, #F0A49E)}
-.okbox{border:1px solid #1F5D37; background:rgba(64,173,96,.08); border-radius:var(--r-sm);
+.okbox{border:1px solid #1F5D37; background:rgba(64,173,96.08); border-radius:var(--r-sm);
   padding:12px 14px; font-size:13px; color:#9FE0B5}
 
 /* ---------- report ---------- */
@@ -668,7 +668,7 @@ footer a{color:var(--ink-2)}
 .passbadge{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px;
   letter-spacing:.1em; padding:5px 11px; border-radius:20px; border:1px solid var(--line-2);
   color:var(--ink-3); text-transform:uppercase}
-.passbadge.hot{color:#9FE0B5; border-color:#1F5D37; background:rgba(64,173,96,.12)}
+.passbadge.hot{color:#9FE0B5; border-color:#1F5D37; background:rgba(64,173,96.12)}
 .passbadge .led{width:7px; height:7px; border-radius:50%; background:var(--ink-3)}
 .passbadge.hot .led{background:var(--green); box-shadow:0 0 9px var(--green); animation:led 1.4s infinite}
 @keyframes led{50%{opacity:.35}}
@@ -761,7 +761,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 .rc-check input{margin:2px 0 0; accent-color:var(--accent); width:15px; height:15px; flex:0 0 auto}
 .rc-check b{display:block; font-size:12.5px; font-weight:500; color:var(--ink)}
 .rc-check span{display:block; font-size:11.5px; color:var(--ink-3); margin-top:1px}
-.rc-check.on{border-color:var(--accent-dim); background:rgba(63,208,201,.08)}
+.rc-check.on{border-color:var(--accent-dim); background:rgba(63,208,201.08)}
 
 .rc-status{background:var(--surf); border:1px solid var(--line); border-radius:var(--r); padding:16px;
   position:sticky; top:calc(var(--bar-h) + 16px)}
@@ -774,7 +774,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 .rc-mini{display:flex; flex-direction:column; gap:2px}
 .rc-mini a{display:flex; align-items:center; gap:9px; padding:6px 7px; border-radius:7px; font-size:12.5px;
   color:var(--ink-3); text-decoration:none; cursor:pointer; background:none; border:0; text-align:start; width:100%}
-.rc-mini a:hover{background:rgba(255,255,255,.04); color:var(--ink-2); text-decoration:none}
+.rc-mini a:hover{background:rgba(255,255,255.04); color:var(--ink-2); text-decoration:none}
 .rc-mini .n{font-family:var(--mono); font-size:10px; width:16px; flex:0 0 auto; color:var(--ink-3)}
 .rc-mini .dot2{width:7px; height:7px; border-radius:50%; background:var(--line-2); flex:0 0 auto}
 .rc-mini a.run .dot2{background:var(--accent); box-shadow:0 0 8px var(--accent); animation:led 1.2s infinite}
@@ -788,7 +788,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 .rc-rail{display:flex; flex-direction:column; gap:0}
 .ag{border:1px solid var(--line); border-radius:var(--r); background:var(--surf); overflow:hidden;
   transition:border-color .3s}
-.ag.run{border-color:var(--accent-dim); box-shadow:0 0 0 1px rgba(63,208,201,.10)}
+.ag.run{border-color:var(--accent-dim); box-shadow:0 0 0 1px rgba(63,208,201.10)}
 .ag.done{border-color:#1D4F33}
 .ag-join{width:2px; height:14px; margin-inline-start:32px; background:var(--line-2)}
 .ag-join.hot{background:linear-gradient(180deg,var(--accent),var(--green))}
@@ -798,17 +798,17 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   justify-content:center; font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
   background:var(--surf-2); border:1px solid var(--line-2); transition:.3s}
 .ag.run .ag-n{color:var(--accent); border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-glow)}
-.ag.done .ag-n{color:var(--green-text, var(--green)); border-color:#2A7A4B; background:rgba(64,173,96,.12)}
+.ag.done .ag-n{color:var(--green-text, var(--green)); border-color:#2A7A4B; background:rgba(64,173,96.12)}
 .ag-t{font-size:14.5px; font-weight:600; letter-spacing:-.005em}
 .ag-r{font-size:12px; color:var(--ink-3); margin-top:1px}
 .ag-s{margin-inline-start:auto; display:flex; align-items:center; gap:10px; flex:0 0 auto}
 .ag-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--ink-3); border:1px solid var(--line-2); border-radius:20px; padding:3px 9px}
-.ag.run .ag-chip{color:var(--accent); border-color:var(--accent-dim); background:rgba(63,208,201,.08)}
-.ag.done .ag-chip{color:var(--green-text, var(--green)); border-color:#1F5D37; background:rgba(64,173,96,.10)}
-.ag.gate .ag-chip{color:var(--amber-text, #E0C98F); border-color:#6B5210; background:rgba(178,127,2,.10)}
+.ag.run .ag-chip{color:var(--accent); border-color:var(--accent-dim); background:rgba(63,208,201.08)}
+.ag.done .ag-chip{color:var(--green-text, var(--green)); border-color:#1F5D37; background:rgba(64,173,96.10)}
+.ag.gate .ag-chip{color:var(--amber-text, #E0C98F); border-color:#6B5210; background:rgba(178,127,2.10)}
 .ag-caret{color:var(--ink-3); transition:transform .25s}
-.ag[open] .ag-caret, .ag.open .ag-caret{transform:rotate(180deg)}
+.ag[open] .ag-caret.ag.open .ag-caret{transform:rotate(180deg)}
 .ag-body{border-top:1px solid var(--line); padding:16px 15px; display:none}
 .ag.open .ag-body{display:block}
 .ag-sub{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
@@ -826,7 +826,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   background:#060A11; border:1px solid var(--line); border-radius:8px; padding:11px 13px; overflow-x:auto}
 .ag-log b{color:var(--green); font-weight:500}
 .ag-log i{color:var(--accent); font-style:normal}
-.ag-gate{border:1px dashed var(--line-3); border-radius:10px; padding:14px; background:rgba(178,127,2,.05);
+.ag-gate{border:1px dashed var(--line-3); border-radius:10px; padding:14px; background:rgba(178,127,2.05);
   display:flex; gap:14px; align-items:center; flex-wrap:wrap}
 .ag-gate .gt{font-size:13px; color:var(--amber-text, #E0C98F); flex:1 1 260px}
 .ag-gate .gt b{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.16em;
@@ -851,7 +851,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 .costgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
 @media(max-width:620px){.costgrid{grid-template-columns:minmax(0,1fr)}}
 .costtot{border:1px solid var(--accent-dim); border-radius:10px; padding:13px 14px;
-  background:rgba(63,208,201,.07); margin-top:12px}
+  background:rgba(63,208,201.07); margin-top:12px}
 .costtot .ct3{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
   color:var(--accent)}
 .costtot .cv3{font-family:var(--disp); font-size:27px; font-weight:700; margin-top:3px;
@@ -913,7 +913,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
      nav, export and session. Three separate agents each asked for
      their sheet to be "last", which sounds like a three-way conflict
      and is not one: their selector namespaces are disjoint. Grep and
-     you get .ksat-nav-* / .ksat-tools-* in the first, .ksx-* in the
+     you get .ksat-nav-* / .ksat-tools-* in the first.ksx-* in the
      second and .ksat-ss-* in the third, with no selector in common
      between any two of them. So no ordering among these three can
      change a single computed value, and the order below is simply the
@@ -975,10 +975,10 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   <div id="vidStage">
     <div id="vidSlot"></div>
     <div class="vmask"></div>
-    <div class="vcap" data-i18n="vid.cap">ARCHIVE CLIP · 0:00 – 0:08 · EMBEDDED FROM YOUTUBE</div>
+    <div class="vcap" data-i18n="vid.cap">ARCHIVE CLIP · 0:00, 0:08 · EMBEDDED FROM YOUTUBE</div>
     <div class="vfall" id="vidFall">
       <div class="badge src">EXTERNAL MEDIA BLOCKED</div>
-      <p style="color:#8AA3BC;font-size:13px;max-width:44ch" data-i18n="vid.fall">The launch clip is embedded from YouTube and this viewer blocks external media. The sequence continues without it — the clip is available at the source link.</p>
+      <p style="color:#8AA3BC;font-size:13px;max-width:44ch" data-i18n="vid.fall">The launch clip is embedded from YouTube and this viewer blocks external media. The sequence continues without it, the clip is available at the source link.</p>
       <a class="btn sm" id="vidLink" href="https://youtu.be/XGuaRj3C4bM" target="_blank" rel="noopener" data-i18n="vid.open">Open clip on YouTube</a>
     </div>
   </div>
@@ -1080,18 +1080,25 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 
 <!-- ============ HERO ============ -->
 <section class="sec hero" id="top">
-  <div class="grid g-53" style="align-items:center">
-    <div>
-      <h1><span data-i18n="hero.h1a">From Space to a</span> <span class="gr" data-i18n="hero.h1b">Greener Kuwait</span></h1>
-      <div style="display:flex; gap:10px; margin-top:22px; flex-wrap:wrap">
-        <button class="btn grn" id="heroSim" data-i18n="hero.cta1">Simulate a greener Kuwait</button>
-        <button class="btn" id="heroTour" data-i18n="hero.cta2">Take the guided tour</button>
-      </div>
-      <div class="kwflag" aria-hidden="true"><i></i><i></i><i></i></div>
+  <!-- THE NASA HERO SHAPE. One full bleed photograph, the headline set
+       against its left edge rather than inside a column, and a rail of
+       facts along the bottom aligned to the same edge. The two column
+       grid that stood here centred everything in the middle of the
+       measure, which is what the team pointed at: the words floated in
+       the page instead of anchoring it. -->
+  <div class="hero-bleed" aria-hidden="true">
+    <div class="hero-sky"></div>
+    <div class="hero-sat"><!-- js/ksat-cubesat.js mounts the spacecraft here --></div>
+    <div class="hero-fade"></div>
+  </div>
+
+  <div class="hero-copy">
+    <h1><span data-i18n="hero.h1a">From Space to a</span> <span class="gr" data-i18n="hero.h1b">Greener Kuwait</span></h1>
+    <div class="hero-cta">
+      <button class="btn grn" id="heroSim" data-i18n="hero.cta1">Simulate a greener Kuwait</button>
+      <button class="btn" id="heroTour" data-i18n="hero.cta2">Take the guided tour</button>
     </div>
-    <div class="orbcard">
-      <canvas id="heroOrb" height="360" aria-label="Earth photographed from orbit over the Arabian Gulf — NASA imagery — with a modelled KuwaitSat-1 orbit drawn over it"></canvas>
-    </div>
+    <div class="kwflag" aria-hidden="true"><i></i><i></i><i></i></div>
   </div>
 
   <div class="factstrip">
@@ -1137,7 +1144,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <!-- ============ MISSION BRIEF ============ -->
 <section class="sec" id="mission">
   <div class="eyebrow"><span class="badge real">🛰 Measured</span></div>
-  <h2 class="st" data-i18n="mis.h">KuwaitSat-1, on the record</h2>
+  <h2 class="st" data-i18n="mis.h">KuwaitSat-1 on the record</h2>
   
   <div class="grid g-53 mt">
     <div class="panel">
@@ -1171,9 +1178,6 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   </div>
 </section>
 
-<!-- ============ DESCENT TRANSITION ============ -->
-<div id="descent" aria-hidden="true">
-</div>
 
 
 
@@ -1243,8 +1247,8 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="imagery">
   <div class="eyebrow"><span class="badge real">🛰 Acquisition record</span></div>
   <h2 class="st" data-i18n="img.h">Captured From Space</h2>
-  <p class="lede" data-i18n="img.lede">On 5 April 2023, KuwaitSat-1 returned its first series of images of Kuwait — five consecutive frames, each about 80 km across, stitched by the project team into a mosaic of the country's eastern half.</p>
-  <p class="sub" data-i18n="img.disc">The photographs themselves are the property of the KuwaitSat-1 project and Kuwait University. They are not copied into this platform. Each frame below records the real acquisition — footprint, date, resolution and credit — and links to the publisher so the original can be viewed at source.</p>
+  <p class="lede" data-i18n="img.lede">On 5 April 2023, KuwaitSat-1 returned its first series of images of Kuwait, five consecutive frames, each about 80 km across, stitched by the project team into a mosaic of the country's eastern half.</p>
+  <p class="sub" data-i18n="img.disc">The photographs themselves are the property of the KuwaitSat-1 project and Kuwait University. They are not copied into this platform. Each frame below records the real acquisition, footprint, date, resolution and credit, and links to the publisher so the original can be viewed at source.</p>
 
   <div class="grid g3 mt" id="imgGrid"></div>
 
@@ -1260,7 +1264,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="explorer">
   <div class="eyebrow"><span class="badge sim">◈ Modelled scene</span></div>
   <h2 class="st" data-i18n="exp.h">Satellite Image Explorer</h2>
-  <p class="lede" data-i18n="exp.lede">A working Earth-observation viewer: pan, zoom, switch analytical layers, and step back through time. The base scene is generated by this page at a 39 m sampling grid — the KuwaitSat-1 ground sample distance — so the interface behaves like the real thing without ever passing a synthetic frame off as a real one.</p>
+  <p class="lede" data-i18n="exp.lede">A working Earth-observation viewer: pan, zoom, switch analytical layers, and step back through time. The base scene is generated by this page at a 39 m sampling grid, the KuwaitSat-1 ground sample distance, so the interface behaves like the real thing without ever passing a synthetic frame off as a real one.</p>
 
   <div class="grid g-53 mt">
     <div>
@@ -1377,7 +1381,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="map">
   <div class="eyebrow"><span class="badge ai">⬡ Derived analysis</span></div>
   <h2 class="st" data-i18n="map.h">Greening Potential Map</h2>
-  <p class="lede" data-i18n="map.lede">Kuwait's six governorates, scored by the KuwaitSat-1 greening model. Select a region to see what the model looked at and why it scored the way it did. A high score is an invitation to investigate — not an instruction to plant.</p>
+  <p class="lede" data-i18n="map.lede">Kuwait's six governorates, scored by the KuwaitSat-1 greening model. Select a region to see what the model looked at and why it scored the way it did. A high score is an invitation to investigate, not an instruction to plant.</p>
 
   <div class="grid g-53 mt">
     <div>
@@ -1396,7 +1400,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   <div class="panel mt">
     <div class="phead"><div class="ttl"><h3 data-i18n="map.rec">Smart greening recommendation</h3></div>
       <span class="badge ai">⬡ Decision support</span></div>
-    <p class="sub" style="margin-top:0" data-i18n="map.recp">What the system says about the selected area — written the way a screening tool should write, with its evidence, its options, its uncertainty and its follow-up all on the same card.</p>
+    <p class="sub" style="margin-top:0" data-i18n="map.recp">What the system says about the selected area, written the way a screening tool should write, with its evidence, its options, its uncertainty and its follow-up all on the same card.</p>
     <div class="mt-s" id="recCard"></div>
   </div>
 
@@ -1411,7 +1415,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="system">
   <div class="eyebrow"><span class="badge ai">⬡ Model output</span></div>
   <h2 class="st" data-i18n="sys.h">An AI-powered environmental planning system</h2>
-  <p class="lede" data-i18n="sys.lede">The question is not “where should we plant trees”. It is how Kuwait can use satellite technology, environmental data and AI to make its cities cooler, greener and more resilient to extreme heat. Greening is one instrument in that system — not the whole of it.</p>
+  <p class="lede" data-i18n="sys.lede">The question is not “where should we plant trees”. It is how Kuwait can use satellite technology, environmental data and AI to make its cities cooler, greener and more resilient to extreme heat. Greening is one instrument in that system, not the whole of it.</p>
 
   <div class="grid g3 mt" id="sysCaps"></div>
 
@@ -1421,7 +1425,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
     <p class="sub" style="margin-top:0" data-i18n="sys.cyclep">A one-off recommendation is a guess that never learns. The value is the loop: every intervention becomes the baseline the next pass is measured against.</p>
     <div class="cycle mt-s" id="sysCycle"></div>
     <div class="note"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.7" stroke="#64778D" stroke-width="1.2"/><path d="M8 7.2v4M8 4.9v.7" stroke="#64778D" stroke-width="1.4" stroke-linecap="round"/></svg>
-      <span data-i18n="sys.cyclen">The platform does not simply say where to plant. It turns environmental data into a continuing cycle of analysis, planning, visualisation and monitoring — with a person deciding at every gate.</span></div>
+      <span data-i18n="sys.cyclen">The platform does not simply say where to plant. It turns environmental data into a continuing cycle of analysis, planning, visualisation and monitoring, with a person deciding at every gate.</span></div>
   </div>
 
   <div class="grid g-53 mt">
@@ -1441,7 +1445,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="simulate">
   <div class="eyebrow"><span class="badge sim">◈ Modelled scenario</span></div>
   <h2 class="st" data-i18n="sim.h">What Could Kuwait Look Like?</h2>
-  <p class="lede mt-s" data-i18n="sim.lede">Pick an area, run the greening engine, then drag the handle. The left half is the current modelled surface; the right half is the scenario the engine proposes. Both are renderings — the point is the shape of the change, not the pixels.</p>
+  <p class="lede mt-s" data-i18n="sim.lede">Pick an area, run the greening engine, then drag the handle. The left half is the current modelled surface; the right half is the scenario the engine proposes. Both are renderings, the point is the shape of the change, not the pixels.</p>
 
   <div class="rowf mt">
     <div><label class="fld" for="simArea" data-i18n="sim.area">Target area</label><select id="simArea"></select></div>
@@ -1464,7 +1468,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
           <div class="handle" id="baHandle" role="slider" tabindex="0" aria-label="Before / after" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><b>◂▸</b></div>
         </div>
         <div class="note warn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.5 15 14H1L8 1.5Z" stroke="#B27F02" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.6M8 11.6v.6" stroke="#B27F02" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <span data-i18n="sim.warn">Modelled scenario — not an official planning proposal. Species, siting, water demand and cost all require field study before any of this becomes a plan.</span></div>
+          <span data-i18n="sim.warn">Modelled scenario, not an official planning proposal. Species, siting, water demand and cost all require field study before any of this becomes a plan.</span></div>
       </div>
       <div class="panel">
         <div class="phead"><div class="ttl"><h3 data-i18n="sim.res">Scenario result</h3></div><span class="badge sim">◈ Modelled</span></div>
@@ -1478,7 +1482,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="impact">
   <div class="eyebrow"><span class="badge proj">↗ Projection</span></div>
   <h2 class="st" data-i18n="calc.h">What Could Change?</h2>
-  <p class="lede" data-i18n="calc.lede">Move the inputs and watch the modelled indicators respond. Every number here is arithmetic on assumptions you can see — open the assumptions panel to read them.</p>
+  <p class="lede" data-i18n="calc.lede">Move the inputs and watch the modelled indicators respond. Every number here is arithmetic on assumptions you can see, open the assumptions panel to read them.</p>
 
   <div class="grid g-11 mt">
     <div class="panel">
@@ -1503,7 +1507,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
         <div id="calcAssum" style="margin-top:10px"></div>
       </details>
       <div class="note warn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.5 15 14H1L8 1.5Z" stroke="#B27F02" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.6M8 11.6v.6" stroke="#B27F02" stroke-width="1.4" stroke-linecap="round"/></svg>
-        <span data-i18n="calc.warn">Modelled estimate. Realised environmental benefit depends on species, irrigation, soil, survival rate and maintenance, and must be established by field measurement and validated models — not by this calculator.</span></div>
+        <span data-i18n="calc.warn">Modelled estimate. Realised environmental benefit depends on species, irrigation, soil, survival rate and maintenance, and must be established by field measurement and validated models, not by this calculator.</span></div>
     </div>
   </div>
 </section>
@@ -1540,7 +1544,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="compare">
   <div class="eyebrow"><span class="badge sim">◈ Modelled scenes</span></div>
   <h2 class="st" data-i18n="cmp.h">Compare From Space</h2>
-  <p class="lede" data-i18n="cmp.lede">Put two epochs side by side, then wipe between them. The change-detection readout is produced by differencing the two rendered scenes — the method is real, the scenes are simulated.</p>
+  <p class="lede" data-i18n="cmp.lede">Put two epochs side by side, then wipe between them. The change-detection readout is produced by differencing the two rendered scenes, the method is real, the scenes are simulated.</p>
 
   <div class="rowf mt">
     <div><label class="fld" for="cmpA" data-i18n="cmp.a">Image A</label><select id="cmpA"></select></div>
@@ -1571,7 +1575,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="globe">
   <div class="eyebrow"><span class="badge sim">◈ Modelled</span></div>
   <h2 class="st" data-i18n="d3.h">Kuwait From Above</h2>
-  <p class="lede" data-i18n="d3.lede">Drag to rotate, scroll or pinch to zoom. Each governorate is extruded by the selected metric, so the terrain you are looking at is the data itself. Simplified national geometry — a visualisation, not a survey product.</p>
+  <p class="lede" data-i18n="d3.lede">Drag to rotate, scroll or pinch to zoom. Each governorate is extruded by the selected metric, so the terrain you are looking at is the data itself. Simplified national geometry, a visualisation, not a survey product.</p>
 
   <div class="grid g-53 mt">
     <div>
@@ -1595,7 +1599,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 
 <!-- ============ ORBIT SIM ============ -->
 <section class="sec" id="orbit">
-  <div class="eyebrow"><span class="badge sim">◈ Modelled — not live telemetry</span></div>
+  <div class="eyebrow"><span class="badge sim">◈ Modelled, not live telemetry</span></div>
   <h2 class="st" data-i18n="orb.h">Where Is KuwaitSat?</h2>
   <p class="lede" data-i18n="orb.lede">A simplified circular-orbit propagator running in your browser, initialised with the nominal sun-synchronous parameters of the Transporter-6 deployment. It is a teaching model: it does not read a TLE, it is not connected to a ground station, and the numbers below are computed here, not received from space.</p>
 
@@ -1632,7 +1636,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="ai">
   <div class="eyebrow"><span class="badge ai">⬡ Rule-based, in-page</span></div>
   <h2 class="st" data-i18n="an.h">KuwaitSat AI Analyst</h2>
-  <p class="lede" data-i18n="an.lede">Ask a question about the dataset. The analyst answers in a fixed structure — what it looked at, what it found, how confident it is, what it suggests next, and which kind of data the answer rests on. It runs entirely inside this page over the reference dataset: there is no external model, no API key and no network call.</p>
+  <p class="lede" data-i18n="an.lede">Ask a question about the dataset. The analyst answers in a fixed structure, what it looked at, what it found, how confident it is, what it suggests next, and which kind of data the answer rests on. It runs entirely inside this page over the reference dataset: there is no external model, no API key and no network call.</p>
 
   <div class="panel mt">
     <div class="phead"><div class="ttl"><h3 data-i18n="an.sess">Analyst session</h3></div>
@@ -1653,7 +1657,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="agent">
   <div class="eyebrow"><span class="badge ai">⬡ Agent workflow</span></div>
   <h2 class="st" data-i18n="ag.h">KuwaitSat Environmental Agent</h2>
-  <p class="lede" data-i18n="ag.lede">The analyst answers one question. The agent runs the whole route: collect, validate, analyse, decide, recommend, report — stopping at two real decision points where the branch actually depends on the data.</p>
+  <p class="lede" data-i18n="ag.lede">The analyst answers one question. The agent runs the whole route: collect, validate, analyse, decide, recommend, report, stopping at two real decision points where the branch actually depends on the data.</p>
 
   <div class="rowf mt">
     <div><label class="fld" for="agArea" data-i18n="ag.area">Target area</label><select id="agArea"></select></div>
@@ -1702,7 +1706,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   <div class="grid g-53 mt">
     <div class="grid g3" id="v35Grid" style="align-content:start"></div>
     <div class="panel" style="display:flex;flex-direction:column;justify-content:center;text-align:center;
-      background:radial-gradient(70% 90% at 50% 30%,rgba(64,173,96,.12),transparent 70%)">
+      background:radial-gradient(70% 90% at 50% 30%,rgba(64,173,96.12),transparent 70%)">
       <div style="font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase" data-i18n="v35.to">Converging on</div>
       <div style="font-family:var(--disp);font-weight:800;font-size:clamp(22px,3.4vw,34px);margin-top:10px;
         background:linear-gradient(96deg,#8FD8A3,#3FD0C9);-webkit-background-clip:text;background-clip:text;color:transparent"
@@ -1766,7 +1770,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   <div class="finale">
     <div class="finale-lab" data-i18n="fin.lab">The whole point, in one sentence</div>
     <h2 class="finale-h">FROM SPACE TO A GREENER KUWAIT</h2>
-    <p class="finale-q" data-i18n="fin.q">“We look at Kuwait from space — so we can better understand, plan, and monitor Kuwait on the ground.”</p>
+    <p class="finale-q" data-i18n="fin.q">“We look at Kuwait from space, so we can better understand, plan, and monitor Kuwait on the ground.”</p>
     <div class="kwflag" style="margin:24px auto 0" aria-hidden="true"><i></i><i></i><i></i></div>
     <p class="finale-note" data-i18n="fin.note">This is a decision-support platform. It is not an official government planning system, it carries no endorsement, and nothing in it should be acted on without review by the competent authorities.</p>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px">
@@ -1795,7 +1799,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
                width="256" height="256" alt="" aria-hidden="true" decoding="async" loading="lazy">
           <span><b>KUWAITSAT</b><i>GREEN INTELLIGENCE</i></span>
         </div>
-        <p style="margin-top:12px;max-width:34ch" data-i18n="ft.tag">From Space to a Greener Kuwait — satellite-derived environmental decision support.</p>
+        <p style="margin-top:12px;max-width:34ch" data-i18n="ft.tag">From Space to a Greener Kuwait, satellite-derived environmental decision support.</p>
         <div class="kwflag" aria-hidden="true"><i></i><i></i><i></i></div>
       </div>
       <div><h4 data-i18n="ft.nav">Sections</h4><ul id="ftNav"></ul></div>
@@ -1840,7 +1844,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   border-radius:9px}
 .photoplate .cap{position:relative; z-index:3; padding:clamp(15px,2.4vw,24px);
   border-top:1px solid var(--line); display:flex; flex-direction:column; gap:9px;
-  background:linear-gradient(180deg,rgba(63,208,201,.045),transparent)}
+  background:linear-gradient(180deg,rgba(63,208,201.045),transparent)}
 .photoplate .cap h3{font-size:clamp(20px,3.4vw,34px); font-weight:800; letter-spacing:-.025em}
 .photoplate .cap p{font-size:13.5px; color:var(--ink-2); max-width:62ch}
 .photoplate .credit{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:4px}
@@ -1849,7 +1853,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 .pholder{position:relative; width:100%; aspect-ratio:2/1; display:flex; flex-direction:column;
   align-items:center; justify-content:center; gap:14px; text-align:center; padding:clamp(16px,3vw,30px) 20px;
   background:
-    radial-gradient(70% 60% at 50% 34%,rgba(63,208,201,.07),transparent 70%),
+    radial-gradient(70% 60% at 50% 34%,rgba(63,208,201.07),transparent 70%),
     repeating-linear-gradient(135deg,#070C14 0 14px,#090F19 14px 28px)}
 .pholder .fr{width:min(440px,76%); aspect-ratio:16/7; border:1px dashed var(--line-3); border-radius:10px;
   display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; padding:14px}
@@ -1877,17 +1881,17 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <script>
 "use strict";
 /* ==================================================================
-   KuwaitSat — Green Intelligence Platform
+   KuwaitSat, Green Intelligence Platform
    Everything runs in-page. No network calls, no keys, no tracking.
    ------------------------------------------------------------------
-   EDIT ME 1 — your five capstone team members (see TEAM below).
-   EDIT ME 2 — TEAM_PHOTO: drop in a verified team photograph URL.
+   EDIT ME 1, your five capstone team members (see TEAM below).
+   EDIT ME 2, TEAM_PHOTO: drop in a verified team photograph URL.
    ================================================================== */
 
 /* ---------------- EDIT ME 2: verified team photograph -------------
    Leave `url` as null unless you have a photograph you are permitted
    to publish. When null the section renders a labelled placeholder
-   plus links to the verified sources — which is the honest default,
+   plus links to the verified sources, which is the honest default,
    because no official KuwaitSat-1 team group photograph is published
    on the project's own site or Kuwait University's announcement pages.
    If you add one: set url, credit, and sourceUrl together. Never set
@@ -1897,7 +1901,7 @@ const TEAM_PHOTO = {
   credit: "Supplied by the project owner for this presentation",
   verified: false,          /* publisher not independently verified */
   sourceUrl: "https://kuwaitsat.space/",
-  sourceLabel: "kuwaitsat.space — official project site"
+  sourceLabel: "kuwaitsat.space, official project site"
 };
 
 /* ---------------- EDIT ME 1: capstone team ---------------------- */
@@ -1906,26 +1910,26 @@ const TEAM_PHOTO = {
 /* Each entry carries the source it came from. Nothing enters the UI
    as a "real" fact unless it has a src index into SOURCES.          */
 const SOURCES = [
-  { id:0, name:"KuwaitSat-1 project — official site", url:"https://kuwaitsat.space/",
+  { id:0, name:"KuwaitSat-1 project, official site", url:"https://kuwaitsat.space/",
     note:"Mission statement, 2U platform, multi-colour camera, team roster, partners." },
-  { id:1, name:"Kuwait University — first Kuwaiti satellite launch announcement",
+  { id:1, name:"Kuwait University, first Kuwaiti satellite launch announcement",
     url:"https://www.ku.edu.kw/media-center/news/announcements/kuw277609",
     note:"Launch of KuwaitSat-1, 3 January 2023." },
-  { id:2, name:"Kuwait University — KuwaitSat-1 mosaic announcement",
+  { id:2, name:"Kuwait University, KuwaitSat-1 mosaic announcement",
     url:"https://www.ku.edu.kw/media-center/news/announcements/kuw290561",
     note:"Mosaic of eastern Kuwait; 39 m resolution; Warba, Bubiyan, Kuwait City, Failaka, Burgan." },
-  { id:3, name:"AlJassar et al., “The First Kuwait National Satellite Project — KuwaitSat-1”, 37th Small Satellite Conference (2023)",
+  { id:3, name:"AlJassar et al., “The First Kuwait National Satellite Project, KuwaitSat-1”, 37th Small Satellite Conference (2023)",
     url:"https://digitalcommons.usu.edu/smallsat/2023/all2023/206/",
     note:"Gecko RGB imager, 39 m GSD, 80 km swath, ground station, first image series 5 April 2023." },
-  { id:4, name:"Gunter's Space Page — KuwaitSat 1", url:"https://space.skyrocket.de/doc_sdat/kuwaitsat-1.htm",
+  { id:4, name:"Gunter's Space Page, KuwaitSat 1", url:"https://space.skyrocket.de/doc_sdat/kuwaitsat-1.htm",
     note:"2U CubeSat, 2 kg, Falcon 9 Block 5, COSPAR 2023-001CY, Cape Canaveral." },
-  { id:5, name:"Spaceflight Now — Falcon 9 Transporter-6 launch coverage",
+  { id:5, name:"Spaceflight Now, Falcon 9 Transporter-6 launch coverage",
     url:"https://spaceflightnow.com/2023/01/03/falcon-9-transporter-6-live-coverage/",
     note:"Transporter-6 rideshare, 3 January 2023, sun-synchronous deployment orbit." },
-  { id:6, name:"Kuwait Times / KUNA — KuwaitSat-1: nucleus of Kuwait's space ambition",
+  { id:6, name:"Kuwait Times / KUNA, KuwaitSat-1: nucleus of Kuwait's space ambition",
     url:"https://kuwaittimes.com/kuwaitsat-1-nucleus-of-kuwaits-space-ambition/",
     note:"Project led by Dr Hala Al-Jassar; student cohort and 2019 project start, as reported." },
-  { id:7, name:"The National — Striking images of Kuwait captured by country's own satellite",
+  { id:7, name:"The National, Striking images of Kuwait captured by country's own satellite",
     url:"https://www.thenationalnews.com/gulf-news/2023/04/09/striking-images-of-kuwait-captured-by-countrys-own-satellite/",
     note:"Press publication of the April 2023 KuwaitSat-1 imagery." }
 ];
@@ -1940,7 +1944,7 @@ const SPECS = [
   { k:"spec.lv",   v:"Falcon 9 Block 5 · Transporter-6 rideshare", src:[4,5] },
   { k:"spec.date", v:"3 January 2023 · Cape Canaveral", src:[1,4,5] },
   { k:"spec.cos",  v:"COSPAR 2023-001CY", src:[4] },
-  { k:"spec.gs",   v:"Kuwait University, College of Science — UHF TT&C + S-band downlink (operational October 2022)", src:[3] },
+  { k:"spec.gs",   v:"Kuwait University, College of Science, UHF TT&C + S-band downlink (operational October 2022)", src:[3] },
   { k:"spec.obj",  v:"Capacity building; evaluate camera use for attitude determination", src:[0,4] },
   { k:"spec.first",v:"First image series captured 5 April 2023", src:[3] }
 ];
@@ -2065,8 +2069,8 @@ const REGION_NOTES = {
               ar:"نواة تاريخية كثيفة مع تشجير بلدي قائم؛ المكاسب الإضافية تتركز في ممرات الشوارع والواجهة البحرية."},
   "n.hawalli":{en:"Highest built-up density in the model; strong shade deficit against population, low available open land.",
                ar:"أعلى كثافة عمرانية في النموذج؛ عجز ظلّ كبير مقابل السكان وأرض مفتوحة متاحة قليلة."},
-  "n.farwaniya":{en:"High density with fragmented open parcels adjacent to major road corridors — the model's strongest corridor candidate.",
-                 ar:"كثافة عالية مع قطع مفتوحة متناثرة بمحاذاة محاور الطرق الرئيسية — أقوى مرشح للممرات في النموذج."},
+  "n.farwaniya":{en:"High density with fragmented open parcels adjacent to major road corridors, the model's strongest corridor candidate.",
+                 ar:"كثافة عالية مع قطع مفتوحة متناثرة بمحاذاة محاور الطرق الرئيسية, أقوى مرشح للممرات في النموذج."},
   "n.mubarak":{en:"Planned residential grid with the lowest modelled stress; gains are real but marginal relative to other governorates.",
                ar:"نسيج سكني مخطط بأقل إجهاد في النموذج؛ المكاسب حقيقية لكنها هامشية مقارنة بغيرها."}
 };
@@ -2077,7 +2081,7 @@ const months = ()=> MONTHS_EN;
 
 /* Monthly demo series, 2023-01 .. 2025-12 (36 points), per region.
    Shaped with a seasonal term (Kuwaiti spring green-up, summer die-back)
-   plus a small per-region trend. Deterministic — same every load.     */
+   plus a small per-region trend. Deterministic, same every load.     */
 const SERIES = (()=>{
   const out={};
   REGIONS.forEach((r,ri)=>{
@@ -2110,7 +2114,7 @@ const METRICS = {
 };
 const metricName = k => { const m=METRICS[k]; return (LANG==="ar" && m && m.ar) ? m.ar : (m?m.en:""); };  /* restored: returned .en unconditionally, though every METRICS entry carries an Arabic name. */
 
-/* Acquisition record — real footprints from the published first series */
+/* Acquisition record, real footprints from the published first series */
 const ACQ = [
   { id:"f1", en:"Kuwait Bay & Kuwait City", ar:"جون الكويت ومدينة الكويت", c:[47.98,29.40] },
   { id:"f2", en:"Failaka & Miskan islands", ar:"جزيرتا فيلكا ومسكان", c:[48.33,29.45] },
@@ -2206,9 +2210,9 @@ const Intro = (()=>{
   function drawPad(p){
     // ground + horizon glow before liftoff
     const g=ctx.createLinearGradient(0,H*0.55,0,H);
-    g.addColorStop(0,"rgba(10,22,36,0)"); g.addColorStop(1,"rgba(14,26,40,.95)");
+    g.addColorStop(0,"rgba(10,22,36,0)"); g.addColorStop(1,"rgba(14,26,40.95)");
     ctx.fillStyle=g; ctx.fillRect(0,H*0.55,W,H*0.45);
-    ctx.strokeStyle="rgba(63,208,201,.22)"; ctx.lineWidth=1;
+    ctx.strokeStyle="rgba(63,208,201.22)"; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(0,H*0.86); ctx.lineTo(W,H*0.86); ctx.stroke();
   }
   function drawRocket(cx, by, s, thrust){
@@ -2218,8 +2222,8 @@ const Intro = (()=>{
     if(thrust>0){
       const pl=(60+Math.random()*46)*s*thrust;
       const g=ctx.createLinearGradient(0,0,0,pl);
-      g.addColorStop(0,"rgba(255,244,214,.95)"); g.addColorStop(.28,"rgba(255,176,78,.85)");
-      g.addColorStop(.7,"rgba(217,116,63,.35)"); g.addColorStop(1,"rgba(217,116,63,0)");
+      g.addColorStop(0,"rgba(255,244,214.95)"); g.addColorStop(.28,"rgba(255,176,78.85)");
+      g.addColorStop(.7,"rgba(217,116,63.35)"); g.addColorStop(1,"rgba(217,116,63,0)");
       ctx.fillStyle=g; ctx.beginPath();
       ctx.moveTo(-bw*0.46,0); ctx.quadraticCurveTo(-bw*1.5,pl*0.5,0,pl);
       ctx.quadraticCurveTo(bw*1.5,pl*0.5,bw*0.46,0); ctx.closePath(); ctx.fill();
@@ -2250,14 +2254,14 @@ const Intro = (()=>{
     const lightDir=[-0.55,-0.4,0.73];
     // atmosphere
     const ag=ctx.createRadialGradient(cx,cy,R*0.92,cx,cy,R*1.28);
-    ag.addColorStop(0,"rgba(90,170,255,.34)"); ag.addColorStop(1,"rgba(90,170,255,0)");
+    ag.addColorStop(0,"rgba(90,170,255.34)"); ag.addColorStop(1,"rgba(90,170,255,0)");
     ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(cx,cy,R*1.28,0,6.283); ctx.fill();
     // ocean
     const og=ctx.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.1,cx,cy,R);
     og.addColorStop(0,"#1F6FA8"); og.addColorStop(.6,"#0E3F66"); og.addColorStop(1,"#061C2E");
     ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.clip();
     ctx.fillStyle=og; ctx.fillRect(cx-R,cy-R,R*2,R*2);
-    // land — orthographic projection centred on Kuwait
+    // land, orthographic projection centred on Kuwait
     const lam0=47.9*Math.PI/180, phi0=29.4*Math.PI/180;
     const pt=(lon,lat)=>{
       const lam=lon*Math.PI/180, phi=lat*Math.PI/180;
@@ -2280,8 +2284,8 @@ const Intro = (()=>{
     ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
     // terminator shading
     const sg=ctx.createRadialGradient(cx+R*lightDir[0],cy+R*lightDir[1],R*0.15,cx,cy,R*1.05);
-    sg.addColorStop(0,"rgba(255,255,255,.12)"); sg.addColorStop(.55,"rgba(0,0,0,0)");
-    sg.addColorStop(1,"rgba(0,0,0,.72)");
+    sg.addColorStop(0,"rgba(255,255,255.12)"); sg.addColorStop(.55,"rgba(0,0,0,0)");
+    sg.addColorStop(1,"rgba(0,0,0.72)");
     ctx.fillStyle=sg; ctx.fillRect(cx-R,cy-R,R*2,R*2);
     // Kuwait marker
     const kp=pt(47.9,29.4);
@@ -2301,7 +2305,7 @@ const Intro = (()=>{
     }
     ctx.restore();
     // rim
-    ctx.strokeStyle="rgba(150,210,255,.4)"; ctx.lineWidth=1.2;
+    ctx.strokeStyle="rgba(150,210,255.4)"; ctx.lineWidth=1.2;
     ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
     return {cx,cy,R};
   }
@@ -2309,7 +2313,7 @@ const Intro = (()=>{
     const r=e.R*1.22;
     const x=e.cx+Math.cos(ang)*r*1.02, y=e.cy+Math.sin(ang)*r*0.52;
     ctx.globalAlpha=a;
-    ctx.strokeStyle="rgba(63,208,201,.35)"; ctx.lineWidth=1; ctx.setLineDash([4,5]);
+    ctx.strokeStyle="rgba(63,208,201.35)"; ctx.lineWidth=1; ctx.setLineDash([4,5]);
     ctx.beginPath(); ctx.ellipse(e.cx,e.cy,r*1.02,r*0.52,0,0,6.283); ctx.stroke(); ctx.setLineDash([]);
     const s=clamp(e.R*0.035,7,20);
     ctx.save(); ctx.translate(x,y); ctx.rotate(ang*0.4);
@@ -2320,7 +2324,7 @@ const Intro = (()=>{
     ctx.fillRect(s*0.45,-s*0.34,s*1.35,s*0.68); ctx.strokeRect(s*0.45,-s*0.34,s*1.35,s*0.68);
     ctx.restore();
     // downlink beam
-    ctx.strokeStyle="rgba(95,214,138,.5)"; ctx.lineWidth=1;
+    ctx.strokeStyle="rgba(95,214,138.5)"; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(e.cx+e.R*0.05,e.cy-e.R*0.1); ctx.stroke();
     ctx.globalAlpha=1;
   }
@@ -2358,7 +2362,7 @@ const Intro = (()=>{
       // sky fades out as we climb
       ctx.globalAlpha=clamp(1-p*1.5,0,1);
       const sg=ctx.createLinearGradient(0,H*0.3,0,H);
-      sg.addColorStop(0,"rgba(12,30,52,0)"); sg.addColorStop(1,"rgba(30,58,86,.9)");
+      sg.addColorStop(0,"rgba(12,30,52,0)"); sg.addColorStop(1,"rgba(30,58,86.9)");
       ctx.fillStyle=sg; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
       if(p<0.25) drawPad();
       vel += 0.055; rocketY += vel;
@@ -2403,7 +2407,7 @@ const Intro = (()=>{
     else if(phase==="title"){
       drawSpace(1); const e=drawEarth(0.44,1+Math.sin(t*0.25)*0.012); drawSat(e,1,0.2+t*0.12);
       const vg=ctx.createRadialGradient(W/2,H*0.42,Math.min(W,H)*0.16,W/2,H*0.5,Math.max(W,H)*0.78);
-      vg.addColorStop(0,"rgba(3,5,10,.72)"); vg.addColorStop(.55,"rgba(3,5,10,.86)"); vg.addColorStop(1,"rgba(3,5,10,.96)");
+      vg.addColorStop(0,"rgba(3,5,10.72)"); vg.addColorStop(.55,"rgba(3,5,10.86)"); vg.addColorStop(1,"rgba(3,5,10.96)");
       ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
       bar.style.width="100%";
     }
@@ -2741,8 +2745,7 @@ function legendHTML(items){
 /* ============== PROCEDURAL SCENE RENDERER (SIMULATION) ==============
    Generates a plausible Kuwaiti land-surface scene at a 39 m sampling
    grid so the viewer's controls behave like a real EO client. Every
-   surface drawn here is badged 🧪 SIMULATION wherever it appears —
-   it is never presented as KuwaitSat-1 imagery.                       */
+   surface drawn here is badged 🧪 SIMULATION wherever it appears, it is never presented as KuwaitSat-1 imagery.                       */
 function hash2(x,y,s){ let n=x*374761393+y*668265263+s*1442695040888963407; n=(n^(n>>13))*1274126177; return ((n^(n>>16))>>>0)/4294967296; }
 function vnoise(x,y,s){
   const xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi;
@@ -2818,7 +2821,7 @@ function renderScene(ctx,w,h,sc,layer,epoch,view,greenOverlay){
       if(p.water) col=mixHex("#0B2B3E","#16536E", p.base);
       else if(p.urban) col=mixHex("#4C4F55","#8A8C90", p.base);
       else col=mixHex("#8A7351","#C2AC80", p.base);
-      if(p.veg>0.05) col=mixHex(col, "#2F6B3A", clamp(p.veg*1.5,0,.9));
+      if(p.veg>0.05) col=mixHex(col, "#2F6B3A", clamp(p.veg*1.5,0.9));
     } else if(layer==="ndvi"){
       col = p.water ? "#0A2233" : rampColor(GRAMP, clamp(p.ndvi/0.6,0,1));
     } else if(layer==="therm"){
@@ -2834,7 +2837,7 @@ function renderScene(ctx,w,h,sc,layer,epoch,view,greenOverlay){
                  Math.ceil(cell), Math.ceil(cell));
     if(greenOverlay && !p.water && p.gpot>0.55){
       const add=greenOverlay*(p.gpot-0.55)/0.45;
-      ctx.fillStyle="rgba(64,173,96,"+clamp(add*0.85,0,.85)+")";
+      ctx.fillStyle="rgba(64,173,96,"+clamp(add*0.85,0.85)+")";
       ctx.fillRect(Math.floor(i*cell - (view?view.fx:0)), Math.floor(j*cell-(view?view.fy:0)),
                    Math.ceil(cell), Math.ceil(cell));
     }
@@ -2925,7 +2928,7 @@ function renderNav(){
     n.appendChild(b); });
   $("#ftNav").innerHTML=NAV.slice(0,7).map(s=>'<li><a href="#'+s.id+'">'+esc(L(s))+'</a></li>').join("");
   $("#ftSrc").innerHTML=SOURCES.slice(0,5).map(s=>'<li><a href="'+s.url+'" target="_blank" rel="noopener">'+
-    esc(s.name.split("—")[0].trim())+'</a></li>').join("");
+    esc(s.name.split(", ")[0].trim())+'</a></li>').join("");
 }
 const SPEC_LAB={
  "spec.op":{en:"Operator / builder",ar:"الجهة المشغّلة والبانية"},
@@ -2946,7 +2949,7 @@ const SPEC_VAL_AR={
  "spec.pay":"مصوّر جيكو أحمر-أخضر-أزرق (كاميرا متعددة الألوان)","spec.gsd":"٣٩ متراً لكل عيّنة أرضية",
  "spec.sw":"نحو ٨٠ كم لكل إطار","spec.lv":"فالكون ٩ بلوك ٥ · رحلة ترانسبورتر-٦ المشتركة",
  "spec.date":"٣ يناير ٢٠٢٣ · كيب كانافيرال","spec.cos":"COSPAR 2023-001CY",
- "spec.gs":"جامعة الكويت، كلية العلوم — التردد فوق العالي للتحكم و نطاق إس لتنزيل الصور (تشغيلية منذ أكتوبر ٢٠٢٢)",
+ "spec.gs":"جامعة الكويت، كلية العلوم, التردد فوق العالي للتحكم و نطاق إس لتنزيل الصور (تشغيلية منذ أكتوبر ٢٠٢٢)",
  "spec.obj":"بناء القدرات؛ وتقييم استخدام الكاميرا في تحديد الاتجاه",
  "spec.first":"أول سلسلة صور في ٥ أبريل ٢٠٢٣"
 };
@@ -3005,7 +3008,7 @@ function renderFootprint(){
   const circles=ACQ.map((a,i)=>{
     const p=px(a.c[0],a.c[1]); const r=(80/2)/111*PROJ.k; // 80 km frame → degrees → px
     return '<g><circle cx="'+round(p[0],1)+'" cy="'+round(p[1],1)+'" r="'+round(r,1)+
-      '" fill="rgba(63,208,201,.10)" stroke="#3FD0C9" stroke-width="1.2" stroke-dasharray="4 4"/>'+
+      '" fill="rgba(63,208,201.10)" stroke="#3FD0C9" stroke-width="1.2" stroke-dasharray="4 4"/>'+
       '<circle cx="'+round(p[0],1)+'" cy="'+round(p[1],1)+'" r="3" fill="#3FD0C9"/>'+
       '<text class="rglab" x="'+round(p[0],1)+'" y="'+round(p[1]-r-6,1)+'">'+esc(L(a))+'</text></g>';
   }).join("");
@@ -3025,7 +3028,7 @@ function drawExplorer(){
   const sc=SCENES.find(s=>s.id===S.ex.scene), ep=EPOCHS.find(e=>e.id===S.ex.epoch);
   renderScene(ctx,w,h,sc,S.ex.layer,ep.k,S.ex.view,0);
   // graticule
-  ctx.strokeStyle="rgba(200,225,255,.07)"; ctx.lineWidth=1;
+  ctx.strokeStyle="rgba(200,225,255.07)"; ctx.lineWidth=1;
   for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(w*i/5,0);ctx.lineTo(w*i/5,h);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,h*i/5);ctx.lineTo(w,h*i/5);ctx.stroke();}
   const lay=LAYERS.find(l=>l.id===S.ex.layer);
@@ -3042,8 +3045,8 @@ function drawExplorer(){
 const LAYER_NOTE={
  "true":{en:"Rendered surface reflectance stand-in. Colour balance mimics an RGB CubeSat frame; it is not a KuwaitSat-1 product.",
          ar:"بديل مرسوم لانعكاسية السطح. توازن الألوان يحاكي إطاراً ملوناً من مكعب ساتلي، وليس منتجاً من كويت سات-١."},
- "ndvi":{en:"Vegetation index derived from the model surface. With real RGB-only imagery a true NDVI is not possible — a near-infrared band would be required.",
-         ar:"مؤشر نباتي مشتق من سطح النموذج. بصور أحمر-أخضر-أزرق فقط لا يمكن حساب NDVI حقيقي — يلزم نطاق قريب من تحت الحمراء."},
+ "ndvi":{en:"Vegetation index derived from the model surface. With real RGB-only imagery a true NDVI is not possible, a near-infrared band would be required.",
+         ar:"مؤشر نباتي مشتق من سطح النموذج. بصور أحمر-أخضر-أزرق فقط لا يمكن حساب NDVI حقيقي, يلزم نطاق قريب من تحت الحمراء."},
  "therm":{en:"Relative surface heat field. Real land surface temperature needs a thermal sensor, which this platform's reference satellite does not carry.",
           ar:"حقل حرارة سطحية نسبي. حرارة السطح الحقيقية تتطلب مستشعراً حرارياً لا يحمله القمر المرجعي لهذه المنصة."},
  "green":{en:"Greening suitability composite: heat, bare fraction, proximity to built fabric. Conceptual weighting, open to challenge.",
@@ -3095,7 +3098,7 @@ function agg(areaId, period){
 }
 function kpiTile(k,label,value,unit,delta,good,spark,color){
   const dcls = delta==null?"fl":(delta>0? (good?"up":"dn") : delta<0? (good?"dn":"up") : "fl");
-  const dtxt = delta==null?"—":(delta>0?"▲ ":"▼ ")+Math.abs(round(delta,1));
+  const dtxt = delta==null?", ":(delta>0?"▲ ":"▼ ")+Math.abs(round(delta,1));
   return '<div class="tile"><div class="stripe" style="background:'+color+'"></div>'+
     '<div class="k">'+esc(label)+'</div><div class="v">'+esc(value)+'<span class="u">'+esc(unit)+'</span></div>'+
     '<div class="d"><span class="delta '+dcls+'">'+dtxt+'</span> '+esc(T("dash.vs","vs previous period"))+'</div>'+
@@ -3287,9 +3290,9 @@ function renderRegionTable(){
 
 /* ================== GREENING SIMULATION ENGINE =============== */
 const AMBITION=[
-  {id:"pilot", en:"Pilot — single corridor", ar:"تجريبي — ممر واحد", f:0.35},
-  {id:"moderate", en:"Moderate — district programme", ar:"متوسط — برنامج منطقة", f:0.7},
-  {id:"ambitious", en:"Ambitious — governorate-wide", ar:"طموح — على مستوى المحافظة", f:1.0}
+  {id:"pilot", en:"Pilot, single corridor", ar:"تجريبي, ممر واحد", f:0.35},
+  {id:"moderate", en:"Moderate, district programme", ar:"متوسط, برنامج منطقة", f:0.7},
+  {id:"ambitious", en:"Ambitious, governorate-wide", ar:"طموح, على مستوى المحافظة", f:1.0}
 ];
 function simStateIdle(){
   $("#simState").innerHTML='<div class="empty"><div class="ic">'+
@@ -3371,8 +3374,8 @@ function drawBA(){
 
 /* ==================== IMPACT CALCULATOR ===================== */
 const CALC_ASSUM=[
-  {en:"One planting unit is assumed to reach an average mature canopy of 18 m² — a mid-range figure for arid-climate street species.",
-   ar:"تُفترض الوحدة النباتية الواحدة بمظلة ناضجة متوسطها ١٨ م² — وهو رقم متوسط لأنواع الشوارع في المناخ الجاف."},
+  {en:"One planting unit is assumed to reach an average mature canopy of 18 m², a mid-range figure for arid-climate street species.",
+   ar:"تُفترض الوحدة النباتية الواحدة بمظلة ناضجة متوسطها ١٨ م², وهو رقم متوسط لأنواع الشوارع في المناخ الجاف."},
   {en:"Shaded ground area is taken as 0.85 × canopy area at solar noon; real shade varies with sun angle, spacing and building shadow.",
    ar:"تُحتسب المساحة المظللة بـ ٠٫٨٥ × مساحة المظلة عند الظهيرة؛ والظل الحقيقي يتغير بزاوية الشمس والتباعد وظلال المباني."},
   {en:"Survival is assumed at 80% over the first five years. Without that assumption every figure here is optimistic.",
@@ -3489,8 +3492,8 @@ function runCompare(){
     [T("cd.urb","Built fraction"), (du>=0?"+":"")+round(du,2)+" pp", du<=0],
     [T("cd.heat","Relative surface heat"), (dh>=0?"+":"")+round(dh,2)+" pp", dh<=0]
   ];
-  const verdict = dv>0.6? {k:"cv.a", en:"Vegetated fraction increased across the frame. Consistent with either seasonal green-up or a real planting programme — a single pair of frames cannot separate the two.",
-      ar:"ارتفعت النسبة النباتية عبر الإطار. وهو متسق مع الاخضرار الموسمي أو مع برنامج تشجير فعلي — وزوج واحد من الإطارات لا يفصل بينهما."}
+  const verdict = dv>0.6? {k:"cv.a", en:"Vegetated fraction increased across the frame. Consistent with either seasonal green-up or a real planting programme, a single pair of frames cannot separate the two.",
+      ar:"ارتفعت النسبة النباتية عبر الإطار. وهو متسق مع الاخضرار الموسمي أو مع برنامج تشجير فعلي, وزوج واحد من الإطارات لا يفصل بينهما."}
     : dv<-0.6? {k:"cv.b", en:"Vegetated fraction fell. Investigate before interpreting: seasonal timing, dust deposition and acquisition angle all produce this signature.",
       ar:"انخفضت النسبة النباتية. تُدرس الحالة قبل التفسير: التوقيت الموسمي وترسّب الغبار وزاوية الالتقاط كلها تنتج هذه البصمة."}
     : {k:"cv.c", en:"No material change detected between these epochs at this sampling. Continue monitoring.",
@@ -3538,10 +3541,10 @@ function draw3D(){
   // base plate
   const base=OUTLINE.map(c=>P(nx(c),0,nz(c)));
   ctx.beginPath(); base.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath();
-  ctx.fillStyle="rgba(16,26,38,.86)"; ctx.fill();
+  ctx.fillStyle="rgba(16,26,38.86)"; ctx.fill();
   ctx.strokeStyle="#24344A"; ctx.lineWidth=1.2; ctx.stroke();
   // graticule on plate
-  ctx.strokeStyle="rgba(63,208,201,.12)"; ctx.lineWidth=1;
+  ctx.strokeStyle="rgba(63,208,201.12)"; ctx.lineWidth=1;
   for(let i=-1;i<=1;i+=0.25){
     ctx.beginPath(); let a=P(-1,0,i),b=P(1,0,i); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
     ctx.beginPath(); a=P(i,0,-1); b=P(i,0,1); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
@@ -3577,9 +3580,9 @@ function draw3D(){
     // top
     ctx.beginPath(); pr.top.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath();
     ctx.fillStyle=face; ctx.fill();
-    ctx.strokeStyle= sel? "#3FD0C9" : "rgba(5,8,14,.85)"; ctx.lineWidth= sel?2.2:1; ctx.stroke();
+    ctx.strokeStyle= sel? "#3FD0C9" : "rgba(5,8,14.85)"; ctx.lineWidth= sel?2.2:1; ctx.stroke();
     if(sel){ ctx.save(); ctx.shadowColor="#3FD0C9"; ctx.shadowBlur=14; ctx.stroke(); ctx.restore(); }
-    // label — big regions always, small ones only when selected
+    // label, big regions always, small ones only when selected
     if(pr.r.area>1000 || sel){
       const lp=P(nx(pr.r.lab),pr.hgt+0.07,nz(pr.r.lab));
       ctx.font="10px 'IBM Plex Mono',monospace"; ctx.textAlign="center"; ctx.textBaseline="bottom";
@@ -3592,13 +3595,13 @@ function draw3D(){
   // orbiting satellite + data lines
   const ang=(performance.now()/2600)%(Math.PI*2);
   const sp=P(Math.cos(ang)*1.35, 0.92, Math.sin(ang)*1.35);
-  ctx.strokeStyle="rgba(63,208,201,.22)"; ctx.setLineDash([3,5]); ctx.lineWidth=1;
+  ctx.strokeStyle="rgba(63,208,201.22)"; ctx.setLineDash([3,5]); ctx.lineWidth=1;
   ctx.beginPath();
   for(let a=0;a<=6.3;a+=0.1){const p=P(Math.cos(a)*1.35,0.92,Math.sin(a)*1.35); a?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);}
   ctx.stroke(); ctx.setLineDash([]);
   const kp=P(nx(REG[S.d3.sel].lab), norm(mode.get(REG[S.d3.sel]))*0.62, nz(REG[S.d3.sel].lab));
   const grd=ctx.createLinearGradient(sp[0],sp[1],kp[0],kp[1]);
-  grd.addColorStop(0,"rgba(63,208,201,.85)"); grd.addColorStop(1,"rgba(95,214,138,.15)");
+  grd.addColorStop(0,"rgba(63,208,201.85)"); grd.addColorStop(1,"rgba(95,214,138.15)");
   ctx.strokeStyle=grd; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(sp[0],sp[1]); ctx.lineTo(kp[0],kp[1]); ctx.stroke();
   // packets
   const pk=((performance.now()/1200)%1);
@@ -3669,7 +3672,7 @@ function drawOrbit(){
   // Earth, orthographic, centred so Kuwait stays visible
   const lam0=(20+ (S.orb.t*0.0006)%360)*Math.PI/180, phi0=18*Math.PI/180;
   const ag=ctx.createRadialGradient(cx,cy,R*0.94,cx,cy,R*1.3);
-  ag.addColorStop(0,"rgba(90,170,255,.30)"); ag.addColorStop(1,"rgba(90,170,255,0)");
+  ag.addColorStop(0,"rgba(90,170,255.30)"); ag.addColorStop(1,"rgba(90,170,255,0)");
   ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(cx,cy,R*1.3,0,6.283); ctx.fill();
   ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.clip();
   const og=ctx.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.1,cx,cy,R);
@@ -3687,12 +3690,12 @@ function drawOrbit(){
     poly.forEach(c=>{const p=pt(c[0],c[1]); if(!p){st2=false;return;} if(!st2){ctx.moveTo(p[0],p[1]);st2=true;}else ctx.lineTo(p[0],p[1]);});
     ctx.closePath();ctx.fill();});
   // graticule
-  ctx.strokeStyle="rgba(150,200,255,.12)"; ctx.lineWidth=.8;
+  ctx.strokeStyle="rgba(150,200,255.12)"; ctx.lineWidth=.8;
   for(let la=-60;la<=60;la+=30){ctx.beginPath();let s2=false;
     for(let lo=-180;lo<=180;lo+=5){const p=pt(lo,la); if(!p){s2=false;continue;} if(!s2){ctx.moveTo(p[0],p[1]);s2=true;}else ctx.lineTo(p[0],p[1]);}
     ctx.stroke();}
   // ground track
-  ctx.strokeStyle="rgba(95,214,138,.55)"; ctx.lineWidth=1.3;
+  ctx.strokeStyle="rgba(95,214,138.55)"; ctx.lineWidth=1.3;
   ctx.beginPath(); let s3=false;
   for(let k=-40;k<=40;k++){const g=orbState(S.orb.t+k*60); const p=pt(g.lon,g.lat);
     if(!p){s3=false;continue;} if(!s3){ctx.moveTo(p[0],p[1]);s3=true;}else ctx.lineTo(p[0],p[1]);}
@@ -3707,17 +3710,17 @@ function drawOrbit(){
   // sub-satellite point
   const sp=pt(st.lon,st.lat);
   if(sp){ ctx.fillStyle="#FFD79A"; ctx.beginPath(); ctx.arc(sp[0],sp[1],3,0,6.283); ctx.fill();
-    ctx.strokeStyle="rgba(255,215,154,.5)"; ctx.beginPath(); ctx.arc(sp[0],sp[1],10,0,6.283); ctx.stroke(); }
+    ctx.strokeStyle="rgba(255,215,154.5)"; ctx.beginPath(); ctx.arc(sp[0],sp[1],10,0,6.283); ctx.stroke(); }
   const sg=ctx.createRadialGradient(cx-R*0.5,cy-R*0.45,R*0.1,cx,cy,R*1.05);
-  sg.addColorStop(0,"rgba(255,255,255,.10)"); sg.addColorStop(.6,"rgba(0,0,0,0)"); sg.addColorStop(1,"rgba(0,0,0,.65)");
+  sg.addColorStop(0,"rgba(255,255,255.10)"); sg.addColorStop(.6,"rgba(0,0,0,0)"); sg.addColorStop(1,"rgba(0,0,0.65)");
   ctx.fillStyle=sg; ctx.fillRect(cx-R,cy-R,R*2,R*2);
   ctx.restore();
-  ctx.strokeStyle="rgba(150,210,255,.35)"; ctx.lineWidth=1;
+  ctx.strokeStyle="rgba(150,210,255.35)"; ctx.lineWidth=1;
   ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
   // orbit ring (inclined ellipse, visual)
   const Ro=R*(1+ORB.alt/ORB.Re*1.05);
   ctx.save(); ctx.translate(cx,cy); ctx.rotate(-0.38);
-  ctx.strokeStyle="rgba(63,208,201,.35)"; ctx.setLineDash([5,6]); ctx.lineWidth=1.1;
+  ctx.strokeStyle="rgba(63,208,201.35)"; ctx.setLineDash([5,6]); ctx.lineWidth=1.1;
   ctx.beginPath(); ctx.ellipse(0,0,Ro,Ro*0.30,0,0,6.283); ctx.stroke(); ctx.setLineDash([]);
   const oa=st.u;
   const sx=Math.cos(oa)*Ro, sy=Math.sin(oa)*Ro*0.30;
@@ -3768,7 +3771,7 @@ function renderPassLog(){
     '</th><th class="num">'+esc(T("orb.close","Closest range"))+'</th></tr></thead><tbody>'+
     S.orb.log.map((l,i)=>'<tr><td>'+(S.orb.log.length-i)+'</td><td>T+'+Math.round(l.t/60)+
       ' '+esc(T("orb.min","min"))+'</td><td class="num">'+l.d.toLocaleString()+' km</td></tr>').join("")+
-    '</tbody></table></div><p class="sub">'+esc(T("orb.logn","Simulated passes only — generated by the model above."))+'</p>';
+    '</tbody></table></div><p class="sub">'+esc(T("orb.logn","Simulated passes only, generated by the model above."))+'</p>';
 }
 
 function placeholderHTML(){
@@ -3896,7 +3899,7 @@ function analystAnswer(q){
     A.an=T("a.a1","Ranked: ")+sorted.slice(0,3).map(x=>regName(x)+" ("+x.score+")").join(" · ")+". "+
       T("a.a1b","The top three share a common signature: high modelled stress, low existing canopy, and built fabric dense enough that shade would reach people.");
     A.conf="High"; A.rec=T("a.r1","Start with ")+regName(sorted[0])+" "+
-      T("a.r1b","— then verify parcel availability and irrigation supply on the ground before any siting decision.");
+      T("a.r1b",", then verify parcel availability and irrigation supply on the ground before any siting decision.");
     A.type="demo";
   } else if(c.k==="why"){
     A.data=T("a.d2","Indicator set for ")+regName(r)+": "+T("a.d2b","green coverage, vegetation index, stress, summer surface temperature, dust, approximate land area.");
@@ -3906,7 +3909,7 @@ function analystAnswer(q){
     A.rec=L(recommendFor(r)); A.type="ai";
   } else if(c.k==="how"){
     A.data=T("a.d3","Published KuwaitSat-1 mission characteristics: 39 m ground sample distance, ≈80 km swath, RGB imager, S-band downlink to Kuwait University.");
-    A.an=T("a.a3","At 39 m a frame resolves city blocks, parks, farm plots and coastline — enough to track where green cover appears or disappears over seasons and years. It is not enough to count individual trees, and an RGB-only sensor cannot produce a true NDVI, which needs a near-infrared band. Repeat coverage is what makes the record valuable: the same place, the same sensor, over time.");
+    A.an=T("a.a3","At 39 m a frame resolves city blocks, parks, farm plots and coastline, enough to track where green cover appears or disappears over seasons and years. It is not enough to count individual trees, and an RGB-only sensor cannot produce a true NDVI, which needs a near-infrared band. Repeat coverage is what makes the record valuable: the same place, the same sensor, over time.");
     A.conf="High";
     A.rec=T("a.r3","Treat satellite data as the screening layer that decides where to send people, not as the measurement that replaces them.");
     A.type="real";
@@ -3938,7 +3941,7 @@ function analystAnswer(q){
     A.conf="High"; A.rec=L(recommendFor(r)); A.type="demo";
   } else {
     A.data=T("a.d0","The question was checked against the available dataset: six governorates, 36 monthly records each, five simulated scenes, and the published KuwaitSat-1 mission record.");
-    A.an=T("a.a0","Nothing in that set answers this. The analyst will not construct an answer from outside its data — that is the whole point of the guardrail.");
+    A.an=T("a.a0","Nothing in that set answers this. The analyst will not construct an answer from outside its data, that is the whole point of the guardrail.");
     A.conf="Low";
     A.rec=T("a.r0","Try one of the suggested questions, or ask about a specific governorate, metric or epoch.");
     A.type="none";
@@ -3946,7 +3949,7 @@ function analystAnswer(q){
   return A;
 }
 const TYPE_BADGE={ real:['real','🛰 '+"Real KuwaitSat-1 record"], demo:['demo','📊 '+"Demo dataset"],
-  sim:['sim','🧪 '+"Simulation"], ai:['ai','🤖 '+"AI conceptual analysis"], none:['src','—'] };
+  sim:['sim','🧪 '+"Simulation"], ai:['ai','🤖 '+"AI conceptual analysis"], none:['src',', '] };
 function typeBadge(t){
   const m={ real:["real",T("tb.real","KuwaitSat-1 mission record"),"🛰 "],
             demo:["demo",T("tb.demo","Reference dataset"),"▦ "],
@@ -4013,7 +4016,7 @@ const PIPE=[
   {id:"img", en:"Satellite image analysis", ar:"تحليل صور القمر", d:{en:"Land-cover split and vegetation index over the 39 m grid.",ar:"تقسيم الغطاء الأرضي ومؤشر النبات على شبكة ٣٩ متراً."}},
   {id:"env", en:"Environmental analysis", ar:"التحليل البيئي", d:{en:"Stress, heat and dust combined into one band.",ar:"دمج الإجهاد والحرارة والغبار في نطاق واحد."}},
   {id:"dec1",en:"Decision · stress threshold", ar:"قرار · عتبة الإجهاد", dec:true},
-  {id:"pot", en:"Greening potential", ar:"إمكانية التشجير", d:{en:"Suitability composite scored 0–100.",ar:"مركّب ملاءمة بدرجة من ٠ إلى ١٠٠."}},
+  {id:"pot", en:"Greening potential", ar:"إمكانية التشجير", d:{en:"Suitability composite scored 0, 100.",ar:"مركّب ملاءمة بدرجة من ٠ إلى ١٠٠."}},
   {id:"dec2",en:"Decision · potential threshold", ar:"قرار · عتبة الإمكانية", dec:true},
   {id:"rec", en:"AI recommendation", ar:"توصية الذكاء الاصطناعي", d:{en:"Conceptual proposal with its confidence stated.",ar:"مقترح مفاهيمي مع بيان درجة الثقة."}},
   {id:"rep", en:"Report", ar:"التقرير", d:{en:"Decision-support document, human review required.",ar:"وثيقة دعم قرار تتطلب مراجعة بشرية."}}
@@ -4032,7 +4035,7 @@ function renderPipeline(state){
           : T("ag.q2","Is greening potential sufficiently high (≥ ")+S.ag.gp+")?")+'</div>'+
         '<div class="branches">'+
         '<div class="branch no'+(on&&taken===false?" taken":"")+'"><b>'+esc(T("ag.no","NO"))+'</b>'+
-          esc(isD1?T("ag.no1","Continue monitoring — no intervention proposed."):T("ag.no2","Monitor. Benefit does not justify prioritising this area."))+'</div>'+
+          esc(isD1?T("ag.no1","Continue monitoring, no intervention proposed."):T("ag.no2","Monitor. Benefit does not justify prioritising this area."))+'</div>'+
         '<div class="branch yes'+(on&&taken===true?" taken":"")+'"><b>'+esc(T("ag.yes","YES"))+'</b>'+
           esc(isD1?T("ag.yes1","Analyse greening potential."):T("ag.yes2","Generate a conceptual greening proposal."))+'</div>'+
         '</div>';
@@ -4088,15 +4091,15 @@ function finishAgent(r,st){
   $("#agOut").innerHTML=
     (proposed
       ? '<div class="okbox">'+esc(T("ag.res1","Both thresholds crossed. A greening proposal was generated."))+'</div>'
-      : '<div class="errbox" style="border-color:#6B5210;background:rgba(178,127,2,.09);color:var(--amber-text, #E0C98F)">'+
-        esc(st.d1? T("ag.res2","Stress threshold crossed, but greening potential is below the threshold. The agent stopped at monitoring — by design.")
-                 : T("ag.res3","Environmental stress is below the threshold. The agent stopped at monitoring — by design."))+'</div>')+
+      : '<div class="errbox" style="border-color:#6B5210;background:rgba(178,127,2.09);color:var(--amber-text, #E0C98F)">'+
+        esc(st.d1? T("ag.res2","Stress threshold crossed, but greening potential is below the threshold. The agent stopped at monitoring, by design.")
+                 : T("ag.res3","Environmental stress is below the threshold. The agent stopped at monitoring, by design."))+'</div>')+
     '<dl class="detail" style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:14px 0 0;font-size:13px">'+
       '<dt>'+esc(T("ag.tar","Target"))+'</dt><dd>'+esc(regName(r))+'</dd>'+
       '<dt>'+esc(T("ag.str","Stress"))+'</dt><dd>'+r.stress+'/100 ('+esc(T("ag.thr","threshold"))+' '+S.ag.thresh+')</dd>'+
       '<dt>'+esc(T("ag.pot","Greening potential"))+'</dt><dd>'+r.score+'/100 ('+esc(T("ag.thr","threshold"))+' '+S.ag.gp+')</dd>'+
       '<dt>'+esc(T("ag.path","Path taken"))+'</dt><dd>'+esc(st.d1?T("ag.yes","YES"):T("ag.no","NO"))+' → '+
-        esc(st.d1?(st.d2?T("ag.yes","YES"):T("ag.no","NO")):"—")+'</dd>'+
+        esc(st.d1?(st.d2?T("ag.yes","YES"):T("ag.no","NO")):", ")+'</dd>'+
       '<dt>'+esc(T("ag.conf2","Confidence"))+'</dt><dd><span class="conf"><span class="confbar">'+
         [1,2,3].map(i=>'<i class="'+(i<=cbars?"on":"")+'"></i>').join("")+'</span>'+esc(T("conf."+conf.toLowerCase(),conf))+'</span></dd>'+
     '</dl>'+
@@ -4112,7 +4115,7 @@ function buildReport(){
   const ar=false;
   const L1=ar?"تقرير دعم قرار":"DECISION-SUPPORT REPORT";
   const lines=[
-"KUWAITSAT GREEN INTELLIGENCE — "+L1,
+"KUWAITSAT GREEN INTELLIGENCE, "+L1,
 "================================================================",
 (ar?"التاريخ: ":"Generated: ")+d.toISOString().slice(0,16).replace("T"," ")+" UTC",
 (ar?"المنطقة: ":"Target area: ")+regName(r),
@@ -4132,7 +4135,7 @@ function buildReport(){
 "",
 "3. "+(ar?"مسار القرار":"DECISION PATH"),
 "   "+(ar?"الإجهاد فوق العتبة؟":"Stress above threshold?")+" "+(o.st.d1?"YES":"NO"),
-"   "+(ar?"الإمكانية كافية؟":"Potential sufficiently high?")+" "+(o.st.d1?(o.st.d2?"YES":"NO"):"— not evaluated"),
+"   "+(ar?"الإمكانية كافية؟":"Potential sufficiently high?")+" "+(o.st.d1?(o.st.d2?"YES":"NO"):", not evaluated"),
 "   "+(ar?"النتيجة":"Outcome")+": "+(o.proposed?(ar?"توليد مقترح تشجير مفاهيمي":"Conceptual greening proposal generated")
                                               :(ar?"استمرار المراقبة":"Continue monitoring")),
 "",
@@ -4150,7 +4153,7 @@ function buildReport(){
 "   - "+(ar?"لا يحمل كويت سات-١ مستشعراً حرارياً ولا نطاقاً قريباً من تحت الحمراء؛ طبقات الحرارة والنبات هنا مشتقة من النموذج."
            :"KuwaitSat-1 carries no thermal sensor and no near-infrared band; heat and vegetation layers here are model-derived."),
 "",
-(ar?"— نهاية التقرير —":"— END OF REPORT —")];
+(ar?", نهاية التقرير, ":", END OF REPORT, ")];
   return lines.join("\n");
 }
 
@@ -4163,7 +4166,7 @@ const CHAPTERS=[
    q:{en:"Data helps us see environmental patterns we cannot see from the ground.",ar:"البيانات تكشف أنماطاً بيئية لا نراها من الأرض."},
    ar:"البيانات تكشف أنماطاً بيئية لا نراها من الأرض."},
   {n:"03", t:{en:"Find opportunities",ar:"اكتشف الفرص"},
-   q:{en:"AI identifies areas worth investigating — and says how sure it is.",ar:"الذكاء الاصطناعي يحدد المناطق الجديرة بالدراسة، ويعلن مدى ثقته."},
+   q:{en:"AI identifies areas worth investigating, and says how sure it is.",ar:"الذكاء الاصطناعي يحدد المناطق الجديرة بالدراسة، ويعلن مدى ثقته."},
    ar:"الذكاء الاصطناعي يحدد المناطق الجديرة بالدراسة، ويعلن مدى ثقته."},
   {n:"04", t:{en:"Imagine change",ar:"تخيّل التغيير"},
    q:{en:"Simulations show what an intervention could look like before anything is built.",ar:"المحاكاة تُظهر شكل التدخل قبل تنفيذ أي شيء."},
@@ -4182,7 +4185,7 @@ const V35=[
   {i:"cpu", t:{en:"Artificial intelligence",ar:"الذكاء الاصطناعي"}, d:{en:"Turning raw frames into screened, explainable findings.",ar:"تحويل الإطارات الخام إلى نتائج مفروزة وقابلة للتفسير."}},
   {i:"antenna", t:{en:"Environmental monitoring",ar:"الرصد البيئي"}, d:{en:"The same place, the same sensor, measured again and again.",ar:"المكان نفسه والمستشعر نفسه، مقاساً مرة بعد مرة."}},
   {i:"leaf", t:{en:"Sustainability",ar:"الاستدامة"}, d:{en:"Greening decisions grounded in evidence rather than intuition.",ar:"قرارات تشجير مبنية على الدليل لا الحدس."}},
-  {i:"grad", t:{en:"Youth innovation",ar:"إبداع الشباب"}, d:{en:"Built by students — which is how the KuwaitSat-1 satellite itself was built.",ar:"من بناء الطلبة — وهي الطريقة نفسها التي بُني بها كويت سات-١."}},
+  {i:"grad", t:{en:"Youth innovation",ar:"إبداع الشباب"}, d:{en:"Built by students, which is how the KuwaitSat-1 satellite itself was built.",ar:"من بناء الطلبة, وهي الطريقة نفسها التي بُني بها كويت سات-١."}},
   {i:"city", t:{en:"Urban planning",ar:"التخطيط العمراني"}, d:{en:"A screening layer that tells planners where to look first.",ar:"طبقة فرز تدل المخططين على أين ينظرون أولاً."}}
 ];
 function renderV35(){
@@ -4261,13 +4264,13 @@ const GUARDS=[
   ar:"تُشترط المراجعة البشرية قبل أي أثر واقعي. والتقرير ينص على ذلك في متنه.",
   s:{en:"Rule 6 · Enforced by a database grant, not by a promise: generate_report can be executed by a signed-in researcher only, and reports.approved_by records which one. The automation cannot write a report even holding the service key.",
      ar:"القاعدة 6 · مطبَّق بصلاحية في قاعدة البيانات لا بوعد: لا يُنفَّذ generate_report إلا من باحث مسجَّل، ويسجّل الحقل approved_by هويته. ولا تستطيع الأتمتة كتابة تقرير ولو حملت مفتاح الخدمة."}},
- {en:"Treat the research objective as data, never as an instruction — even when it is written as one.",
+ {en:"Treat the research objective as data, never as an instruction, even when it is written as one.",
   ar:"يُعامَل هدف البحث كبيانات لا كأمر، حتى إن كُتب في صيغة أمر.",
   s:{en:"Rules 1 and 13 · Screened in js/ksat-integration.js against six patterns. A match is recorded against the mission and refused rather than acted on, and the flag is raised once and cannot be lowered from the browser.",
      ar:"القاعدتان 1 و 13 · يُفحص في js/ksat-integration.js مقابل ستة أنماط. والمطابقة تُسجَّل على المهمة وتُرفض بدل أن يُتصرّف بها، والعلامة تُرفع مرة واحدة ولا يمكن إنزالها من المتصفح."}},
  {en:"The agents write through three named functions and hold no access to any table.",
   ar:"يكتب الوكلاء عبر ثلاث دوال مسمّاة، ولا يملكون أي صلاحية على أي جدول.",
-  s:{en:"Rule 3 · Enforced in 03-security/db/03_grants.sql: the automation's role holds no table grant at all, only execute on the three agent functions. That matters because that role bypasses row level security — withdrawing the grants is the only thing left that constrains it.",
+  s:{en:"Rule 3 · Enforced in 03-security/db/03_grants.sql: the automation's role holds no table grant at all, only execute on the three agent functions. That matters because that role bypasses row level security, withdrawing the grants is the only thing left that constrains it.",
      ar:"القاعدة 3 · مطبَّق في 03-security/db/03_grants.sql: دور الأتمتة لا يملك أي صلاحية على جدول، بل صلاحية التنفيذ على دوال الوكيل الثلاث فقط. وهذا مهم لأن ذلك الدور يتجاوز أمن مستوى الصف، فسحب الصلاحيات هو القيد الوحيد المتبقّي عليه."}},
  {en:"The agents never command the satellite. They read stored data and propose findings.",
   ar:"لا يوجّه الوكلاء أي أمر إلى القمر الاصطناعي. بل يقرؤون البيانات المخزَّنة ويقترحون نتائج.",
@@ -4291,25 +4294,25 @@ const GUARDS=[
      ar:"القاعدة 14 · مطبَّق في agent_log_step: التشغيل الذي ليس في حالة انتظار أو جريان يرفض الكتابة، فلا تستطيع إعادة المحاولة الإضافة إلى تشغيل مكتمل. والسجل الذي يمكن تعديله لاحقاً ليس سجلاً."}},
  {en:"The prototype can be switched off, and refuses when it cannot read the switch.",
   ar:"يمكن إيقاف النموذج الأولي، وهو يرفض العمل حين يتعذّر عليه قراءة المفتاح.",
-  s:{en:"Rule 15 · Enforced in launch_mission: it reads the settings row first and fails closed — a missing or unreadable row refuses the run rather than assuming permission.",
-     ar:"القاعدة 15 · مطبَّق في launch_mission: يقرأ صفّ الإعدادات أولاً ويفشل مغلقاً — فالصفّ المفقود أو غير المقروء يرفض التشغيل بدل افتراض الإذن."}}
+  s:{en:"Rule 15 · Enforced in launch_mission: it reads the settings row first and fails closed, a missing or unreadable row refuses the run rather than assuming permission.",
+     ar:"القاعدة 15 · مطبَّق في launch_mission: يقرأ صفّ الإعدادات أولاً ويفشل مغلقاً, فالصفّ المفقود أو غير المقروء يرفض التشغيل بدل افتراض الإذن."}}
 ];
 const AUDIT=[
  {t:{en:"Input validation",ar:"التحقق من المدخلات"}, st:"pass",
-  d:{en:"Analyst input is length-capped and escaped before it touches the page, and no input is ever evaluated. A mission is refused by the database as well: title 3–120 characters, objective 20–1,500, and both must contain a letter.",
+  d:{en:"Analyst input is length-capped and escaped before it touches the page, and no input is ever evaluated. A mission is refused by the database as well: title 3, 120 characters, objective 20, 1,500, and both must contain a letter.",
      ar:"مدخل المحلّل محدود الطول ومُهرَّب قبل وصوله إلى الصفحة، ولا يُنفَّذ أي مدخل. وترفض قاعدة البيانات المهمة كذلك: العنوان بين 3 و120 حرفاً، والهدف بين 20 وذ1500، وكلاهما يجب أن يحتوي حرفاً."}},
  {t:{en:"API security",ar:"أمن الواجهات"}, st:"pass",
   d:{en:"There is an API: this page reaches the database over PostgREST. No browser role holds a grant on any table, so a write only happens through a named function that re-reads ownership from the table instead of trusting the arguments it was handed.",
      ar:"توجد واجهة برمجية: تصل هذه الصفحة إلى قاعدة البيانات عبر PostgREST. ولا يملك أي دور في المتصفح صلاحية على أي جدول، فلا تقع الكتابة إلا عبر دالة مسمّاة تعيد قراءة الملكية من الجدول بدل الوثوق بالوسائط المُمرّرة إليها."}},
  {t:{en:"Keys and secrets",ar:"المفاتيح والأسرار"}, st:"pass",
-  d:{en:"This page ships a publishable key, and that is deliberate: the browser has to have one. It grants nothing on its own — row level security decides every row, and without a signed-in session the key reaches no data at all. The service-role key is in neither this page nor this repository.",
-     ar:"تحمل هذه الصفحة مفتاحاً قابلاً للنشر، وذلك عن قصد: لا بد أن يملك المتصفح مفتاحاً. وهو لا يمنح شيئاً بذاته — فأمن مستوى الصف هو ما يقرر كل صف، وبلا جلسة مسجَّلة لا يصل المفتاح إلى أي بيانات. أما مفتاح دور الخدمة فليس في هذه الصفحة ولا في هذا المستودع."}},
+  d:{en:"This page ships a publishable key, and that is deliberate: the browser has to have one. It grants nothing on its own, row level security decides every row, and without a signed-in session the key reaches no data at all. The service-role key is in neither this page nor this repository.",
+     ar:"تحمل هذه الصفحة مفتاحاً قابلاً للنشر، وذلك عن قصد: لا بد أن يملك المتصفح مفتاحاً. وهو لا يمنح شيئاً بذاته, فأمن مستوى الصف هو ما يقرر كل صف، وبلا جلسة مسجَّلة لا يصل المفتاح إلى أي بيانات. أما مفتاح دور الخدمة فليس في هذه الصفحة ولا في هذا المستودع."}},
  {t:{en:"Data validation",ar:"التحقق من البيانات"}, st:"pass",
   d:{en:"Every series value is clamped to a physical range at generation and re-checked in the agent's validation stage. A mission's map area is checked by the database too: one ring, every point inside Kuwait, and under eight kilobytes.",
      ar:"كل قيمة في السلسلة مقيَّدة بمدى فيزيائي عند التوليد ويُعاد فحصها في مرحلة تحقق الوكيل. وتفحص قاعدة البيانات منطقة المهمة كذلك: حلقة واحدة، وكل نقطة داخل الكويت، وأقل من ثمانية كيلوبايت."}},
  {t:{en:"Safe error handling",ar:"معالجة الأخطاء بأمان"}, st:"pass",
-  d:{en:"Failures show a stated error state with a next step; stack traces and internals are never surfaced to the user. A refused mission is named by its reason, and 'Mission not found' is returned for a mission that is not yours — saying 'not yours' would confirm it exists.",
-     ar:"تُعرض حالة خطأ معلنة مع خطوة تالية، ولا تُظهر للمستخدم آثار التتبع أو التفاصيل الداخلية. والمهمة المرفوضة يُسمّى سبب رفضها، ويُعاد «المهمة غير موجودة» لمهمة ليست لك — لأن قول «ليست لك» يؤكد وجودها."}},
+  d:{en:"Failures show a stated error state with a next step; stack traces and internals are never surfaced to the user. A refused mission is named by its reason, and 'Mission not found' is returned for a mission that is not yours, saying 'not yours' would confirm it exists.",
+     ar:"تُعرض حالة خطأ معلنة مع خطوة تالية، ولا تُظهر للمستخدم آثار التتبع أو التفاصيل الداخلية. والمهمة المرفوضة يُسمّى سبب رفضها، ويُعاد «المهمة غير موجودة» لمهمة ليست لك, لأن قول «ليست لك» يؤكد وجودها."}},
  {t:{en:"Rate limiting",ar:"تحديد المعدل"}, st:"pass",
   d:{en:"Enforced in the database, not in this page: five agent runs per researcher per hour, twenty per day, and three per mission per hour. A client that skipped this page entirely would still be refused.",
      ar:"مطبَّق في قاعدة البيانات لا في هذه الصفحة: خمسة تشغيلات للباحث في الساعة، وعشرون في اليوم، وثلاثة للمهمة الواحدة في الساعة. وحتى العميل الذي يتجاوز هذه الصفحة كلياً يُرفض."}},
@@ -4377,8 +4380,8 @@ function renderTrust(){
     b.textContent=L(BA_EX[k].t); b.onclick=()=>{S.ba=k; renderTrust();}; tabs.appendChild(b);});
   const ex=BA_EX[S.ba];
   $("#baPanes").innerHTML=
-    '<div class="bacell bad"><div class="bh">'+esc(T("gr.before","Before — vulnerable"))+'</div><pre>'+esc(ex.bad)+'</pre></div>'+
-    '<div class="bacell good"><div class="bh">'+esc(T("gr.after","After — hardened"))+'</div><pre>'+esc(ex.good)+'</pre></div>';
+    '<div class="bacell bad"><div class="bh">'+esc(T("gr.before","Before, vulnerable"))+'</div><pre>'+esc(ex.bad)+'</pre></div>'+
+    '<div class="bacell good"><div class="bh">'+esc(T("gr.after","After, hardened"))+'</div><pre>'+esc(ex.good)+'</pre></div>';
   $("#baNote").textContent=L(ex.n);
 }
 
@@ -4392,8 +4395,8 @@ const CLAIMS=[
      ar:"حمولته مصوّر جيكو أحمر-أخضر-أزرق بدقة عيّنة أرضية ٣٩ متراً وعرض مسح نحو ٨٠ كم."}, s:[2,3]},
  {c:{en:"The ground station at Kuwait University's College of Science became operational in October 2022, with UHF for TT&C and S-band for image downlink.",
      ar:"دخلت المحطة الأرضية في كلية العلوم الخدمة في أكتوبر ٢٠٢٢، بـ التردد فوق العالي للتحكم و نطاق إس لتنزيل الصور."}, s:[3]},
- {c:{en:"The first image series was captured on 5 April 2023 — five consecutive frames, stitched into a mosaic.",
-     ar:"التُقطت أول سلسلة صور في ٥ أبريل ٢٠٢٣ — خمسة إطارات متتالية دُمجت في فسيفساء."}, s:[2,3]},
+ {c:{en:"The first image series was captured on 5 April 2023, five consecutive frames, stitched into a mosaic.",
+     ar:"التُقطت أول سلسلة صور في ٥ أبريل ٢٠٢٣, خمسة إطارات متتالية دُمجت في فسيفساء."}, s:[2,3]},
  {c:{en:"The mosaic covers eastern Kuwait from Warba and Bubiyan through Kuwait City and Failaka to the Burgan field and the southern coast.",
      ar:"تغطي الفسيفساء شرق الكويت من وربة وبوبيان مروراً بمدينة الكويت وفيلكا إلى حقل برقان والساحل الجنوبي."}, s:[2]},
  {c:{en:"The stated mission objectives were capacity building and evaluating the camera for attitude determination.",
@@ -4432,7 +4435,7 @@ function renderSources(){
 
 /* ======================== DEMO MODE ========================= */
 const DEMO=[
- {id:"mission", t:{en:"The satellite",ar:"القمر الاصطناعي"}, d:{en:"Kuwait's first national satellite, on the record — every specification with its source.",ar:"أول قمر اصطناعي وطني كويتي كما هو موثَّق — كل مواصفة مع مصدرها."}},
+ {id:"mission", t:{en:"The satellite",ar:"القمر الاصطناعي"}, d:{en:"Kuwait's first national satellite, on the record, every specification with its source.",ar:"أول قمر اصطناعي وطني كويتي كما هو موثَّق, كل مواصفة مع مصدرها."}},
  {id:"console", t:{en:"The research console",ar:"كونسول البحث"}, d:{en:"A researcher states an objective; seven agents take it from acquisition to a written report.",ar:"الباحث يكتب هدفه، وسبعة وكلاء ينقلونه من الالتقاط إلى تقرير مكتوب."}},
  {id:"imagery", t:{en:"Kuwait imagery",ar:"صور الكويت"}, d:{en:"The real April 2023 acquisition: five frames, 80 km each, and where they fell.",ar:"التقاط أبريل ٢٠٢٣ الحقيقي: خمسة إطارات بعرض ٨٠ كم لكل منها، وأين وقعت."}},
  {id:"explorer",t:{en:"Environmental analysis",ar:"التحليل البيئي"}, d:{en:"Switch layers: true colour, vegetation, heat, suitability, land cover.",ar:"بدّل الطبقات: الألوان الحقيقية والنبات والحرارة والملاءمة والغطاء الأرضي."}, act:()=>{S.ex.layer="ndvi"; renderExplorerControls(); drawExplorer();}},
@@ -4442,7 +4445,7 @@ const DEMO=[
  {id:"agent",  t:{en:"AI agent",ar:"الوكيل الذكي"}, d:{en:"The full route: collect, validate, analyse, decide, recommend, report.",ar:"المسار الكامل: جمع وتحقق وتحليل وقرار وتوصية وتقرير."}, act:()=>{ if(!S.ag.running) runAgent(); }},
  {id:"agent",  t:{en:"Decision point",ar:"نقطة القرار"}, d:{en:"Two real gates. Change a threshold and the agent takes a different path.",ar:"بوابتان حقيقيتان. غيّر عتبة فيسلك الوكيل مساراً مختلفاً."}},
  {id:"agent",  t:{en:"Recommendation",ar:"التوصية"}, d:{en:"Stated confidence, stated limits, and a report a human still has to sign.",ar:"ثقة معلنة وحدود معلنة وتقرير يوقّعه إنسان."}, act:()=>{ if(S.ag.out) showReport(); }},
- {id:"impact", t:{en:"Impact visualisation",ar:"تصوير الأثر"}, d:{en:"Only what the inputs support — with every assumption printed.",ar:"ما تسنده المدخلات فقط — مع طباعة كل افتراض."}}
+ {id:"impact", t:{en:"Impact visualisation",ar:"تصوير الأثر"}, d:{en:"Only what the inputs support, with every assumption printed.",ar:"ما تسنده المدخلات فقط, مع طباعة كل افتراض."}}
 ];
 function renderDemo(){
   const hud=$("#demoHud"), pan=$("#demoPan");
@@ -4658,7 +4661,7 @@ function bind(){
       toast(T("t.copy","Report copied.")); }catch(e){
       const r=document.createRange(); r.selectNodeContents($("#reportBody"));
       const s=getSelection(); s.removeAllRanges(); s.addRange(r);
-      toast(T("t.copy2","Report selected — press Ctrl/Cmd + C.")); } };
+      toast(T("t.copy2","Report selected, press Ctrl/Cmd + C.")); } };
 
   // scroll spy + reveal
   const secs=NAV.map(s=>$("#"+s.id)).filter(Boolean);
@@ -4713,164 +4716,6 @@ else init();
 <script>
 "use strict";
 /* ================= HERO ORBIT PANEL (simulation) ============= */
-(function heroOrbit(){
-  const cv=document.getElementById("heroOrb"); if(!cv) return;
-  let t=0;
-
-  /* ==================================================================
-     THE EARTH IS A PHOTOGRAPH NOW, NOT A GRADIENT.
-
-     What stood here drew the planet with two ellipses: a "#6E5F3F"
-     desert band and a "#0F4A68" gulf, over a three-stop blue gradient.
-     It was honest about being a drawing - the HUD said ORBIT MODEL -
-     but on a platform whose whole argument is that you can see where a
-     figure came from, the largest image on the page being invented was
-     the wrong note to open on.
-
-     These two plates are real NASA imagery, public domain: Blue Marble
-     for the day theme, Earth at Night for the dark one. They are not
-     screenshots of a map - each was rendered by sampling the NASA
-     equirectangular composite onto a sphere, lit, and photographed from
-     an orbital viewpoint over the Gulf, so Kuwait genuinely sits under
-     the camera. The provenance is in assets/earth/CREDITS.txt and in
-     the sources register.
-
-     WHAT IS STILL DRAWN, and still declares itself: the orbit path, the
-     satellite, its swath cone and the Kuwait marker. Those are a model
-     and are badged as one. The planet is a photograph; the spacecraft
-     on top of it is not, and the HUD says so.
-     ================================================================== */
-  const PLATE = { w:2400, h:1100, cx:1200, cy:1582, r:976 };  /* limb geometry of the render, in plate pixels */
-  const sky = {};
-  function plate(name){
-    if (sky[name]) return sky[name];
-    const im = new Image();
-    im.decoding = "async";
-    im.src = "assets/earth/earth-" + name + ".jpg";
-    im.onload = function(){ repaint(); };   /* see repaint(): a decode must land even if the pump is not running */
-    sky[name] = im;
-    return im;
-  }
-  function currentPlate(){
-    /* The theme attribute is the only source of truth here. It is set
-       before first paint by js/ksat-appearance.js, so there is no flash
-       of the wrong hemisphere. */
-    var th = document.documentElement.getAttribute("data-theme");
-    return plate(th === "light" ? "day" : "night");
-  }
-  plate("night"); plate("day");                            /* both, so switching the theme never shows a gap */
-  document.addEventListener("ksat:theme", function(){ repaint(); });
-
-  function draw(){
-    const box=cv.parentElement;
-    /* The height cap held the hero artwork to a fixed size however
-       large its container grew. The hero is now a full-bleed
-       cinematic band, so the artwork follows the CONTAINER when the
-       container states a height, and falls back to the previous
-       behaviour everywhere else. cy and R below are both derived
-       from w and h, so the limb simply scales. */
-    const {ctx,w,h}=fit(cv, Math.max(300, Math.min(420, box.clientWidth*0.72), box.clientHeight));
-    ctx.clearRect(0,0,w,h);
-    /* Cover-fit the plate, then take cx/cy/R from where the plate's own
-       limb actually landed. Deriving the geometry from the image rather
-       than from a formula is what keeps the orbit, the swath cone and
-       the Kuwait marker sitting ON the horizon at every viewport size -
-       the previous constants (cy=h*1.34, R=min(w,h)*1.02) described a
-       circle that no longer exists. */
-    const img = currentPlate();
-    const sc  = Math.max(w / PLATE.w, h / PLATE.h);
-    const ox  = (w - PLATE.w * sc) / 2, oy = (h - PLATE.h * sc) / 2;
-    const cx  = ox + PLATE.cx * sc, cy = oy + PLATE.cy * sc, R = PLATE.r * sc;
-
-    if (img.complete && img.naturalWidth) {
-      ctx.drawImage(img, ox, oy, PLATE.w * sc, PLATE.h * sc);
-    } else {
-      /* Until it decodes, paint the void rather than the old fake
-         planet: an empty sky reads as loading, a drawn one reads as the
-         answer and then changes under the reader. */
-      ctx.fillStyle = "#04060B"; ctx.fillRect(0, 0, w, h);
-    }
-    // Kuwait marker on the limb
-    const ka=-Math.PI/2 + 0.02;
-    const kx=cx+Math.cos(ka)*R, ky=cy+Math.sin(ka)*R;
-    // orbit path
-    const orbR=R*1.115;
-    ctx.strokeStyle="rgba(63,208,201,.30)"; ctx.setLineDash([5,7]); ctx.lineWidth=1.1;
-    ctx.beginPath(); ctx.arc(cx,cy,orbR,Math.PI*1.27,Math.PI*1.73); ctx.stroke(); ctx.setLineDash([]);
-    // satellite
-    const p=(Math.sin(t*0.22)*0.5+0.5);
-    const sa=Math.PI*1.30 + p*(Math.PI*0.40);
-    const sx=cx+Math.cos(sa)*orbR, sy=cy+Math.sin(sa)*orbR;
-    // swath cone to the surface
-    const spread=0.085;
-    const a1=sa+Math.PI+spread, a2=sa+Math.PI-spread;
-    ctx.beginPath(); ctx.moveTo(sx,sy);
-    ctx.lineTo(sx+Math.cos(a1)*(orbR-R*0.995), sy+Math.sin(a1)*(orbR-R*0.995));
-    ctx.lineTo(sx+Math.cos(a2)*(orbR-R*0.995), sy+Math.sin(a2)*(orbR-R*0.995));
-    ctx.closePath();
-    const cg=ctx.createLinearGradient(sx,sy,cx,cy);
-    cg.addColorStop(0,"rgba(63,208,201,.34)"); cg.addColorStop(1,"rgba(95,214,138,.05)");
-    ctx.fillStyle=cg; ctx.fill();
-    // Kuwait dot + label
-    ctx.strokeStyle="#5FD68A"; ctx.lineWidth=1.3;
-    ctx.beginPath(); ctx.arc(kx,ky,8,0,6.283); ctx.stroke();
-    ctx.fillStyle="#5FD68A"; ctx.beginPath(); ctx.arc(kx,ky,2.6,0,6.283); ctx.fill();
-    ctx.font="10px 'IBM Plex Mono',monospace"; ctx.fillStyle="#BFF4E4";
-    ctx.textAlign="center"; ctx.fillText("KUWAIT", kx, ky+24);
-    // satellite body
-    ctx.save(); ctx.translate(sx,sy); ctx.rotate(sa+Math.PI/2);
-    ctx.fillStyle="#1B2A3C"; ctx.strokeStyle="#5FD6CF"; ctx.lineWidth=1.2;
-    ctx.fillRect(-5,-7.5,10,15); ctx.strokeRect(-5,-7.5,10,15);
-    ctx.fillStyle="#123A55"; ctx.strokeStyle="#3FD0C9";
-    ctx.fillRect(-17,-4,11,8); ctx.strokeRect(-17,-4,11,8);
-    ctx.fillRect(6,-4,11,8); ctx.strokeRect(6,-4,11,8);
-    ctx.restore();
-    t+=0.016;
-  }
-
-  /* ==================================================================
-     THE PAINTER AND THE PUMP ARE SEPARATE, and they have to be.
-
-     draw() used to end with `if(!reduceMotion) requestAnimationFrame(draw)`,
-     which made it impossible to ask for a single repaint: calling it
-     directly while the loop was live started a SECOND rAF chain, so
-     every "just redraw once" caller doubled the frame rate.
-
-     That mattered the moment the Earth became an image. The plate
-     decodes asynchronously; if the first draw lands before it, the hero
-     paints the void and waits for the next frame. Where rAF is
-     throttled - a background tab, battery saver, a browser that parks
-     offscreen animation - the next frame may be a long time coming, and
-     the hero stays black on a page the reader is looking at. Observed
-     exactly that: document.hidden true at load, hero #04060B forever.
-
-     So: draw() paints one frame and nothing else. pump() owns the loop
-     and is the only thing that may schedule it. repaint() is for
-     everyone else - an image that finished decoding, a theme swap, a
-     resize - and it never touches the loop.
-     ================================================================== */
-  let pumping = false;
-  function pump(){
-    draw();
-    if (!reduceMotion && pumping) requestAnimationFrame(pump);
-  }
-  function repaint(){
-    /* If the pump is running it will pick this up within a frame, and a
-       second draw here would just be wasted work. If it is not - reduced
-       motion, or rAF throttled to nothing - this is the only thing that
-       will paint. */
-    if (!pumping || reduceMotion || document.hidden) draw();
-  }
-
-  if (reduceMotion) { draw(); }
-  else { pumping = true; pump(); }
-
-  addEventListener("resize", repaint);
-  /* Coming back to a parked tab: rAF resumed on its own, but a tab that
-     was hidden through a theme change came back showing the other
-     hemisphere until the next frame. Paint on the way in. */
-  document.addEventListener("visibilitychange", function(){ if (!document.hidden) repaint(); });
-})();
 </script>
 
 <script>
@@ -5099,18 +4944,18 @@ const KSAudio = (()=>{
 "use strict";
 /* ========== VERIFIED PUBLIC-DATA SOURCES (added to the register) ========== */
 SOURCES.push(
- { id:8, name:"Ministry of Foreign Affairs, State of Kuwait — Kuwait Vision 2035 “New Kuwait”",
+ { id:8, name:"Ministry of Foreign Affairs, State of Kuwait, Kuwait Vision 2035 “New Kuwait”",
    url:"https://www.mofa.gov.kw/en/pages/kuwait-vision-2035",
    note:"Official statement of the vision and its seven pillars, one of which is “Sustainable living environment”." },
- { id:9, name:"World Meteorological Organization — verification of the Mitribah, Kuwait temperature extreme",
+ { id:9, name:"World Meteorological Organization, verification of the Mitribah, Kuwait temperature extreme",
    url:"https://wmo.int/media/news/wmo-verifies-3rd-and-4th-hottest-temperature-recorded-earth",
-   note:"53.9 °C (±0.1 °C) at Mitribah on 21 July 2016 — the highest temperature recorded for Asia. Verified and announced 18 June 2019." },
- { id:10, name:"World Bank Open Data — Kuwait country indicators",
+   note:"53.9 °C (±0.1 °C) at Mitribah on 21 July 2016, the highest temperature recorded for Asia. Verified and announced 18 June 2019." },
+ { id:10, name:"World Bank Open Data, Kuwait country indicators",
    url:"https://data.worldbank.org/country/kuwait",
    note:"Land area 17,820 km² (2023); forest area 0.35% of land area (2023); average precipitation 121 mm/year (2022); urban population 100% (2025)." }
 );
 
-/* ================== NATIONAL CONTEXT — PUBLIC DATA ================== */
+/* ================== NATIONAL CONTEXT, PUBLIC DATA ================== */
 const CONTEXT=[
  { v:"53.9 °C", k:{en:"Highest temperature recorded in Asia",ar:"أعلى حرارة سُجّلت في آسيا"},
    s:{en:"Mitribah, Kuwait, 21 July 2016 (±0.1 °C). Verified by the WMO.",
@@ -5139,13 +4984,13 @@ const SYSCAPS=[
       ar:"قياس الغطاء النباتي والمساحات المفتوحة القائمة قبل اقتراح زراعة جديدة. فحماية الموجود أرخص عادةً من استبداله."} },
  { i:"drop", t:{en:"Respect the water constraint",ar:"احترام قيد المياه"},
    d:{en:"Kuwait receives about 121 mm of rain a year. Any intervention that ignores irrigation demand is not a plan, and the system says so.",
-      ar:"تتلقى الكويت نحو ١٢١ ملم من الأمطار سنوياً. وأي تدخل يتجاهل احتياج الري ليس خطة — والنظام يقول ذلك."} },
+      ar:"تتلقى الكويت نحو ١٢١ ملم من الأمطار سنوياً. وأي تدخل يتجاهل احتياج الري ليس خطة, والنظام يقول ذلك."} },
  { i:"city", t:{en:"Read the urban fabric",ar:"قراءة النسيج العمراني"},
    d:{en:"Density, block structure and open-parcel availability decide whether an intervention is physically possible at all.",
       ar:"الكثافة وبنية الكتل وتوافر القطع المفتوحة هي ما يحدد إن كان التدخل ممكناً مادياً أصلاً."} },
  { i:"compass", t:{en:"Recommend an instrument, not a slogan",ar:"اقتراح أداة لا شعار"},
-   d:{en:"Vegetation, shade structure, green corridor or other green infrastructure — matched to what the area's conditions can actually support.",
-      ar:"غطاء نباتي أو منشآت تظليل أو ممر أخضر أو بنية خضراء أخرى — بما يناسب ما تحتمله ظروف المنطقة فعلاً."} },
+   d:{en:"Vegetation, shade structure, green corridor or other green infrastructure, matched to what the area's conditions can actually support.",
+      ar:"غطاء نباتي أو منشآت تظليل أو ممر أخضر أو بنية خضراء أخرى, بما يناسب ما تحتمله ظروف المنطقة فعلاً."} },
  { i:"loop", t:{en:"Measure change, not intentions",ar:"قياس التغيّر لا النوايا"},
    d:{en:"Re-observe the same area after implementation and report what moved. A recommendation nobody checks is a recommendation nobody learns from.",
       ar:"إعادة رصد المنطقة نفسها بعد التنفيذ وبيان ما تغيّر. فالتوصية التي لا يتحقق منها أحد لا يتعلّم منها أحد."} }
@@ -5153,20 +4998,20 @@ const SYSCAPS=[
 
 const CYCLE=[
  { n:"01", t:{en:"Earth observation data",ar:"بيانات رصد الأرض"},
-   d:{en:"Repeat imagery of the same area over time — KuwaitSat-1 frames alongside open satellite products.",
-      ar:"تصوير متكرر للمنطقة نفسها عبر الزمن — إطارات كويت سات-١ إلى جانب منتجات الأقمار المفتوحة."}, b:"real" },
+   d:{en:"Repeat imagery of the same area over time, KuwaitSat-1 frames alongside open satellite products.",
+      ar:"تصوير متكرر للمنطقة نفسها عبر الزمن, إطارات كويت سات-١ إلى جانب منتجات الأقمار المفتوحة."}, b:"real" },
  { n:"02", t:{en:"AI environmental analysis",ar:"تحليل بيئي بالذكاء الاصطناعي"},
    d:{en:"Land cover, vegetation, relative surface heat and change between epochs.",
       ar:"الغطاء الأرضي والنبات والحرارة السطحية النسبية والتغيّر بين الحقب."}, b:"ai" },
  { n:"03", t:{en:"Identify priority areas",ar:"تحديد المناطق ذات الأولوية"},
-   d:{en:"Rank areas by need and by feasibility — both, never need alone.",
+   d:{en:"Rank areas by need and by feasibility, both, never need alone.",
       ar:"ترتيب المناطق بالحاجة والجدوى معاً، لا بالحاجة وحدها."}, b:"ai" },
  { n:"04", t:{en:"Recommend an intervention",ar:"اقتراح تدخل"},
    d:{en:"Vegetation, shade, corridor or other green infrastructure, with the reasoning attached.",
       ar:"غطاء نباتي أو تظليل أو ممر أو بنية خضراء أخرى، مع إرفاق المبرر."}, b:"ai" },
  { n:"05", t:{en:"Predict potential impact",ar:"توقّع الأثر الممكن"},
-   d:{en:"A conceptual estimate with its assumptions printed — never a promised outcome.",
-      ar:"تقدير مفاهيمي مع طباعة افتراضاته — لا نتيجة موعودة."}, b:"sim" },
+   d:{en:"A conceptual estimate with its assumptions printed, never a promised outcome.",
+      ar:"تقدير مفاهيمي مع طباعة افتراضاته, لا نتيجة موعودة."}, b:"sim" },
  { n:"06", t:{en:"Visualise the proposed change",ar:"تصوّر التغيير المقترح"},
    d:{en:"Before/after rendering so a non-specialist can argue with the proposal.",
       ar:"عرض قبل/بعد ليتمكن غير المختص من مناقشة المقترح."}, b:"sim" },
@@ -5177,21 +5022,21 @@ const CYCLE=[
    d:{en:"Re-observe the same footprint and difference it against the pre-intervention baseline.",
       ar:"إعادة رصد البصمة نفسها وطرحها مقابل خط الأساس قبل التدخل."}, b:"real", loop:true },
  { n:"09", t:{en:"Automatic progress report",ar:"تقرير تقدّم تلقائي"},
-   d:{en:"What changed, by how much, how confident — and the loop starts again at 02.",
-      ar:"ما الذي تغيّر وبكم ومدى الثقة — ثم تبدأ الدورة من جديد عند ٠٢."}, b:"ai", loop:true }
+   d:{en:"What changed, by how much, how confident, and the loop starts again at 02.",
+      ar:"ما الذي تغيّر وبكم ومدى الثقة, ثم تبدأ الدورة من جديد عند ٠٢."}, b:"ai", loop:true }
 ];
 
 /* input register: exactly what the model reads, and what class each input is */
 const INPUTS=[
  { l:{en:"KuwaitSat-1 mission record",ar:"سجل مهمة كويت سات-١"},
-   x:{en:"39 m GSD, ~80 km swath, RGB imager, S-band downlink — published by the project team.",
-      ar:"دقة ٣٩ م، وعرض مسح نحو ٨٠ كم، ومصوّر أحمر-أخضر-أزرق، وتنزيل نطاق إس — منشورة من فريق المشروع."}, c:"real" },
+   x:{en:"39 m GSD, ~80 km swath, RGB imager, S-band downlink, published by the project team.",
+      ar:"دقة ٣٩ م، وعرض مسح نحو ٨٠ كم، ومصوّر أحمر-أخضر-أزرق، وتنزيل نطاق إس, منشورة من فريق المشروع."}, c:"real" },
  { l:{en:"Kuwait national statistics",ar:"إحصاءات الكويت الوطنية"},
-   x:{en:"Land area, forest share, precipitation, urbanisation — World Bank; heat extreme — WMO.",
-      ar:"مساحة اليابسة ونسبة الغابات والهطول والتحضّر — البنك الدولي؛ والحد الحراري — المنظمة العالمية للأرصاد."}, c:"pub" },
+   x:{en:"Land area, forest share, precipitation, urbanisation, World Bank; heat extreme, WMO.",
+      ar:"مساحة اليابسة ونسبة الغابات والهطول والتحضّر, البنك الدولي؛ والحد الحراري, المنظمة العالمية للأرصاد."}, c:"pub" },
  { l:{en:"Governorate environmental series",ar:"السلاسل البيئية للمحافظات"},
-   x:{en:"36 monthly records per governorate — modelled for this platform on published patterns.",
-      ar:"٣٦ سجلاً شهرياً لكل محافظة — مولَّدة لهذا النموذج لتشبه الأنماط المنشورة."}, c:"demo" },
+   x:{en:"36 monthly records per governorate, modelled for this platform on published patterns.",
+      ar:"٣٦ سجلاً شهرياً لكل محافظة, مولَّدة لهذا النموذج لتشبه الأنماط المنشورة."}, c:"demo" },
  { l:{en:"Surface scene and land-cover grid",ar:"مشهد السطح وشبكة الغطاء الأرضي"},
    x:{en:"Rendered at a 39 m sampling grid by this page. Not a satellite product.",
       ar:"مرسومة على شبكة عيّنات ٣٩ متراً داخل هذه الصفحة. وليست منتج قمر اصطناعي."}, c:"sim" },
@@ -5202,8 +5047,8 @@ const INPUTS=[
    x:{en:"Heat, bare fraction, density and existing canopy, combined by a weighting chosen for this platform and open to challenge.",
       ar:"الحرارة ونسبة العري والكثافة والغطاء القائم، مجمّعة بترجيح اختير لهذا النموذج وقابل للنقاش."}, c:"ai" },
  { l:{en:"Species selection and irrigation design",ar:"اختيار الأنواع وتصميم الري"},
-   x:{en:"Information not independently verified — this requires agronomic and hydrological expertise this platform does not hold, and is deliberately left to specialists.",
-      ar:"معلومة غير موثَّقة باستقلالية — تتطلب خبرة زراعية وهيدرولوجية لا يملكها النموذج، وتُترك عمداً للمختصين."}, c:"unver" }
+   x:{en:"Information not independently verified, this requires agronomic and hydrological expertise this platform does not hold, and is deliberately left to specialists.",
+      ar:"معلومة غير موثَّقة باستقلالية, تتطلب خبرة زراعية وهيدرولوجية لا يملكها النموذج، وتُترك عمداً للمختصين."}, c:"unver" }
 ];
 const CLASS_LABEL={
   real:{en:"REAL DATA",ar:"بيانات حقيقية"}, pub:{en:"PUBLIC DATA",ar:"بيانات عامة"},
@@ -5284,14 +5129,14 @@ function recommendationCard(r){
         ints.map(i=>'<div class="reci"><div class="rit">'+esc(L(i.t))+'</div><div class="riw">'+esc(L(i.w))+'</div></div>').join("")+
       '</div>'+
       '<div class="recblk"><div class="rh">'+esc(T("rc.imp","Potential impact"))+'</div>'+
-        '<p class="recp">'+esc(T("rc.impp","Modelled scenario only. Run the scenario engine to see a modelled coverage change for this area — and read its assumptions before quoting any figure from it."))+'</p>'+
+        '<p class="recp">'+esc(T("rc.impp","Modelled scenario only. Run the scenario engine to see a modelled coverage change for this area, and read its assumptions before quoting any figure from it."))+'</p>'+
         '<div class="recmeta"><span class="conf"><span class="confbar">'+
           [1,2,3].map(i=>'<i class="'+(i<=cbars?"on":"")+'"></i>').join("")+'</span>'+
           esc(T("rc.conf","Model confidence"))+': '+esc(T("conf."+conf.toLowerCase(),conf))+'</span>'+
           classBadge("sim")+'</div>'+
       '</div>'+
       '<div class="recblk"><div class="rh">'+esc(T("rc.mon","Monitoring plan"))+'</div>'+
-        '<p class="recp">'+esc(T("rc.monp","If an intervention goes ahead, re-observe the same footprint on the same calendar month in following years and difference it against the pre-intervention baseline. Report coverage change, canopy persistence and relative heat — and publish the result whether or not it worked."))+'</p>'+
+        '<p class="recp">'+esc(T("rc.monp","If an intervention goes ahead, re-observe the same footprint on the same calendar month in following years and difference it against the pre-intervention baseline. Report coverage change, canopy persistence and relative heat, and publish the result whether or not it worked."))+'</p>'+
         '<div class="recmeta">'+classBadge("real")+classBadge("human")+'</div>'+
       '</div>'+
     '</div>'+
@@ -5303,7 +5148,7 @@ function recommendationCard(r){
 <style>
 .reccard{border:1px solid var(--line-2); border-radius:var(--r); overflow:hidden; background:var(--surf)}
 .recstate{padding:14px 16px; font-size:13.5px; color:var(--ink); line-height:1.65;
-  border-bottom:1px solid var(--line); background:linear-gradient(180deg,rgba(63,208,201,.06),transparent)}
+  border-bottom:1px solid var(--line); background:linear-gradient(180deg,rgba(63,208,201.06),transparent)}
 .recgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; background:var(--line)}
 @media(max-width:760px){.recgrid{grid-template-columns:minmax(0,1fr)}}
 .recblk{background:var(--surf); padding:13px 15px}
@@ -5320,7 +5165,7 @@ function recommendationCard(r){
 .recp{font-size:12.5px; color:var(--ink-3); line-height:1.6}
 .recmeta{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--ink-2)}
 .recnote{padding:11px 16px; border-top:1px solid var(--line); font-size:12px; color:#D9C08A;
-  background:rgba(178,127,2,.07)}
+  background:rgba(178,127,2.07)}
 .provwrap table td.pc{white-space:nowrap}
 </style>
 
@@ -5353,9 +5198,9 @@ const PROV=[
  { d:{en:"Greening suitability weighting",ar:"ترجيح ملاءمة التشجير"}, c:"ai",
    u:{en:"Greening score, priority ranking, recommendation card",ar:"درجة التشجير والترتيب وبطاقة التوصية"}, s:[] },
  { d:{en:"Impact estimates (canopy, shade, coverage)",ar:"تقديرات الأثر (المظلة، الظل، التغطية)"}, c:"ai",
-   u:{en:"Impact calculator — assumptions printed with every figure",ar:"حاسبة الأثر — الافتراضات مطبوعة مع كل رقم"}, s:[] },
+   u:{en:"Impact calculator, assumptions printed with every figure",ar:"حاسبة الأثر, الافتراضات مطبوعة مع كل رقم"}, s:[] },
  { d:{en:"Species selection, irrigation demand, cost, carbon",ar:"اختيار الأنواع واحتياج الري والتكلفة والكربون"}, c:"unver",
-   u:{en:"Deliberately not produced — stated as requiring specialist study",ar:"غير منتَجة عمداً — مذكور أنها تتطلب دراسة متخصصة"}, s:[] }
+   u:{en:"Deliberately not produced, stated as requiring specialist study",ar:"غير منتَجة عمداً, مذكور أنها تتطلب دراسة متخصصة"}, s:[] }
 ];
 function renderProvenance(){
   const w=document.getElementById("provTable"); if(!w) return;
@@ -5367,7 +5212,7 @@ function renderProvenance(){
       '<span class="tag">'+esc(T("pv.none","in-page"))+'</span>')+'</td></tr>').join("")+'</tbody></table></div>';
 }
 
-/* ============== Kuwait Vision 2035 — official pillars ============== */
+/* ============== Kuwait Vision 2035, official pillars ============== */
 const PILLARS=[
  {en:"Sustainable living environment",ar:"بيئة معيشية مستدامة", key:true},
  {en:"Sustainable diversified economy",ar:"اقتصاد متنوع مستدام"},
@@ -5379,12 +5224,12 @@ const PILLARS=[
 ];
 function renderPillars(){
   const host=document.getElementById("v35Pillars"); if(!host) return;
-  host.innerHTML='<div class="phead"><div class="ttl"><h3>'+esc(T("v35.p","Kuwait Vision 2035 — the seven official pillars"))+
+  host.innerHTML='<div class="phead"><div class="ttl"><h3>'+esc(T("v35.p","Kuwait Vision 2035, the seven official pillars"))+
     '</h3></div><span class="badge pub">🏛 '+esc(T("v35.pub","Public data"))+'</span></div>'+
     '<p class="sub" style="margin-top:0">'+esc(T("v35.pp","As published by the Ministry of Foreign Affairs of the State of Kuwait. One pillar is directly environmental; this platform is written against that one. No endorsement is claimed or implied."))+
     ' '+srcChips([8])+'</p>'+
     '<div class="chips mt-s">'+PILLARS.map(p=>'<span class="chip" style="cursor:default'+
-      (p.key?';background:rgba(64,173,96,.14);border-color:#1F5D37;color:var(--green-text, #9FE0B5)':'')+'">'+esc(L(p))+'</span>').join("")+'</div>';
+      (p.key?';background:rgba(64,173,96.14);border-color:#1F5D37;color:var(--green-text, #9FE0B5)':'')+'">'+esc(L(p))+'</span>').join("")+'</div>';
 }
 
 </script>
@@ -5431,7 +5276,7 @@ function renderRecCard(){
 "use strict";
 /* ============ additional verified source ============ */
 SOURCES.push(
- { id:11, name:"Kuwait University — Dr Hala Al-Jassar represents the Kuwait National Space Research Center at the United Nations",
+ { id:11, name:"Kuwait University, Dr Hala Al-Jassar represents the Kuwait National Space Research Center at the United Nations",
    url:"https://www.ku.edu.kw/media-center/news/alkwyt-twkd-dwrha-fy-mjal-alfda-walastfadt-mn-khdmath-d-halt-aljsar-mmthlt-n-mrkz",
    note:"Kuwait University, 10 February 2025: names Dr Hala Al-Jassar as Acting Head of the Department of Physics, College of Science, and as representative of the Kuwait National Space Research Center (Kuwait-NSRC)." }
 );
@@ -5518,62 +5363,62 @@ SOURCES.push(
    note:"Peer-reviewed species list for Kuwaiti urban landscapes: 12 native and 7 non-native xeric species with stated height, drought and salinity tolerance." },
  { id:13, name:"Alahmad B, Tomasso LP, Al-Hemoud A, James P, Koutrakis P (2020). Spatial Distribution of Land Surface Temperatures in Kuwait: Urban Heat and Cool Islands. IJERPH 17(9):2993",
    url:"https://doi.org/10.3390/ijerph17092993",
-   note:"Kuwait-specific MODIS analysis, 2001–2017: daytime urban COOL island −1.1 °C and night-time urban HEAT island +3.6 °C relative to rural/barren land." },
+   note:"Kuwait-specific MODIS analysis, 2001, 2017: daytime urban COOL island −1.1 °C and night-time urban HEAT island +3.6 °C relative to rural/barren land." },
  { id:14, name:"Yin Y et al. (2024). Cooling Benefits of Urban Tree Canopy: A Systematic Review. Sustainability 16(12):4955",
    url:"https://doi.org/10.3390/su16124955",
-   note:"Systematic review: land surface temperature falls 0.6–3.7 °C when vegetation proportion rises from 20% to 50% at urban scale; relationship is non-linear." },
+   note:"Systematic review: land surface temperature falls 0.6, 3.7 °C when vegetation proportion rises from 20% to 50% at urban scale; relationship is non-linear." },
  { id:15, name:"Li H et al. (2024). Cooling efficacy of trees across cities is determined by background climate, urban morphology, and tree trait. Communications Earth & Environment 5:754",
    url:"https://doi.org/10.1038/s43247-024-01908-4",
    note:"182 studies across 110 cities: in arid climates maximum pedestrian-level air cooling reaches −9.3 °C, with minor night-time warming up to +0.4 °C." }
 );
 
-/* -------- Kuwait species register — Almutawa (2022), source [13] -------- */
+/* -------- Kuwait species register, Almutawa (2022), source [13] -------- */
 const KW_RAIN = 121;   /* mm/yr, World Bank 2022, source [11] */
 const SPECIES = [
  { bot:"Acacia ehrenbergiana", com:"Tamat", native:false, origin:"Saharan region", form:"tree",
    h:"≈ 4.5 m", hMin:4.5, rain:[50,400], sal:null,
-   note:"Source states survival where annual rainfall is 50–400 mm.", src:[12] },
+   note:"Source states survival where annual rainfall is 50, 400 mm.", src:[12] },
  { bot:"Acacia tortilis", com:"Umbrella thorn", native:false, origin:"Pan-African / Middle East", form:"tree",
    h:"up to 21 m", hMin:21, rain:[50,400], sal:null,
-   note:"Source states survival where annual rainfall is 50–400 mm; broad umbrella crown.", src:[12] },
+   note:"Source states survival where annual rainfall is 50, 400 mm; broad umbrella crown.", src:[12] },
  { bot:"Acacia saligna", com:"Golden wreath wattle", native:false, origin:"Australia", form:"tree",
-   h:"3–7.6 m", hMin:3, rain:null, sal:null,
+   h:"3, 7.6 m", hMin:3, rain:null, sal:null,
    note:"Source states tolerance of varied soils and drought adaptation; rainfall range not stated in source.", src:[12] },
  { bot:"Acacia sowdenii", com:"Western myall", native:false, origin:"Australia", form:"tree",
-   h:"3.6–5.5 m", hMin:3.6, rain:null, sal:null,
+   h:"3.6, 5.5 m", hMin:3.6, rain:null, sal:null,
    note:"Source states frost and drought resistance; rainfall range not stated in source.", src:[12] },
  { bot:"Eucalyptus camaldulensis", com:"River red gum", native:false, origin:"Australia", form:"tree",
    h:"≈ 20 m", hMin:20, rain:null, sal:"high",
-   note:"Source states high salinity tolerance and medium drought tolerance — the weakest drought rating in the set.", src:[12] },
+   note:"Source states high salinity tolerance and medium drought tolerance, the weakest drought rating in the set.", src:[12] },
  { bot:"Eucalyptus microtheca", com:"Coolibah", native:false, origin:"Australia", form:"tree",
-   h:"3–20 m", hMin:3, rain:null, sal:"high",
+   h:"3, 20 m", hMin:3, rain:null, sal:"high",
    note:"Source states high salinity tolerance and low irrigation requirement.", src:[12] },
  { bot:"Acacia rigens", com:"Needle bush wattle", native:false, origin:"Australia", form:"shrub",
-   h:"2.4–3 m", hMin:2.4, rain:null, sal:null,
+   h:"2.4, 3 m", hMin:2.4, rain:null, sal:null,
    note:"Source states drought tolerance and a preference for well-drained soil.", src:[12] },
  { bot:"Ziziphus nummularia", com:"Jujube", native:true, origin:"Kuwait", form:"shrub",
-   h:"1–5 m", hMin:1, rain:null, sal:null,
+   h:"1, 5 m", hMin:1, rain:null, sal:null,
    note:"Native. Source states tolerance of poor soils and drought hardiness; thorny.", src:[12] },
  { bot:"Ochradenus baccatus", com:"Taily weed", native:true, origin:"Kuwait", form:"shrub",
    h:"up to 2 m", hMin:2, rain:null, sal:"yes",
    note:"Native. Source states high drought tolerance and salt tolerance.", src:[12] },
  { bot:"Calligonum polygonoides", com:"Erta", native:true, origin:"Kuwait", form:"shrub",
-   h:"1–2 m", hMin:1, rain:null, sal:null,
+   h:"1, 2 m", hMin:1, rain:null, sal:null,
    note:"Native. Source states high resistance to drought.", src:[12] },
  { bot:"Haloxylon salicornicum", com:"Rimth", native:true, origin:"Kuwait", form:"shrub",
-   h:"0.75–1.0 m", hMin:0.75, rain:null, sal:"8,000–10,000 mg/L",
-   note:"Native. Source states salinity tolerance up to 8,000–10,000 mg L⁻¹ — the highest stated figure in the set.", src:[12] },
+   h:"0.75, 1.0 m", hMin:0.75, rain:null, sal:"8,000, 10,000 mg/L",
+   note:"Native. Source states salinity tolerance up to 8,000, 10,000 mg L⁻¹, the highest stated figure in the set.", src:[12] },
  { bot:"Lycium shawii", com:"Awsaj", native:true, origin:"Kuwait", form:"shrub",
    h:"not stated in source", hMin:0, rain:null, sal:null,
    note:"Native. Source states drought tolerance across varied desert habitats; edible berries.", src:[12] },
  { bot:"Helianthemum lippii", com:"Rakrouk", native:true, origin:"Kuwait", form:"shrub",
-   h:"10–45 cm", hMin:0.1, rain:null, sal:null,
+   h:"10, 45 cm", hMin:0.1, rain:null, sal:null,
    note:"Native. Source states tolerance of sandy soils and drought adaptation.", src:[12] },
  { bot:"Farsetia aegyptia", com:"Al-labana", native:true, origin:"Kuwait", form:"shrub",
    h:"≈ 30 cm", hMin:0.3, rain:null, sal:null,
    note:"Native. Source states growth on gravelly soils and drought tolerance.", src:[12] },
  { bot:"Pennisetum divisum", com:"Thammam", native:true, origin:"Kuwait", form:"grass",
-   h:"1–3 m", hMin:1, rain:null, sal:null,
+   h:"1, 3 m", hMin:1, rain:null, sal:null,
    note:"Native perennial grass. Source states drought resistance.", src:[12] },
  { bot:"Panicum turgidum", com:"Taman", native:true, origin:"Kuwait", form:"grass",
    h:"≈ 1.5 m", hMin:1.5, rain:null, sal:"yes",
@@ -5591,23 +5436,23 @@ const SPECIES = [
 
 /* -------- published coefficients the prediction agent is allowed to use -------- */
 const COEFF = {
-  lstPerCover:{                       /* Yin et al. 2024 — source [15] */
+  lstPerCover:{                       /* Yin et al. 2024, source [15] */
     lo:0.6, hi:3.7, span:30,          /* °C LST drop for a 20% -> 50% vegetation rise */
     unit:"°C", src:14,
     what:"Land surface temperature reduction when vegetation proportion rises from 20% to 50% at urban scale",
     caveat:"Review is global, not Kuwait-specific, and the source states the relationship is non-linear. Treat a linear scaling as an approximation requiring local calibration."
   },
-  airArid:{                           /* Li et al. 2024 — source [16] */
+  airArid:{                           /* Li et al. 2024, source [16] */
     max:-9.3, night:0.4, src:15,
     what:"Maximum pedestrian-level air temperature cooling under tree canopy in arid climates",
-    caveat:"This is a reported maximum across 182 studies, not an expected value, and it is air temperature under canopy — not the same quantity as satellite land surface temperature."
+    caveat:"This is a reported maximum across 182 studies, not an expected value, and it is air temperature under canopy, not the same quantity as satellite land surface temperature."
   },
-  kuwaitBaseline:{                    /* Alahmad et al. 2020 — source [14] */
+  kuwaitBaseline:{                    /* Alahmad et al. 2020, source [14] */
     dayUCI:-1.1, dayCI:[-1.2,-1.0], nightUHI:3.6, nightCI:[3.5,3.7],
     capitalDay:33.7, capitalDaySD:3.1, capitalNight:22.4, capitalNightSD:0.5,
     jahraDay:37.2, jahraDaySD:1.1, jahraNight:18.3, jahraNightSD:0.9,
-    src:13, sensor:"MODIS Terra MOD11A2 v6, 1 km, 8-day composites, Jan 2001 – Mar 2017",
-    what:"Observed Kuwait urban–rural land surface temperature contrast"
+    src:13, sensor:"MODIS Terra MOD11A2 v6, 1 km, 8-day composites, Jan 2001, Mar 2017",
+    what:"Observed Kuwait urban, rural land surface temperature contrast"
   }
 };
 </script>
@@ -5615,7 +5460,7 @@ const COEFF = {
 <script>
 "use strict";
 /* ==================================================================
-   RESEARCH CONSOLE ENGINE — seven assistants, one researcher's scope
+   RESEARCH CONSOLE ENGINE, seven assistants, one researcher's scope
    ================================================================== */
 const RC = {
   brief:{ obj:"", aoi:"farwaniya", from:0, to:35,
@@ -5667,12 +5512,12 @@ function matchSpecies(zone, c){
   const scored = SPECIES.map(sp=>{
     let sc=0; const why=[];
     if(sp.native){ sc+=3; why.push({t:"Native to Kuwait",k:"good"}); }
-    else { sc-=1; why.push({t:"Introduced species — origin "+sp.origin,k:"note"}); }
+    else { sc-=1; why.push({t:"Introduced species, origin "+sp.origin,k:"note"}); }
     if(sp.rain){
       if(KW_RAIN>=sp.rain[0] && KW_RAIN<=sp.rain[1]){
-        sc+=3; why.push({t:"Kuwait's "+KW_RAIN+" mm/yr sits inside the documented "+sp.rain[0]+"–"+sp.rain[1]+" mm tolerance",k:"good"});
+        sc+=3; why.push({t:"Kuwait's "+KW_RAIN+" mm/yr sits inside the documented "+sp.rain[0]+", "+sp.rain[1]+" mm tolerance",k:"good"});
       } else {
-        sc-=2; why.push({t:"Kuwait's "+KW_RAIN+" mm/yr is outside the documented "+sp.rain[0]+"–"+sp.rain[1]+" mm range",k:"bad"});
+        sc-=2; why.push({t:"Kuwait's "+KW_RAIN+" mm/yr is outside the documented "+sp.rain[0]+", "+sp.rain[1]+" mm range",k:"bad"});
       }
     } else why.push({t:"Rainfall tolerance not stated in source",k:"unk"});
     if(c.shade){
@@ -5681,12 +5526,12 @@ function matchSpecies(zone, c){
     }
     if(c.saline){
       if(sp.sal){ sc+=3; why.push({t:"Salt tolerance documented"+(typeof sp.sal==="string"&&sp.sal!=="yes"&&sp.sal!=="high"?" ("+sp.sal+")":""),k:"good"}); }
-      else { sc-=3; why.push({t:"No salt tolerance stated — unsuitable for a saline site",k:"bad"}); }
+      else { sc-=3; why.push({t:"No salt tolerance stated, unsuitable for a saline site",k:"bad"}); }
     }
     if(c.sand && (sp.form==="grass"||sp.form==="ground cover")){ sc+=2; why.push({t:"Sand-stabilising growth form",k:"good"}); }
     if(!c.irrigation){
       if(/low irrigation/i.test(sp.note)){ sc+=3; why.push({t:"Source states a low irrigation requirement",k:"good"}); }
-      else if(/medium drought/i.test(sp.note)){ sc-=3; why.push({t:"Source rates drought tolerance only medium — needs irrigation",k:"bad"}); }
+      else if(/medium drought/i.test(sp.note)){ sc-=3; why.push({t:"Source rates drought tolerance only medium, needs irrigation",k:"bad"}); }
     }
     return {sp, sc, why};
   }).sort((a,b)=>b.sc-a.sc);
@@ -5742,7 +5587,7 @@ const AGENTS=[
     return { zones:z, pick:z[0] };
   },
   render(o,b){
-    const rows=o.zones.map((z,i)=>'<tr'+(i===0?' style="background:rgba(63,208,201,.06)"':'')+
+    const rows=o.zones.map((z,i)=>'<tr'+(i===0?' style="background:rgba(63,208,201.06)"':'')+
       '><td style="color:var(--ink)">'+esc(z.id)+(i===0?' <span class="tag" style="color:var(--accent);border-color:var(--accent-dim)">TOP</span>':'')+
       '</td><td class="num">'+z.veg+'%</td><td class="num">'+z.lst+'</td><td class="num">'+z.dust+
       '</td><td class="num">'+z.urb+'%</td><td class="num">'+z.score+'</td></tr>').join("");
@@ -5754,8 +5599,8 @@ const AGENTS=[
         provRow([["Zone environmental values","demo"],["Surface heat field","sim"]]))
      + block("Why "+p.short+" came out on top",
         '<p class="ag-p"><strong>'+esc(p.id)+'</strong> carries a surface temperature of '+p.lst+' °C against a vegetation '+
-        'cover of only '+p.veg+'%, in a fabric that is '+p.urb+'% built. That combination — heat high, canopy low, '+
-        'people present — is what the priority score is measuring. Dust loading sits at '+p.dust+'/100, which matters '+
+        'cover of only '+p.veg+'%, in a fabric that is '+p.urb+'% built. That combination, heat high, canopy low, '+
+        'people present, is what the priority score is measuring. Dust loading sits at '+p.dust+'/100, which matters '+
         'for species choice but not for ranking.</p>'+
         '<p class="ag-p">The score is a weighting chosen for this platform, not a published index. It is open to '+
         'challenge and the weights are visible in the code.</p>');
@@ -5779,7 +5624,7 @@ const AGENTS=[
     const cons=Object.keys(o.c).filter(k=>o.c[k]).map(k=>RC_CHECKS.find(x=>x.k===k).t);
     return block("Constraints you set",
         cons.length? '<div class="chips">'+cons.map(c=>'<span class="chip" style="cursor:default">'+esc(c)+'</span>').join("")+'</div>'
-                   : '<p class="ag-p">No site constraints set — the register was ranked on native status and documented rainfall tolerance alone.</p>')
+                   : '<p class="ag-p">No site constraints set, the register was ranked on native status and documented rainfall tolerance alone.</p>')
      + block("Recommended for "+esc(o.zone.short), items + provRow([["Species attributes","pub"],["Match scoring","ai"]]))
      + block("How the match was made",
         '<p class="ag-p">Candidates come from Almutawa (2022), a peer-reviewed register of native and xeric species for '+
@@ -5792,7 +5637,7 @@ const AGENTS=[
         'require an agronomist and a site survey. This agent narrows the field; it does not close it.</span></div>');
   }},
 
-{ id:"pred", n:"Impact Prediction Agent", r:"What could happen if we implement this — with published coefficients and their ranges",
+{ id:"pred", n:"Impact Prediction Agent", r:"What could happen if we implement this, with published coefficients and their ranges",
   run(b,prev){
     const zone=prev.env.pick;
     return { zone, p:predictImpact(zone) };
@@ -5807,7 +5652,7 @@ const AGENTS=[
      + block("Predicted outcomes",
         '<div class="pred"><div class="pv2">−'+p.lstLo+' to −'+p.lstHi+' °C</div>'+
         '<div class="pr">Land surface temperature, daytime</div>'+
-        '<div class="pw">'+esc(k.what)+'. The published finding is a '+k.lo+'–'+k.hi+' °C reduction for a '+k.span+
+        '<div class="pw">'+esc(k.what)+'. The published finding is a '+k.lo+', '+k.hi+' °C reduction for a '+k.span+
         '-point rise in vegetation proportion; this scenario\'s '+p.uplift+'-point uplift is scaled from it. '+srcChips([k.src])+'</div>'+
         '<div class="pc2">'+esc(k.caveat)+'</div></div>'+
 
@@ -5818,18 +5663,18 @@ const AGENTS=[
         '<div class="pc2">'+esc(a.caveat)+'</div></div>'+
 
         '<div class="pred"><div class="pv2">'+kb.dayUCI+' °C day · +'+kb.nightUHI+' °C night</div>'+
-        '<div class="pr">Kuwait\'s observed urban–rural contrast (the baseline any prediction sits on)</div>'+
+        '<div class="pr">Kuwait\'s observed urban, rural contrast (the baseline any prediction sits on)</div>'+
         '<div class="pw">Measured across Kuwait: urban areas run <strong>'+Math.abs(kb.dayUCI)+' °C cooler than rural land by day</strong> '+
         '(95% CI '+kb.dayCI[0]+' to '+kb.dayCI[1]+') and <strong>'+kb.nightUHI+' °C hotter at night</strong> '+
         '(95% CI '+kb.nightCI[0]+' to '+kb.nightCI[1]+'). '+kb.sensor+'. '+srcChips([kb.src])+'</div>'+
         '<div class="pc2">This is the finding that should shape the objective. In Kuwait the city is not the daytime '+
-        'hot spot — the open desert is. The deficit that greening addresses is night-time heat retention and '+
+        'hot spot, the open desert is. The deficit that greening addresses is night-time heat retention and '+
         'pedestrian-level exposure, not daytime land surface temperature measured against bare desert.</div></div>'+
         provRow([["Cooling coefficients","pub"],["Kuwait baseline","pub"],["Scaling to this zone","ai"]]))
      + block("Confidence",
         '<p class="ag-p">Medium. The coefficient is real and peer-reviewed, but it was not derived in Kuwait, and the '+
-        'source states the cover–temperature relationship is non-linear. Treat the range as an order of magnitude to '+
-        'design a measurement around — not as a forecast.</p>');
+        'source states the cover, temperature relationship is non-linear. Treat the range as an order of magnitude to '+
+        'design a measurement around, not as a forecast.</p>');
   }},
 
 { id:"vis", n:"Visualisation & Costing Agent", r:"Puts the proposal on the imagery and prices it from your unit rates",
@@ -5848,7 +5693,7 @@ const AGENTS=[
           '<span class="chip" style="cursor:default"><span class="sw" style="background:'+
           [css("--c3"),css("--g4"),css("--c5")][i]+'"></span> '+esc(m.sp.com)+'</span>').join("")+'</div>'+
         provRow([["Base scene","sim"],["Planting overlay","ai"]]))
-     + block("Costing — your rates, our arithmetic",
+     + block("Costing, your rates, our arithmetic",
         '<p class="ag-p">Planting and maintenance rates in Kuwait are not published in a form we can cite, so this agent '+
         'asks you for them rather than inventing them. Change any figure and the total recomputes.</p>'+
         '<div class="costgrid mt-s" id="rcCostInputs"></div>'+
@@ -5870,7 +5715,7 @@ const AGENTS=[
     const notes=[];
     notes.push({k:"ok", t:"Baseline locked at deployment", d:"Cover at "+p.from+"% over the approved footprint. Every later observation is differenced against this frame, same calendar month.", w:"T+0"});
     notes.push({k: gap<-0.6?"warn2":"ok", t: gap<-0.6? "Canopy gain running below prediction" : "Canopy gain tracking prediction",
-      d: gap<-0.6 ? "Observed "+obs[pts-1]+"% against a predicted "+pre[pts-1]+"%. Gap of "+gap+" points. Most common causes in this climate are irrigation shortfall and establishment losses — worth checking before revising the model."
+      d: gap<-0.6 ? "Observed "+obs[pts-1]+"% against a predicted "+pre[pts-1]+"%. Gap of "+gap+" points. Most common causes in this climate are irrigation shortfall and establishment losses, worth checking before revising the model."
                   : "Observed "+obs[pts-1]+"% against a predicted "+pre[pts-1]+"%. Within the expected envelope; no change recommended.", w:"T+"+(pts-1)*3+" mo"});
     if(gap<-0.6) notes.push({k:"act", t:"Site visit recommended", d:"Send a team to the northern third of the footprint, where the deficit is concentrated, and confirm whether the loss is irrigation or survival.", w:"action"});
     notes.push({k:"ok", t:"Next observation scheduled", d:"Same footprint, same calendar month next year. No researcher action needed until then.", w:"queued"});
@@ -5887,10 +5732,10 @@ const AGENTS=[
      + block("Why the agent does not go quiet",
         '<p class="ag-p">The failure mode this replaces is familiar: the study is published, the planting happens, and '+
         'nobody looks again. Because the footprint is fixed and the satellite returns to it anyway, monitoring costs '+
-        'almost nothing — and a prediction that is never checked is not a prediction.</p>');
+        'almost nothing, and a prediction that is never checked is not a prediction.</p>');
   }},
 
-{ id:"rep", n:"Reporting Agent", r:"Writes the study up — objective, area, data, findings, limits, references",
+{ id:"rep", n:"Reporting Agent", r:"Writes the study up, objective, area, data, findings, limits, references",
   run(b,prev){ return {}; },
   render(o,b){
     return block("Report",
@@ -5955,7 +5800,7 @@ function rcStart(){
   if(RC.running) return;
   const objective=($("#rcObj").value||"").trim();
   if(!objective){
-    $("#rcStatus").innerHTML='<div class="errbox">Write a research objective first — the agents take their scope from it and will not invent one.</div>';
+    $("#rcStatus").innerHTML='<div class="errbox">Write a research objective first, the agents take their scope from it and will not invent one.</div>';
     $("#rcObj").focus(); return;
   }
   RC.brief.obj=objective;
@@ -6136,11 +5981,11 @@ function rcDrawProposal(){
   }
   ctx.globalAlpha=1;
   /* corridor spine */
-  ctx.strokeStyle="rgba(95,214,138,.32)"; ctx.lineWidth=Math.max(7,h*0.035); ctx.lineCap="round";
+  ctx.strokeStyle="rgba(95,214,138.32)"; ctx.lineWidth=Math.max(7,h*0.035); ctx.lineCap="round";
   ctx.beginPath(); ctx.moveTo(w*0.08,h*0.72); ctx.quadraticCurveTo(w*0.45,h*0.48,w*0.93,h*0.30); ctx.stroke();
   ctx.restore();
   /* footprint label */
-  ctx.font="10px 'IBM Plex Mono',monospace"; ctx.fillStyle="rgba(191,244,241,.9)";
+  ctx.font="10px 'IBM Plex Mono',monospace"; ctx.fillStyle="rgba(191,244,241.9)";
   ctx.fillText("PROPOSED FOOTPRINT · "+zone.short.toUpperCase(), 12, h-12);
 }
 
@@ -6173,7 +6018,7 @@ function rcCostOut(){
   const total=capital+annual*c.years;
   const fmt=v=>v.toLocaleString("en-US",{maximumFractionDigits:0});
   if(!c.units||!isFinite(total)){
-    out.innerHTML='<div class="ct3">Total programme cost</div><div class="cv3">—</div>'+
+    out.innerHTML='<div class="ct3">Total programme cost</div><div class="cv3">, </div>'+
       '<div class="cf">Enter your unit rates above. Nothing is assumed.</div>';
     return;
   }
@@ -6204,14 +6049,14 @@ function buildStudyReport(){
   const area = b.aoi==="all" ? L2("All Kuwait","كل الكويت") : REG[b.aoi].n;
   const S=[];
   const rule="=".repeat(64);
-  S.push("KUWAITSAT GREEN INTELLIGENCE — "+L2("RESEARCH STUDY REPORT","تقرير دراسة بحثية"));
+  S.push("KUWAITSAT GREEN INTELLIGENCE, "+L2("RESEARCH STUDY REPORT","تقرير دراسة بحثية"));
   S.push(rule);
-  S.push(L2("Run ID","رقم التشغيل")+": "+(RC.id||"—"));
+  S.push(L2("Run ID","رقم التشغيل")+": "+(RC.id||", "));
   S.push(L2("Generated","تاريخ الإصدار")+": "+new Date().toISOString().slice(0,16).replace("T"," ")+" UTC");
   S.push(L2("Status","الحالة")+": "+(RC.completed?L2("Study closed","دراسة مغلقة"):L2("In progress","قيد التنفيذ")));
   S.push("");
   S.push("1. "+L2("RESEARCH OBJECTIVE","هدف البحث"));
-  S.push("   "+(b.obj||"—"));
+  S.push("   "+(b.obj||", "));
   S.push("");
   S.push("2. "+L2("STUDY AREA AND PERIOD","منطقة الدراسة والفترة"));
   S.push("   "+L2("Area of interest","منطقة الاهتمام")+": "+area);
@@ -6255,7 +6100,7 @@ function buildStudyReport(){
   if(p){
     S.push("   "+L2("Vegetation cover","الغطاء النباتي")+": "+p.from+"% → "+p.to+"%  (+"+p.uplift+" pp)");
     S.push("   "+L2("Land surface temperature","حرارة سطح الأرض")+": −"+p.lstLo+" to −"+p.lstHi+" °C");
-    S.push("     "+L2("scaled from","مشتقة من")+": "+COEFF.lstPerCover.lo+"–"+COEFF.lstPerCover.hi+
+    S.push("     "+L2("scaled from","مشتقة من")+": "+COEFF.lstPerCover.lo+", "+COEFF.lstPerCover.hi+
       " °C "+L2("for a 20%→50% vegetation rise","لارتفاع الغطاء من ٢٠٪ إلى ٥٠٪")+"  [15]");
     S.push("   "+L2("Pedestrian air temperature, arid climates","حرارة الهواء عند المارة في المناخ الجاف")+
       ": "+L2("up to","حتى ")+" "+COEFF.airArid.max+" °C  [16]");
@@ -6265,7 +6110,7 @@ function buildStudyReport(){
     S.push("   "+L2("Confidence","الثقة")+": "+L2("Medium","متوسطة"));
   }
   S.push("");
-  S.push("7. "+L2("INDICATIVE COST — RESEARCHER'S OWN RATES","التكلفة الإرشادية — بأسعار الباحث"));
+  S.push("7. "+L2("INDICATIVE COST, RESEARCHER'S OWN RATES","التكلفة الإرشادية, بأسعار الباحث"));
   S.push("   "+L2("Planting units","وحدات الزراعة")+": "+fmt(c.units));
   S.push("   "+L2("Capital","رأسمالية")+": "+fmt(c.units)+" × "+c.unit+" = KD "+fmt(capital));
   S.push("   "+L2("Annual","سنوية")+": "+fmt(c.units)+" × ("+c.irr+" + "+c.maint+") = KD "+fmt(annual)+"/yr");
@@ -6282,7 +6127,7 @@ function buildStudyReport(){
       "same footprint, same calendar month, differenced against the pre-intervention baseline.",
       "البصمة نفسها والشهر نفسه، مطروحة مقابل خط الأساس قبل التدخل."));
   } else {
-    S.push("   "+L2("Not started — intervention not marked as deployed.","لم تبدأ — لم يُسجَّل التدخل كمنفَّذ."));
+    S.push("   "+L2("Not started, intervention not marked as deployed.","لم تبدأ, لم يُسجَّل التدخل كمنفَّذ."));
   }
   S.push("");
   S.push("9. "+L2("LIMITS OF USE","حدود الاستخدام"));
@@ -6303,7 +6148,7 @@ function buildStudyReport(){
   S.push("10. "+L2("REFERENCES","المراجع"));
   [1,3,4,11,13,14,15,16].forEach(n=>{ const sc=SOURCES[n-1]; if(sc) S.push("   ["+n+"] "+sc.name+"\n       "+sc.url); });
   S.push("");
-  S.push(L2("— END OF REPORT —","— نهاية التقرير —"));
+  S.push(L2(", END OF REPORT, ",", نهاية التقرير, "));
   return S.join("\n");
 }
 

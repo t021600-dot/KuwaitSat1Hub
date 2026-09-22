@@ -143,8 +143,8 @@
     },
     'wf.draft.k': { en: 'DRAFT READY', ar: 'المسودة جاهزة' },
     'wf.draft.b': {
-      en: 'The agent passes are done. The reporting step is not written and the run row is still open — both wait on your decision below.',
-      ar: 'انتهت مراحل الوكيل. لم تُكتب خطوة التقرير بعد، وصفّ التشغيل ما زال مفتوحاً — وكلاهما ينتظر قرارك أدناه.'
+      en: 'The agent passes are done. The reporting step is not written and the run row is still open, both wait on your decision below.',
+      ar: 'انتهت مراحل الوكيل. لم تُكتب خطوة التقرير بعد، وصفّ التشغيل ما زال مفتوحاً, وكلاهما ينتظر قرارك أدناه.'
     },
     'wf.card.p': {
       en: 'The agents have proposed the report below. It is held in this page only: no reporting step and no draft row have been written for it, and nothing is published until you approve. Your name goes on it.',
@@ -384,7 +384,7 @@
     return L.join('\n');
   }
 
-  var COEF_LINE = '0.6–3.7 °C per 30 points · MEASURED · source [15] Yin et al. 2024';
+  var COEF_LINE = '0.6, 3.7 °C per 30 points · MEASURED · source [15] Yin et al. 2024';
   var COEF_CAVEAT = 'source states the relationship is non-linear; treat as an order of magnitude to design a measurement around';
 
   /* ===================================================================
@@ -597,7 +597,7 @@
       'Creating the mission and requesting a run from the database.');
 
     return window.sb.from('missions').insert({
-      title: ('Greening candidate — ' + areaName).slice(0, 120),
+      title: ('Greening candidate, ' + areaName).slice(0, 120),
       objective: objective.slice(0, 1500),
       area_geojson: geom || (KS.boundsToPolygon
         ? KS.boundsToPolygon({ west: 47.60, east: 47.82, south: 29.30, north: 29.44 })
@@ -736,7 +736,7 @@
             });
           }
           row('rerank', 'RE-RANK ' + rerank + ' OF ' + MAX_RERANKS,
-            'Zone removed from the candidate list. Ranking again — every loop has one fewer zone, so the loop terminates.');
+            'Zone removed from the candidate list. Ranking again, every loop has one fewer zone, so the loop terminates.');
           return pause(420).then(attempt);
         });
       });
@@ -765,7 +765,7 @@
       'Governorate: ' + zone.gov,
       '',
       figure('current vegetation cover', n1(p.from) + '%', 'MODELLED',
-             'zonesFor() on the 39 m grid, seeded rng(4200) — demonstration dataset, not an observation'),
+             'zonesFor() on the 39 m grid, seeded rng(4200), demonstration dataset, not an observation'),
       '',
       figure('cover uplift', n1(p.uplift) + ' points', 'ESTIMATED',
              'zone ' + zone.short + ' cover ' + n1(p.from) + '% MODELLED (zonesFor, seed 4200)',
@@ -789,7 +789,7 @@
       args: { candidate: zone.id }
     }).then(function () {
       paintBudget();
-      return KS.writeResult('site', 'Accepted candidate — ' + zone.id, siteBody, geom);
+      return KS.writeResult('site', 'Accepted candidate, ' + zone.id, siteBody, geom);
     }).then(function () {
       row('ok', 'OVERLAY WRITTEN',
         'results row of kind “site”, with the ' + zone.gov + ' footprint as GeoJSON.');
@@ -842,7 +842,7 @@
   function buildDraft(zone, p, areaName) {
     var d = new Date();
     return [
-      'KUWAITSAT GREEN INTELLIGENCE — DECISION-SUPPORT DRAFT',
+      'KUWAITSAT GREEN INTELLIGENCE, DECISION-SUPPORT DRAFT',
       '================================================================',
       'Prepared: ' + d.toISOString().slice(0, 16).replace('T', ' ') + ' UTC',
       'Area of interest: ' + areaName,
@@ -991,11 +991,11 @@
       var head = el('div', 'ksat-wf-ck-head');
       head.appendChild(el('span', 'ksat-wf-ck-icon', '⏸'));
       head.appendChild(el('span', 'ksat-wf-ck-title',
-        'Agent proposes report — awaiting researcher approval.'));
+        'Agent proposes report, awaiting researcher approval.'));
       ui.check.appendChild(head);
 
       var ar = el('p', 'ksat-wf-ck-ar',
-        'الوكيل يقترح تقريراً — بانتظار موافقة الباحث.');
+        'الوكيل يقترح تقريراً, بانتظار موافقة الباحث.');
       ar.setAttribute('dir', 'rtl');
       ar.setAttribute('lang', 'ar');
       ui.check.appendChild(ar);
@@ -1152,7 +1152,7 @@
       }).then(function () {
         paintBudget();
         return KS.writeResult('narrative',
-          'Draft report — ' + ctx.zone.id + ' (approved by the researcher)',
+          'Draft report, ' + ctx.zone.id + ' (approved by the researcher)',
           ctx.draft, null);
       }).then(function () {
         /* Only now. Both writes landed; a retry may skip them. */
@@ -1199,7 +1199,7 @@
     ui.check.textContent = '';
     var head = el('div', 'ksat-wf-ck-head ksat-wf-ck-ok');
     head.appendChild(el('span', 'ksat-wf-ck-icon', '✓'));
-    head.appendChild(el('span', 'ksat-wf-ck-title', 'Mission Complete — report approved'));
+    head.appendChild(el('span', 'ksat-wf-ck-title', 'Mission Complete, report approved'));
     ui.check.appendChild(head);
 
     /* approved_at, not created_at. The reports table has no created_at —

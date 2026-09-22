@@ -172,18 +172,18 @@
     fewer: { en: 'Show fewer', ar: 'عرض أقل' },
     /* a run: the lead paragraph is whole, only the tail is behind this */
     run: function (n, code) {
-      return code === 'ar' ? 'اقرأ المزيد — ' + paras(n, 'ar')
-                           : 'Read more — ' + paras(n, 'en');
+      return code === 'ar' ? 'اقرأ المزيد, ' + paras(n, 'ar')
+                           : 'Read more, ' + paras(n, 'en');
     },
     /* MERGED: the lead is clamped AND a run is folded, one control for
        both, so the label has to name both halves or the reader cannot
        tell what they are opening. */
     merged: function (n, code) {
-      return code === 'ar' ? 'اقرأ المزيد — هذه الفقرة و' + paras(n, 'ar')
-                           : 'Read more — this paragraph and ' + n + ' more';
+      return code === 'ar' ? 'اقرأ المزيد, هذه الفقرة و' + paras(n, 'ar')
+                           : 'Read more, this paragraph and ' + n + ' more';
     },
     grid: function (n, code) {
-      return code === 'ar' ? 'عرض الكل — ' + cards(n, 'ar') : 'Show all ' + n;
+      return code === 'ar' ? 'عرض الكل, ' + cards(n, 'ar') : 'Show all ' + n;
     }
   };
 
