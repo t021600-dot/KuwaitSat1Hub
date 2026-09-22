@@ -91,6 +91,14 @@
 !site.webmanifest
 !vercel.json
 
+#     researcher.html is the workspace a researcher lands on after signing
+#     in. It is listed here on purpose and it is safe to serve: the file is
+#     an EMPTY workspace. No frame, no coordinate and no mission is in it.
+#     Everything it shows arrives over an authenticated PostgREST call that
+#     row level security answers — see 03-security/db/13_payload_archive.sql.
+#     Fetch it signed out and you get a page that tells you nothing.
+!researcher.html
+
 !api
 !api/**
 

@@ -181,7 +181,22 @@
           }
           fails = 0;
           KS.user = r.data.user; KS.live = true;
-          openConsole(g);
+
+          /* WHERE A RESEARCHER LANDS AFTER SIGNING IN.
+             Not back on this page with ten sections unhidden — on
+             /researcher.html, the research workspace. Signing in is a
+             change of place, not a change of visibility, and the
+             workspace is where the payload archive, the mission record
+             and the console actually live.
+
+             openConsole() below is not dead: boot() calls it for a
+             session that is ALREADY alive when this page loads, so a
+             researcher who comes back to the hub still gets their
+             identity chip, their profile row and the audit amendment.
+             Nothing was removed; a destination was added. */
+          go.textContent = 'Opening workspace...';
+          location.assign('researcher.html');
+          return;
         })
         .catch(function () {
           msg.className = 'ksat-gate-msg bad';
@@ -658,7 +673,13 @@
       window.sb.auth.getSession().then(function (r) {
         if (r.data && r.data.session) {
           KS.user = r.data.session.user; KS.live = true;
-          showIdentity(); ensureProfile();
+          /* Was showIdentity() + ensureProfile(). openConsole(null) is
+             those two plus amendAudit(), which used to run only after a
+             fresh sign-in on this page — and a fresh sign-in now leaves
+             for researcher.html, so this was about to become the only
+             path that reaches it. There is no gate to remove on this
+             path, hence the null. */
+          openConsole(null);
         } else {
           buildGate();
         }

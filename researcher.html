@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en" class="ksat-checking">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Research Operations · KuwaitSat-1</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Restricted research workspace for the KuwaitSat-1 programme.">
+
+<!-- =====================================================================
+     researcher.html — THE WORKSPACE BEHIND THE SIGN IN
+     Owner: 01 Front End / 03 Security
+
+     WHAT THIS PAGE IS
+     The workspace the team designed (kuwaitsat_researcher_page (4).html),
+     wired to the real platform: a real session check, a real sign out,
+     and a real payload archive read out of Supabase instead of the
+     placeholder rows the prototype carried.
+
+     WHAT IS NOT IN THIS FILE, AND WILL NEVER BE
+     Not one frame, not one coordinate, not one mission. This document is
+     an empty workspace. Anyone may fetch it; it tells them nothing. The
+     data arrives over an authenticated PostgREST call and row level
+     security decides whether to answer — see
+     03-security/db/13_payload_archive.sql, and the table there of what
+     each kind of caller gets back.
+
+     That distinction is the whole design. The `ksat-checking` class on
+     <html> above hides the chrome until the session is known, which
+     stops a stranger seeing a research console flash past; it is
+     COSMETIC. If it were the only thing standing between a stranger and
+     the data, the data would already be gone, because anyone can turn a
+     class off. The database is the control.
+
+     WHY THE MARKUP CARRIES data-go= AND NOT onclick=
+     The delivered prototype used twenty inline handlers and three
+     alert() calls. The handlers are moved into js/ksat-researcher.js so
+     this page keeps working if the Content-Security-Policy in
+     vercel.json ever drops 'unsafe-inline' from script-src, which is the
+     direction that file has been travelling. The alerts are replaced by
+     inline text: a modal dialog blocks the page and says nothing the
+     page could not have said in place.
+     ===================================================================== -->
+
+<link rel="icon" href="assets/brand/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<link rel="stylesheet" href="css/ksat-researcher.css">
+<link rel="stylesheet" href="css/ksat-stars.css">
+</head>
+<body>
+
+<!-- The wait. js/ksat-stars.js puts the star field behind this. -->
+<div id="entry"><div class="entrybox">
+  <div class="entrytitle">KUWAITSAT-1 · RESEARCH OPERATIONS</div>
+  <h2>Initializing research workspace</h2>
+  <p>Loading mission context · verifying data access · establishing session</p>
+  <div class="line"><i></i></div>
+</div></div>
+
+<!-- Shown instead of the workspace when there is no session. -->
+<div id="denied" hidden><div class="entrybox">
+  <div class="entrytitle">KUWAITSAT-1 · RESEARCH OPERATIONS</div>
+  <h2>This workspace is restricted</h2>
+  <p>Research operations are available to authorized researchers on the
+     KuwaitSat-1 programme. Sign in from the mission hub and you will be
+     returned here.</p>
+  <a class="btn primary" href="/">Go to the mission hub</a>
+</div></div>
+
+<header class="top">
+  <div class="brand">KUWAITSAT-1<small>RESEARCH &amp; MISSION OPERATIONS</small></div>
+  <nav class="nav">
+    <button class="active" data-go="overview">Overview</button>
+    <button data-go="missions">Missions</button>
+    <button data-go="frames">Payload Archive</button>
+    <button data-go="data">Data Archive</button>
+    <button data-go="console">Research Console</button>
+    <button data-go="reports">Reports</button>
+  </nav>
+  <div class="who">
+    <div class="name" id="whoName">Signed in<small id="whoOrg">Researcher</small></div>
+    <a class="btn" href="/">Mission hub</a>
+    <button class="btn" id="signout">Sign out</button>
+  </div>
+</header>
+
+<div class="statusbar">
+  <span>SPACECRAFT <b>● NOMINAL</b></span>
+  <span>PAYLOAD <b>● AVAILABLE</b></span>
+  <span>GROUND LINK <b>● NOMINAL</b></span>
+  <span>DATA PIPELINE <b id="pipeState">● CHECKING</b></span>
+  <span>ACCESS: RESEARCHER</span>
+</div>
+
+<div class="layout">
+<aside>
+  <h5>Mission Operations</h5>
+  <button class="active" data-go="overview">▣ Research Overview</button>
+  <button data-go="missions">▤ Missions</button>
+  <button data-act="new-mission">＋ New Mission</button>
+  <h5>Scientific Data</h5>
+  <button data-go="frames">◎ Payload Imagery</button>
+  <button data-go="data">▦ Data Archive</button>
+  <button data-go="frames">⌖ Geospatial Layers</button>
+  <h5>Analysis</h5>
+  <button data-go="console">⌁ Research Console</button>
+  <h5>Outputs</h5>
+  <button data-go="reports">▤ Reports &amp; Exports</button>
+  <button data-go="frames">▣ Provenance / Audit</button>
+</aside>
+
+<main>
+
+<!-- ================= OVERVIEW ================= -->
+<section id="overview" class="view">
+  <div class="head">
+    <div>
+      <div class="kicker">Research Operations / Mission Control</div>
+      <h1>Research Overview</h1>
+      <p>Operational context, active investigations and scientific workflow status.</p>
+    </div>
+    <button class="btn primary" data-act="new-mission">＋ New Mission</button>
+  </div>
+
+  <div class="grid">
+    <div class="card s3"><div class="label">Active Missions</div>
+      <div class="metric" id="kMissions">—</div><div class="sub" id="kMissionsSub">Reading your missions</div></div>
+    <div class="card s3"><div class="label">Payload Frames</div>
+      <div class="metric" id="kFrames">—</div><div class="sub" id="kFramesSub">Reading the archive</div></div>
+    <div class="card s3"><div class="label">Data Ingest</div>
+      <div class="metric" id="kIngest">—</div><div class="sub" id="kIngestSub">Checking the link</div></div>
+    <div class="card s3"><div class="label">Agent Services</div>
+      <div class="metric">08/08</div><div class="sub">Configured</div></div>
+
+    <div class="card s8">
+      <div class="ct"><h3>Workflow</h3><span class="tag">ORCHESTRATED</span></div>
+      <div class="timeline">
+        <div class="stage done"><i>1</i><span>REQUEST</span></div>
+        <div class="stage done"><i>2</i><span>DATA</span></div>
+        <div class="stage done"><i>3</i><span>ANALYSIS</span></div>
+        <div class="stage active"><i>4</i><span>DECISION</span></div>
+        <div class="stage"><i>5</i><span>IMPACT</span></div>
+        <div class="stage"><i>6</i><span>REPORT</span></div>
+      </div>
+      <div class="map" style="margin-top:18px">
+        <div class="coast"></div>
+        <div class="pin p1"></div><div class="pin p2"></div><div class="pin p3"></div>
+        <div class="legend">AOI · candidate zones · current observation</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:9px">
+        <span class="sub">Identify areas in Kuwait where increasing vegetation could improve environmental conditions.</span>
+        <span class="sub">Area of interest, drawn. Not a live position.</span>
+      </div>
+    </div>
+
+    <div class="card s4">
+      <div class="ct"><h3>Agent Operations</h3><span class="tag">ORCHESTRATED</span></div>
+      <div class="agent"><div class="ico">MO</div><div><strong>Mission Orchestrator</strong><small>Evaluating next action</small></div><span class="state ok">ACTIVE</span></div>
+      <div class="agent"><div class="ico">SD</div><div><strong>Satellite Data Agent</strong><small>Data sufficiency verified</small></div><span class="state ok">DONE</span></div>
+      <div class="agent"><div class="ico">EA</div><div><strong>Environmental Analysis</strong><small>Candidate zones generated</small></div><span class="state ok">DONE</span></div>
+      <div class="agent"><div class="ico">RA</div><div><strong>Recommendation Agent</strong><small>Awaiting human checkpoint</small></div><span class="state wait">HOLD</span></div>
+      <div class="agent"><div class="ico">IP</div><div><strong>Impact Prediction</strong><small>Starts after approval</small></div><span class="state">WAITING</span></div>
+      <div class="agent"><div class="ico">RP</div><div><strong>Reporting Agent</strong><small>Final outputs only</small></div><span class="state">WAITING</span></div>
+      <div class="notice" style="margin-top:12px">Human checkpoint is required before the system can advance to impact prediction.</div>
+    </div>
+
+    <div class="card s7">
+      <div class="ct"><h3>Your Missions</h3><button class="btn" data-go="missions">View archive</button></div>
+      <table id="ovMissions"><tr><th>Mission</th><th>Objective</th><th>Created</th><th>Status</th></tr></table>
+      <div class="said" id="ovMissionsMsg"></div>
+    </div>
+
+    <div class="card s5">
+      <div class="ct"><h3>Session</h3><span class="sub">THIS BROWSER</span></div>
+      <div class="log" id="sessionLog"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MISSIONS ================= -->
+<section id="missions" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Mission Operations</div><h1>Missions</h1>
+      <p>Research requests, workflow state, decisions and reproducible mission records.</p></div>
+    <button class="btn primary" data-act="new-mission">＋ New Mission</button>
+  </div>
+  <div class="card">
+    <input class="search" id="missionSearch" placeholder="Search mission ID, objective, dataset…">
+    <table style="margin-top:12px" id="missionTable">
+      <tr><th>Mission</th><th>Research objective</th><th>Created</th><th>Status</th></tr>
+    </table>
+    <div class="said" id="missionMsg"></div>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div class="card s8">
+      <div class="ct"><h3>Decision record</h3><span class="tag amber">HUMAN REVIEW</span></div>
+      <div class="decision"><h4>Decision required</h4>
+        <p>Candidate zones satisfy the configured screening criteria. The Recommendation Agent
+           prepares evidence; a researcher, not the system, accepts it.</p></div>
+      <div style="margin-top:12px">
+        <button class="btn primary" data-act="approve">Approve candidate</button>
+        <button class="btn" data-act="reject">Reject / Re-rank</button>
+      </div>
+      <div class="said" id="decisionMsg"></div>
+    </div>
+    <div class="card s4">
+      <div class="ct"><h3>Orchestrator State</h3><span class="tag green">ACTIVE</span></div>
+      <div class="log">REQUEST RECEIVED<br>↓<br>DATA SUFFICIENCY = TRUE<br>↓<br>ENVIRONMENTAL ANALYSIS<br>↓<br>CANDIDATES = 3<br>↓<br>RECOMMENDATION<br>↓<br><span class="warn">HUMAN CHECKPOINT</span><br>↓<br>IMPACT PREDICTION<br>↓<br>REPORT</div>
+      <div class="notice" style="margin-top:15px">The Orchestrator does not blindly execute a fixed sequence. It evaluates each stage result and selects the next permitted action.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PAYLOAD ARCHIVE ================= -->
+<section id="frames" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Scientific Data Management</div><h1>Payload Archive</h1>
+      <p>Frames decoded from KuwaitSat-1, with the acquisition record kept for each.</p></div>
+    <span class="tag green" id="framesTag">RESTRICTED</span>
+  </div>
+
+  <div class="notice" style="margin-bottom:14px">
+    These frames are held in the mission database and are released only to a signed in
+    researcher. They are not in the public repository, they are not part of the deployed
+    site, and there is no address that serves them without a session.
+  </div>
+
+  <div class="card">
+    <div class="ct"><h3 id="framesCount">Payload frames</h3><span class="sub">PROVENANCE REQUIRED</span></div>
+    <div id="framesGrid" class="frames"></div>
+    <div class="said" id="framesMsg"></div>
+  </div>
+
+  <div class="card" id="frameSheetCard" style="margin-top:12px" hidden>
+    <div class="ct"><h3 id="frameSheetTitle">Frame</h3>
+      <button class="btn" data-act="close-sheet">Close</button></div>
+    <div class="sheet" id="frameSheet"></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="ct"><h3>How the geolocation on these rows was produced</h3></div>
+    <div class="log" id="geoMethodNote"></div>
+  </div>
+</section>
+
+<!-- ================= DATA ARCHIVE ================= -->
+<section id="data" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Scientific Data Management</div><h1>Data Archive</h1>
+      <p>Datasets this workspace can reach, with source, class and resolution stated.</p></div>
+  </div>
+  <div class="grid">
+    <div class="card s3"><div class="label">Filters</div>
+      <select class="search" style="margin-top:10px" id="fSource">
+        <option>All sources</option><option>KuwaitSat-1</option><option>Derived</option><option>Reference</option>
+      </select>
+      <select class="search" style="margin-top:9px" id="fClass">
+        <option>All data classes</option><option>MEASURED</option><option>MODELLED</option><option>ESTIMATED</option><option>DERIVED</option>
+      </select>
+    </div>
+    <div class="card s9">
+      <div class="ct"><h3 id="dataCount">Datasets</h3><span class="sub">PROVENANCE REQUIRED</span></div>
+      <input class="search" id="dataSearch" placeholder="Search variable, instrument, mission, location…">
+      <table style="margin-top:12px" id="dataTable">
+        <tr><th>Dataset</th><th>Source</th><th>Class</th><th>Resolution</th><th>Records</th><th>Quality</th></tr>
+      </table>
+      <div class="said" id="dataMsg"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESEARCH CONSOLE ================= -->
+<section id="console" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Scientific Analysis</div><h1>Research Console</h1>
+      <p>Formulate a question, constrain the evidence and inspect the reasoning path before accepting outputs.</p></div>
+    <button class="btn primary" data-act="run">Run Analysis</button>
+  </div>
+  <div class="grid">
+    <div class="card s8">
+      <div class="ct"><h3>Research Question</h3><span class="tag">ORCHESTRATOR READY</span></div>
+      <textarea id="q" class="query" placeholder="Example: Identify areas in Kuwait where increasing vegetation could improve environmental conditions. Include data sources, assumptions, uncertainty and limitations."></textarea>
+    </div>
+    <div class="card s4">
+      <div class="ct"><h3>Agent Tool Permissions</h3><span class="tag">READ / ANALYZE</span></div>
+      <div class="rule"><span>Search approved datasets</span><b class="state ok">ALLOWED</b></div>
+      <div class="rule"><span>Retrieve authorized imagery</span><b class="state ok">ALLOWED</b></div>
+      <div class="rule"><span>Retrieve metadata</span><b class="state ok">ALLOWED</b></div>
+      <div class="rule"><span>Modify original data</span><b class="state">DENIED</b></div>
+      <div class="rule"><span>Publish externally</span><b class="state">DENIED</b></div>
+      <div class="rule"><span>Real mission command</span><b class="state">HUMAN ONLY</b></div>
+      <div class="notice" style="margin-top:12px">These are not labels. The payload archive carries no insert, update or
+        delete grant for any signed in role, so "Modify original data" is refused by the database.</div>
+    </div>
+    <div class="card s12">
+      <div class="ct"><h3>Agent Execution Trace</h3><span class="sub">DECISION-BASED WORKFLOW</span></div>
+      <div id="trace" class="empty">Run a research question to display the Orchestrator's decisions and tool calls.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REPORTS ================= -->
+<section id="reports" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Scientific Outputs</div><h1>Reports &amp; Exports</h1>
+      <p>Reports are generated from researcher-approved findings and retain evidence and limitations.</p></div>
+  </div>
+  <div class="card">
+    <table id="reportTable"><tr><th>Report</th><th>Mission</th><th>Approved</th><th>Status</th></tr></table>
+    <div class="said" id="reportMsg"></div>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div class="card s6"><div class="ct"><h3>Report structure</h3></div>
+      <div class="log">EXECUTIVE SUMMARY<br>RESEARCH OBJECTIVE<br>DATA USED<br>METHODOLOGY<br>FINDINGS<br>RESEARCHER-APPROVED RECOMMENDATIONS<br>IMPACT ESTIMATE<br>VISUALIZATIONS<br>SOURCES / PROVENANCE<br>LIMITATIONS</div></div>
+    <div class="card s6"><div class="ct"><h3>Evidence policy</h3></div>
+      <div class="notice">If available evidence is insufficient, the Reporting Agent records that limitation rather
+        than inventing a quantitative conclusion. Impact outputs should use ranges or uncertainty where appropriate.</div></div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- ================= NEW MISSION ================= -->
+<div id="modal" class="modal hidden">
+  <div class="modalbox">
+    <h2>New Research Mission</h2>
+    <p>Define the scientific question. The Mission Orchestrator will determine the permitted
+       next action from available evidence and configured rules.</p>
+    <div class="form">
+      <div class="field"><label>Mission name</label><input id="mTitle" placeholder="e.g. Kuwait vegetation assessment"></div>
+      <div class="field"><label>Mission type</label><select id="mType">
+        <option>Earth Observation</option><option>Environmental Research</option>
+        <option>Telemetry Analysis</option><option>Custom Research</option></select></div>
+      <div class="field full"><label>Research objective</label>
+        <textarea id="mObjective" placeholder="What scientific question should the mission answer?"></textarea></div>
+      <div class="field"><label>Area of interest</label><input id="mArea" placeholder="Kuwait / coordinates / polygon"></div>
+      <div class="field"><label>Time window</label><input id="mWindow" placeholder="Start → End"></div>
+    </div>
+    <div class="said" id="modalMsg"></div>
+    <div class="actions">
+      <button class="btn" data-act="close-modal">Cancel</button>
+      <button class="btn primary" data-act="create">Create mission</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/ksat-stars.js"></script>
+<script src="js/ksat-researcher.js"></script>
+</body>
+</html>

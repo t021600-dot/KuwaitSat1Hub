@@ -20,3 +20,30 @@ node_modules/
 *.log
 .vercel/
 .tmp/
+
+# ---------------------------------------------------------------------
+# THE RESEARCHER DATASET NEVER ENTERS THIS REPOSITORY.
+#
+# The team's instruction, in capitals and twice: the data is to be
+# available on the researcher page after sign in and nowhere else. A
+# public GitHub repository is "anywhere else", and so is the Vercel
+# build output, and so is a stray CSV somebody exported while debugging.
+#
+# It lives in Supabase behind row level security. What follows blocks
+# every shape it might take on the way there: the source document, any
+# extract of it, and the scratch files a migration leaves behind.
+#
+# If you need to work with it locally, keep it OUTSIDE the repo.
+# ---------------------------------------------------------------------
+data*.docx
+data*.doc
+*.researcher.json
+*.researcher.csv
+/private/
+/_data/
+seed*.sql
+!03-security/db/*.sql
+
+# Python bytecode from the loader tool
+__pycache__/
+*.pyc

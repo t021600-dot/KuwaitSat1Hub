@@ -1,0 +1,94 @@
+/* =====================================================================
+   ksat-stars.css — the field behind the sign-in gate
+   Owner: 01 Front End
+   Paired with js/ksat-stars.js; read the header there for what is drawn
+   and why it watches for its own host.
+   ===================================================================== */
+
+/* The canvas fills the gate and sits UNDER the card. The card has no
+   z-index of its own in ksat-integration.css, so it would lose a paint
+   order argument with an absolutely positioned sibling; both are given
+   an explicit layer here rather than relying on source order. */
+.ksat-stars{
+  position:absolute; inset:0;
+  z-index:0;
+  display:block;
+  pointer-events:none;              /* the field is scenery, not a target */
+  border-radius:inherit;
+}
+
+/* --------------------------------------------------------------------
+   The gate stops being a scrim and becomes a window.
+
+   #ksat-gate carried background:rgba(4,8,18,.93) plus a 14px backdrop
+   blur — correct for a modal over a page, wrong for a star field, which
+   would have been painted on top of a near-opaque wash and then had the
+   page smeared behind it for no reason. The wash goes; the canvas is
+   the background now. The blur goes with it: there is nothing left to
+   see through.
+   -------------------------------------------------------------------- */
+#ksat-gate{
+  background:#04070F !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  overflow:hidden;                  /* meteors leave the frame, not the page */
+}
+
+/* The card floats in the field rather than sitting on it: a little more
+   translucency, a rim of light, and a shadow deep enough to read as
+   distance. */
+#ksat-gate .ksat-gate-card{
+  position:relative;
+  z-index:1;
+  background:rgba(10,16,30,.72);
+  border:1px solid rgba(160,200,235,.16);
+  box-shadow:0 30px 90px rgba(0,0,0,.72),
+             0 0 0 1px rgba(255,255,255,.03) inset,
+             0 0 70px rgba(30,110,130,.22);
+  backdrop-filter:blur(10px) saturate(115%);
+  -webkit-backdrop-filter:blur(10px) saturate(115%);
+}
+
+/* --------------------------------------------------------------------
+   Light mode.
+
+   css/ksat-nasa.css turns the gate white under :root[data-theme="light"].
+   That rule is left in place for the card, but NOT for the field: a star
+   field on a white ground is not a star field. The door to the research
+   workspace stays dark in both themes, which is the same call the
+   masthead makes and for the same reason — it is a fixed piece of
+   chrome, not page content that should follow the reader's setting.
+   -------------------------------------------------------------------- */
+:root[data-theme="light"] #ksat-gate{
+  background:#04070F !important;
+}
+:root[data-theme="light"] #ksat-gate .ksat-gate-card{
+  background:rgba(10,16,30,.72);
+  color:#E8ECF8;
+  box-shadow:0 30px 90px rgba(0,0,0,.72),
+             0 0 70px rgba(30,110,130,.22);
+}
+:root[data-theme="light"] #ksat-gate .ksat-gate-card h2,
+:root[data-theme="light"] #ksat-gate .ksat-gate-sub,
+:root[data-theme="light"] #ksat-gate .ksat-gate-note{
+  color:#E8ECF8;
+}
+:root[data-theme="light"] #ksat-gate .ksat-gate-sub,
+:root[data-theme="light"] #ksat-gate .ksat-gate-note{
+  color:#A8B6C8;
+}
+
+/* --------------------------------------------------------------------
+   The researcher workspace's own splash (#entry) gets the same field.
+   It is the other screen on this platform where somebody waits.
+   -------------------------------------------------------------------- */
+#entry, #denied{ overflow:hidden; background:#04070F; }
+#entry .entrybox, #denied .entrybox{ position:relative; z-index:1; }
+
+/* --------------------------------------------------------------------
+   Motion is a setting. The canvas itself stops animating in JS; this
+   block covers the CSS-animated loading bar that sits beside it.
+   -------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce){
+  #entry .line i{ animation:none; width:100%; opacity:.5; }
+}

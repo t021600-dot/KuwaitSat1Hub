@@ -911,6 +911,11 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <link rel="stylesheet" href="css/ksat-facts.css">
 <link rel="stylesheet" href="css/ksat-minimal.css">
 <link rel="stylesheet" href="css/ksat-home.css">
+<!-- ksat-stars.css turns the sign-in gate from a scrim into a star field.
+     It has to come after ksat-nasa.css, which paints the gate white in
+     light mode - the door to the research workspace stays dark in both
+     themes, for the same reason the masthead does. -->
+<link rel="stylesheet" href="css/ksat-stars.css">
 
 <!-- ============ THE THREE NEW LAYERS =============================
      nav, export and session. Three separate agents each asked for
@@ -6204,6 +6209,9 @@ addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcD
 <script src="js/ksat-explore.js"></script>
 <script src="js/ksat-facts.js"></script>
 <script src="js/ksat-home.js"></script>
+<!-- The star field behind the sign-in gate. Order does not matter: it
+     owns no existing node and waits for #ksat-gate to be built. -->
+<script src="js/ksat-stars.js"></script>
 
 <!-- ============ THE THREE NEW LAYERS =============================
      All three are CLASSIC scripts, and that is load-bearing rather
