@@ -16,6 +16,8 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-DNS-Prefetch-Control", "value": "off" },
         { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },
         {
           "key": "Permissions-Policy",
@@ -35,5 +37,23 @@
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     }
+  ],
+  "redirects": [
+    { "source": "/01-front-end/(.*)", "destination": "/", "permanent": false },
+    { "source": "/02-back-end/(.*)", "destination": "/", "permanent": false },
+    { "source": "/03-security/(.*)", "destination": "/", "permanent": false },
+    { "source": "/04-agents/(.*)", "destination": "/", "permanent": false },
+    { "source": "/app-retag/(.*)", "destination": "/", "permanent": false },
+    { "source": "/site-original/(.*)", "destination": "/", "permanent": false },
+    { "source": "/tools/(.*)", "destination": "/", "permanent": false },
+    { "source": "/CONTRIBUTING.md", "destination": "/", "permanent": false },
+    { "source": "/CREDITS-AND-SOURCES.txt", "destination": "/", "permanent": false },
+    { "source": "/.gitleaksignore", "destination": "/", "permanent": false },
+    { "source": "/js/README.md", "destination": "/", "permanent": false },
+    { "source": "/assets/README.md", "destination": "/", "permanent": false },
+    { "source": "/api/README.md", "destination": "/", "permanent": false }
+  ],
+  "crons": [
+    { "path": "/api/monitor", "schedule": "0 2 * * *" }
   ]
 }

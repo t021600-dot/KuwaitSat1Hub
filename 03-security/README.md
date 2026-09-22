@@ -78,15 +78,28 @@ biggest threats** — both in [`THREAT-MODEL.md`](docs/THREAT-MODEL.md).
 | [`06_validation.sql`](db/06_validation.sql) | **⭐ This file IS `se-m5`** | What refuses the 5,000-character paste when someone skips the form |
 | [`07_admin_audit_PHASE2.sql`](db/07_admin_audit_PHASE2.sql) | Super-admin + access log | **Read, do not run** this week — see its Block 0 |
 | [`08_agent_claim.sql`](db/08_agent_claim.sql) | `claim_next_run()` + `sweep_stalled_runs()` | **RUN IT.** Without this the worker has three write paths and no way to find out there is anything to write about — nothing ever leaves `queued` |
-| [`99_verify.sql`](db/99_verify.sql) | Nine checks that prove it took effect | Run Sunday, Tuesday, Wednesday |
+| [`09_researcher_write_path.sql`](db/09_researcher_write_path.sql) | `researcher_log_step / _write_result / _finish_run` | The demo runs the agents **in the page**, so the browser needs its own way in. Every one re-reads ownership with `owns_mission()` — the argument is content, never authorisation |
+| [`10_advisor_fixes.sql`](db/10_advisor_fixes.sql) | The `se-m6` Advisor fixes, in the repo | A fix that exists only on the live database is a story about a fix: rebuilding from `db/` would reopen both holes |
+| [`11_monitoring.sql`](db/11_monitoring.sql) | `monitoring_events` + `monitor_record()` + `monitor_health()`, and `reports_one_per_mission` | Somewhere for the nightly Vercel cron to leave a record, written with no table grant for anybody — and the uniqueness guard that stops a second Approve writing a second report row |
+| [`99_verify.sql`](db/99_verify.sql) | Nine checks, then `§checkpoint` and `§isolation` | Run Sunday, Tuesday, Wednesday. **Nothing in this file has to be edited before it is run.** `§isolation` discovers its accounts from `profiles`; `§checkpoint` discovers its mission and its two researchers from `missions` (22 Sep — it used to open with three `REPLACE-WITH-…` placeholders, which raised a uuid cast error that read like a broken script rather than a missed step). Both skip loudly and say why when the database cannot supply a subject |
 
 ### `tests/` — proving it
 
 | File | What it is |
 |---|---|
-| [`two-window-check.js`](tests/two-window-check.js) | **⭐ The 40 seconds I am graded on.** Runs in the console against the API — not through our screens |
-| [`RLS-TEST-MATRIX.md`](tests/RLS-TEST-MATRIX.md) | 25 checks where **every line is expected to fail** |
+| [`security-check.mjs`](tests/security-check.mjs) | **The suite**, 40 checks. `node 03-security/tests/security-check.mjs` — it tries the door rather than asking the database whether it is locked. Every database check runs as `anon`, holding only the key that ships in the page, except `ISO-A` / `ISO-B`, which sign **two real accounts** in and ask for one researcher's mission **by primary key** as the other. The `integrity · the page` group was rebuilt on 22 Sep; the decision and the reasoning are in *The decision of 22 September 2026* below, and the long comment above `PG-ORIG` in the file repeats it for whoever opens the code first |
+| [`two-window-check.js`](tests/two-window-check.js) | **⭐ The 40 seconds I am graded on.** Runs in the console against the API — not through our screens. It asks for A's mission id rather than carrying a placeholder: the old `'<paste Researcher A mission id>'` literal survived unedited into demo week |
+| [`RLS-TEST-MATRIX.md`](tests/RLS-TEST-MATRIX.md) | 25 checks where **every line is expected to fail**, and a table of which of them two automated blocks now re-prove |
 | [`VALIDATION-MATRIX.md`](tests/VALIDATION-MATRIX.md) | Every field × empty / too long / wrong type, plus the refusal wording for 01 |
+
+`ISO-A` and `ISO-B` take two logins from the environment and **skip cleanly**
+when they are absent — a missing test account is a missing test account, not a
+security finding:
+
+```bash
+KSAT_TEST_A="researcher-a@ksat.demo:pw" KSAT_TEST_B="researcher-b@ksat.demo:pw" \
+  node 03-security/tests/security-check.mjs
+```
 
 ### `docs/` — the written material
 
@@ -213,13 +226,96 @@ Full reasoning: [`DECISIONS.md`](docs/DECISIONS.md).
 
 | | | Evidence |
 |---|---|---|
-| SQL written and reviewed | ✅ | `db/01` → `db/10`, plus `99_verify.sql` |
-| SQL **run against the live project** | ✅ | 12 migrations applied to `kqboenytmzagdiweqygl` |
+| SQL written and reviewed | ✅ | `db/01` → `db/11`, plus `99_verify.sql` |
+| SQL **run against the live project** | ⚠️ | 12 migrations applied to `kqboenytmzagdiweqygl` — that is `db/01` → `db/10`. **[`db/11_monitoring.sql`](db/11_monitoring.sql) is written but has not been run**, so `monitoring_events`, `monitor_record()`, `monitor_health()` and the `reports_one_per_mission` unique index do not exist on the live database yet. Two things follow until it is run: `api/monitor.js` gets a 404 from its second call every night (it is written to survive that and still report the sweep), and pressing **Approve** twice still writes two report rows for one mission. This row said ✅ against "`db/01` → `db/10`" while an eleventh file sat beside them, which is exactly how an unrun migration reaches demo day |
 | `99_verify.sql` passing | ✅ | **8 checks, 0 failures** — see below |
-| Two-window check passing | ✅ | [`evidence/se-m1-isolation-matrix-2026-09-21.md`](evidence/se-m1-isolation-matrix-2026-09-21.md) |
+| Two-window check passing | ✅ | [`evidence/se-m1-isolation-matrix-2026-09-21.md`](evidence/se-m1-isolation-matrix-2026-09-21.md), and re-runnable as `§isolation` in [`db/99_verify.sql`](db/99_verify.sql) |
 | `se-m6` audit **run for real**, fixes shipped | ✅ | **three** fixes, not two — [`evidence/se-m6-security-advisor-2026-09-21.md`](evidence/se-m6-security-advisor-2026-09-21.md) |
 | `evidence/` populated | ✅ | 8 files, every one a recorded result |
-| **Automated suite** | ✅ | **36 checks, 0 failures** — `node 03-security/tests/security-check.mjs` |
+| **Automated suite** | ✅ | **40 checks: 38 passed, 2 skipped, 0 failed** — `node 03-security/tests/security-check.mjs`, re-run 22 Sep. The three red lines of 21 Sep were the page-integrity checks, and they are resolved by a decision, not a patch — read the section below, because the resolution is the interesting part |
+
+#### The decision of 22 September 2026 — the page-integrity checks
+
+This is the decision the 21 September note above asked for, and it is written
+here because a judge who greps this repo for "site-original" should land on it.
+
+**The question.** `PG-STRUCT`, `PG-MARKUP` and `PG-NUM` compared `index.html`
+against the frozen `site-original/index.html` and failed on any difference.
+They rested on one invariant — *`index.html` is the original page plus an
+integration layer, and nothing else*. That invariant is over. It did not erode;
+it ended on a decision. The team authorised editing the page directly: *Meet
+the Team* was removed on instruction, the wording was rewritten because the
+site called itself a demo, and two design passes restyled the artwork. The
+choice was re-baseline `site-original/`, or retarget the checks.
+
+**The decision: retarget. `site-original/` was not touched.**
+
+**Why not re-baseline.** Copying today's page over the archive turns all three
+green in one command and destroys the only thing that folder is for. It is the
+evidence that the original prototype existed in a particular state and was held
+pristine while the platform was built around it. Overwrite it and the repo can
+no longer show what the page was, this README's account of the invariant
+becomes unverifiable, and every future drift check compares today against
+today. An archive that is silently rewritten whenever it disagrees with the
+present is not an archive.
+
+**What the measurement actually showed.** Before changing anything, the drift
+was read one level down. The headline was `svg 23->21, img 2->3, path 57->64`,
+`tag count 3119->3152`, `numeric literals 7254->7477`. Underneath:
+
+| | |
+|---|---|
+| `canvas` 23→23, `table` 8→8, `button` 47→47, `input` 11→11, `select` 19→19, `iframe` 1→1, `style` 5→5 | every data surface and every control the original shipped, still exactly there |
+| 257 of the original's 259 element ids still present | the two missing are `team` and `teamGrid` — the section removed on purpose |
+| 662 of the original's 664 distinct numeric values still in the page | the two missing are `26.2` and `9.6` — the `cx`/`cy` of `<circle cx="26.2" cy="9.6" r="2.4" fill="#3FD0C9"/>`, a decorative dot in an icon the design passes redrew in three places. That is also the whole of the `svg` and `path` movement |
+
+So the old checks were failing on authorised restyling, and the thing they
+existed to protect — the mission's data, charts, maps and controls — was
+intact. A sequence comparison against a frozen copy cannot tell those two cases
+apart, and once direct editing is authorised it reports the authorised case
+forever.
+
+**What replaced them.** Four checks, none of them loosened to go green:
+
+| Check | What it asserts | How it fails |
+|---|---|---|
+| `PG-ORIG` | the archive itself is byte-identical to a recorded SHA-256 | somebody edits or re-baselines `site-original/index.html`. This is what that folder is **for** now: evidence, not a baseline. Re-baselining is still allowed — but it means changing a constant in the check in the same commit, where a reviewer sees it |
+| `PG-KEEP` | a **floor** on the elements that carry data and controls | a chart, table, button, input, select or embed is deleted. `svg`/`path`/`img` are deliberately not counted — they are artwork, the design passes redraw them, and their figures are still covered by `PG-FIG` |
+| `PG-HOOK` | every `id` the original hangs behaviour off still exists | an id is deleted or renamed, so whatever `getElementById`'d it is now dead. Also fails if `team`/`teamGrid` **come back**, which the team asked never to happen |
+| `PG-FIG` | every distinct figure the original published still appears in `index.html` | a data point is deleted, altered or rounded |
+
+Plus `PG-FILE` (new) — every asset `index.html` references exists on disk,
+checked offline in milliseconds — and `PG-LIVE`, which no longer carries a
+hand-written list of nine files. It reads the `<script src>` and `<link href>`
+attributes out of the page, so the twenty-seven assets the site now references
+are all in scope instead of nine, and the next file somebody adds is covered
+without anyone remembering this check exists.
+
+**These four were verified by breaking things.** Each was confirmed to go red
+against a deliberately damaged copy of the page in a scratch directory: the
+archive edited, a `<canvas>` removed, an id renamed, `id="team"` restored, a
+published figure altered, and a reference to a file that does not exist. That
+last-but-one caught a real hole in the first draft of `PG-FIG` — it searched
+`js/` and `css/` as well as the page, so a figure corrupted in `index.html` was
+masked by a copy in the layer. The corpus is now the page alone.
+
+**The two allowlists are the cost of this decision**, and they are small, named
+and reasoned in the check file. Adding to one is a decision a human takes on
+purpose. If a check fails and the easy fix looks like appending an entry, that
+is the check working.
+
+#### The 2 skips
+
+- **`ISO-A`, `ISO-B`** skip because `KSAT_TEST_A` / `KSAT_TEST_B` are not set in
+  this shell. They are a SKIP and never a tick — see the `tests/` section above.
+- `PG-LIVE` reports, without failing, that **ten referenced assets are not in
+  the last commit** (`ksat-appearance.js`, `ksat-tour.js`, `ksat-brand.css`,
+  `ksat-tour.css`, `ksat-nasa.css`, `site.webmanifest` and four favicons under
+  `assets/brand/`). They 404 in production because they have never been
+  committed, so no deploy could have carried them. That is a fact about the
+  team's git state, not a fault in the site, and it clears itself the moment
+  they are committed and deployed. **A file that *is* in the last commit and
+  does not serve still fails loudly** — that is the case the check is for.
 
 ### `99_verify.sql`, run against the live database
 
@@ -241,6 +337,13 @@ Check 9 is *meant* to return one row. `app_settings` is the kill switch: RLS
 on with no policy means **no role reads it directly**, and only
 `SECURITY DEFINER` functions can see it. A zero there would mean the switch
 was readable.
+
+**Once `db/11_monitoring.sql` has been run, check 9 returns TWO rows** —
+`app_settings` and `monitoring_events` — and the second one is correct for the
+same reason: the nightly sweep log is written by one `SECURITY DEFINER`
+function and summarised by another, and no browser role holds a grant on the
+table at all. Both names are written into the query's own comment. A **third**
+name is still a blocker.
 
 Check 2 is the one that matters most and is easiest to get wrong. The views
 are owned by `postgres`, which **bypasses RLS**. With `security_invoker` off

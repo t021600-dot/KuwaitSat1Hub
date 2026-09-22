@@ -261,16 +261,139 @@ html[data-ksat-highlight="locked"] .ksat-invite {
    touched. Everything here is .ksat-ch-.
    ===================================================================== */
 
-/* Collapse the band a hidden section would otherwise leave behind.
-   section.sec carries padding-block:clamp(56px,7.5vw,104px)
-   (index.html:109), so 23 collapsed sections would leave ~3,600px of
-   dead scroll. This matters most under hidden="until-found", which
-   computes to content-visibility:hidden and DOES still generate a box. */
-html[data-ksat-nav="on"] .wrap > section.sec[hidden],
-html[data-ksat-nav="on"] .wrap > .ksat-invite[hidden] {
-  padding-block: 0 !important;
-  border-top: 0 !important;
-  margin-block: 0 !important;
+/* ---------------------------------------------------------------------
+   3a · HIDING, AND THE THREE THINGS THAT WERE FIGHTING IT
+
+   index.html:8 carries this, in an inline <style> in the head:
+
+       [hidden]{display:none!important}
+
+   It is a perfectly reasonable line for a page with no
+   hidden="until-found" in it. This page has 24 of them, and the rule
+   had three consequences here, all three of them live:
+
+   1 · IT DEFEATED until-found SITE-WIDE. setHidden() writes
+       hidden="until-found" wherever the browser supports it, precisely
+       so that a browser find still reaches a collapsed chapter and
+       fires beforematch, which wireBeforeMatch() uses to open the
+       owning chapter. The UA gives [hidden="until-found"]
+       content-visibility:hidden, which keeps the text searchable; an
+       author display:none takes the subtree out of the box tree and
+       nothing in it is searchable again. So every Ctrl+F on this page
+       was searching one section out of 24 - which voids the promise
+       the whole chapter layer rests on: nothing is removed, and
+       everything is reachable.
+
+   2 · IT WAS NOT STRONG ENOUGH FOR THE HERO. [hidden] is a single
+       attribute selector, (0,1,0). css/ksat-editorial.css:292 declares
+       section.sec.hero { display:grid !important; min-height:
+       clamp(520px,78vh,860px) !important } at (0,2,1), which wins on
+       specificity even though both are !important. #top therefore
+       never hid, in any chapter, in any browser.
+
+   3 · A content-visibility:hidden ELEMENT STILL GENERATES A BOX, so
+       each collapsed block has to have its own padding, border, margin
+       and minimum height taken to zero, or 23 of them leave thousands
+       of pixels of empty scroll behind.
+
+   WE DO NOT EDIT css/ksat-editorial.css. That file belongs to another
+   layer, and its hero composition is not wrong - it is only silent
+   about an element that is off screen. So this out-specifies it, on
+   purpose, and only while the shell is ready AND chapters are on AND
+   the element is carrying the hidden attribute this layer wrote. The
+   selector being beaten is `section.sec.hero`, (0,2,1); the ones below
+   are (0,4,1), (0,5,1) and (0,4,2). Those three numbers are worth
+   keeping accurate rather than approximate - the middle one is why
+   the print block underneath had to be told it was a print block.
+   --------------------------------------------------------------------- */
+
+/* WHY THESE FOUR RULES ARE INSIDE @media screen, AND WHY THAT IS NOT
+   HOUSEKEEPING. Section 7 of this file un-hides chapter-hidden blocks
+   for print, because a print is the whole document and a chapter is
+   only a reading aid. It could not. Specificity compares the
+   class/attribute column BEFORE the type column, and the plain
+   collapse below carries five of the first and one of the second -
+   (0,5,1) - against the print un-hide's (0,4,2). Five beats four, so
+   `display:none !important` won on paper in every browser that has no
+   hidden="until-found" support, Firefox among them: Ctrl+P there
+   produced one chapter out of six, with nothing on the page to say
+   that five were missing. That is the reachability promise failing on
+   the one surface where a reader cannot scroll back and check.
+
+   Raising the print selectors instead would have started an
+   arithmetic race between two blocks in the same file, and the next
+   person to add a rule here would have had to win it again. These
+   declarations only ever described a screen, so they say so, and the
+   print block is left to be read on its own terms. */
+@media screen {
+  /* The searchable collapse: no box in flow, nothing painted, still
+     findable by the browser's own find. */
+  html[data-ksat-shell="ready"][data-ksat-nav="on"] .wrap > [hidden="until-found"] {
+    display: block !important;
+    content-visibility: hidden !important;
+  }
+
+  /* The plain collapse, for a browser with no until-found support. This
+     is also the rule that finally hides the hero. */
+  html[data-ksat-shell="ready"][data-ksat-nav="on"] .wrap > [hidden]:not([hidden="until-found"]) {
+    display: none !important;
+  }
+
+  /* A signed-in researcher has the real sections, so their invitation
+     panels must stay gone even now that the rule above would otherwise
+     give them a box to be found in. */
+  html[data-ksat-shell="ready"][data-ksat-tier="insider"] .wrap > .ksat-invite[hidden="until-found"] {
+    display: none !important;
+  }
+
+  /* Collapse the band a hidden block would otherwise leave behind.
+     section.sec carries padding-block:clamp(56px,7.5vw,104px)
+     (index.html:109), the hero adds its min-height, and #descent
+     (index.html:1799) carries height:clamp(240px,34vw,400px) of its own.
+     Left alone that is several thousand pixels of dead scroll, which is
+     the problem chapters exist to solve. */
+  html[data-ksat-nav="on"] .wrap > section.sec[hidden],
+  html[data-ksat-nav="on"] .wrap > .ksat-invite[hidden],
+  html[data-ksat-nav="on"] .wrap > #descent[hidden],
+  html[data-ksat-nav="on"] .wrap > [hidden="until-found"] {
+    /* READ THIS BEFORE DELETING THE LINE BELOW.
+
+       transition:none is not tidying. Without it, every rule in this
+       block is silently ignored and each collapsed section leaves a
+       171px band - measured at a 949px viewport, 23 of them, about
+       2,400px of blank scroll, which is the long scroll coming back in
+       through the door the chapters just closed.
+
+       The chain is: css/ksat-detail.css:289 gives *, *::before, *::after
+       transition-duration:1ms !important under prefers-reduced-motion,
+       and transition-property is already `all` by default. So under
+       reduced motion every property on this element animates, however
+       briefly. hidden="until-found" computes to content-visibility:
+       hidden, and a display-locked element does not run animations - so
+       that 1ms transition never advances, and padding, height, margin
+       and min-height stay frozen at the values they had a frame before
+       the chapter closed. Forever.
+
+       The non-animatable declaration in this same block, overflow, was
+       applying the whole time, which is what made it look like a
+       cascade problem rather than a motion one. It is not: an injected
+       #id rule lost too, and so did an inline !important declaration.
+
+       Measured with the line in place: the document goes from 8,956px
+       to 6,469px with chapter one open.
+
+       Note which readers this was hurting. It only happens under
+       prefers-reduced-motion - so the people who were still being given
+       a page thousands of pixels longer than it needed to be were
+       exactly the people who had asked for less. */
+    transition: none !important;
+    padding-block: 0 !important;
+    border-top: 0 !important;
+    margin-block: 0 !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
 }
 
 #ksat-ch-rail {
@@ -424,11 +547,19 @@ html[data-ksat-highlight="locked"] .ksat-ch-item[data-ksat-haslock="yes"] {
 }
 
 /* =====================================================================
-   4 · PHONE PORTRAIT AND EVERY NARROW VIEWPORT
+   4 · EVERY WIDTH BELOW 1700px  -  which is almost all of them
 
    Not a second horizontal strip: the page already has a horizontally
    scrolling .navwrap that shrinks at <=700px (index.html:629), and two
    competing swipe targets in 44px of screen is not navigation.
+
+   This section used to be called "phone portrait", which is how the
+   reading-mode switch came to live only in the rail. The rail starts
+   at 1700px. A 1424px laptop is not a phone and got no rail either, so
+   "phone portrait" is in fact every screen most people own, and this
+   pill is the entire chapter interface on all of them. It therefore
+   states the mode as well as the chapter - see paintFab() in
+   js/ksat-shell.js.
    ===================================================================== */
 
 #ksat-ch-fab {
@@ -436,6 +567,10 @@ html[data-ksat-highlight="locked"] .ksat-ch-item[data-ksat-haslock="yes"] {
   inset-inline-end: 16px;
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   z-index: 130;                      /* above #demoHud (120), below toast (150) */
+  /* The chapter label keeps the width it always had. Other files
+     reserve space against this pill - css/ksat-tour.css:145 pads its
+     narration strip to clear it - so it does not get wider than it has
+     to be. The one state that needs more room is handled below. */
   max-width: min(62vw, 300px);
   padding: 11px 16px;
   border-radius: 999px;
@@ -452,6 +587,23 @@ html[data-ksat-highlight="locked"] .ksat-ch-item[data-ksat-haslock="yes"] {
   text-overflow: ellipsis;
 }
 #ksat-ch-fab:hover { border-color: var(--accent, #3D8BFF); }
+
+/* In continuous scroll the pill is not a label any more, it is the way
+   back, so it reads as an action - and it says which mode it is
+   getting you out of, because a control that only says "back" gives a
+   reader no reason to believe it will help.
+
+   That two-part label is the only thing on this layer that needs more
+   than 300px: "Continuous scroll · Back to chapters" measured 260px at
+   a 390px viewport, and ellipsising it would eat exactly the half that
+   says what a press does. The assistant launcher is stacked ABOVE this
+   pill rather than beside it (css/ksat-assistant.css:387), so the extra
+   width takes space from nothing. */
+#ksat-ch-fab[data-ksat-mode="scroll"] {
+  max-width: min(86vw, 340px);
+  border-color: var(--accent, #3D8BFF);
+  color: var(--ink, #E8ECF2);
+}
 
 /* Clear the guided-tour HUD when it is on, so the two never stack. */
 body:has(#demoHud.on) #ksat-ch-fab {
@@ -508,6 +660,55 @@ body:has(#demoHud.on) #ksat-ch-fab {
   padding: 7px 13px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+/* ---- the reading-mode row ----
+   Above the chapter list, not below it: the sheet is anchored to the
+   bottom of the screen and scrolls, and six chapters plus the open
+   one's sections already fill a short phone. A control placed after
+   them is a control nobody finds, which is the mistake that produced
+   the one-way trap in the first place. */
+.ksat-sheet-mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+  padding: 10px;
+  border: 1px solid var(--line-2, #232C3C);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.022);
+}
+.ksat-sheet-mode-txt {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3, #6B7A8D);
+}
+.ksat-sheet-mode-btn {
+  min-height: 44px;                  /* thumb target */
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-dim, #1E7F7C);
+  background: rgba(61, 139, 255, 0.10);
+  color: var(--ink, #E8ECF2);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+.ksat-sheet-mode-btn:hover {
+  background: rgba(61, 139, 255, 0.17);
+  border-color: var(--accent, #3D8BFF);
+}
+.ksat-sheet-mode-note {
+  margin: 8px 2px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3, #6B7A8D);
 }
 
 .ksat-sheet-list { display: grid; gap: 2px; }
@@ -823,6 +1024,8 @@ body:has(#demoHud.on) #ksat-ch-fab {
   .ksat-ch-item,
   .ksat-invite-btn,
   .ksat-ch-skip,
+  .ksat-ch-toggle,
+  .ksat-sheet-mode-btn,
   #ksat-ch-fab {
     transition: none !important;
   }
@@ -832,21 +1035,91 @@ body:has(#demoHud.on) #ksat-ch-fab {
 /* =====================================================================
    7 · PRINT
 
-   Printing or PDF-ing yields all 24 sections, chapters or not. This is
-   the other half of the proof that nothing was removed.
+   TWO KINDS OF HIDDEN, AND ONLY ONE OF THEM SHOULD COME BACK ON PAPER.
+
+   This block used to un-hide both of them in the same rule, so any
+   public visitor who pressed Ctrl+P got the ten researcher sections -
+   the dashboards, the maps, the agent console - laid out in full. The
+   file header is careful to say that the tier is product framing and
+   not a security control, and that is true of the SECTIONS; but a
+   print that silently hands over the entire insider experience is
+   still not what the control is for, and it is the one surface where
+   "you can undo it in DevTools anyway" stops being an answer, because
+   nobody has to.
+
+   A chapter is a reading aid. A print is the whole document, so
+   chapter-hidden blocks come back, #descent included.
+
+   A tier lock is not a reading aid. It stays locked on paper, and the
+   invitation panel prints in its place, so the printed document still
+   says what is there and who it is for. Nothing goes missing without
+   saying so.
    ===================================================================== */
 
 @media print {
-  html[data-ksat-nav] .wrap > section.sec,
-  html[data-ksat-shell] .wrap > section.sec.ksat-locked {
+  /* THE CHAPTER CONCERN. Only sections and #descent, deliberately: the
+     invitation panels are a TIER artefact and are settled further down,
+     by tier, so that the two concerns never have to be told apart by
+     specificity. They were in this selector list once and it cost an
+     hour - see the note on the insider rule below. */
+  html[data-ksat-shell] .wrap > section.sec[hidden],
+  html[data-ksat-shell] .wrap > #descent[hidden] {
     display: block !important;
     content-visibility: visible !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
     padding-block: 18px !important;
   }
+
+  /* Belt and braces. The base rule at the top of this file already
+     out-specifies the un-hide above, but a locked section printing by
+     accident is exactly the failure this whole block is about, so it
+     is stated rather than inferred. */
+  html[data-ksat-shell][data-ksat-tier="public"] .wrap > section.sec.ksat-locked {
+    display: none !important;
+  }
+
+  /* A public visitor's print carries the invitation in place of every
+     locked section, whichever chapter it belongs to, so the printed
+     document still says what is there and who it is for. */
+  html[data-ksat-shell][data-ksat-tier="public"] .wrap > .ksat-invite {
+    display: block !important;
+    content-visibility: visible !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-block: 18px !important;
+  }
+
+  /* A researcher prints the real sections, so the invitations that
+     stand in for them have nothing to say.
+
+     "Last, so it wins" was WRONG, and it was wrong in the direction
+     that matters. Order only decides a tie. This rule is (0,3,1); the
+     chapter un-hide above used to carry `.wrap > .ksat-invite[hidden]`
+     at (0,4,1) and beat it outright, so a signed-in researcher pressing
+     Ctrl+P got the real ten sections AND the five closed chapters'
+     invitation panels telling them to sign in - on the one surface
+     where you cannot scroll back and see that it is nonsense.
+
+     Two changes, belt and braces: the un-hide above no longer mentions
+     invitations at all, and this selector is stated at the same shape
+     and depth as the public one above so that the tier attribute, not
+     the specificity arithmetic, is what decides between them. */
+  html[data-ksat-shell][data-ksat-tier="insider"] .wrap > .ksat-invite {
+    display: none !important;
+  }
+
+  /* The live region now sits on <body> rather than inside the rail -
+     see the note in buildRail() - so it is no longer carried off by
+     the rail's own display:none and has to be named here. It is a 1px
+     clipped node either way; this is so it cannot become a stray
+     character at the foot of a printed page. */
   #ksat-ch-rail,
   #ksat-ch-fab,
   #ksat-ch-sheet,
-  .ksat-invite,
+  .ksat-ch-live,
   .ksat-tier-note,
   .ksat-signin {
     display: none !important;

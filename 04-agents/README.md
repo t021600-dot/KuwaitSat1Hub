@@ -67,11 +67,38 @@ never into n8n, never into the panel.
 
 ## The screen — what a researcher sees
 
+> **Corrected 21 September 2026.** This table used to call
+> `app/js/automation.js` **"THE ONLY PANEL"**. It is not the panel that ships,
+> and `index.html` has never loaded it. Saying otherwise in the folder's own
+> map is the kind of sentence that gets read out beside a judge.
+
+**What actually ships is [`js/ksat-workflow.js`](../js/ksat-workflow.js)**, at
+the repo root, loaded by `index.html` — the page Vercel serves. `automation.js`
+here is the **reference implementation**: the same panel written against the
+**n8n** write path, for the day the worker is switched on. Both exist on
+purpose and neither is dead code.
+
 | File | What it is |
 |---|---|
-| [`app/js/automation.js`](app/js/automation.js) | **THE ONLY PANEL.** Start, status, result, and the human checkpoint. Calls `launch_mission()`, polls `my_agent_steps` every 2 s, reads full findings from `results`. |
-| [`app/INTEGRATION.md`](app/INTEGRATION.md) | The one line and one `<div>` Retag adds to `mission.html`. |
-| [`app/demo.html`](app/demo.html) | The same panel with a **fake database** under it — clickable with no Supabase and no n8n. Say "this is a replay" out loud. |
+| [`../js/ksat-workflow.js`](../js/ksat-workflow.js) | **THE PANEL THAT SHIPS.** Not in this folder and not 04's file alone — it is 04 · Agents with 03 · Security. Start, status, result, and the human checkpoint. Calls `launch_mission()`, then runs the six agents **in the page**, writing each step through `researcher_log_step()` and reading the rows back from `agent_steps` as proof they landed. |
+| [`app/js/automation.js`](app/js/automation.js) | **THE REFERENCE PANEL.** Same three regions, same checkpoint, but it assumes a worker: `launch_mission()`, then polls `my_agent_steps` every 2 s for rows n8n writes with `agent_log_step()`, and reads full findings from `results`. Nothing the browser downloads loads it. **Do not delete it and do not copy it into `js/`** — a second panel in the page means two Launch buttons and no way to say which one ran. |
+| [`app/INTEGRATION.md`](app/INTEGRATION.md) | **The mapping between the two, line by line**, plus the reference panel's mounting contract and the eight traps that apply to both. Start here if you are touching either file. |
+| [`app/demo.html`](app/demo.html) | The **reference** panel with a **fake database** under it — clickable with no Supabase and no n8n. Say "this is a replay, and it is not the shipped panel" out loud. Open it from disk. |
+
+**The one number that genuinely differs:** `agent/decision.js` rejects a zone
+below `IMPACT_FLOOR_C = 1.0` °C of cooling; `js/ksat-workflow.js` rejects below
+`UPLIFT_FLOOR_PP = 4.0` percentage points of vegetation cover. That is not
+drift. `js/ksat-workflow.js:55-65` shows the arithmetic: the page's own
+`predictImpact()` tops out at −0.86 °C across all six governorates, so a 1.0 °C
+floor rejects every candidate and every run stalls. The panel therefore states
+its floor in the unit the page computes. Preflight check **B5** fails if anyone
+"fixes" it by copying `IMPACT_FLOOR_C` across.
+
+> **Nothing in `04-agents/` is served.** A `.vercelignore` keeps the whole
+> folder out of the deployment, so this README, `INTEGRATION.md`, `demo.html`
+> and `automation.js` have no public URL. They are read on GitHub and run from
+> disk. That is deliberate: the reference implementation, the n8n guide and the
+> guardrail list are working papers, not product.
 
 ## The writing — what gets read aloud
 
@@ -110,7 +137,7 @@ somebody's browser, and until it is done the claim beside it is not true.
 
 | # | The thing | Where | Blocks |
 |---|---|---|---|
-| 1 | **Get the SQL run** — `03-security/db/01` → `06`, plus `08_agent_claim.sql`, which is 04's only read path (`claim_next_run`, `sweep_stalled_runs`). Mariam's hands, not yours. | Supabase SQL editor | **everything** |
+| 1 | **Get the SQL run** — `03-security/db/01` → `06`, then `08_agent_claim.sql` (04's only read path: `claim_next_run`, `sweep_stalled_runs`), `09`, `10`, and now `11_monitoring.sql` (`monitor_record` for the nightly cron, and the `reports_one_per_mission` guard). `07` is PHASE2: read, do not run. Mariam's hands, not yours. | Supabase SQL editor | **everything** |
 | 2 | **Check the n8n trial is alive through Thursday.** The course taught n8n on Night 9; a 14-day trial lapses on or about demo day. | n8n → Billing | the engine choice |
 | 3 | **Create the n8n Cloud workspace and the credential.** Custom Auth named `Supabase service role`, holding `apikey` **and** `Authorization`. The key lives there and nowhere else. | n8n → Credentials | every HTTP node |
 | 4 | **Import `n8n/workflow.json`**, put the real project URL in the **Demo controls** node, and pick the credential in each of the ten HTTP nodes. | n8n → Import from File | `au-m1`, `au-m3` |
@@ -127,17 +154,31 @@ where you actually are; section E of its output is this list, as ticks.
 
 ## Hand-offs — things 04 cannot fix from inside this folder
 
-- **To 01 · Retag.** `mission.html` still has to mount the panel
-  (`app/INTEGRATION.md`). And `launch_mission()` now raises **two new
-  sentences** — `Limit reached: 5 agent runs per hour.` and `… per day.` —
-  which are different from the insert trigger's `Limit reached: 5 missions per
-  hour.` Both need to reach `mapError()`, or a researcher meets a raw Postgres
-  error. My panel already reads the shape of these and quotes the database's own
-  number back.
-- **To 03 · Mariam.** Rule 10b from rehearsal R-1 is **not in the code**: there
-  is no cap on runs *per mission*, and no lock on relaunching a mission that
-  already has an approved report. The SQL is drafted in `GUARDRAILS.md` §4.
-  Until it runs, an approved report's evidence can change underneath it.
+- ~~**To 01 · Retag.** `mission.html` still has to mount the panel
+  (`app/INTEGRATION.md`).~~ **Closed, 21 Sep.** There is no `mission.html` in
+  this repo. The panel that ships is `js/ksat-workflow.js`, loaded by
+  `index.html`, and it has been wired in since the integration layer landed.
+  The rest of that hand-off stands: `launch_mission()` raises sentences the
+  page must recognise — `Limit reached: 5 agent runs per hour.`, `… per day.`,
+  `Limit reached: 3 runs per mission per hour.` and
+  `This mission has an approved report. Start a new mission.` — which are
+  different from the insert trigger's `Limit reached: 5 missions per hour.`
+  All of them need to reach the error mapper, or a researcher meets a raw
+  Postgres error. `js/ksat-workflow.js` keeps that allowlist in its `SAFE`
+  array and quotes the database's own number back.
+- ~~**To 03 · Mariam.** Rule 10b from rehearsal R-1 is **not in the code**.~~
+  **Done, 21 Sep.** Both halves are in `05_views_rpc.sql` inside
+  `launch_mission()`: block **R-1a** refuses any relaunch of a mission that
+  already has an approved report, and **R-1b** caps a single mission at 3 runs
+  per hour. The comment beside R-1a is worth reading aloud — it is why this is
+  a security control rather than a budget one: *"a report carries approved_by —
+  a named human … the evidence behind a signed conclusion could change after it
+  was signed, with no trace."*
+- **To 03 · Mariam.** The uniqueness guard on `reports` is new and **has to be
+  run**: `reports_one_per_mission` in `03-security/db/11_monitoring.sql`
+  section 5. Without it, pressing Approve twice writes two report rows for one
+  mission — two `approved_by` values for one decision. R-1a stops the second
+  *run*; nothing stopped the second *report*.
 - **To 03 · Mariam.** ~~The `agent_claim_run()` compatibility shim (block 2 of
   `08_agent_claim.sql`) can be dropped whenever you like.~~ **Done, 21 Sep.**
   Dropped from the file; it had never been created on the live database.

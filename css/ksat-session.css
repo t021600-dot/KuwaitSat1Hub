@@ -1,0 +1,651 @@
+/* =====================================================================
+   ksat-session.css — THE RESEARCH SESSION BAR
+   Owner: 03 Security
+
+   Every selector here is prefixed .ksat-ss / #ksat-ss, or is scoped to
+   :root[data-ksat-session="on"], so nothing in this file can reach a
+   page element unless the bar is actually on screen. Delete this file
+   and js/ksat-session.js and the page is byte-for-byte what it was.
+
+   The two exceptions are deliberate and are argued in section 5: the
+   sticky bar eats the top of the viewport, so the page's scroll offsets
+   have to know it is there or every deep link lands behind it.
+
+   WHY THERE IS NO z-index IN THIS FILE, which is the first thing a
+   reader of the shared budget in css/ksat-assistant.css will look for.
+
+   index.html gives <main> `position:relative; z-index:2`, and
+   css/ksat-detail.css raises it again with `main, .bar, footer {
+   position:relative; z-index:1 }`. Either way <main> is a POSITIONED
+   element with a z-index, which makes it a stacking context. The bar is
+   a child of <main>, so whatever number it is given is resolved INSIDE
+   that context and can never climb out of it.
+
+   That is the whole collision argument, and it is structural rather
+   than numeric. The masthead (60), the guided-tour HUD (120), the
+   chapter pill (130), the assistant launcher (132) and panel (134), the
+   chapter sheet (140), the toast (150) and the launch sequence (200)
+   are all siblings of <main> or above it, so every one of them covers
+   this bar automatically. There is no number to keep in sync with the
+   table in css/ksat-assistant.css, and no way for a later change to
+   that table to break this layer. A local `z-index: 4` below is all
+   that is needed, and it only has to beat the section content beside
+   it.
+
+   The one number that matters going the other way is --ksat-ss-h, in
+   section 5: the bar's measured height, published on <html> by
+   js/ksat-session.js so the page's scroll-margins can clear it.
+   ===================================================================== */
+
+:root{
+  /* Written by js/ksat-session.js from a real measurement of the bar,
+     for the same reason js/ksat-tour.js measures .bar rather than
+     trusting --bar-h: the bar wraps to two rows on a narrow viewport
+     and on the Arabic page, and a hard-coded height would then be
+     wrong by exactly the row it did not know about. 0px until the bar
+     exists, which is also the correct value for a public visitor and
+     for a page where this layer failed to boot. */
+  --ksat-ss-h: 0px;
+
+  /* The bar's own surface. Named rather than written inline so the
+     light theme being built in css/ksat-theme.css can repoint it in
+     one place — the same discipline the assistant's six surface hooks
+     record in css/ksat-assistant.css. */
+  --ksat-ss-bg:     var(--surf, #0A0F18);
+  --ksat-ss-line:   var(--line-2, #24344A);
+  --ksat-ss-raise:  rgba(255,255,255,.045);
+  --ksat-ss-accent: var(--accent, #3FD0C9);
+  --ksat-ss-note:   rgba(63,208,201,.09);
+}
+
+/* =====================================================================
+   1 · THE BAR
+
+   FIXED, and it has to be. This section used to say "sticky, not fixed"
+   and argue the case at length. The argument was sound and the premise
+   was false, so the whole thing is rewritten here rather than quietly
+   patched — the next person to reach for `position: sticky` on this
+   page deserves the measurement, not the conclusion.
+
+   WHY STICKY CANNOT WORK HERE, measured on the running page.
+
+   css/ksat-editorial.css ships:
+
+       html, body { overflow-x: hidden; }
+
+   and index.html's own body rule carries `overflow-x: hidden` too. CSS
+   does not let the two axes disagree about whether a box scrolls: when
+   one axis is anything other than `visible`, a `visible` value on the
+   other computes to `auto`. So <body> computes to
+   `overflow-x: hidden; overflow-y: auto` and becomes a scroll container
+   in its own right.
+
+   A sticky element sticks to its nearest scrollport. That scrollport is
+   now <body>, and <body> never scrolls — the viewport does. So sticky
+   never engages at all.
+
+   Measured, with the bar as the first child of <main>, page scrolled to
+   1200px: the bar's top read -1098px, which is to say it had scrolled
+   away exactly as if it were static. Adding
+   `html,body{overflow-x:visible}` to the same page as a probe put it
+   back to 0. That is the whole diagnosis; the rule is not ours to
+   remove, and removing it would bring back the horizontal scroll that
+   css/ksat-editorial.css added it to kill.
+
+   WHY FIXED IS SAFE, which is the part the old note got wrong.
+
+   The old objection was that a fixed bar would float in the middle of
+   nothing once the masthead scrolled away, and would cover the first
+   screenful on arrival. Both are answered rather than accepted:
+
+     · The masthead really does scroll away — `.bar` computes to
+       `position: relative` and its top went 0 -> -1200 over a 1200px
+       scroll — so there is nothing to float beside. The bar simply
+       tracks the masthead's lower edge while it is on screen and rests
+       at the top of the viewport once it is gone. js/ksat-session.js
+       writes that one number; see `place()` there.
+
+     · The first screenful is handled below, by reserving exactly the
+       bar's measured height at the top of <main>. That is pushing
+       padding onto somebody else's element, which the old note called
+       out as the cost — it is, and it is gated on our own attribute so
+       it exists only while the bar does.
+
+   The z-index argument in this file's header SURVIVES the change
+   unaltered, which is the reason fixed is not a collision risk. A fixed
+   element is positioned against the viewport but it still PAINTS inside
+   its stacking context, and <main> is one (index.html gives it
+   `position:relative; z-index:2`). So the masthead, the tour HUD, the
+   chapter pill, the assistant, the chapter sheet, the toast and the
+   launch sequence all still cover this bar for free. Nothing here has
+   to be kept in sync with the table in css/ksat-assistant.css.
+
+   The one thing fixed would have broken is clipping: an ancestor with
+   `overflow: hidden` clips descendants whose containing block it is,
+   and for a fixed element the containing block is the viewport — so
+   body's `overflow-x: hidden` does NOT clip this bar. That holds only
+   while no ancestor has a transform, filter or will-change, any of
+   which would make it the containing block and both clip the bar and
+   break the positioning. <main> has `transform: none` today. If that
+   ever changes, this bar is the first thing to check.
+   ===================================================================== */
+
+.ksat-ss{
+  position: fixed;
+  /* Written by js/ksat-session.js from the masthead's live lower edge:
+     the masthead's height while it is on screen, 0px once it is gone.
+     The declaration below is only the value used before the first
+     measurement lands and after the masthead is out of view. */
+  top: 0;
+  inset-inline: 0;
+  z-index: 4;                       /* inside <main> — see the header */
+  background: var(--ksat-ss-bg);
+  border-block-end: 1px solid var(--ksat-ss-line);
+  /* The page scrolls UNDER this bar, so the surface has to be opaque.
+     A translucent strip over a canvas-heavy page reads as a rendering
+     fault rather than as glass. */
+  box-shadow: 0 8px 24px rgba(0,0,0,.34);
+  font-family: var(--body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+}
+
+.ksat-ss[hidden]{ display: none !important; }
+
+/* The bar is out of flow, so the space it used to occupy at the top of
+   <main> has to be given back or the first section starts underneath
+   it. --ksat-ss-h is the bar's own measured height, so this is exact
+   rather than a guess, and it is 0px until the bar exists — which is
+   also the right value for a public visitor and for a failed boot.
+
+   Gated on :root[data-ksat-session="on"], which js/ksat-session.js sets
+   only while the bar is actually in the document. A signed-out page is
+   untouched. */
+:root[data-ksat-session="on"] main{
+  padding-block-start: var(--ksat-ss-h, 0px);
+}
+
+.ksat-ss-in{
+  max-width: var(--maxw, 1240px);
+  margin-inline: auto;
+  padding-inline: var(--gut, 20px);
+  padding-block: 7px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* The eyebrow. Mono and uppercase, which is how every other label of
+   this rank on the page is set — .eyebrow .lab, .fld, .tag. */
+.ksat-ss-eye{
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-3, #64778D);
+  flex: 0 0 auto;
+  /* Arabic does not have upper case and letter-spacing pulls its
+     joined forms apart, so both are dropped on the Arabic page. The
+     attribute is set by js/ksat-i18n.js on <html>. */
+}
+:root[data-ksat-lang="ar"] .ksat-ss-eye,
+:root[lang="ar"] .ksat-ss-eye{
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--body, system-ui, sans-serif);
+  font-size: 11px;
+}
+
+.ksat-ss-fields{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* =====================================================================
+   2 · ONE FIELD
+
+   A button, not a <span> with a pencil beside it. The whole chip is the
+   edit affordance section 21 asks for, because a 14px pencil glyph at
+   the end of a value is a 14px touch target and the value next to it is
+   the thing a reader's eye is already on.
+
+   Pressing one goes to the control that actually sets the field and
+   focuses it. It does not open an editor of its own: the page already
+   has a control for every one of these, and a second one would be a
+   parallel state that can disagree with the first.
+   ===================================================================== */
+
+.ksat-ss-f{
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  max-width: 100%;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line, #182333);
+  background: var(--ksat-ss-raise);
+  color: var(--ink, #E9EFF7);
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+.ksat-ss-f:hover{
+  border-color: var(--ksat-ss-accent);
+  background: rgba(255,255,255,.075);
+}
+
+.ksat-ss-f .k{
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3, #64778D);
+  flex: 0 0 auto;
+}
+:root[data-ksat-lang="ar"] .ksat-ss-f .k,
+:root[lang="ar"] .ksat-ss-f .k{
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--body, system-ui, sans-serif);
+  font-size: 10.5px;
+}
+
+.ksat-ss-f .v{
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink, #E9EFF7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* A field the page has not rendered yet, or one whose control is in a
+   section that does not exist. It is shown rather than dropped, because
+   a row of four that silently becomes a row of three has told the
+   reader nothing about why. */
+.ksat-ss-f[data-ksat-ss-empty="true"] .v{
+  color: var(--ink-3, #64778D);
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* The mark on a field that was carried over from the last visit. It is
+   an outline and a dot, not a colour swap: a green chip and a teal chip
+   in a row of four is a legend nobody was given. The dot is removed by
+   js/ksat-session.js as soon as the reader touches that control, so it
+   never becomes permanent decoration. */
+.ksat-ss-f[data-ksat-ss-restored="true"]{
+  border-color: rgba(63,208,201,.45);
+}
+.ksat-ss-f[data-ksat-ss-restored="true"] .k::after{
+  content: "";
+  display: inline-block;
+  inline-size: 4px;
+  block-size: 4px;
+  margin-inline-start: 5px;
+  border-radius: 50%;
+  background: var(--ksat-ss-accent);
+  vertical-align: middle;
+}
+
+/* =====================================================================
+   3 · THE TWO CONTROLS ON THE END
+   ===================================================================== */
+
+.ksat-ss-acts{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+.ksat-ss-btn{
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-2, #9DAEC2);
+  background: transparent;
+  border: 1px solid var(--line, #182333);
+  border-radius: 999px;
+  padding: 5px 11px;
+  min-height: 28px;
+  cursor: pointer;
+  transition: border-color .16s ease, color .16s ease;
+}
+.ksat-ss-btn:hover{
+  border-color: var(--ksat-ss-accent);
+  color: var(--ink, #E9EFF7);
+}
+:root[data-ksat-lang="ar"] .ksat-ss-btn,
+:root[lang="ar"] .ksat-ss-btn{
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--body, system-ui, sans-serif);
+  font-size: 12px;
+}
+
+/* The fold control is square and glyph-only, so it gets a real 32px
+   target rather than the text button's padding. */
+.ksat-ss-fold{
+  inline-size: 32px;
+  min-block-size: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 13px;
+}
+.ksat-ss-fold svg{
+  transition: transform .18s ease;
+}
+.ksat-ss[data-ksat-ss-fold="true"] .ksat-ss-fold svg{
+  transform: rotate(-90deg);
+}
+/* The chevron points the other way in RTL when it is pointing sideways,
+   because "collapsed" reads toward the start of the line. */
+:root[dir="rtl"] .ksat-ss[data-ksat-ss-fold="true"] .ksat-ss-fold svg{
+  transform: rotate(90deg);
+}
+
+/* Folded: the four fields and the MORE button go, one muted summary
+   line takes their place. Nothing is removed from the DOM — the reader
+   asked for less chrome, not for less information, and one press puts
+   it back. */
+.ksat-ss[data-ksat-ss-fold="true"] .ksat-ss-fields,
+.ksat-ss[data-ksat-ss-fold="true"] .ksat-ss-more,
+.ksat-ss[data-ksat-ss-fold="true"] .ksat-ss-panel,
+.ksat-ss[data-ksat-ss-fold="true"] .ksat-ss-note{ display: none; }
+
+.ksat-ss-sum{
+  display: none;
+  font-size: 12.5px;
+  color: var(--ink-2, #9DAEC2);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ksat-ss[data-ksat-ss-fold="true"] .ksat-ss-sum{ display: block; }
+
+/* =====================================================================
+   4 · THE TWO ROWS UNDER THE BAR
+
+   The restored notice and the MORE panel. Both are full-bleed strips
+   rather than floating popovers: the bar is already sticky at the top
+   of a scrolling page, and a popover anchored to a sticky element that
+   is itself moving is the kind of thing that ends up half off-screen at
+   a 390px viewport.
+   ===================================================================== */
+
+.ksat-ss-note,
+.ksat-ss-panel{
+  border-block-start: 1px solid var(--line, #182333);
+}
+.ksat-ss-note[hidden],
+.ksat-ss-panel[hidden]{ display: none !important; }
+
+/* ---------------------------------------------------------------------
+   THE PANEL HAS A CEILING, and it was measured rather than guessed.
+
+   With the restored notice up AND the MORE panel open, the bar measured
+   243px in a 630px viewport on the running page — it was covering 344px
+   of the top of the screen, more than half of it. Two things break at
+   once when that happens, and the second is the bad one:
+
+     · the bar stops being chrome and becomes the page;
+     · --ksat-ss-h is published from that measurement, so every
+       `section.sec` scroll-margin-top in section 5 became 358px and
+       every deep link landed a third of a screen too low.
+
+   That is the failure the whole measure() dance in js/ksat-session.js
+   exists to prevent, arriving through the one input nobody bounded.
+
+   So the panel scrolls inside itself past a point tied to the viewport
+   rather than to a row count. The top row — the four fields, which are
+   the part that has to be readable at a glance — is outside this box
+   and never scrolls away. dvh rather than vh because the mobile URL bar
+   changes the answer, with a vh fallback for engines that predate it.
+   --------------------------------------------------------------------- */
+.ksat-ss-panel{
+  max-height: 34vh;
+  max-height: 34dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;   /* do not hand the scroll back to the page */
+}
+
+.ksat-ss-note{ background: var(--ksat-ss-note); }
+
+.ksat-ss-note-in,
+.ksat-ss-panel-in{
+  max-width: var(--maxw, 1240px);
+  margin-inline: auto;
+  padding-inline: var(--gut, 20px);
+  padding-block: 9px;
+}
+
+.ksat-ss-note-in{
+  display: flex;
+  align-items: center;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+}
+.ksat-ss-note-txt{
+  font-size: 12.5px;
+  color: var(--ink-2, #9DAEC2);
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.ksat-ss-note-txt b{
+  color: var(--ink, #E9EFF7);
+  font-weight: 600;
+}
+.ksat-ss-note-acts{
+  display: flex;
+  gap: 7px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+/* The MORE panel is a two-column definition list at comfortable widths
+   and one column when there is not room for two. Rows, not chips,
+   because these are the fields that did not earn a place in the bar and
+   a second row of chips would have read as a second bar. */
+.ksat-ss-panel-in{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 6px 22px;
+}
+.ksat-ss-row{
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding-block: 3px;
+  min-width: 0;
+}
+.ksat-ss-row .k{
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-3, #64778D);
+  flex: 0 0 auto;
+}
+:root[data-ksat-lang="ar"] .ksat-ss-row .k,
+:root[lang="ar"] .ksat-ss-row .k{
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--body, system-ui, sans-serif);
+  font-size: 11px;
+}
+.ksat-ss-row .v{
+  font-size: 12.5px;
+  color: var(--ink, #E9EFF7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+/* A row is a button for the same reason a field is — it goes to the
+   control that sets it. */
+button.ksat-ss-row{
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-sm, 9px);
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+  padding-inline: 6px;
+  margin-inline: -6px;
+  width: 100%;
+}
+button.ksat-ss-row:hover{ background: var(--ksat-ss-raise); }
+
+/* The line that says what is and is not written to this device. It is
+   under the MORE panel rather than in the bar because it is a promise,
+   and a promise that is on screen at all times stops being read. */
+.ksat-ss-fine{
+  grid-column: 1 / -1;
+  margin-block-start: 4px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--line, #182333);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-3, #64778D);
+}
+
+/* =====================================================================
+   5 · THE TWO RULES THAT REACH OUTSIDE THIS LAYER
+
+   The bar occupies the top of the viewport once it is stuck, so any
+   scroll that lands an element at the top of the page lands it BEHIND
+   the bar. Both selectors below already exist elsewhere and both are
+   restated here with --ksat-ss-h added:
+
+       section.sec                       css/ksat-shell.css
+         scroll-margin-top: calc(var(--bar-h, 58px) + 14px)
+       section.sec > .eyebrow, > h2, > h3    css/ksat-agency.css
+         scroll-margin-top: calc(var(--bar-h, 101px) + 28px)
+
+   The two base values are carried across unchanged — this layer has no
+   opinion about them and is not the place to reconcile them. Both are
+   gated on :root[data-ksat-session="on"], which js/ksat-session.js sets
+   only while the bar is actually in the document, so a public visitor
+   and a failed boot both get exactly the offsets those two files wrote.
+
+   --ksat-ss-h is 0px until the bar is measured, so even inside the gate
+   the arithmetic degrades to the original value rather than to garbage.
+   ===================================================================== */
+
+:root[data-ksat-session="on"] section.sec{
+  scroll-margin-top: calc(var(--bar-h, 58px) + 14px + var(--ksat-ss-h, 0px));
+}
+:root[data-ksat-session="on"] section.sec > .eyebrow,
+:root[data-ksat-session="on"] section.sec > h2,
+:root[data-ksat-session="on"] section.sec > h3{
+  scroll-margin-top: calc(var(--bar-h, 101px) + 28px + var(--ksat-ss-h, 0px));
+}
+
+/* =====================================================================
+   6 · THE CONTROL THE BAR JUST SENT YOU TO
+
+   Pressing a field scrolls to the real select or chip row and focuses
+   it. On a page this dense, a focus ring alone is easy to lose — the
+   reader has just travelled several screens and is looking for a 180px
+   dropdown among six of them. This is a two-second ring that says
+   "here", applied by js/ksat-session.js and removed by it.
+
+   It is an outline rather than a background so it cannot change what
+   the control looks like, and it is the only animation in this file.
+   ===================================================================== */
+
+[data-ksat-ss-target]{
+  outline: 2px solid var(--ksat-ss-accent);
+  outline-offset: 3px;
+  border-radius: var(--r-sm, 9px);
+  animation: ksat-ss-ping 1.1s ease-out 2;
+}
+@keyframes ksat-ss-ping{
+  0%   { outline-color: var(--ksat-ss-accent); }
+  55%  { outline-color: rgba(63,208,201,.18); }
+  100% { outline-color: var(--ksat-ss-accent); }
+}
+
+/* =====================================================================
+   7 · MOTION IS OPTIONAL
+
+   Everything above that moves, off. The bar itself does not animate in
+   or out — it appears when a researcher signs in, which is already a
+   page-wide change, and a strip that slides down on top of that is one
+   movement too many. js/ksat-session.js has no requestAnimationFrame
+   loop at all, so there is nothing on the script side to gate; the
+   whole motion surface of this layer is the four transitions and the
+   one keyframe above.
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce){
+  .ksat-ss-f,
+  .ksat-ss-btn,
+  .ksat-ss-fold svg{
+    transition: none;
+  }
+  [data-ksat-ss-target]{
+    animation: none;
+  }
+}
+
+/* =====================================================================
+   8 · NARROW
+
+   Below 760px the eyebrow goes. It is the one element in the bar that
+   carries no value — a reader who is three screens into the dashboard
+   does not need to be told the strip above it is called CURRENT
+   ANALYSIS, and on a 390px viewport it was costing a whole row.
+
+   The fields keep wrapping rather than scrolling sideways. The page
+   already has one horizontally scrolling strip at the top in .navwrap,
+   and css/ksat-shell.css records why a second swipe target in the same
+   44px of screen was rejected for the chapter control. Two rows of
+   chips is the honest cost of four fields on a small screen.
+   ===================================================================== */
+
+@media (max-width: 760px){
+  .ksat-ss-eye{ display: none; }
+  .ksat-ss-in{ padding-block: 6px; gap: 8px; }
+  .ksat-ss-f{ padding: 4px 9px; }
+  .ksat-ss-f .v{ font-size: 12px; }
+  /* At this width the actions must not be pushed onto a row of their
+     own by four wrapped chips, so they stop claiming the free space. */
+  .ksat-ss-acts{ margin-inline-start: 0; }
+}
+
+@media (max-width: 460px){
+  /* Four fields, two per row, each free to ellipsise. A chip that is
+     wider than half the screen pushes its neighbour off the row and
+     turns two rows into four. */
+  .ksat-ss-f{ max-width: calc(50% - 4px); }
+  .ksat-ss-f .v{ max-width: 100%; }
+}
+
+/* =====================================================================
+   9 · PRINT
+
+   The bar is chrome for working, not a part of the document. It also
+   sticks, and a sticky element in a print stylesheet repeats itself on
+   every page in some engines.
+   ===================================================================== */
+
+@media print{
+  .ksat-ss{ display: none !important; }
+}

@@ -43,6 +43,55 @@
    - Anything inside a figure, table, chart, canvas, badge or control.
    - The first paragraph of every run — you always see a whole thought.
    - Our own layers, and the guided tour, which narrates.
+
+   THE TWO TREATMENTS COLLIDED            fixed 21 September 2026
+   Seen in the browser, in `#imagery`, reading as one run-on line:
+
+       READ MORE ⌄READ MORE — 1 MORE PARAGRAPH ⌄
+
+   That is the exact stacking the note above says this file exists to
+   prevent, and the file was building it itself. `foldRun()` folded the
+   run, and then its last act was `if (list[0] is long) clampOne(list[0])`
+   — so the opening paragraph got a SECOND control of its own. The two
+   buttons ended up separated only by the run wrapper, and index.html's
+   own reset (`[hidden]{display:none!important}`) takes that wrapper out
+   of the flow entirely, so nothing broke the line between them. Measured
+   here: the `#imagery` lede is 190 characters (over LONG_ONE) and the one
+   paragraph behind it is 241 (over RUN_CHARS), so BOTH tests passed on
+   the same run. Nothing about it was random; it fired every load.
+
+   WHY A MERGE AND NOT A SUPPRESSION
+   Dropping one treatment was the cheaper fix and it is the wrong one.
+   Drop the fold and the run comes back. Drop the clamp — which is what
+   the note in ksat-theme.css assumed happened — and the visible opening
+   paragraph stays a 190-character wall in exactly the sections that are
+   worst, which is the brief inverted. Both reductions are wanted; what
+   was wrong was asking for them TWICE.
+
+   So a clamped lead plus a folded run is now ONE control that names
+   everything behind it — "Read more — this paragraph and 1 more" — and
+   opening it opens both. Nothing is hidden that was not hidden before,
+   nothing gained a second affordance, and every word is still in the DOM.
+
+   AND THE OTHER ROAD TO THE SAME PILE-UP
+   A group can also stack when `foldRun` DECLINES: two paragraphs of
+   170 characters each clear LONG_ONE individually but their tail is
+   under RUN_CHARS, so the run was refused and each got its own clamp —
+   two controls in a row again, by the other door. A group that would
+   produce two or more clamps now folds as a run regardless of
+   RUN_CHARS: one control always beats two.
+
+   LABELS ARE OURS, IN BOTH LANGUAGES     added 21 September 2026
+   These controls are built by script, carry no data-i18n, and the page
+   dictionary never sees them. js/ksat-i18n.js does sweep
+   `.ksat-fold-word` afterwards, but it can only guess from the English:
+   it tests the label for "more" and anything without that word becomes
+   "عرض أقل". Measured on the live page, that turned every grid control
+   — "Show all 18" — into an Arabic label reading SHOW FEWER, the
+   opposite of what the button does, and it threw the counts away as
+   well. So every label here exists in English and Arabic, and repaints
+   itself on the `ksat:lang` event, which i18n dispatches AFTER its own
+   sweep — ours is the last word in both directions.
    ===================================================================== */
 
 (function () {
@@ -91,7 +140,59 @@
     try { return 'onbeforematch' in document.body; } catch (e) { return false; }
   })();
 
-  var stats = { clamped: 0, runs: 0, grids: 0, hidden: 0 };
+  var stats = { clamped: 0, runs: 0, grids: 0, hidden: 0, merged: 0 };
+
+  /* ---- LABELS · ENGLISH AND ARABIC ------------------------------------
+     Arabic counts are not "n + word". One is the noun alone, two is the
+     dual, three to ten takes the plural, eleven and up goes back to the
+     singular. Getting that wrong is the kind of thing a reader notices
+     immediately and a reviewer never does, so it is written out once
+     here and every label goes through it.
+     ------------------------------------------------------------------ */
+  function arCount(n, one, two, few, many) {
+    if (n === 1) return one;
+    if (n === 2) return two;
+    if (n <= 10) return n + ' ' + few;
+    return n + ' ' + many;
+  }
+  function paras(n, code) {
+    if (code === 'ar') {
+      return arCount(n, 'فقرة واحدة أخرى', 'فقرتان أخريان', 'فقرات أخرى', 'فقرة أخرى');
+    }
+    return n + (n === 1 ? ' more paragraph' : ' more paragraphs');
+  }
+  function cards(n, code) {
+    if (code === 'ar') return arCount(n, 'بطاقة واحدة', 'بطاقتان', 'بطاقات', 'بطاقة');
+    return String(n);
+  }
+
+  var T = {
+    more:  { en: 'Read more',  ar: 'اقرأ المزيد' },
+    less:  { en: 'Show less',  ar: 'عرض أقل' },
+    fewer: { en: 'Show fewer', ar: 'عرض أقل' },
+    /* a run: the lead paragraph is whole, only the tail is behind this */
+    run: function (n, code) {
+      return code === 'ar' ? 'اقرأ المزيد — ' + paras(n, 'ar')
+                           : 'Read more — ' + paras(n, 'en');
+    },
+    /* MERGED: the lead is clamped AND a run is folded, one control for
+       both, so the label has to name both halves or the reader cannot
+       tell what they are opening. */
+    merged: function (n, code) {
+      return code === 'ar' ? 'اقرأ المزيد — هذه الفقرة و' + paras(n, 'ar')
+                           : 'Read more — this paragraph and ' + n + ' more';
+    },
+    grid: function (n, code) {
+      return code === 'ar' ? 'عرض الكل — ' + cards(n, 'ar') : 'Show all ' + n;
+    }
+  };
+
+  /* i18n sets both; `lang` alone would miss the moment before it runs. */
+  function lang() {
+    var r = document.documentElement;
+    var code = r.getAttribute('data-ksat-lang') || r.lang || 'en';
+    return String(code).toLowerCase().indexOf('ar') === 0 ? 'ar' : 'en';
+  }
 
   function eligible(p) {
     if (p.dataset.ksatFolded) return false;
@@ -111,81 +212,138 @@
     return true;
   }
 
-  function control(labelText) {
+  /* Every control is registered, and every control knows how to write
+     its own label from its own state — open or closed, English or
+     Arabic. A control that was told its text once could not survive a
+     language switch, and that is how the counts used to disappear. */
+  var controls = [];
+  function control(render) {
     var b = el('button', 'ksat-fold-more');
     b.type = 'button';
     b.setAttribute('aria-expanded', 'false');
-    b.appendChild(el('span', 'ksat-fold-word', labelText));
-    return b;
+    b.appendChild(el('span', 'ksat-fold-word', ''));
+    var c = {
+      btn: b,
+      isOpen: function () { return b.getAttribute('aria-expanded') === 'true'; },
+      paint: function () {
+        b.querySelector('.ksat-fold-word').textContent = render(c.isOpen(), lang());
+      },
+      set: function (open) {
+        b.setAttribute('aria-expanded', open ? 'true' : 'false');
+        c.paint();
+      }
+    };
+    controls.push(c);
+    c.paint();
+    return c;
   }
+  /* i18n dispatches this AFTER its own `.ksat-fold-word` sweep, so this
+     repaint is what the reader is left looking at. */
+  document.addEventListener('ksat:lang', function () {
+    for (var i = 0; i < controls.length; i++) controls[i].paint();
+  });
 
   /* ---- shape 1 · one long paragraph, clamped -------------------------- */
+  var foldId = 0;
   function clampOne(p) {
     p.dataset.ksatFolded = '1';
     p.classList.add('ksat-fold');
-    if (!p.id) p.id = 'ksat-fold-' + (stats.clamped + 1);
+    if (!p.id) p.id = 'ksat-fold-' + (++foldId);
 
-    var b = control('Read more');
-    b.setAttribute('aria-controls', p.id);
-    b.addEventListener('click', function () {
+    var c = control(function (open, code) {
+      return open ? T.less[code] : T.more[code];
+    });
+    c.btn.setAttribute('aria-controls', p.id);
+    c.btn.addEventListener('click', function () {
       var open = p.classList.toggle('ksat-fold-open');
-      b.setAttribute('aria-expanded', open ? 'true' : 'false');
-      b.querySelector('.ksat-fold-word').textContent = open ? 'Show less' : 'Read more';
+      c.set(open);
       if (!open && p.getBoundingClientRect().top < 0) {
         p.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
       }
     });
-    p.insertAdjacentElement('afterend', b);
+    p.insertAdjacentElement('afterend', c.btn);
     stats.clamped++;
   }
 
   /* ---- shape 2 · a run of paragraphs behind one control --------------- */
   var runId = 0;
-  function foldRun(list) {
+  function foldRun(list, force) {
     var rest = list.slice(1);
     var chars = rest.reduce(function (n, p) { return n + p.textContent.trim().length; }, 0);
-    if (rest.length < RUN_MIN || chars < RUN_CHARS) return false;
+    if (rest.length < RUN_MIN) return false;
+    /* `force` is the caller saying "the alternative here is two clamps in
+       a row", which is worse than folding a short tail. It may skip the
+       CHARS test; it may never skip RUN_MIN, because a run of one is not
+       a run at all. */
+    if (chars < RUN_CHARS && !force) return false;
+
+    var lead = list[0];
+    /* The paragraph still on show may itself be a wall. It used to get
+       its own clamp control, inserted after this one was already in the
+       DOM — which is the run-on line described at the top of this file.
+       It still gets clamped; it no longer gets a second button. */
+    var leadLong = lead.textContent.trim().length > LONG_ONE;
 
     var id = 'ksat-run-' + (++runId);
     var wrap = el('div', 'ksat-run');
     wrap.id = id;
-    list[0].insertAdjacentElement('afterend', wrap);
+    lead.insertAdjacentElement('afterend', wrap);
     rest.forEach(function (p) { p.dataset.ksatFolded = '1'; wrap.appendChild(p); });
 
     if (UNTIL_FOUND) wrap.setAttribute('hidden', 'until-found');
     else wrap.hidden = true;
 
-    var word = rest.length === 1 ? 'paragraph' : 'paragraphs';
-    var b = control('Read more — ' + rest.length + ' more ' + word);
-    b.setAttribute('aria-controls', id);
+    if (leadLong) {
+      /* Marked folded as well, so the clamp pass in doSection() walks
+         past it instead of handing it the button we just removed. */
+      lead.dataset.ksatFolded = '1';
+      lead.classList.add('ksat-fold');
+      if (!lead.id) lead.id = 'ksat-fold-' + (++foldId);
+      stats.clamped++;
+      stats.merged++;
+    }
 
-    function openRun() {
+    var c = control(function (open, code) {
+      if (open) return T.less[code];
+      return leadLong ? T.merged(rest.length, code) : T.run(rest.length, code);
+    });
+    /* aria-controls takes a LIST. A merged control genuinely governs two
+       elements and a screen reader should be told both. */
+    c.btn.setAttribute('aria-controls', leadLong ? lead.id + ' ' + id : id);
+
+    function openAll() {
       wrap.removeAttribute('hidden');
       wrap.hidden = false;
-      b.setAttribute('aria-expanded', 'true');
-      b.querySelector('.ksat-fold-word').textContent = 'Show less';
+      if (leadLong) lead.classList.add('ksat-fold-open');
+      c.set(true);
     }
-    function closeRun() {
+    function closeAll() {
       if (UNTIL_FOUND) wrap.setAttribute('hidden', 'until-found');
       else wrap.hidden = true;
-      b.setAttribute('aria-expanded', 'false');
-      b.querySelector('.ksat-fold-word').textContent = 'Read more — ' + rest.length + ' more ' + word;
+      if (leadLong) lead.classList.remove('ksat-fold-open');
+      c.set(false);
+      /* Collapsing a merged control can pull a screenful out from under
+         the reader; put the paragraph they were reading back in view.
+         `auto` under reduced motion, never a smooth scroll they did not
+         ask for. */
+      if (lead.getBoundingClientRect().top < 0) {
+        lead.scrollIntoView({ block: 'center', behavior: reduced() ? 'auto' : 'smooth' });
+      }
     }
-    b.addEventListener('click', function () {
-      (b.getAttribute('aria-expanded') === 'true') ? closeRun() : openRun();
+    c.btn.addEventListener('click', function () {
+      c.isOpen() ? closeAll() : openAll();
     });
-    /* Ctrl+F landed inside it: the browser reveals it, so match the button. */
+    /* Ctrl+F landed inside it: the browser reveals it, so match the
+       button — and un-clamp the lead too, or the reader gets a revealed
+       tail hanging off a paragraph that is still cut at two lines. */
     wrap.addEventListener('beforematch', function () {
-      b.setAttribute('aria-expanded', 'true');
-      b.querySelector('.ksat-fold-word').textContent = 'Show less';
+      if (leadLong) lead.classList.add('ksat-fold-open');
+      c.set(true);
     });
 
-    wrap.insertAdjacentElement('afterend', b);
+    wrap.insertAdjacentElement('afterend', c.btn);
     stats.runs++;
     stats.hidden += rest.length;
-
-    /* The one paragraph still showing may itself be a wall. */
-    if (list[0].textContent.trim().length > LONG_ONE) clampOne(list[0]);
     return true;
   }
 
@@ -241,22 +399,20 @@
 
     rest.forEach(function (c) { c.dataset.ksatFolded = '1'; hideCard(c, true); });
 
-    var b = control('Show all ' + kids.length);
-    b.setAttribute('aria-controls', container.id);
+    var ctl = control(function (open, code) {
+      return open ? T.fewer[code] : T.grid(kids.length, code);
+    });
+    ctl.btn.setAttribute('aria-controls', container.id);
     function setOpen(open) {
       rest.forEach(function (c) { hideCard(c, !open); });
-      b.setAttribute('aria-expanded', open ? 'true' : 'false');
-      b.querySelector('.ksat-fold-word').textContent =
-        open ? 'Show fewer' : 'Show all ' + kids.length;
+      ctl.set(open);
     }
-    b.addEventListener('click', function () {
-      setOpen(b.getAttribute('aria-expanded') !== 'true');
-    });
+    ctl.btn.addEventListener('click', function () { setOpen(!ctl.isOpen()); });
     rest.forEach(function (c) {
       c.addEventListener('beforematch', function () { setOpen(true); });
     });
 
-    container.insertAdjacentElement('afterend', b);
+    container.insertAdjacentElement('afterend', ctl.btn);
     stats.grids = (stats.grids || 0) + 1;
     stats.hidden += rest.length;
     return true;
@@ -292,7 +448,20 @@
     if (cur.length) groups.push(cur);
 
     groups.forEach(function (g) {
-      if (g.length > 1 && foldRun(g)) return;
+      if (g.length > 1) {
+        /* Count what the fallback would cost before taking it. Two
+           paragraphs of 170 characters each clear LONG_ONE on their own
+           but their tail is under RUN_CHARS, so foldRun used to refuse
+           and both got clamped — two controls in a row, the same pile-up
+           the merge above exists to stop, arriving by the other door.
+           One control always beats two, so a group that would produce
+           two or more clamps folds as a run regardless of RUN_CHARS. */
+        var wouldClamp = 0;
+        for (var k = 0; k < g.length; k++) {
+          if (g[k].textContent.trim().length > LONG_ONE) wouldClamp++;
+        }
+        if (foldRun(g, wouldClamp > 1)) return;
+      }
       g.forEach(function (p) {
         if (!p.dataset.ksatFolded && p.textContent.trim().length > LONG_ONE) clampOne(p);
       });

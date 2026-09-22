@@ -88,9 +88,9 @@ If Wednesday runs out, phase C is the one to drop, not phase B. Without B there 
 
 `n8n → Workflows → Import from File → 04-agents/n8n/workflow.json`. Then:
 
-1. Open **Demo controls** and put your project URL in `supabase_url` (`https://<project-ref>.supabase.co`, no trailing slash).
-2. Open each of the ten HTTP nodes once and pick the `Supabase service role` credential from the dropdown (credential ids are per-account, so the import cannot pick it for you).
-3. Leave `break_visualization` **false**.
+1. Open each of the ten HTTP nodes once and pick the `Supabase service role` credential from the dropdown (credential ids are per-account, so the import cannot pick it for you). **This is now the only hand step**, and it is the one step that cannot be automated away, because the credential holds the service-role key and that key is never in this repo.
+2. Leave `break_visualization` **false**.
+3. Check that **Demo controls** already reads `https://kqboenytmzagdiweqygl.supabase.co`. You should not have to type it. Until 22 Sep this step said "put your project URL in `supabase_url`", the generated file shipped a `YOUR-PROJECT-REF` placeholder, and preflight A3 failed on every clean checkout to remind somebody. An import that skipped the hand step failed on its first poll with a DNS error that says nothing about the real cause, so the URL is now baked into `workflow.template.js` instead. It is public — the same string `js/config.js` ships to every browser that opens the site.
 
 Rebuild the file after any change to `agent/decision.js`, `agent/steps.js`, `agent/run.js` or `n8n/phases.js`:
 
@@ -125,14 +125,16 @@ The cost, said out loud rather than hidden: **up to 15 seconds before the first 
 
 ### 2 · `Demo controls` — Set
 
-Two fields, and they are the only two things in the whole workflow you edit:
+Two fields. Building the node by hand, these are the values:
 
 | Name | Type | Value |
 |---|---|---|
-| `supabase_url` | String | `https://YOUR-PROJECT-REF.supabase.co` |
+| `supabase_url` | String | `https://kqboenytmzagdiweqygl.supabase.co` |
 | `break_visualization` | Boolean | `false` |
 
-Every other node builds its URL from this one, so there is one place to change and no chance of eight nodes disagreeing. The project URL is public; the key is not and is not here.
+Every other node builds its URL from this one, so there is one place to change and no chance of eight nodes disagreeing.
+
+The project URL is public; the key is not and is not here. If that distinction ever looks like a slip, it is the same one `03-security` is built on: the browser already holds this URL and the publishable key, and every rule that matters lives in Postgres below the API where a browser cannot reach around it. The service-role key is the opposite kind of string — it bypasses row level security — and it lives only in the n8n credential store. `build-workflow.js` refuses to write `workflow.json` if a key-shaped string reaches it, and preflight `A5` checks the committed file again afterwards.
 
 ### 3 · `Sweep stalled runs` — HTTP Request
 

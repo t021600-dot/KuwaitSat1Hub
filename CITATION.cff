@@ -1,0 +1,53 @@
+# Citation metadata for this repository.
+#
+# Deliberately sparse. Every field below is something we can point at in the
+# repository itself. There is no DOI, no ORCID and no institutional
+# affiliation here, because the project has none of those and inventing them in
+# a machine-readable file is how a fabricated citation ends up in somebody
+# else's bibliography.
+#
+# Author names are exactly the names published in README.md. Three of the four
+# are given names only; that is how the team writes them, and guessing family
+# names would be worse than omitting them. If you are one of the four, add your
+# own family name and, if you have one, your ORCID, in a pull request.
+#
+# Format: Citation File Format 1.2.0 — https://citation-file-format.github.io/
+
+cff-version: 1.2.0
+message: >-
+  If you refer to this project, please cite it using the metadata in this file,
+  and please carry the prototype notice with it: the platform holds no real
+  KuwaitSat-1 data and every figure in it is invented for demonstration.
+title: "KuwaitSat Green Intelligence — KuwaitSat-1 Mission Hub"
+type: software
+abstract: >-
+  A student capstone prototype of a secure, bilingual (English and Arabic,
+  full right-to-left) research console for Earth-observation work over Kuwait.
+  A signed-in researcher states an environmental objective, an area and a
+  period; a pipeline of agents proposes findings, and a human gate stands
+  before monitoring and before the written study. Per-researcher isolation is
+  enforced by PostgreSQL row-level security rather than by the page. The
+  platform is not affiliated with the KuwaitSat-1 project, Kuwait University,
+  KFAS, CITRA or SACGC, holds no real satellite imagery or telemetry, and is
+  not an official government planning system.
+authors:
+  - given-names: Retag
+  - given-names: Hind
+  - given-names: Mariam
+    family-names: Madouh
+    alias: t021600-dot
+  - given-names: Dana
+repository-code: "https://github.com/t021600-dot/KuwaitSat1Hub"
+url: "https://kuwait-sat1-hub.vercel.app/"
+license: MIT
+keywords:
+  - kuwaitsat-1
+  - earth-observation
+  - row-level-security
+  - human-in-the-loop
+  - prompt-injection
+  - bilingual
+  - right-to-left
+  - supabase
+  - capstone
+  - prototype

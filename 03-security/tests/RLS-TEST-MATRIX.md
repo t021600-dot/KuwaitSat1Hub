@@ -62,7 +62,7 @@ A owns at least one launched, completed mission. B owns at least two of their ow
 | 22 | `sb.rpc('generate_report', { p_mission_id: A_MISSION, p_body_md: '…' })` | **B** | error `Mission not found.` | ☐ |
 | 23 | `sb.rpc('agent_log_step', {...})` | **A or B** | permission denied — granted to `service_role` only | ☐ |
 | 24 | everything in `two-window-check.js` | **signed out**, private window | permission denied / 0 everywhere | ☐ |
-| 25 | open a mission URL directly, e.g. `/mission.html?id=<A_MISSION>` | **B** | an empty state ("Mission not found"), not an error page, not a blank screen | ☐ |
+| 25 | open the app signed in as **B** and try to reach A's mission from the screen — the mission list, the agent section, the browser's back button into a state B did not create | **B** | an empty state, not an error page, not a blank screen | ☐ |
 
 ### The ones that catch real bugs
 
@@ -77,6 +77,54 @@ worthless as an audit trail. If a judge asks, that is the answer.
 
 Row **24** is the one that proves the publishable key in `config.js` is safe to
 be public.
+
+Row **25** used to read *"open a mission URL directly, e.g.
+`/mission.html?id=<A_MISSION>`"*. **There is no `mission.html` in this repo and
+there never was** — the product is one page, `index.html`, and the only thing
+in the URL is a section hash (`js/ksat-shell.js` reads `location.hash`). A row
+that names a page nobody can open is a row that gets ticked from memory, so it
+now says what to actually try. The stronger version of the same question is row
+2, and that one is automated.
+
+---
+
+---
+
+## What is now re-proved by machine, and what a tick still means
+
+Added 21 September 2026. Every box above is still unticked, and that is
+deliberate: **a tick means a human ran that row in a private window and read
+the answer.** Nothing below ticks a box. What the two automated blocks do is
+make the *claim* re-checkable on any night, by anyone, so that the only record
+of it is not a table somebody filled in once.
+
+| Row | Also checked by | How |
+|---|---|---|
+| 2 | `ISO-B` in [`security-check.mjs`](security-check.mjs) · `§isolation` in [`db/99_verify.sql`](../db/99_verify.sql) | signs both accounts in over the real API and asks for A's mission **by primary key** as B; expects HTTP 200 `[]` |
+| 3 | `§isolation`, result 2 | the per-researcher matrix: each row is one researcher's own visible count |
+| 4, 5, 6, 7 | `§isolation`, results 2 and 3 | per-researcher counts for `mission_runs`, `agent_steps`, `results`, `reports`, then the partition verdict |
+| 19 | `§isolation`, result 2 | the `profiles` column — one row each, never a directory |
+| 24 | the twelve `AN-*` checks in `security-check.mjs` | every table and view, as `anon`, holding the publishable key out of `js/config.js` |
+| — | `§isolation`, result 1 | each researcher reading `auth.users` — must print `refused:` |
+| — | `ISO-A` | **the other half:** the owner *can* read their own mission. A lock that hides rows from everybody passes rows 2–7 perfectly and is a dead product |
+
+Rows **1, 8–18, 20–23 and 25 are not automated.** They are the column-grant
+and owner-side limits (15–18), the write refusals (9–14), the RPC refusals
+(21–23) and the empty-state screen (25), and they are checked by hand in a
+private window. Row 20 in particular is *not* covered by the `AN-*` checks:
+those run signed **out**, and row 20 is about a signed-**in** researcher
+finding `app_settings` invisible.
+
+```bash
+node 03-security/tests/security-check.mjs          # ISO-A / ISO-B skip without the two logins
+KSAT_TEST_A="a@ksat.demo:pw" KSAT_TEST_B="b@ksat.demo:pw" \
+  node 03-security/tests/security-check.mjs        # and run for real
+```
+
+`KSAT_TEST_A` / `KSAT_TEST_B` are `email:password`, split on the first colon.
+They live in the environment and never in a file — `SEC-SVC` in the same suite
+fails the run if a credential literal appears in the working tree. With them
+absent both checks report **SKIP**, never a tick.
 
 ---
 

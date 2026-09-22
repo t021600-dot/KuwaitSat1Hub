@@ -1,0 +1,158 @@
+# =====================================================================
+# .vercelignore  ·  WHAT VERCEL IS ALLOWED TO UPLOAD. Nothing else.
+# Owner: deployment
+#
+# >>> WHY THIS FILE EXISTS — the thing that was actually live <<<
+# Until this file was written there was no output directory setting and
+# no ignore list, so the deployment was THE WHOLE REPOSITORY. Every one
+# of these returned HTTP 200 on https://kuwait-sat1-hub.vercel.app:
+#
+#   /03-security/db/01_tables_rls.sql   the complete row-level-security
+#                                       policy text, readable by anyone
+#   /04-agents/GUARDRAILS.md            the threat model
+#   /site-original/index.html           a COMPLETE copy of the app that
+#                                       does not load js/ksat-shell.js,
+#                                       so every gated "insider" section
+#                                       is simply on screen for anyone
+#   /02-back-end/prototype/index.html   a second ungated copy
+#   /app-retag/login.html               a login form that accepts ANY
+#                                       password, because js/config.js
+#                                       404s from that path and
+#                                       app-retag/js/data.js falls
+#                                       through to its demo branch
+#   /04-agents/tools/preflight.js       our own pre-demo checklist
+#   /CONTRIBUTING.md, /CREDITS-AND-SOURCES.txt, /.gitleaksignore
+#
+# None of that is deleted. Nothing in this repository is deleted. It
+# simply stops being uploaded. The team's decision is: SHIP ONLY THE APP.
+#
+# >>> THE SHAPE, AND WHY IT IS THIS SHAPE <<<
+# .vercelignore is read with .gitignore semantics: patterns exclude, a
+# leading ! re-includes, and THE LAST MATCHING LINE WINS. Two rules of
+# that syntax decide everything below, and getting either one wrong
+# deploys an empty site or deploys everything:
+#
+#   1. A pattern with no slash matches a NAME AT ANY DEPTH. So the bare
+#      `*` on its own below excludes `css` and `css/ksat-theme.css` and
+#      `04-agents/tools/preflight.js` alike. That is what we want as a
+#      default: an allowlist has to start from nothing.
+#
+#   2. You cannot re-include a file whose PARENT DIRECTORY is still
+#      excluded — the walker never descends into it, so `!css/**` alone
+#      would ship nothing. Every directory therefore needs TWO lines,
+#      `!css` to let the walker in and `!css/**` for its contents. If
+#      you add a directory to the app later and only write one of the
+#      two, the whole directory silently disappears from the deploy and
+#      the site 404s its own stylesheet. Write both lines.
+#
+# The alternative shape, an anchored `/*`, only excludes root entries
+# and would let anything nested through by default. Deliberately not
+# used: a deny-by-default list should not have a depth at which it
+# stops denying.
+#
+# >>> HOW TO CHECK THIS WITHOUT GUESSING <<<
+# `npx vercel build` then look in .vercel/output/static — that is the
+# real answer. Failing that, after the next deployment curl one path
+# from each list above and expect 200 for the app and not-200 for the
+# rest. There is also a second belt in vercel.json: redirects that send
+# the old directory paths back to `/` before the filesystem is ever
+# consulted, for the case where a deployment route we did not predict
+# ignores this file. Remove neither on the strength of the other.
+#
+# vercel.json itself cannot carry comments — it is strict JSON and
+# Vercel's schema sets additionalProperties: false, so even a "//" key
+# fails the deployment. The reasoning for what is in it (the two new
+# headers, why Cross-Origin-Embedder-Policy is deliberately absent, the
+# redirects, the cron) is written up in api/README.md section 4.
+# =====================================================================
+
+
+# ---------------------------------------------------------------------
+# 1 · Deny everything, at every depth. Read rule 1 above before editing.
+# ---------------------------------------------------------------------
+*
+
+
+# ---------------------------------------------------------------------
+# 2 · Re-include the app, and only the app. Directory line first, then
+#     its contents — read rule 2 above before adding to this list.
+#
+#     vercel.json is here because a CLI deployment that does not upload
+#     it loses every header, redirect and cron in it. It is not served:
+#     Vercel strips it from the output (verified — /vercel.json is a 404
+#     on the live site today, while every other root file is a 200).
+#
+#     api/ MUST stay in this list. /api/monitor is the nightly sweep
+#     cron; excluding it turns the cron into a 404 every night at 02:00
+#     and nobody finds out until a run sits 'running' in front of a
+#     judge.
+# ---------------------------------------------------------------------
+!index.html
+!site.webmanifest
+!vercel.json
+
+!api
+!api/**
+
+!assets
+!assets/**
+
+!css
+!css/**
+
+!js
+!js/**
+
+!vendor
+!vendor/**
+
+
+# ---------------------------------------------------------------------
+# 3 · Re-exclude the documentation that lives INSIDE the app folders.
+#     These are notes to the team, not part of the site, and /js/README.md
+#     is a 200 on the live site right now — it tells a reader which key
+#     is in js/config.js and what the security assumption behind it is.
+#     True and fine to say in the repo; no reason to serve it.
+# ---------------------------------------------------------------------
+js/README.md
+assets/README.md
+api/README.md
+
+
+# ---------------------------------------------------------------------
+# 4 · Named last, on purpose. Every one of these is already excluded by
+#     the `*` above; they are written out anyway so that this list is a
+#     readable statement of intent, and so that they survive a future
+#     `!something` line added carelessly higher up — last match wins.
+#
+#     If you ever genuinely need to ship one of these, DELETE ITS LINE
+#     HERE rather than adding another `!` above it. Two lines arguing
+#     about the same path is how a directory comes back by accident.
+#
+#     Several of these do not exist in the repository today (tests/,
+#     docs/, db/ at the root, and .tmp/ which is gitignored). They are
+#     listed because the names are already used elsewhere in the tree
+#     and a root-level one would otherwise ship the day someone makes it.
+# ---------------------------------------------------------------------
+01-front-end/
+02-back-end/
+03-security/
+04-agents/
+app-retag/
+site-original/
+tools/
+tests/
+docs/
+db/
+.tmp/
+
+# Root-level loose files and every markdown file anywhere. The app does
+# not load a single .md, so this cannot take anything the site needs.
+*.md
+CREDITS-AND-SOURCES.txt
+kuwaitsat1-team-photo.webp
+.env
+.env.*
+.gitleaksignore
+.gitattributes
+.nojekyll

@@ -37,8 +37,31 @@ var cp    = require('child_process');
 
 var ROOT   = path.join(__dirname, '..', '..');            /* repo root */
 var AGENTS = path.join(ROOT, '04-agents');
-var FRONT  = path.join(ROOT, '01-front-end', 'app');
 var SEC    = path.join(ROOT, '03-security', 'db');
+
+/* >>> WHERE THE PRODUCT ACTUALLY IS, AND THE BUG THIS LINE FIXES <<<
+   This file used to define FRONT = 01-front-end/app and look for
+   mission.html and 01-front-end/app/js/config.js inside it. Neither has
+   ever existed: 01-front-end/app holds one file, RETAG-NOTES.md, and the
+   site that deploys is index.html at the REPO ROOT with its scripts in
+   js/. So checks C1 and C2 printed
+
+       TODO  C1  NO automation panel is wired into mission.html
+       TODO  C2  js/config.js does not exist, so window.sb is never created
+
+   every single run, and both statements were false. That is worse than
+   no check at all: a checklist that is permanently half-orange teaches
+   the person reading it to skip the orange, and the day something real
+   goes orange nobody looks. Corrected 21 Sep 2026.
+
+   SITE      what Vercel serves, and what the judge opens.
+   REFERENCE 04-agents/app — the reference implementation of the panel.
+             It is NOT served (see 04-agents/README.md) and nothing in
+             index.html loads it. It is still checked, because a rule
+             that holds for the shipped panel should hold for the file
+             somebody might copy next week. */
+var SITE      = ROOT;
+var REFERENCE = path.join(AGENTS, 'app');
 
 var argv = process.argv.slice(2);
 var EXPECT_BREAK = argv.indexOf('--expect-break') !== -1;
@@ -200,29 +223,83 @@ check('B4', 'agent/steps.js and the database agree on the six step names',
       'SQL: ' + sqlNames.join(',') + '\n           JS : ' + jsNames.join(',') +
       '  - a seventh name, or a British spelling, is refused by the CHECK constraint');
 
+/* ---------------------------------------------------------------------
+   B5 and B6 are about js/ksat-workflow.js, the panel that SHIPS. Checks
+   B1-B4 above are about 04-agents/agent/*.js, which is the engine the
+   n8n canvas runs. The two are not the same numbers and must not be
+   made the same - see B5. 04-agents/README.md has the full mapping.
+   --------------------------------------------------------------------- */
+var shipped = read(path.join(ROOT, 'js', 'ksat-workflow.js')) || '';
+
+/* THE NUMBER SOMEBODY WILL "FIX" AND BREAK THE DEMO WITH.
+   decision.js rejects a zone below IMPACT_FLOOR_C = 1.0 °C of cooling.
+   The page cannot reach that: js/ksat-workflow.js:55-65 records that
+   replaying the page's own predictImpact() across all six governorates
+   gives a best case of -0.86 °C, so a 1.0 °C floor rejects every
+   candidate and every run stalls. The shipped panel therefore states
+   its floor in the unit the page actually computes - 4.0 percentage
+   points of vegetation cover. Copying IMPACT_FLOOR_C into the panel to
+   "make the numbers agree" is the failure this check exists to catch. */
+check('B5', 'the shipped panel keeps its own floor, in percentage points',
+      /UPLIFT_FLOOR_PP\s*=\s*[0-9.]+/.test(shipped) && !/IMPACT_FLOOR_C/.test(decomment(shipped)),
+      'js/ksat-workflow.js must define UPLIFT_FLOOR_PP and must NOT use ' +
+      'IMPACT_FLOOR_C. A 1.0 °C floor is arithmetically unreachable in this ' +
+      'page: every zone is rejected and every run stalls.');
+
+/* The two pairs js/ksat-workflow.js names in its own header as "must
+   never drift apart". Both are a number written in two places on
+   purpose: the browser refuses early so the researcher gets a sentence,
+   and the database refuses regardless so the browser is not the wall. */
+var shippedBudget = numberIn(shipped, 'STEP_BUDGET');
+var shippedChars  = numberIn(shipped, 'MIN_REPORT_CHARS');
+var viewsSrc      = read(path.join(SEC, '05_views_rpc.sql')) || '';
+var sqlChars      = (/char_length\([^;]*p_body_md[^;]*?<\s*(\d+)/.exec(viewsSrc) || [])[1];
+check('B6', 'the shipped panel agrees with the database on both walls',
+      shippedBudget !== null && sqlWall && Number(sqlWall) === shippedBudget &&
+      shippedChars !== null && sqlChars && Number(sqlChars) === shippedChars,
+      'panel STEP_BUDGET=' + shippedBudget + ' vs SQL ' + sqlWall +
+      ' · panel MIN_REPORT_CHARS=' + shippedChars + ' vs generate_report ' + sqlChars +
+      '. A browser limit that is looser than the database one turns a clear ' +
+      'sentence into a raw Postgres error in front of the judge.');
+
 
 /* =====================================================================
    C · THE BROWSER
    ===================================================================== */
 head('C · The app the judge actually looks at');
 
-var missionHtml = read(path.join(FRONT, 'mission.html')) || '';
-/* 'js/automation.js' is the one panel. The other two names were the
-   duplicates that were deleted on Sunday night - they are still listed
-   because a stale copy pasted back into mission.html is exactly the
-   mistake this check exists to catch. */
-var panels = ['js/automation.js', 'agent-panel.js']
-  .filter(function (p) { return missionHtml.indexOf(p) !== -1; });
-if (panels.length === 1) {
-  check('C1', 'exactly one automation panel is wired into mission.html', true);
-} else if (panels.length === 0) {
-  todo('C1', 'NO automation panel is wired into mission.html',
-       'au-m2 and au-m6 both fail here. Apply the six-line patch in ' +
-       '04-agents/app/INTEGRATION.md. Until then the Launch button on that ' +
-       'page is the localStorage mock, not launch_mission().');
+/* index.html is ~500 KB of prototype. Only the <script src=...> lines
+   matter here, so read those rather than searching the whole file: the
+   page discusses its own architecture in prose, and a plain indexOf on
+   a filename matches a sentence about the file as readily as a tag. */
+var indexHtml  = read(path.join(SITE, 'index.html')) || '';
+var scriptSrcs = (indexHtml.match(/<script[^>]+src=["'][^"']+["']/gi) || [])
+  .map(function (t) { return (/src=["']([^"']+)["']/i.exec(t) || [])[1] || ''; });
+
+/* js/ksat-workflow.js IS the shipped automation section: it owns the
+   Launch button, calls launch_mission(), writes every agent step through
+   researcher_log_step(), and paints the human checkpoint. The other two
+   names are panels that must NOT appear here - automation.js is the
+   reference implementation in 04-agents/app/js/ (04-agents/README.md
+   explains the split) and agent-panel.js was deleted on Sunday night. A
+   second panel in the page means two answers to "what launches a run",
+   and on Thursday nobody can say which one ran. */
+var SHIPPED_PANEL = 'js/ksat-workflow.js';
+var wired  = scriptSrcs.filter(function (s) { return s === SHIPPED_PANEL; });
+var others = scriptSrcs.filter(function (s) {
+  return /(^|\/)automation\.js$|(^|\/)agent-panel\.js$/.test(s);
+});
+
+if (wired.length === 1 && others.length === 0) {
+  check('C1', 'index.html loads ' + SHIPPED_PANEL + ', and no second panel', true);
+} else if (wired.length === 0) {
+  check('C1', 'index.html loads ' + SHIPPED_PANEL + ', and no second panel', false,
+        'no <script src="' + SHIPPED_PANEL + '"> in index.html. au-m1, au-m2 and ' +
+        'au-m6 all fail here: the Launch button is whatever the prototype did ' +
+        'before, not launch_mission().');
 } else {
-  check('C1', 'exactly one automation panel is wired into mission.html', false,
-        'two panels are referenced: ' + panels.join(', ') + '. Ship one.');
+  check('C1', 'index.html loads ' + SHIPPED_PANEL + ', and no second panel', false,
+        'referenced: ' + wired.concat(others).join(', ') + '. Ship one.');
 }
 
 /* THE DUPLICATES STAY DELETED. Three sessions wrote into this folder in
@@ -241,22 +318,28 @@ check('C1b', 'no deleted duplicate has come back', revenants.length === 0,
       '. The survivors are app/js/automation.js, n8n/BUILD-GUIDE.md, ' +
       'agent/run.js + n8n/phases.js, and 03-security/db/08_agent_claim.sql.');
 
-var cfg = path.join(FRONT, 'js', 'config.js');
+var cfg = path.join(SITE, 'js', 'config.js');
 if (exists(cfg)) {
-  check('C2', 'js/config.js exists and creates window.sb',
-        /window\.sb\s*=/.test(read(cfg) || ''),
-        'the panel disables itself and says "the database client has not loaded"');
+  var cfgSrc = read(cfg) || '';
+  /* Two separate facts, and the second one is the one that bites. The
+     file can exist, define the client, and still leave window.sb unset -
+     which is exactly the state every panel treats as "no database", so
+     the page falls back to mock data and looks completely fine. */
+  check('C2', 'js/config.js exists, creates the client and exposes window.sb',
+        /createClient\s*\(/.test(cfgSrc) && /window\.sb\s*=/.test(cfgSrc),
+        'the panel disables itself and says the database client has not loaded');
 } else {
-  todo('C2', 'js/config.js does not exist, so window.sb is never created',
-       'one file: createClient(url, anonKey) -> window.sb. The ANON key only. ' +
-       'The service-role key never reaches the browser.');
+  check('C2', 'js/config.js exists, creates the client and exposes window.sb', false,
+        'js/config.js is missing from the repo root. One file: ' +
+        'createClient(url, publishableKey) -> window.sb. The PUBLISHABLE key ' +
+        'only. The service-role key never reaches the browser.');
 }
 
 /* No URL that starts an agent may live in anything the browser downloads.
    Comment lines are skipped: this repo explains the rule in comments, and
    the rule is about URLs in code. */
 var clientFiles = [];
-[FRONT, path.join(FRONT, 'js'), path.join(AGENTS, 'app'), path.join(AGENTS, 'app', 'js')]
+[SITE, path.join(SITE, 'js'), REFERENCE, path.join(REFERENCE, 'js')]
   .forEach(function (dir) {
     var list = [];
     try { list = fs.readdirSync(dir); } catch (e) { return; }
@@ -277,10 +360,17 @@ check('C3', 'no n8n or webhook URL in any file the browser downloads',
       'D-1 violated at ' + leaks.join(', ') + '. That URL is in View Source, ' +
       'and behind it is a key that bypasses every RLS policy.');
 
-var panelSrc = read(path.join(AGENTS, 'app', 'js', 'automation.js')) || '';
-check('C4', 'the shipped panel never assigns innerHTML',
-      !/\.innerHTML\s*=/.test(decomment(panelSrc)),
-      'D-2: agent text is displayed with .textContent, never parsed as HTML');
+/* D-2, on BOTH panels. The shipped one is the one that matters on
+   Thursday; the reference one is the one somebody copies next week. */
+var shippedSrc   = read(path.join(SITE, 'js', 'ksat-workflow.js')) || '';
+var referenceSrc = read(path.join(REFERENCE, 'js', 'automation.js')) || '';
+var htmlAssign = [];
+if (/\.innerHTML\s*=/.test(decomment(shippedSrc)))   { htmlAssign.push('js/ksat-workflow.js'); }
+if (/\.innerHTML\s*=/.test(decomment(referenceSrc))) { htmlAssign.push('04-agents/app/js/automation.js'); }
+check('C4', 'neither panel ever assigns innerHTML', htmlAssign.length === 0,
+      'D-2 violated in: ' + htmlAssign.join(', ') + '. Agent text is displayed ' +
+      'with .textContent, never parsed as HTML - the objective is untrusted ' +
+      'text that reaches another researcher\'s screen.');
 
 /* Stall timings. The screen must not give up before the sweeper does,
    or a judge sees "Failed - no response" on a run the database still
@@ -292,15 +382,25 @@ check('C4', 'the shipped panel never assigns innerHTML',
    print TODO for days, which reads exactly like "not important". */
 var sweepMin = (/p_idle_minutes\s+int\s+default\s+(\d+)/
   .exec(read(path.join(SEC, '08_agent_claim.sql')) || '') || [])[1];
-var stallMs = numberIn(panelSrc, 'STALL_MS');
-if (sweepMin && stallMs) {
-  check('C5', 'the screen and the sweeper give up at the same moment',
-        stallMs === Number(sweepMin) * 60000,
-        'panel STALL_MS = ' + (stallMs / 1000) + 's, sweep_stalled_runs default = ' +
-        (Number(sweepMin) * 60) + 's. Pick ONE number and put it in both, or the ' +
-        'screen says Failed while the row still says running.');
+/* Both panels carry the number, so both can drift from the database.
+   The shipped one is checked first because it is the one on the
+   projector. */
+var stallShipped   = numberIn(shippedSrc,   'STALL_MS');
+var stallReference = numberIn(referenceSrc, 'STALL_MS');
+if (sweepMin && stallShipped && stallReference) {
+  var want = Number(sweepMin) * 60000;
+  var drift = [];
+  if (stallShipped   !== want) { drift.push('js/ksat-workflow.js=' + (stallShipped / 1000) + 's'); }
+  if (stallReference !== want) { drift.push('04-agents/app/js/automation.js=' + (stallReference / 1000) + 's'); }
+  check('C5', 'the screen and the sweeper give up at the same moment (' +
+        (want / 1000) + 's)', drift.length === 0,
+        drift.join(', ') + ' vs sweep_stalled_runs default ' + (want / 1000) +
+        's. Pick ONE number and put it everywhere, or the screen says Failed ' +
+        'while the row still says running.');
 } else {
-  todo('C5', 'could not read both stall timings', 'check by hand');
+  todo('C5', 'could not read all three stall timings',
+       'wanted p_idle_minutes in 03-security/db/08_agent_claim.sql and STALL_MS ' +
+       'in both panels. Check by hand.');
 }
 
 
@@ -328,8 +428,8 @@ if (RUN_TESTS) {
    ===================================================================== */
 head('E · Tick these by hand - no script can see them');
 [
-  ['E1', 'Mariam has RUN 03-security/db/01 -> 06 and 03-security/db/08 against the real project.',
-         "select proname from pg_proc where proname in ('launch_mission','claim_next_run','agent_log_step','generate_report'); -- expect 4 rows"],
+  ['E1', 'Mariam has RUN 03-security/db/01 -> 06, then 08, 09, 10 and 11 against the real project. (07 is PHASE2: read, do not run.)',
+         "select proname from pg_proc where proname in ('launch_mission','claim_next_run','agent_log_step','generate_report','monitor_record'); -- expect 5 rows once 11 is in"],
   ['E2', 'The n8n workflow is ACTIVE, not just saved. An inactive workflow does not poll, and nothing ever leaves "queued".',
          'n8n -> the workflow -> the Active toggle, top right, is ON. Then Executions shows a new row every 15 seconds.'],
   ['E3', 'The Supabase dashboard tab is CLOSED, and so is the n8n tab.',
@@ -339,7 +439,7 @@ head('E · Tick these by hand - no script can see them');
   ['E5', 'The demo missions are CREATED but NOT LAUNCHED, and you have a spare.',
          'one clean, one for the failure, one for the break test, one spare = 4. TWO hourly limits apply, both 5: missions CREATED (missions_guard) and runs LAUNCHED (launch_mission). Count both from your rehearsal.'],
   ['E6', 'A smoke-test run has completed end to end in the last hour, on a DIFFERENT mission from the demo one.',
-         'launch_mission counts runs PER RESEARCHER per hour (5), so a smoke test spends one of the five you have for the demo. It does NOT cap runs per mission - rule 10b is still an ask to 03, not code.'],
+         'THREE limits now apply, all in launch_mission(): 3 runs per MISSION per hour, 5 runs per RESEARCHER per hour, and a permanent freeze once a mission has an approved report. Rule 10b is code as of 21 Sep - 05_views_rpc.sql R-1a and R-1b - so a smoke test on the demo mission spends one of its three and can never be re-run after you approve its report.'],
   ['E7', 'You have run the R-1 rehearsal and filled in the table in GUARDRAILS.md section 4.',
          'until that table has real numbers in it, do NOT say the au-m4 sentence "one rule I changed because a rehearsal broke it"']
 ].forEach(function (r) {

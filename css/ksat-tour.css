@@ -1,0 +1,701 @@
+/* =====================================================================
+   ksat-tour.css — the guided tour's spotlight, its offer and its HUD
+   Owner: 01 Front End
+
+   This file dresses js/ksat-tour.js and nothing else. Every selector is
+   prefixed .ksat-tour- / #ksat-tour-, with two deliberate exceptions —
+   `#demoHud > .ksat-tour-*` children we append ourselves — so no rule
+   here can reach an element index.html already styles. Delete this file
+   and js/ksat-tour.js and the guided tour is exactly what it was: the
+   eleven-step #demoHud / #demoPan, unchanged.
+
+   NO LINE NUMBERS IN THIS FILE, ON PURPOSE. The two that used to be
+   here — "the eleven-step HUD at index.html:1743" and "goDemo()
+   (index.html:4281)" — were re-read on 2026-09-22 and both are wrong:
+   1743 is a blank line and 4281 is the head of an unrelated array.
+   index.html moved several hundred lines during these passes. Selectors
+   and function names are greppable and survive that; line numbers are
+   not and do not. js/ksat-tour.js carries the same note over the eleven
+   citations it had.
+
+   WHY THERE IS A SPOTLIGHT AT ALL
+   goDemo() in index.html is three lines: find the section, scroll to
+   it, run the step's side effect 420 ms later. The HUD then narrates at
+   the bottom of the screen while the reader is looking at a full page of
+   instruments with no idea which one the sentence is about. On the
+   explorer step — "switch layers" — the layer chips are 40 px tall in a
+   900 px section. Nothing points at them.
+
+   Colours come from the prototype's own custom properties with
+   fallbacks, the same way ksat-shell.css and ksat-assistant.css do, so
+   this stays native as the theme layer moves underneath it.
+
+   THE Z-INDEX BUDGET, read out of the other files rather than
+   remembered. The first version of this comment said "60 .bar, 61
+   assistant panel" and was already two rewrites out of date when it was
+   written: css/ksat-assistant.css declares the launcher at 132 and the
+   panel at 134, in a block that explains at length why. Two numbers in
+   a comment nobody can act on are worse than none, so these are the
+   real ones, each with the file that owns it:
+
+      1   main / .bar / footer raise         css/ksat-detail.css
+      58  chapter rail (#ksat-ch-rail)       css/ksat-shell.css
+      60  .bar (masthead)                    index.html
+      110 OUR spotlight                      this file
+      118 OUR offer                          this file
+      120 #demoHud (guided tour narration)   index.html
+      130 #ksat-ch-fab (chapter control)     css/ksat-shell.css
+      132 .ksat-as-fab (assistant launcher)  css/ksat-assistant.css
+      134 .ksat-as-panel (assistant panel)   css/ksat-assistant.css
+      140 #ksat-ch-sheet (chapter sheet)     css/ksat-shell.css
+      150 #toast                             index.html
+      200 #intro (launch sequence)           index.html
+
+   The spotlight sits UNDER the HUD on purpose: the HUD is the one thing
+   that must never be dimmed. The offer sits under the HUD too, because
+   the two are never on screen at the same time. Both sit under the two
+   corner controls and the assistant panel, which is the right way
+   round: a first-visit invitation must not cover a control the reader
+   deliberately reached for.
+   ===================================================================== */
+
+:root {
+  --ksat-tour-dim: rgba(4, 8, 15, 0.66);
+  --ksat-tour-pad: 10px;
+
+  /* -------------------------------------------------------------------
+     WHERE THE MASTHEAD ENDS.  Declared here, measured in JavaScript.
+
+     js/ksat-tour.js measures .bar and rewrites this property on the root
+     element; the value below is what is used for the frame before that
+     runs, and for a page that has no .bar at all.
+
+     It is measured rather than taken from --bar-h because --bar-h is not
+     reliably the height of the masthead. index.html declares it 58px,
+     css/ksat-theme.css redeclares it 64px and then 101px above 860px,
+     and it is meant to move with the bar. Measured in this browser at a
+     1424px viewport: getComputedStyle said --bar-h: 101px while
+     .bar.getBoundingClientRect().height was 180px, because the bar had
+     wrapped to a third row and the variable had not followed. A card
+     placed at calc(var(--bar-h) + 12px) then starts at y=113 — INSIDE
+     the masthead, on top of #demoBtn and #ksat-signin. That is the same
+     class of bug this file is here to fix, so it does not get to be the
+     fix. See dock() in js/ksat-tour.js.
+
+     --bar-h is still the fallback, because for the one frame before the
+     measurement lands it is the best guess available and it is right
+     most of the time — 65px measured against --bar-h: 64px below 860px,
+     101px against 101px above it. It is the wrapped case it misses.
+     ------------------------------------------------------------------- */
+  --ksat-tour-dock: var(--bar-h, 64px);
+}
+
+/* =====================================================================
+   1 · THE SPOTLIGHT
+
+   One element, one huge box-shadow spread. The shadow IS the dim; the
+   element itself is the hole. Four dim rectangles would also work and
+   would be one more thing to keep in sync on every scroll frame, which
+   on a page carrying 26 canvases is the wrong trade.
+
+   pointer-events:none on the layer AND the hole is not a detail. The
+   whole point of the tour is that the reader looks at, and reaches, the
+   thing being pointed at. A spotlight that eats clicks turns a guide
+   into a cage.
+   ===================================================================== */
+
+#ksat-tour-spot {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+#ksat-tour-spot[data-on] { opacity: 1; }
+
+.ksat-tour-hole {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: 12px;
+  pointer-events: none;
+
+  /* 100vmax of spread reaches every corner from any hole position on
+     any viewport, which a fixed pixel figure does not — a 9999px spread
+     is still short of the corner on an ultrawide desktop at 4K. */
+  box-shadow:
+    0 0 0 100vmax var(--ksat-tour-dim),
+    0 0 0 1px var(--accent, #3FD0C9),
+    0 0 0 5px var(--accent-glow, rgba(63, 208, 201, 0.18));
+
+  transition:
+    top 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    left 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    width 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    height 0.42s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* While the page is still smooth-scrolling to a new step the hole is
+   being repositioned every frame, and a 0.42 s ease on top of that
+   reads as lag rather than as movement. The script stamps this for the
+   duration of the settle and takes it off again. */
+.ksat-tour-hole[data-tracking] { transition: none; }
+
+/* =====================================================================
+   2 · THE HUD, UPGRADED FROM OUTSIDE
+
+   renderDemo() replaces #demoPan.innerHTML on every step, so anything
+   put INSIDE #demoPan is destroyed by the next press of Next. The strip
+   is therefore a SIBLING of #demoPan inside #demoHud, where the page's
+   own rendering never reaches it, and it shares the panel's 760 px
+   measure so the two read as one card.
+
+   The live region is on <body> instead, and that is not a stylistic
+   choice: #demoHud is display:none whenever the tour is off, and a live
+   region inside a display:none subtree announces nothing. It has to
+   speak while the tour is off, to say the tour exists.
+   ===================================================================== */
+
+.ksat-tour-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ksat-tour-note {
+  max-width: 760px;
+  margin: 0 auto 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--line-2, #24344A);
+  border-radius: var(--r-sm, 9px);
+  background: rgba(8, 13, 22, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--ink-2, #9DAEC2);
+  pointer-events: none;          /* it is a caption, not a control */
+}
+.ksat-tour-note[hidden] { display: none; }
+
+.ksat-tour-note-mark {
+  color: var(--accent, #3FD0C9);
+  margin-inline-end: 8px;
+}
+
+/* The strip makes #demoHud taller, and ksat-shell.css already lifts
+   #ksat-ch-fab to 86px while the HUD is on — which clears the panel but
+   not the strip now sitting above it. On a narrow screen the fab is a
+   pill at the inline end, so keep the strip's text out from under it
+   rather than move a control this file does not own. */
+@media (max-width: 620px) {
+  .ksat-tour-note { padding-inline-end: 66px; }
+}
+
+/* =====================================================================
+   3 · THE OFFER
+
+   An institutional research platform does not get to trap a first-time
+   reader in a modal. This is a card in the corner, out of the reading
+   column, with a real dismiss — the same register as .ksat-tier-note.
+
+   IT WAS IN THE WRONG CORNER, AND THAT WAS NOT A NEAR MISS.
+   The card used to be pinned bottom-inline-start, 18px up from the
+   floor. Measured in Chrome, first visit, at a 1424x660 viewport (which
+   is what a 1424x780 window gives you once the browser's own chrome is
+   taken off the top):
+
+     #ksat-tour-offer   top 456  left 16   right 376  bottom 642
+     #heroSim           top 468  left 144  right 354  bottom 506
+     #heroTour          top 468  left 364  right 536  bottom 506
+
+   So the invitation covered "Simulate a greener Kuwait" completely — a
+   210x38 overlap, the whole button — and 12px of "Take the guided
+   tour". document.elementFromPoint() at the centre of #heroSim returned
+   .ksat-tour-offer-eyebrow: the card was not merely drawn on top of the
+   hero's primary call to action, it was taking the click. The first
+   thing a first-time visitor saw was an offer sitting on the control
+   that does the same thing, with the page's other main action disabled
+   underneath it.
+
+   It was worse narrow than wide. At 620x700 and at 400x700 the same
+   card covered BOTH hero buttons. At 1424x780 it cleared the buttons
+   and landed on the fact strip's fold control (.ksat-fold-more)
+   instead, which is why nobody caught it: the collision is a function
+   of viewport HEIGHT, not width. The card's top edge is (viewport
+   height - 204), the hero's button row sits at 468-506 from the top of
+   the document, so every viewport between roughly 493px and 717px tall
+   collides. That is most laptops, and the two sizes either side of it
+   look fine.
+
+   WHY THE TOP, INLINE-END.
+   · The hero's calls to action are in the left column at every width
+     this page has, so an invitation anchored to the bottom-left is
+     aimed at them by construction. Moving it up the left side only
+     changes which viewport heights collide.
+   · The card's own copy says the tour "stays in the top bar if you
+     would rather start later". The masthead's #demoBtn IS the thing
+     this card is pointing at. Sitting directly under that button makes
+     the sentence and the placement say the same thing.
+   · The bottom-inline-end corner is already spoken for, twice, by
+     controls whose owners documented their layers: #ksat-ch-fab at
+     z-index 130 (css/ksat-shell.css) and .ksat-as-fab at 132
+     (css/ksat-assistant.css), with .ksat-as-panel at 134 filling that
+     whole corner when it opens. A third floating card there is not a
+     corner any more, it is a pile.
+   · The top-inline-start is the H1.
+
+   What is left underneath at the top-inline-end is the hero's own
+   backdrop: #heroOrb, a decorative canvas with no listeners, and the
+   "◈ ORBIT MODEL" flight label. Checked with elementFromPoint on a
+   4px x 8px grid over the whole card, on a first visit, after the page
+   had finished settling: nothing interactive under any sample point at
+   1424x630 or at 1024x700. At 400x700 the card spans the column rather
+   than sitting beside it and the last five pixels of it still reach the
+   hero lede's fold control — see the narrow-width rule at the end of
+   this section, which says exactly how much and why that is where it
+   stops.
+
+   A fixed card cannot promise that for every scroll position, because
+   the page scrolls underneath it and the sections below the hero are
+   full of controls. js/ksat-tour.js closes that hole from the other
+   side: scroll a full viewport while the offer is still up and it
+   withdraws, without remembering anything, on the same reasoning the
+   file already uses at boot — an invitation to start at the beginning
+   is noise once you are reading.
+   ===================================================================== */
+
+#ksat-tour-offer {
+  position: fixed;
+  inset-inline-end: 16px;
+  inset-inline-start: auto;         /* RTL flips both of these for free */
+  top: calc(var(--ksat-tour-dock, 64px) + 12px + env(safe-area-inset-top, 0px));
+  bottom: auto;
+  z-index: 118;
+  width: min(360px, calc(100vw - 32px));
+
+  /* A short window — a laptop in a video call, a phone in landscape —
+     must not push the dismiss cross off the bottom of the screen. The
+     card is 186px tall as written; this only ever bites under about
+     260px of usable height, and when it does the card scrolls instead
+     of the buttons becoming unreachable. */
+  max-height: calc(100vh - var(--ksat-tour-dock, 64px) - 36px);
+  overflow-y: auto;
+
+  padding: 15px 16px 14px;
+  border: 1px solid var(--line-3, #33475F);
+  border-radius: var(--r, 14px);
+  background: var(--surf, #0A0F18);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+
+  /* It now arrives from the masthead it is pointing at, so it comes
+     DOWN rather than up. A card that rises from the floor while sitting
+     at the top of the screen reads as a dropped frame. */
+  transform: translateY(-10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+#ksat-tour-offer[data-on] {
+  opacity: 1;
+  transform: none;
+}
+
+.ksat-tour-offer-eyebrow {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent, #3FD0C9);
+}
+
+.ksat-tour-offer-h {
+  margin: 6px 0 0;
+  font-family: var(--disp, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink, #E9EFF7);
+}
+
+.ksat-tour-offer-p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2, #9DAEC2);
+}
+
+.ksat-tour-offer-acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.ksat-tour-btn {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 13px;
+  border-radius: var(--r-sm, 9px);
+  border: 1px solid var(--line-3, #33475F);
+  background: transparent;
+  color: var(--ink, #E9EFF7);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.ksat-tour-btn:hover { border-color: var(--accent, #3FD0C9); }
+.ksat-tour-btn:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: 2px;
+}
+.ksat-tour-btn-go {
+  border-color: var(--accent-dim, #1E7F7C);
+  background: var(--accent-glow, rgba(63, 208, 201, 0.18));
+  color: var(--ink, #E9EFF7);
+}
+
+/* The dismiss cross. Sized as a real 32 px target, not a 12 px glyph. */
+.ksat-tour-offer-x {
+  position: absolute;
+  inset-inline-end: 7px;
+  top: 7px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-3, #64778D);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ksat-tour-offer-x:hover { color: var(--ink, #E9EFF7); }
+.ksat-tour-offer-x:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: 2px;
+}
+
+/* Below this width a 360px card and a 12px gutter leave almost nothing
+   beside it, so it takes the full measure instead of pretending to be a
+   corner card on a screen that has no corners to spare.
+
+   This used to be the rule that lifted the card 128px off the floor to
+   clear the chapter fab and the assistant launcher. That clearance is
+   no longer needed from here — the card is at the top now and those two
+   controls own the bottom of the screen outright, which is the tidier
+   arrangement anyway: nothing on this layer has to be kept in sync with
+   their heights. `inset-inline` sets both edges and so overrides the
+   `inset-inline-start: auto` above; the card simply spans the width. */
+@media (max-width: 620px) {
+  #ksat-tour-offer {
+    inset-inline: 12px;
+    width: auto;
+    top: calc(var(--ksat-tour-dock, 64px) + 8px + env(safe-area-inset-top, 0px));
+    max-height: calc(100vh - var(--ksat-tour-dock, 64px) - 28px);
+
+    /* AND IT IS ANCHORED TO THE DOCUMENT, NOT TO THE SCREEN. This is
+       the one declaration in this file that changes what the card DOES
+       rather than how it looks, so here is the measurement that asked
+       for it.
+
+       A fixed card stays where it is while the page slides underneath,
+       so what is behind it is a function of scroll position, and this
+       is the width where the card spans the whole reading column and
+       the hero is a single column under it. Read with
+       document.elementFromPoint() on an 8px grid over the card's own
+       box, pointer-events suspended so the sampling sees through it,
+       Chrome, first visit, 700px tall:
+
+         400px  English  scrollY 0    nothing interactive under it
+         400px  English  scrollY 300  #heroSim AND #heroTour
+         400px  Arabic   scrollY 93   .ksat-fold-more (the lede's own)
+         400px  Arabic   scrollY 300  #heroSim AND #heroTour
+         480px  English  scrollY 300  #heroSim AND #heroTour
+         620px  English  scrollY 300  #heroSim AND #heroTour
+
+       The second line is the bug this section opens with, still true
+       three hundred pixels down: "the card was not merely drawn on top
+       of the hero's primary call to action, it was taking the click."
+       Moving the card to the top corner fixed the arrival state and
+       left the scrolled state alone. No height fixes it — the shortest
+       bar worth shipping still covers 110px of whatever has scrolled
+       under it — and there is no sideways answer at this width because
+       the card spans the column by design.
+
+       position: absolute puts it at the same place it already appears
+       (measured: doc 73-183.7 at 400px, pixel for pixel what fixed
+       gives at the top of the page) and then lets it scroll away with
+       the hero it belongs to. Re-measured with it on: nothing
+       interactive under the card at scrollY 0, 93 or 300, in English or
+       Arabic, at 400, 430, 460, 480 or 620. At 300 it is off the top of
+       the screen entirely.
+
+       INDEPENDENTLY RE-RUN 2026-09-22, and it holds. Same method —
+       document.elementFromPoint over the card's own box with the card's
+       pointer-events suspended, walking up from each hit to the nearest
+       button, link, input, [role=button] or [tabindex] — on a first
+       visit at 700px tall, at six width-and-language combinations:
+
+         mq 400  English   444 / 370 sample points   none / none / card gone
+         mq 400  Arabic    518 / 444                 none / none / card gone
+         mq 430  Arabic    560 / 480                 none / none / card gone
+         mq 459  English   516 / 430                 none / none / card gone
+         mq 459  Arabic    602 / 516                 none / none / card gone
+         mq 619  English   885 / 767                 none / none / card gone
+
+       (the three results are scrollY 0, 93 and 300; "card gone" is
+       zero sample points because the document-anchored card has left
+       the viewport by then, which is the whole point of the rule).
+
+       AND A CAVEAT ABOUT HOW THAT WAS READ, because the number is only
+       worth what the method is. The browser window could not be
+       resized or brought to the front for this pass — document.hidden
+       stayed true throughout — so the widths above were produced in a
+       same-origin iframe sized to each viewport rather than by resizing
+       Chrome. In that harness a classic 9.86px scrollbar is inside the
+       media-query width, so the card's own box is about 10px narrower
+       than a real handset would give it at the same breakpoint. That
+       errs the right way: a narrower card wraps its text sooner and
+       measures TALLER, so every clearance above is a lower bound. What
+       it cannot show is anything that only appears in motion, and
+       nothing here is claimed on that basis.
+
+       This is the same instinct js/ksat-tour.js already acts on from
+       the other side — offerDrift() withdraws the offer after a full
+       viewport of travel because an invitation to start at the
+       beginning is noise once you are reading — applied continuously
+       instead of at one threshold. offerDrift() still runs and still
+       removes the node; by then the bar has been off screen for a
+       while.
+
+       WHAT IT DEPENDS ON, so it fails loudly if that ever changes: the
+       masthead is not sticky in this build. css/ksat-detail.css sets
+       `main, .bar, footer { position: relative }`, which overrides the
+       `position: sticky` in index.html, so .bar scrolls away too and a
+       card docked under it in document coordinates stays docked under
+       it. Make the masthead sticky again and this line has to go back
+       to fixed, or the offer will slide under the masthead instead of
+       past it. dock() in js/ksat-tour.js carries the same note.
+
+       Above 620px the card is a 360px corner card at the inline end,
+       the hero's calls to action are in the inline-start column, and it
+       is left fixed. That is not a clean bill of health: at 1024x700,
+       scrollY 400, a .ksat-fold-more passes under it. It is one fold
+       toggle rather than both primary buttons, on the width class where
+       offerDrift() has the least distance to run, and changing the
+       desktop card's behaviour is a design decision rather than a bug
+       fix, so it is written up in the handoff instead of taken here. */
+    position: absolute;
+
+    /* AND IT HAS TO BE SHORTER HERE, not just narrower, because at this
+       width it spans the whole column and everything in the hero passes
+       underneath it rather than beside it.
+
+       Measured at 400x700, first visit: the hero's own "READ MORE"
+       control (.ksat-fold-more) sits at 324-349 with the document at
+       its true top, and at 231-256 once the page is ~93px down — which
+       it reaches without anybody scrolling, because the document grows
+       by about that much while the masthead renders its nav and the
+       shell writes its tier note, and the browser holds the visual
+       position. Every 4px of card that comes off the bottom is 4px of
+       that button handed back. The two hero calls to action are much
+       further down (424-468 and 478-522 at the true top) and are clear
+       of the card at the top of the page either way.
+
+       Nothing is dropped to do it: same eyebrow, same heading, same
+       paragraph, same two buttons and the same dismiss. It is the
+       padding and the leading that give, which is what should give on
+       a 400px screen anyway. Measured at 400px: 186px tall before this
+       rule, 165px after.
+
+       WHAT THIS RULE ALONE DID NOT CLOSE. 165.8px still put the card's
+       last 7.3px on .ksat-fold-more in that ~93px state, across the
+       full 89px width of the control; at 430x700 the two touched at
+       0.1px. Tightening the padding and the leading a second time would
+       have bought single figures against a control that moves ten
+       pixels either way as the lede reflows, and it would have bought
+       nothing at all against the scrolled states the anchoring note
+       above sets out. The two answers are therefore the document
+       anchoring above and the slim bar in 3b below, and with both in
+       place the same measurement reads: nothing interactive under the
+       card at scrollY 0, 93 or 300, at 400, 430, 460, 480, 560 and
+       620px, in English and in Arabic. Anyone tuning the hero's
+       vertical rhythm should still know this is where the clearances
+       are: before this rule the card was 32px into that control, and
+       before the card moved corners at all it was sitting on the hero's
+       primary button and eating its clicks. */
+    padding: 11px 13px 11px;
+  }
+  .ksat-tour-offer-h  { margin-top: 4px; font-size: 15px; }
+  .ksat-tour-offer-p  { margin-top: 4px; font-size: 12px; line-height: 1.45; }
+  .ksat-tour-offer-acts { margin-top: 9px; gap: 7px; }
+  .ksat-tour-offer-x { inset-inline-end: 4px; top: 4px; }
+
+  /* The two buttons keep the padding they have everywhere else, and
+     that is deliberate. Taking 1px off each side would buy two more
+     pixels of clearance below the card and cost two pixels of touch
+     target on the only two controls the card itself offers — on the
+     one screen size where the reader is using a thumb. They are
+     already a 33px target, which is under the 44px everyone aims for;
+     making them smaller to win a rounding argument with a fold toggle
+     is the wrong way round. */
+}
+
+/* =====================================================================
+   3b · AT PHONE WIDTHS THE CARD BECOMES A SLIM BAR
+
+   The rule above has already tightened this card once, from 186px to
+   165px, and it was still 165.8px tall in English and 178.3px in
+   Arabic at 400x700 — a quarter of the screen, all of it over the
+   hero's own heading block, and its last 7.3px were on
+   .ksat-fold-more once the page had settled.
+
+   The tallest thing in it is the paragraph: three lines, 52.2px of
+   that 165.8. At this width it is also the least load-bearing part —
+   the eyebrow says GUIDED TOUR, the heading asks the question and the
+   two buttons answer it — and taking it out of the flow costs nothing
+   that the reader cannot get from the three elements around it.
+   Measured with this rule on, at 400x700: 110.7px in English
+   (doc 73-183.7) and 131px in Arabic (doc 73-204), with nothing
+   interactive under the bar at scrollY 0, 93 or 300 in either
+   language. The document anchoring in the block above is what makes
+   those three scroll positions all read the same; this rule is what
+   makes the thing it anchors small enough to be a bar.
+
+   RE-MEASURED 2026-09-22, AND IT READS ONE PIXEL TALLER IN BOTH
+   LANGUAGES: 111.7px in English (doc 73-184.7) and 132.0px in Arabic
+   (doc 73-205.0). One pixel is not worth a rule change and it does not
+   move any of the conclusions above — the nearest control is still
+   139.7px below the card in English and 72.0px below it in Arabic. It
+   is recorded because every number in this file is supposed to be a
+   number somebody actually read, and a figure that has quietly drifted
+   is how a file like this stops being worth trusting. The likely cause
+   is the dock: dock() in js/ksat-tour.js publishes Math.ceil() of the
+   masthead height, .bar measures 64.98px here, so --ksat-tour-dock is
+   65px where the original reading would have followed from 64px.
+
+   NOTHING IS DELETED, AND HERE THAT SENTENCE HAS TEETH. The paragraph
+   is not display:none and it is not dropped from the markup: it is
+   moved off screen with the same clip-path technique
+   .ksat-tour-live uses, so it stays in the accessibility tree and a
+   screen reader on a phone still hears "You can leave at any point,
+   and it stays in the top bar if you would rather start later." Every
+   width above 460px still shows it, and deleting this block brings it
+   back on phones too. Nothing else in the card changes: same eyebrow,
+   same heading, same two buttons at the same size, same dismiss.
+
+   WHY 460px AND NOT 430px. 430px is the phone-shaped number and it is
+   the wrong one. The paragraph wraps to three lines at 400px and at
+   431px — the 165.8px card — and to two lines from about 480px, the
+   148.4px card. Measured at 431x700 before this rule: card bottom
+   238.8, .ksat-fold-more top 238.9. One tenth of a pixel. The
+   breakpoint belongs above the whole three-line band rather than where
+   the handset marketing puts it.
+
+   WHAT IS STILL TRUE AND IS NOT A BUG — WITH THE "BOTH LANGUAGES" PART
+   CORRECTED. This used to say the H1 is behind the bar at the top of
+   the page in both languages. Re-measured 2026-09-22 at a 400px
+   viewport, first visit, scrollY 0, and it is true in one of them:
+
+     English   card doc 73-184.7   H1 doc 186.7-254.4   clears by 2.0px
+     Arabic    card doc 73-205.0   H1 doc 139.3-207.0   65.7px behind
+
+   Arabic wraps the heading higher and the bar is 20px taller, so there
+   the H1 really does run under the card; English misses it by two
+   pixels, which is close enough that a font swap or a tighter lede
+   would put it back. Either way the conclusion is the one that was
+   already here: any card docked under a 65px masthead on a 400px
+   screen is at the hero's heading block — that is the placement, not
+   this rule — the bar scrolls off with the first flick, and a heading
+   is never a control. The clearance that matters is to the CONTROLS,
+   and that is measured above.
+   ===================================================================== */
+
+@media (max-width: 460px) {
+  .ksat-tour-offer-p {
+    /* Off screen, not gone. Same technique as .ksat-tour-live above: a
+       1px box with the paint clipped away, which screen readers still
+       read, rather than display:none or visibility:hidden, which they
+       do not. `position: absolute` here is what takes it out of the
+       flow and buys the 52.2px; it is positioned against the card,
+       which is itself positioned, so it cannot escape it. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* With the paragraph out of the flow the heading is the last thing
+     above the buttons, and 9px of gap under a 12.5px paragraph is not
+     the same gap under a 15px heading. */
+  .ksat-tour-offer-acts { margin-top: 11px; }
+}
+
+/* =====================================================================
+   4 · THE HUD PANEL'S OWN FOCUS RING
+
+   js/ksat-tour.js gives #demoPan tabindex="-1" so focus can be moved
+   into it on open. A programmatic focus with no visible ring leaves a
+   sighted keyboard user with no idea where they are — this is the one
+   rule in this file that touches an element of index.html, and it adds
+   an outline in a state (:focus-visible on a tabindex=-1 panel) that
+   the page could not previously enter.
+   ===================================================================== */
+
+#demoPan:focus-visible {
+  outline: 2px solid var(--accent, #3FD0C9);
+  outline-offset: 3px;
+  border-radius: var(--r, 14px);
+}
+
+/* =====================================================================
+   5 · REDUCED MOTION
+
+   The degraded form is NOT "no spotlight". A reader who has asked for
+   no motion still cannot tell which of nine panels the sentence means.
+   So: keep the dim, keep the outline, remove every transition. The hole
+   jumps to the next target instead of sliding to it, which is exactly
+   what was asked for.
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  #ksat-tour-spot,
+  .ksat-tour-hole,
+  #ksat-tour-offer,
+  .ksat-tour-btn {
+    transition: none !important;
+  }
+  #ksat-tour-offer { transform: none; }
+  .ksat-tour-note {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* =====================================================================
+   6 · PRINT
+
+   None of this is content. A printed page is the record, and the record
+   does not include a spotlight.
+   ===================================================================== */
+
+@media print {
+  #ksat-tour-spot,
+  #ksat-tour-offer,
+  .ksat-tour-note,
+  .ksat-tour-live { display: none !important; }
+}

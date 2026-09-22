@@ -1,0 +1,309 @@
+/* =====================================================================
+   ksat-export.css — THE EXPORT BAR AND THE CITATION PANEL
+   Owner: 11/12 Export & provenance
+   Pairs with js/ksat-export.js. Loaded LAST, after css/ksat-nasa.css.
+
+   WHAT THIS HAS TO ACHIEVE
+
+   Spec 11 asks for export to be HIGHLY VISIBLE. On a page with 26
+   canvases and twenty-one sections, "visible" is not the same as
+   "loud": a row of bright buttons repeated five times down a long
+   editorial page reads as clutter, and clutter is invisible in its own
+   way. So the bar is built the way this platform separates anything
+   else — a hairline and space, no box — and earns its visibility from
+   POSITION instead: it sits immediately under the filter row of the
+   section it exports, at full width, with the file description on its
+   own line. You cannot change a filter without passing it.
+
+   That description line is not decoration either. Spec 11 asks that the
+   UI make clear what is being exported, and on a platform where every
+   figure is modelled, "36 rows, every row labelled REFERENCE DATASET"
+   is the sentence that stops somebody treating the download as data.
+
+   AGENCY RULES THIS INHERITS
+   css/ksat-agency.css took the whole page to near-black, removed every
+   border, fill and radius, and doubled the vertical air. Nothing here
+   reintroduces a card. The one surface with a background is .ksx-cite,
+   the copyable citation block, and that is the same functional
+   exception the agency sheet grants a canvas: monospaced text that is
+   meant to be selected needs an edge so you can see where it ends.
+
+   RIGHT-TO-LEFT
+   The page genuinely renders dir="rtl" lang="ar", and the bar mirrors
+   with it for free because it is flexbox. Two things do not, and both
+   are handled below:
+     · .ksx-cite holding BibTeX must stay LTR whatever the page does.
+       A \url{} and a set of braces mirrored into RTL is not just ugly,
+       it is a broken citation when pasted into a .bib file.
+     · .ksx-key is a two-column dl; in RTL the term column has to move
+       to the right or the definition runs into it.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1 · THE BAR
+   --------------------------------------------------------------------- */
+
+.ksx-bar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid var(--line, #15181E);
+}
+
+/* The eyebrow label. Same mono/tracking treatment the page gives every
+   other instrument label, so the bar reads as part of the console
+   rather than as a widget bolted on. */
+.ksx-lab{
+  font-family:var(--mono, ui-monospace, monospace);
+  font-size:10.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--ink-3, #6B7A8D);
+  white-space:nowrap;
+}
+
+/* .btn.sm already carries the page's button. Only the state this file
+   adds is styled here. */
+.ksx-btn[disabled]{
+  opacity:.42;
+  cursor:not-allowed;
+}
+
+/* Confirmation that the click landed. A download gives no visual
+   feedback of its own in most browsers, and on a page this long the
+   download shelf can be off-screen entirely — which is how a reader
+   ends up clicking CSV four times and finding four files later. */
+.ksx-btn[data-ksx-done]{
+  border-color:var(--green, #40AD60);
+  color:var(--green-lt, #8FD8A3);
+}
+
+.ksx-sel{
+  font-family:var(--body, system-ui, sans-serif);
+  font-size:var(--fs-caption, 12px);
+  min-height:32px;
+  max-width:min(260px, 60vw);
+}
+
+/* The "what is in the file" line: its own row, full width, so it is
+   never truncated. It is the sentence that carries the provenance
+   warning out to the reader before the file does. */
+.ksx-what{
+  flex:1 0 100%;
+  margin:2px 0 0;
+  font-size:var(--fs-caption, 12px);
+  line-height:1.55;
+  color:var(--ink-3, #6B7A8D);
+}
+
+/* css/ksat-theme.css carries `section.sec p, section.sec .lede,
+   section.sec .sub { max-width:56ch }`, which is the right measure for
+   the prose on this page and the wrong one here. Every export bar sits
+   inside a section.sec, so that rule capped this paragraph at 56ch —
+   about 424px — and a flex item whose used base size is 424px rather
+   than 100% no longer forces its own flex line. The description
+   therefore packed onto the same row as the buttons and wrapped into a
+   narrow three-line column beside them, instead of sitting full width
+   underneath, which is where the sentence that carries the provenance
+   warning needs to be.
+
+   flex-basis alone cannot win this: theirs is (0,1,2) and a bare
+   .ksx-what is (0,1,0). Scoping to the bar takes it to (0,2,0), which
+   is the smallest change that beats the inherited cap without touching
+   a file this owner does not hold, and without lifting the 56ch measure
+   off the genuine prose in the panel below. */
+.ksx-bar .ksx-what{ max-width:none; }
+
+.ksx-what:empty{ display:none; }
+
+/* Inside the citation panel the registers sit in the same bar, but the
+   panel already provides the separation, so the hairline would be a
+   second rule 14px from the first. */
+.ksx-bar-inline{
+  border-top:0;
+  padding-top:0;
+  margin-top:14px;
+}
+
+/* ---------------------------------------------------------------------
+   2 · THE PROVENANCE AND CITATION PANEL
+   --------------------------------------------------------------------- */
+
+.ksx-panel .ksx-sub{
+  margin:26px 0 0;
+  font-family:var(--disp, system-ui, sans-serif);
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.01em;
+  color:var(--ink, #E8ECF2);
+}
+
+.ksx-panel .ksx-sub + .sub{ margin-top:6px; }
+
+/* The vocabulary: token on the left, the sentence that defines it on
+   the right. A dl rather than a table because it is eight definitions,
+   not eight records, and a screen reader should hear it as such. */
+.ksx-key{
+  display:grid;
+  grid-template-columns:minmax(120px, 190px) 1fr;
+  gap:8px 18px;
+  margin:12px 0 0;
+  padding:14px 0 0;
+  border-top:1px solid var(--line, #15181E);
+}
+
+.ksx-key dt{
+  font-family:var(--mono, ui-monospace, monospace);
+  font-size:11px;
+  letter-spacing:.09em;
+  color:var(--ink-2, #9AA7B8);
+  /* The token is the literal string that appears in the data column of
+     every file. Keeping it LTR means an Arabic reader sees exactly the
+     value they will have to filter on. */
+  direction:ltr;
+  text-align:start;
+}
+
+.ksx-key dd{
+  margin:0;
+  font-size:13px;
+  line-height:1.6;
+  color:var(--ink-3, #6B7A8D);
+}
+
+/* ---------------------------------------------------------------------
+   3 · THE COPYABLE CITATION BLOCKS
+   --------------------------------------------------------------------- */
+
+.ksx-citerow{ margin-top:16px; }
+
+.ksx-citehead{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.ksx-cite{
+  padding:14px 16px;
+  background:var(--surf, #0A0C10);
+  border:1px solid var(--line, #15181E);
+  border-radius:var(--r-sm, 2px);
+  font-size:13px;
+  line-height:1.7;
+  color:var(--ink-2, #9AA7B8);
+  /* Meant to be selected with a mouse as well as copied with the
+     button, because a reader who does not trust a copy button is a
+     reasonable reader. */
+  user-select:text;
+  -webkit-user-select:text;
+  overflow-wrap:anywhere;
+}
+
+/* BibTeX. Whitespace is significant, the braces must not mirror, and
+   the block scrolls rather than wrapping so the entry stays the shape
+   a .bib file expects. */
+.ksx-cite.ksx-mono{
+  font-family:var(--mono, ui-monospace, monospace);
+  font-size:12px;
+  line-height:1.65;
+  white-space:pre;
+  overflow-x:auto;
+  overflow-wrap:normal;
+  direction:ltr;
+  text-align:left;
+}
+
+/* The paragraph naming what the citation leaves out. It is the most
+   important text in the panel and the easiest to skim past, so it gets
+   a rule beside it rather than a colour — colour alone would not
+   survive a reader with low vision or a printed page. */
+.ksx-omit{
+  margin-top:8px;
+  padding-inline-start:14px;
+  border-inline-start:2px solid var(--line-3, #2A2F39);
+}
+
+/* ---------------------------------------------------------------------
+   4 · THE LIVE REGION
+
+   Present for assistive technology, never painted. clip-path alone is
+   not enough: a zero-size element with overflow visible still gets read
+   out of position by some screen readers, hence the belt-and-braces
+   pattern here.
+   --------------------------------------------------------------------- */
+
+.ksx-status{
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:-1px;
+  padding:0;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+  border:0;
+}
+
+/* ---------------------------------------------------------------------
+   5 · RIGHT-TO-LEFT
+
+   The flex row mirrors on its own. These are the pieces that do not.
+   --------------------------------------------------------------------- */
+
+[dir="rtl"] .ksx-lab{ letter-spacing:0; }
+
+/* Latin tokens and BibTeX inside an RTL page. Without this the token
+   column reads right-aligned against the definition it belongs to, and
+   a pasted BibTeX entry arrives with its braces reversed. */
+[dir="rtl"] .ksx-key dt{ text-align:right; }
+[dir="rtl"] .ksx-cite.ksx-mono{ direction:ltr; text-align:left; }
+
+/* ---------------------------------------------------------------------
+   6 · NARROW SCREENS
+
+   Touch targets to 44px, and the chart picker to full width so it is
+   not a 90px stub next to two buttons.
+   --------------------------------------------------------------------- */
+
+@media (max-width: 720px){
+  .ksx-bar{ gap:8px; }
+  .ksx-bar .ksx-lab{ flex:1 0 100%; }
+  .ksx-btn{ min-height:44px; }
+  .ksx-sel{ flex:1 0 100%; max-width:none; min-height:44px; }
+  .ksx-key{ grid-template-columns:1fr; gap:2px 0; }
+  .ksx-key dd{ margin-bottom:10px; }
+}
+
+/* ---------------------------------------------------------------------
+   7 · MOTION
+
+   There is only one animated thing in this layer — the 900ms confirm
+   state on a button — and it is a colour change with a transition
+   inherited from .btn. Under reduced motion the colour still changes,
+   because the confirmation is information rather than decoration; only
+   the transition to it is removed.
+   --------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce){
+  .ksx-btn,
+  .ksx-btn[data-ksx-done]{
+    transition:none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   8 · PRINT
+
+   Somebody printing the sources section wants the citation, not three
+   buttons that cannot be clicked on paper.
+   --------------------------------------------------------------------- */
+
+@media print{
+  .ksx-bar{ display:none; }
+  .ksx-cite{ border-color:#999; color:#000; background:transparent; }
+}

@@ -4,7 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Automation section — standalone check (04 · Agents)</title>
-<link rel="stylesheet" href="../../01-front-end/app/css/styles.css">
+<!--
+  The stylesheet moved. This said ../../01-front-end/app/css/styles.css until
+  21 Sep 2026, and that path 404s: 01-front-end/app now holds one file,
+  RETAG-NOTES.md, and the stylesheet lives in app-retag/css/. A missing
+  stylesheet does not error anywhere you would notice - the page simply
+  renders unstyled, which reads as "the panel is broken" rather than "one
+  href is wrong", and this page exists precisely to show the panel working.
+
+  Open this file from disk. It is not served: a .vercelignore keeps
+  04-agents/ out of the deployment, so nothing under it has a public URL.
+-->
+<link rel="stylesheet" href="../../app-retag/css/styles.css">
 <style>
   .wrap { max-width: 780px; margin: 0 auto; padding: 24px 16px; }
   .note { border-left: 3px solid #F5A524; padding-left: 12px; }
@@ -16,16 +27,28 @@
   <h1>Automation section — standalone check</h1>
   <p class="small muted">
     Owner: 04 · Automation and agents. This page exists so the panel can be opened,
-    clicked and read <em>without</em> touching <code>mission.html</code>, which belongs to
-    01 · Front end. It is not the demo screen. The demo screen is
-    <code>mission.html</code> with the three lines in
-    <code>../docs/AU-M3-PROCESS.md</code> section 5.
+    clicked and read on its own, with no database and no n8n behind it.
+    <strong>It is not the demo screen.</strong> The demo screen is
+    <code>index.html</code> at the repo root — the site at
+    <code>kuwait-sat1-hub.vercel.app</code> — and the panel it loads is
+    <code>js/ksat-workflow.js</code>.
   </p>
 
   <p class="small note">
-    <strong>This is a REPLAY, not the database.</strong> The panel below is the real
-    file — <code>js/automation.js</code>, the same one <code>mission.html</code> loads —
-    but the Supabase client underneath it is faked in this page and answers out of
+    <strong>This is a REPLAY, not the database — and not the shipped panel either.</strong>
+    The panel below is <code>js/automation.js</code> in this folder: the
+    <em>reference implementation</em>, written against the n8n write path, where the agents
+    run on a worker and the browser polls <code>my_agent_steps</code> for their rows. The
+    site ships <code>js/ksat-workflow.js</code> instead, which runs the same six steps in
+    the page and writes them through <code>researcher_log_step()</code>.
+    <code>04-agents/README.md</code> has the mapping between the two, line by line.
+    <em>(This paragraph said "the same one <code>mission.html</code> loads" until
+    21 Sep 2026. There is no <code>mission.html</code> in this repo and there never was —
+    a sentence that would have been read out beside a judge.)</em>
+  </p>
+
+  <p class="small note">
+    The Supabase client underneath the panel is faked in this page and answers out of
     <code>agent/run.js</code>, the same file the n8n Code node runs. So the order of the
     steps and the decision are real. The zone scores, the cooling projections and every
     row are sample values: not KuwaitSat-1 measurements, and not rows in Supabase.

@@ -29,7 +29,7 @@
               "id": "url",
               "name": "supabase_url",
               "type": "string",
-              "value": "https://YOUR-PROJECT-REF.supabase.co"
+              "value": "https://kqboenytmzagdiweqygl.supabase.co"
             },
             {
               "id": "brk",
@@ -49,7 +49,7 @@
         -40,
         300
       ],
-      "notes": "The project URL is public. The KEY is not, and it is only in the credential."
+      "notes": "The project URL is public - it is the same one js/config.js ships to the browser. The KEY is not, and it is only in the credential."
     },
     {
       "parameters": {

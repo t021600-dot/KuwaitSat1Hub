@@ -8,8 +8,11 @@
    `tr()` helper, a `T()` helper, an `applyLang()` function and CSS for a
    `.lang` toggle. Almost none of it worked:
 
-     1 · `const AR = {}` — the dictionary was EMPTY. index.html:1841 says
+     1 · `const AR = {}` — the dictionary was EMPTY. Grep index.html for
+         that declaration and the comment sitting on it still says
          "English-only build: the bilingual layer was removed on request."
+         (By name, not by line: index.html has moved several hundred lines
+         since this was written.)
      2 · NOTHING READ THE 209 ATTRIBUTES. There is no querySelectorAll
          over `[data-i18n]` anywhere in the page. They were inert markers.
          Only JS-rendered strings that call T(key, en) were ever
@@ -282,10 +285,6 @@
     'gr.ba':     'قبل / بعد · أمثلة على التحصين',
 
     /* --- team --- */
-    'tm.eyebrow':'فريق المشروع',
-    'tm.h':      'تعرّف على الفريق',
-    'tm.lede':   'أربعة أدوار، وأربع مساهمات قابلة للدفاع عنها. تذكر كل بطاقة ما يمكن سؤال صاحبها عنه أثناء التحكيم.',
-    'tm.note':   'تصف كل بطاقة الدور والمساهمة التي يملكها ذلك العضو، والأقسام أعلاه مكتوبة لتطابقها.',
 
     /* --- sources --- */
     'src.eyebrow':'التحقق',
@@ -309,7 +308,187 @@
     'ft.l1':     'غير منتسبة إلى جامعة الكويت أو مؤسسة الكويت للتقدم العلمي أو مشروع KuwaitSat-1.',
     'ft.l2':     'لا قياس حيّ عن بُعد. ولا صفة تخطيط رسمية.',
     'ft.l3':     'تبقى صور الأقمار الصناعية ملكاً لناشريها.',
-    'ft.l4':     'تعمل بالكامل داخل متصفحك. ولا تغادر أي بيانات هذه الصفحة.'
+    'ft.l4':     'بيانات العرض تُولَّد داخل متصفحك. وتسجيل الدخول يحفظ المهمات وتشغيلات الوكيل في قاعدة بيانات المشروع.',
+
+    /* -----------------------------------------------------------------
+       THE STRINGS THAT ARE RENDERED, NOT MARKED UP
+
+       All 205 data-i18n attributes in index.html were already covered
+       above. These are not attributes: they are the strings the page
+       builds at runtime through T(key, english), and T() falls back to
+       its English argument whenever AR has no entry. That fallback is
+       why the gap was invisible - nothing ever looked broken, the
+       Arabic page simply had English furniture in it.
+
+       The worst of them was the guided tour. 'nav.demo' IS translated,
+       so an Arabic visitor pressed a button reading
+       'جولة إرشادية' and got an English HUD.
+
+       WHAT IS DELIBERATELY NOT HERE: the a.*, ag.*, rp.*, sim.* and
+       bp.* keys - roughly 220 more. Those are not furniture. They are
+       sentence FRAGMENTS that index.html concatenates with live numbers
+       between them ('a.a2' is 'Score ', 'a.a2b' is ' is driven mainly
+       by the gap between modelled stress ('). Arabic is verb-initial
+       and right-to-left, so a fragment order that reads correctly in
+       English produces word salad when the same pieces are joined in
+       Arabic. Translating them needs the call sites restructured to
+       whole sentences with placeholders, which is a piece of work in
+       its own right, not a dictionary entry. Leaving them in English is
+       the honest failure mode; half-translating them is not.
+       ----------------------------------------------------------------- */
+
+    /* --- guided tour HUD --- */
+    'dm.step':   'الخطوة',
+    'dm.judge':  'جولة التحكيم',
+    'dm.prev':   'رجوع',
+    'dm.next':   'التالي',
+    'dm.exit':   'إنهاء الجولة',
+    'dm.end':    'نهاية الجولة',
+    'dm.fin':    'من الفضاء إلى كويت أكثر اخضراراً',
+    /* {n} is substituted by renderDemo() from DEMO.length, never typed.
+       The numeral sits behind a definite article for the same reason
+       js/ksat-shell.js does it: Arabic number-noun agreement changes
+       shape between 3-10 and 11+, and this way one string is correct
+       for any count. */
+    'dm.fin2':   'الخطوات الـ{n}، مسار واحد، وكل رقم موسوم بما هو عليه.',
+    'dm.again':  'إعادة الجولة',
+    'dm.close':  'إغلاق',
+
+    /* --- guardrails + audit section furniture --- */
+    'gr.act':    'سارية',
+    'gr.p':      'مطبَّق',
+    'gr.c':      'تصميم فقط',
+    'gr.before': 'قبل — معرَّض للاختراق',
+    'gr.after':  'بعد — مُحصَّن',
+
+    /* --- analyst panel. The four row labels matter more than they
+           look: they are the headings that say which figures were
+           measured and which were inferred (Spec 26), so leaving them
+           in English on an Arabic page leaves the provenance
+           distinction in a language the reader may not have. --- */
+    'an.me':     'محلّل KuwaitSat',
+    'an.you':    'أنت',
+    'an.data':   'البيانات',
+    'an.an':     'التحليل',
+    'an.conf':   'الثقة',
+    'an.rec':    'التوصية',
+    'an.hi':     'أُجيب من سجلات ست محافظات، و 36 رصدة شهرية لكل منها، وخمسة مشاهد مُحاكاة، ومواصفات مهمة KuwaitSat-1 المنشورة. وكل إجابة تذكر أيّاً من هذه المصادر استخدمت. اختر سؤالاً أدناه أو اكتب سؤالك.',
+
+    /* --- toasts and chart axis labels --- */
+    't.copy':    'نُسخ التقرير.',
+    't.copy2':   'حُدّد التقرير — اضغط Ctrl/Cmd + C.',
+    't.ref':     'حُدّثت اللوحة من بيانات العرض.',
+    't.reg':     'المنطقة',
+    't.reg2':    'المحافظة',
+    't.sc':      'الدرجة',
+    't.cov':     'نسبة الغطاء %',
+    't.cov2':    'نسبة الغطاء الأخضر %',
+    't.gp2':     'درجة إمكانية التشجير',
+    't.lst2':    'حرارة الصيف °م',
+    't.nd2':     'مؤشر الغطاء النباتي',
+    't.st2':     'الإجهاد /100',
+
+    /* --- provenance and map furniture --- */
+    'src.cl':    'ادعاء ورد في هذه الصفحة',
+    'src.sr':    'المصدر',
+    'pass.in':   'نافذة الرصد فوق الكويت',
+    'pass.out':  'خارج النطاق',
+    'sys.loop':  'تكرار',
+    'map.alt':   'محافظات الكويت ملوّنة حسب المؤشر المختار',
+    'map.simp':  'هندسة مبسّطة · رسم تخطيطي',
+
+    /* --- THE THREE DROPDOWNS THAT CAME BACK IN ENGLISH ---------------
+           A handoff reported #dashPeriod, #vRange and #cmpMode as
+           "hard-coded English markup ... never touched by fillSelect()".
+           That diagnosis is wrong, and the distinction matters because
+           it changes where the fix goes. All three ARE built through
+           fillSelect() with T("p.12"), T("cm.w") and so on - the hand
+           markup inside #cmpMode is overwritten by
+           sel.innerHTML="" on the first render. What was missing was
+           these six KEYS, right here. Rebuilding the markup would have
+           left the page just as English.
+
+           Numerals stay Western Arabic (0-9) to match every other
+           figure on this page and the instruments the platform quotes,
+           rather than switching to Eastern Arabic-Indic for these six
+           strings alone. --- */
+    'p.12':      'آخر 12 شهراً',
+    'p.24':      'آخر 24 شهراً',
+    'p.36':      'السجل الكامل (36 شهراً)',
+    'cm.w':      'شريط المسح',
+    'cm.s':      'جنباً إلى جنب',
+    'cm.d':      'قناع التغيّر',
+
+    /* --- THE ANALYST'S ANSWERS ---------------------------------------
+           The four ROW LABELS were already translated above (an.data,
+           an.an, an.conf, an.rec); the SENTENCES THEY LABEL were not,
+           so an Arabic reader got Arabic headings over English prose.
+           That was survivable while every Arabic question fell through
+           to the refusal branch anyway. It stopped being survivable the
+           moment classify() in index.html learned to route Arabic:
+           the questions now reach the real branches, and the real
+           branches have to be able to answer in the language asked.
+
+           These strings are FRAGMENTS that index.html concatenates with
+           numbers and region names between them - 'a.a6' is glued
+           between regName(r) and a figure. So each one carries its own
+           leading and trailing spaces exactly as the English does, and
+           the Arabic is phrased so it still reads as one sentence when
+           a Western-Arabic numeral lands in the middle of it. Changing
+           the spacing here changes the rendered sentence. --- */
+    'a.d1':      'درجات التشجير للمحافظات الست في مجموعة البيانات المرجعية، إلى جانب الغطاء الأخضر والإجهاد وحرارة السطح صيفاً.',
+    'a.a1':      'الترتيب: ',
+    'a.a1b':     'تجمع الثلاث الأولى بصمة واحدة: إجهاد مرتفع في النموذج، وغطاء قائم منخفض، ونسيج عمراني كثيف بما يكفي ليصل الظل إلى الناس.',
+    'a.r1':      'البدء بـ ',
+    'a.r1b':     '— ثم التحقق ميدانياً من توافر القطع ومصدر الري قبل أي قرار باختيار المواقع.',
+    'a.d2':      'مجموعة المؤشرات لـ ',
+    'a.d2b':     'الغطاء الأخضر، ومؤشر الغطاء النباتي، والإجهاد، وحرارة السطح صيفاً، والغبار، والمساحة التقريبية.',
+    'a.a2':      ' الدرجة ',
+    'a.a2b':     '/100 مدفوعة أساساً بالفجوة بين الإجهاد في النموذج (',
+    'a.a2c':     ') والغطاء القائم (',
+    'a.d3':      'خصائص مهمة KuwaitSat-1 المنشورة: دقة أرضية 39 متراً، وعرض مسح ≈ 80 كم، ومصوّر RGB، وتنزيل عبر S-band إلى جامعة الكويت.',
+    'a.a3':      'عند 39 متراً يميّز الإطار المربّعات السكنية والحدائق والقطع الزراعية وخط الساحل — وهذا يكفي لتتبّع أين يظهر الغطاء الأخضر أو يختفي عبر الفصول والسنوات. ولا يكفي لعدّ الأشجار فرادى، كما أن متحسساً بـ RGB وحده لا ينتج مؤشر غطاء نباتي حقيقياً، إذ يلزمه نطاق قريب من تحت الحمراء. والقيمة الحقيقية في تكرار التغطية: المكان نفسه، بالمتحسس نفسه، عبر الزمن.',
+    'a.r3':      'تُعامَل بيانات الأقمار بوصفها طبقة الفرز التي تقرر أين يُرسل الناس، لا بوصفها القياس الذي يغني عنهم.',
+    'a.d4':      'حقبتان مرسومتان من مشهد ',
+    'a.d4b':     '، مطروحتان خلية بخلية على شبكة 39 متراً.',
+    'a.a4':      'النسبة المغطاة بالنبات تتحرك بمقدار ',
+    'a.a4b':     ' نقطة مئوية؛ ومتوسط مؤشر الغطاء النباتي بمقدار ',
+    'a.a4c':     'وفرق بهذا الحجم يقع ضمن المدى الذي يمكن لتوقيت الفصول وحده أن ينتجه، فهو إشارة لا نتيجة.',
+    'a.r4':      'تُقارَن عمليات التقاط من الشهر نفسه عبر السنوات قبل وصف هذا بأنه اتجاه، مع تأكيد ميداني.',
+    'a.d5':      'درجة التشجير والإجهاد والغطاء عبر المحافظات جميعاً؛ العتبات مضبوطة حالياً عند إجهاد ≥ ',
+    'a.d5b':     ' وإمكانية ≥ ',
+    'a.a5':      'تتجاوز العتبتين معاً: ',
+    'a.a5b':     'وبقية المناطق دون إحدى العتبتين على الأقل، وتبقى تحت المراقبة.',
+    'a.r5':      'يُطلب مسح ميداني للمنطقتين الأوليين فقط. التحقق من كل شيء دفعة واحدة هو الطريقة التي تفقد بها طبقة الفرز فائدتها.',
+    'a.d6':      'السلسلة الشهرية المرجعية لـ ',
+    'a.d6b':     ' على مدى 36 شهراً الماضية: الإجهاد، ومؤشر الغطاء النباتي، والغطاء، وحرارة السطح، والغبار.',
+    'a.a6':      ' يبلغ متوسطها ',
+    'a.a6b':     'خلال الاثني عشر شهراً الماضية، بذروة في الصيف. نطاق الخطورة: ',
+    'a.a6c':     'ويبلغ الغطاء الأخضر ',
+    'a.a6d':     'وحرارة السطح صيفاً ',
+    'a.d0':      'جرى فحص السؤال مقابل البيانات المتاحة: ست محافظات، و 36 سجلاً شهرياً لكل منها، وخمسة مشاهد محاكاة، وسجل مهمة KuwaitSat-1 المنشور.',
+    'a.a0':      'لا شيء في تلك المجموعة يجيب عن هذا. ولن يبني المحلّل إجابة من خارج بياناته — وهذا هو المقصود من الضابط بأكمله.',
+    'a.r0':      'جرّب أحد الأسئلة المقترحة، أو اسأل عن محافظة أو مقياس أو حقبة بعينها.',
+    'a.none':    'لا شيء',
+    /* New with the region-parser fix in index.html: said when the question
+       named no governorate and the answer fell back to the map's current
+       selection. */
+    'a.which':   'لم يُذكر اسم محافظة في السؤال، لذا تخصّ هذه الإجابة المحافظة المحددة حالياً على الخريطة: ',
+
+    /* --- the confidence, risk and provenance words the analyst prints
+           alongside those answers. Without these the Arabic panel reads
+           "الثقة: High". --- */
+    'conf.high':   'عالية',
+    'conf.medium': 'متوسطة',
+    'conf.low':    'منخفضة',
+    'risk.h':      'مرتفع',
+    'risk.m':      'متوسط',
+    'risk.l':      'منخفض',
+    'tb.real':     'سجل مهمة KuwaitSat-1',
+    'tb.demo':     'مجموعة بيانات مرجعية',
+    'tb.sim':      'مُنمذَج',
+    'tb.ai':       'تحليل مُشتقّ',
+    'tb.none':     'لا توجد بيانات'
   };
 
   /* Our own layers, which the page knows nothing about. */

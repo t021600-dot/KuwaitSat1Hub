@@ -13,6 +13,60 @@
 :root{
   --ksat-as-w: 392px;
   --ksat-as-r: 14px;
+
+  /* -------------------------------------------------------------------
+     THE ASSISTANT'S LAYER              declared here, 21 September 2026
+
+     The launcher used to sit at z-index 59 and the panel at 61, chosen
+     against .bar (60) alone. Nobody checked the rest of the stack, so
+     the guided-tour HUD (#demoHud, 120) covered the launcher completely:
+     start the tour and the assistant vanished behind it.
+
+     The whole stack on this page, read out of the files rather than
+     remembered:
+
+        1   main content                      index.html
+        2   main / .bar / footer raise        css/ksat-detail.css
+       60   .bar (sticky masthead)            index.html
+      120   #demoHud (guided tour)            index.html
+      130   #ksat-ch-fab (chapter control)    css/ksat-shell.css
+      132   .ksat-as-fab      ← THIS FILE
+      134   .ksat-as-panel    ← THIS FILE
+      140   #ksat-ch-sheet (chapter sheet)    css/ksat-shell.css
+      150   #toast                            index.html
+      200   #intro (launch sequence)          index.html
+
+     Why 132 and 134 and not higher: the assistant is a persistent
+     utility, so it belongs above the tour narration and above the other
+     corner control. It is not a modal, so the chapter sheet, the toast
+     and the intro must all still cover it. Anything that wants to sit
+     deliberately above or below the assistant should use these two
+     numbers rather than guessing.
+     ------------------------------------------------------------------- */
+  --ksat-as-z-fab: 132;
+  --ksat-as-z-panel: 134;
+
+  /* -------------------------------------------------------------------
+     THE SURFACES, AS HOOKS               declared here, 21 September 2026
+
+     These six were literal rgba() values scattered through the rules
+     below, and every one of them assumed a dark ground: white at 4.5%
+     is a raised surface on #0A0F18 and an invisible smudge on paper.
+     A light mode is being built in another file, and it cannot repoint
+     a colour that is written as a literal.
+
+     So the values are UNCHANGED - this block renders exactly what
+     shipped yesterday - and they are now named. A theme layer that
+     wants the assistant to follow it redeclares these six on :root and
+     touches nothing in this file.
+     ------------------------------------------------------------------- */
+  --ksat-as-fab-bg:       rgba(10,16,30,.92);
+  --ksat-as-fab-bg-hover: rgba(14,22,38,.96);
+  --ksat-as-raise:        rgba(255,255,255,.045); /* bubbles, chips, input */
+  --ksat-as-raise-2:      rgba(255,255,255,.07);  /* hover on the close button */
+  --ksat-as-mine:         rgba(63,208,201,.12);   /* the visitor's own bubble */
+  --ksat-as-mine-line:    rgba(63,208,201,.30);
+  --ksat-as-on-accent:    #041014;                /* ink on an accent button */
 }
 
 /* ---------------------------------------------------------------------
@@ -23,7 +77,7 @@
   position:fixed;
   inset-inline-end:16px;
   bottom:calc(74px + env(safe-area-inset-bottom, 0px));
-  z-index:59;                     /* under .bar (60), over the content   */
+  z-index:var(--ksat-as-z-fab, 132);   /* see THE ASSISTANT'S LAYER above */
   display:inline-flex;
   align-items:center;
   gap:9px;
@@ -36,7 +90,7 @@
   font-weight:600;
   letter-spacing:.01em;
   color:var(--ink, #E8ECF8);
-  background:rgba(10,16,30,.92);
+  background:var(--ksat-as-fab-bg, rgba(10,16,30,.92));
   border:1px solid var(--line-2, rgba(255,255,255,.16));
   box-shadow:0 8px 26px rgba(0,0,0,.42);
   backdrop-filter:blur(10px);
@@ -44,7 +98,7 @@
   transition:border-color .18s, background .18s, transform .18s;
 }
 .ksat-as-fab:hover{
-  background:rgba(14,22,38,.96);
+  background:var(--ksat-as-fab-bg-hover, rgba(14,22,38,.96));
   border-color:var(--accent, #3FD0C9);
 }
 .ksat-as-fab:active{ transform:translateY(1px); }
@@ -75,7 +129,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   position:fixed;
   inset-inline-end:16px;
   bottom:calc(16px + env(safe-area-inset-bottom, 0px));
-  z-index:61;                     /* above the bar, below the intro(200) */
+  z-index:var(--ksat-as-z-panel, 134); /* see THE ASSISTANT'S LAYER above */
   width:min(var(--ksat-as-w), calc(100vw - 32px));
   max-height:min(620px, calc(100vh - 96px));
   display:flex;
@@ -96,7 +150,21 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   .ksat-as-panel{ animation:none; }
 }
 
-/* Phone: a sheet, not a floating card. */
+/* Phone: a sheet, not a floating card.
+
+   Measured at a 400px viewport: the panel comes out full-bleed on both
+   inline edges, pinned to bottom:0, 82vh tall. That part works.
+
+   THE ROUNDED TOP CORNERS ON THE NEXT-TO-LAST LINE DO NOT APPLY, and
+   nobody should spend an afternoon finding out why. css/ksat-agency.css
+   loads after this file and squares every corner the platform draws,
+   .ksat-as-panel included, with `border-radius:0 !important` - that is
+   the agency direction and it is deliberate. The declaration is kept
+   rather than deleted because it is the correct value for this rule if
+   the agency layer is ever dropped, and because removing it would make
+   the sheet silently depend on another file's !important. If you want
+   the soft top edge back, it is a conversation with ksat-agency.css,
+   not an !important war started from here. */
 @media (max-width: 620px){
   .ksat-as-panel{
     inset-inline:0;
@@ -141,7 +209,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   border-radius:8px;
   cursor:pointer;
 }
-.ksat-as-x:hover{ background:rgba(255,255,255,.07); color:var(--ink,#E8ECF8); }
+.ksat-as-x:hover{ background:var(--ksat-as-raise-2, rgba(255,255,255,.07)); color:var(--ink,#E8ECF8); }
 .ksat-as-x:focus-visible{ outline:2px solid var(--accent,#3FD0C9); outline-offset:1px; }
 
 /* ---------------------------------------------------------------------
@@ -166,15 +234,23 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   font-size:13.5px;                /* nothing under 12px                 */
   line-height:1.62;
   color:var(--ink, #E8ECF8);
-  background:rgba(255,255,255,.045);
+  background:var(--ksat-as-raise, rgba(255,255,255,.045));
   border:1px solid var(--line, rgba(255,255,255,.08));
 }
 .ksat-as-q .ksat-as-bubble{
-  background:rgba(63,208,201,.12);
-  border-color:rgba(63,208,201,.30);
+  background:var(--ksat-as-mine, rgba(63,208,201,.12));
+  border-color:var(--ksat-as-mine-line, rgba(63,208,201,.30));
   border-end-end-radius:4px;
 }
-.ksat-as-a .ksat-as-bubble{ border-start-start-radius:4px; }
+/* An answer now carries a seven-row field list, and a 92% bubble put the
+   label column and its value on top of one another at panel width. The
+   page's own analyst does the same thing for the same reason: .msg.a is
+   width:94% where .msg is max-width:94% (index.html). */
+.ksat-as-a .ksat-as-bubble{
+  border-start-start-radius:4px;
+  width:100%;
+  max-width:100%;
+}
 
 .ksat-as-btitle{
   font-family:var(--mono, ui-monospace, monospace);
@@ -198,7 +274,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   letter-spacing:.09em;
   text-transform:uppercase;
   color:var(--ink-3, #8792AE);
-  background:rgba(255,255,255,.05);
+  background:var(--ksat-as-raise, rgba(255,255,255,.05));
   border:1px solid var(--line, rgba(255,255,255,.09));
 }
 
@@ -211,7 +287,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   font-size:12.5px;
   font-weight:600;
   cursor:pointer;
-  color:#041014;
+  color:var(--ksat-as-on-accent, #041014);
   background:var(--accent, #3FD0C9);
   border:0;
 }
@@ -247,7 +323,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   line-height:1.3;
   cursor:pointer;
   color:var(--ink-2, #A8B2C8);
-  background:rgba(255,255,255,.045);
+  background:var(--ksat-as-raise, rgba(255,255,255,.045));
   border:1px solid var(--line, rgba(255,255,255,.10));
 }
 .ksat-as-chip:hover{ color:var(--ink,#E8ECF8); border-color:var(--accent,#3FD0C9); }
@@ -265,7 +341,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   font-family:inherit;
   font-size:14px;                  /* 16px-ish: iOS will not zoom on focus */
   color:var(--ink, #E8ECF8);
-  background:rgba(255,255,255,.05);
+  background:var(--ksat-as-raise, rgba(255,255,255,.05));
   border:1px solid var(--line-2, rgba(255,255,255,.14));
   border-radius:9px;
 }
@@ -282,7 +358,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   font-size:13px;
   font-weight:650;
   cursor:pointer;
-  color:#041014;
+  color:var(--ksat-as-on-accent, #041014);
   background:var(--accent, #3FD0C9);
   border:0;
   border-radius:9px;
@@ -290,7 +366,17 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
 .ksat-as-send:hover{ filter:brightness(1.08); }
 .ksat-as-send:focus-visible{ outline:2px solid var(--ink,#E8ECF8); outline-offset:2px; }
 
-/* Keep clear of the chapter control on the same corner. */
+/* Keep clear of the chapter control on the same corner.
+
+   THIS DECLARATION IS OVERRIDDEN. An identical block further down this
+   file (search for "Stack them clear of one another") sets the same
+   property on the same media query to 75px, and being later it wins -
+   so the 74px below is never the value that ships. It is left in place
+   rather than deleted because the two blocks are the record of a
+   measurement being corrected, and because a reader who finds only one
+   of them and edits it would change nothing and not know why. If you
+   are changing where the launcher sits, change the LOWER block; if you
+   want one block instead of two, delete this one, not that one. */
 @media (min-width: 621px){
   .ksat-as-fab{ bottom:calc(74px + env(safe-area-inset-bottom, 0px)); }
 }
@@ -306,8 +392,19 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
    The chapter control and the assistant launcher both live at the
    bottom inline-end. Stacked they are fine; but when the assistant
    PANEL opens it is 392px wide and the chapter control sat on top of
-   it. Pushing the chapter control aside while the panel is open keeps
-   both reachable and neither overlapping.
+   it.
+
+   WHAT THE RULE BELOW ACTUALLY DOES, because the first version of this
+   comment said "pushing the chapter control aside keeps both reachable"
+   and that is not what is written underneath it. The control is faded
+   to opacity:0 and taken out of hit-testing: while the panel is open it
+   is HIDDEN, not moved, and it cannot be clicked. That is the right
+   behaviour and it was worth saying plainly - at sheet width the panel
+   owns the whole bottom edge and a control half under it would be a
+   target the visitor can see and cannot press - but a comment that
+   claims both are reachable sends the next reader looking for a bug in
+   the wrong file. Closing the panel brings the control straight back,
+   and Escape closes the panel from anywhere, so nothing is stranded.
    --------------------------------------------------------------------- */
 html[data-ksat-assistant="open"] #ksat-ch-fab{
   opacity:0;
@@ -318,9 +415,481 @@ html[data-ksat-assistant="open"] #ksat-ch-fab{
   html[data-ksat-assistant="open"] #ksat-ch-fab{ transition:none; }
 }
 
-/* Stack them clear of one another when both are showing. The chapter
-   control is 45px tall and sits at bottom:18px, so the launcher needs
-   to clear 18 + 45 + a real gap. 74px left them touching. */
+/* Stack them clear of one another when both are showing.
+
+   THE NUMBERS, MEASURED IN THE BROWSER RATHER THAN READ OFF THE
+   STYLESHEET - and measured a third time, because the second version of
+   this comment was wrong in the other direction and the number it
+   introduced has since been quoted back at this file as established
+   fact.
+
+   BOTH NUMBERS WERE RIGHT. THEY ARE DIFFERENT LANGUAGES. The first
+   version said the chapter control was 45px tall and called bottom:74px
+   "touching". The second corrected 45 to 48 and explained the extra
+   three pixels with a min-height in css/ksat-shell.css and a label
+   wrapping to a taller line box. That explanation is false - the
+   #ksat-ch-fab rule sets no min-height, and it sets white-space:nowrap
+   with text-overflow:ellipsis, so its label cannot wrap - but the
+   number was not. The control measures about 45px with the page in
+   English - 44.9 and 45.4 in two runs, the difference being device
+   pixel snapping on a fractional device ratio - and 47.5px with the
+   page in Arabic, and whoever wrote each version was looking at a
+   different render of the same element. Somebody reviewing this file
+   afterwards read 48px, 37px of overlap and 102px of launcher, which
+   are the three Arabic figures exactly.
+
+   The difference is the line box and nothing else: 13px text either
+   way, but 21.45px of line box in English against 24.05px in Arabic,
+   because the Arabic face inherits a taller line-height. Everything
+   else - 11px of padding each side, two hairline borders - is shared,
+   and none of it moves with the density setting, which was checked at
+   compact, cozy, comfortable and spacious.
+
+   So there is no single height to write down here, and a comment that
+   quotes one without saying which language it came from will be
+   corrected again by the next person who opens the page in the other
+   one. This is a bilingual page; the taller render is the one clearance
+   has to be computed against.
+
+   Measured at a 700px viewport with the tour off, English, every
+   running animation forced to its end first - a background tab freezes
+   the document timeline, and getComputedStyle then keeps handing back
+   the value a transition started from rather than the one it is heading
+   for, which is how an earlier pass came to read 75px off an element
+   the cascade had already moved to 140px:
+
+     #ksat-ch-fab   bottom 18px, 45.4px tall  ->  18.0 to 63.4
+     .ksat-as-fab   bottom 75px, 44px tall    ->  75.0 to 119.0
+
+   So the two are 11.6px apart, not the 9px this comment claimed, and at
+   74px they were 10.6px apart rather than touching. In Arabic the
+   control is about 2px taller and the clearance is that much smaller,
+   which is still clear.
+
+   Saying all of it because a number presented as a fix invites the next
+   person to trust it instead of measuring, and this one has now been
+   trusted, corrected and re-corrected without anybody writing down that
+   it depends on the language. */
 @media (min-width: 621px){
   .ksat-as-fab{ bottom:calc(75px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* =====================================================================
+   FACT AND INFERENCE MUST NOT LOOK THE SAME    added 21 September 2026
+
+   WHAT WAS WRONG. The assistant rendered free prose, and where it
+   mirrored the page analyst it inherited .arow, whose dd styles the
+   measured row and the interpretation row identically - same colour,
+   same weight, same ground. Spec section 26 is explicit that
+   AI-generated interpretation must never visually appear identical to
+   measured data, and it was the one rule the assistant broke on every
+   single answer.
+
+   WHAT THIS DOES NOT DO: invent a second vocabulary. index.html already
+   classifies every figure it draws with a .badge whose class says which
+   kind of data it is - real, pub, demo, sim, proj, ai - and the legend
+   section teaches that vocabulary to the visitor. These rules reuse it,
+   mark for mark and word for word, and only add the drawing.
+
+   NO HARD-CODED HEX. Each class is pinned to the custom property whose
+   slot the page already uses for that badge. The numbers in the list
+   below are the values index.html declares; css/ksat-theme.css already
+   re-points several of them, and a light mode will re-point them again
+   - which is the whole reason they are read through var() rather than
+   copied:
+
+     record    --c1     .badge.real   rgba(39,159,215) = #279FD7 = --c1
+     public    --ink-2  .badge.pub    a cool neutral, near body text
+     dataset   --c3     .badge.demo   rgba(64,173,96)  = #40AD60 = --c3
+     modelled  --c5     .badge.sim    rgba(178,127,2)  = #B27F02 = --c5
+     estimate  --ember  .badge.proj   rgba(217,116,63) = #D9743F = --ember
+     derived   --c4     .badge.ai     rgba(128,85,190) = #8055BE = --c4
+     platform  --ink-3  .badge.src    no data class applies
+
+   AND NOT COLOUR ALONE. Around one man in twelve cannot separate these
+   hues, a printout is greyscale, and a screen reader sees no colour at
+   all. So the class of a row is carried four times over: the rail is
+   solid for a stated fact and broken for a generated one, a generated
+   row sits on a tint while a stated row sits on the panel, the tag is
+   outlined solid or dashed to match, and js/ksat-assistant.js puts the
+   words "Stated fact" or "Generated, not measured" into the row for
+   anything reading it aloud.
+   ===================================================================== */
+
+.ksat-as-struct{
+  margin:10px 0 0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.ksat-as-frow{
+  position:relative;
+  display:grid;
+  grid-template-columns:96px 1fr;
+  gap:3px 12px;
+  padding-block:7px;
+  padding-inline:13px 0;
+}
+
+/* The rail. Drawn rather than bordered so the pattern can change with
+   the class of the row - a border cannot be made to break. */
+.ksat-as-frow::before{
+  content:"";
+  position:absolute;
+  inset-block:4px;
+  inset-inline-start:0;
+  width:3px;
+  background:var(--ksat-as-prov, var(--ink-3, #64778D));
+}
+
+.ksat-as-flab{
+  font-family:var(--mono, ui-monospace, monospace);
+  font-size:10px;
+  letter-spacing:.12em;
+  line-height:1.6;
+  text-transform:uppercase;
+  color:var(--ink-3, #64778D);
+  white-space:nowrap;
+}
+.ksat-as-fval{
+  margin:0;
+  min-width:0;
+  color:var(--ink-2, #A8B2C8);
+}
+.ksat-as-fval .ksat-as-p{ margin:0 0 6px; }
+.ksat-as-fval .ksat-as-p:last-child{ margin-bottom:0; }
+
+/* The panel is 392px at most, and 96px of label column leaves about
+   eight words a line. Below that, stack them - the page analyst does
+   the same thing at its own width (.arow, index.html). */
+@media (max-width: 560px){
+  .ksat-as-frow{ grid-template-columns:1fr; gap:2px; }
+  .ksat-as-flab{ white-space:normal; }
+}
+
+/* ---------------------------------------------------------------------
+   The provenance tag, one per row.
+   --------------------------------------------------------------------- */
+.ksat-as-provtag{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-bottom:5px;
+  padding:2px 7px;
+  font-family:var(--mono, ui-monospace, monospace);
+  font-size:9.5px;
+  letter-spacing:.11em;
+  line-height:1.7;
+  text-transform:uppercase;
+  color:var(--ksat-as-prov-ink, var(--ink-2, #A8B2C8));
+  border:1px solid var(--ksat-as-prov, var(--line-2, rgba(255,255,255,.16)));
+}
+.ksat-as-provmark{ font-size:11px; line-height:1; }
+
+/* Said, not drawn. This is the half of the distinction that survives a
+   greyscale printout and a screen reader, and it is the half that is
+   usually forgotten. */
+.ksat-as-sr{
+  position:absolute;
+  width:1px; height:1px;
+  margin:-1px; padding:0;
+  overflow:hidden;
+  clip-path:inset(50%);
+  white-space:nowrap;
+  border:0;
+}
+
+/* ---------------------------------------------------------------------
+   1 - STATED. A published, attributable fact, or an official figure.
+       Solid rail, no ground, solid tag outline, primary ink.
+   --------------------------------------------------------------------- */
+.ksat-as-kind-stated .ksat-as-fval{ color:var(--ink, #E8ECF8); }
+
+/* ---------------------------------------------------------------------
+   2 - GENERATED. Modelled, estimated, derived, or read off the
+       reference dataset. Broken rail, a tint of its own hue, dashed tag.
+
+       The tint is written twice on purpose. The flat declaration lands
+       on any engine without color-mix() and leaves the row untinted,
+       which loses one of the four cues rather than painting an
+       unreadable colour; the rail, the dashes and the spoken phrase all
+       still hold.
+   --------------------------------------------------------------------- */
+.ksat-as-kind-generated::before{
+  background:repeating-linear-gradient(
+    180deg,
+    var(--ksat-as-prov, var(--ink-3, #64778D)) 0 4px,
+    transparent 4px 8px);
+}
+.ksat-as-kind-generated{
+  background:transparent;
+  background:color-mix(in srgb, var(--ksat-as-prov, #64778D) var(--ksat-as-tint, 7%), transparent);
+}
+.ksat-as-kind-generated .ksat-as-provtag{ border-style:dashed; }
+.ksat-as-kind-generated .ksat-as-fval{ color:var(--ink-2, #A8B2C8); }
+
+/* ---------------------------------------------------------------------
+   3 - PLATFORM. Not a data class at all: a description of how this
+       system behaves. It gets the quietest treatment of the three,
+       because dressing a statement about our own code in the colours of
+       a measurement is exactly the dishonesty the legend exists to
+       prevent.
+   --------------------------------------------------------------------- */
+.ksat-as-kind-platform::before{ width:2px; opacity:.5; }
+.ksat-as-kind-platform .ksat-as-provtag{
+  border-color:transparent;
+  padding-inline:0;
+  opacity:.8;
+}
+
+/* ---------------------------------------------------------------------
+   The seven hues, from the page's own tokens. Nothing here is a literal
+   colour: every value is a var() so the light mode another agent is
+   building repaints all of this without touching this file.
+   --------------------------------------------------------------------- */
+/* TWO VALUES PER CLASS, NOT ONE, AND THE PAGE ALREADY WORKS THIS WAY.
+
+   index.html draws .badge.ai as #C7A9EE text on an rgba(128,85,190,.14)
+   fill: a LIGHTENED purple for the letters and the saturated token for
+   the fill, because #8055BE as 9.5px text on the panel ground measures
+   3.6:1 and cannot be read. The first draft of these rules used one
+   value for both and inherited that exact failure on the derived row -
+   which is the one row of an answer that says "this is an
+   interpretation" and therefore the last one that may be hard to read.
+
+   So --ksat-as-prov drives the rail and the wash (graphics, 3:1) and
+   --ksat-as-prov-ink drives the tag text (4.5:1). On the dark ground
+   the ink values ARE the page's own badge text colours, so a tag in the
+   assistant and a badge in the page are the same colour to the eye.
+   Measured on the panel ground #0B1018: 12.5, 12.9, 12.5, 11.7, 10.2,
+   9.4 and 7.8 to one. */
+:root{
+  /* rail and wash - the page's data tokens */
+  --ksat-as-h-record:   var(--c1,    #279FD7);
+  --ksat-as-h-public:   var(--ink-2, #A8B2C8);
+  --ksat-as-h-dataset:  var(--c3,    #40AD60);
+  --ksat-as-h-modelled: var(--c5,    #B27F02);
+  --ksat-as-h-estimate: var(--ember, #D9743F);
+  --ksat-as-h-derived:  var(--c4,    #8055BE);
+  --ksat-as-h-platform: var(--ink-3, #64778D);
+
+  /* tag text - the page's own badge text colours, lightened for a dark
+     ground exactly as index.html lightens them */
+  --ksat-as-i-record:   #9FD9F5;     /* .badge.real */
+  --ksat-as-i-public:   #C4D7E8;     /* .badge.pub  */
+  --ksat-as-i-dataset:  #9FE0B5;     /* .badge.demo */
+  --ksat-as-i-modelled: #F2C46B;     /* .badge.sim  */
+  --ksat-as-i-estimate: #F0AF8B;     /* .badge.proj */
+  --ksat-as-i-derived:  #C7A9EE;     /* .badge.ai   */
+  --ksat-as-i-platform: var(--ink-2, #9AA7B8);
+
+  --ksat-as-tint: 7%;
+}
+
+.ksat-as-prov-record  { --ksat-as-prov: var(--ksat-as-h-record);   --ksat-as-prov-ink: var(--ksat-as-i-record); }
+.ksat-as-prov-public  { --ksat-as-prov: var(--ksat-as-h-public);   --ksat-as-prov-ink: var(--ksat-as-i-public); }
+.ksat-as-prov-dataset { --ksat-as-prov: var(--ksat-as-h-dataset);  --ksat-as-prov-ink: var(--ksat-as-i-dataset); }
+.ksat-as-prov-modelled{ --ksat-as-prov: var(--ksat-as-h-modelled); --ksat-as-prov-ink: var(--ksat-as-i-modelled); }
+.ksat-as-prov-estimate{ --ksat-as-prov: var(--ksat-as-h-estimate); --ksat-as-prov-ink: var(--ksat-as-i-estimate); }
+.ksat-as-prov-derived { --ksat-as-prov: var(--ksat-as-h-derived);  --ksat-as-prov-ink: var(--ksat-as-i-derived); }
+.ksat-as-prov-platform{ --ksat-as-prov: var(--ksat-as-h-platform); --ksat-as-prov-ink: var(--ksat-as-i-platform); }
+
+/* =====================================================================
+   THE SAME SEVEN, ON PAPER                    added 21 September 2026
+
+   css/ksat-nasa.css builds the light mode and says, in its own words,
+   that it deliberately does NOT touch --c1..--c5: those five carry
+   meaning by their ORDER in the data ramps, and darkening one end would
+   break the ramp. That decision is right for the charts and it leaves
+   exactly one thing broken here — the provenance hues above are read as
+   TEXT in a 9.5px mono tag, and on white they measure between 1.9:1 and
+   3.0:1. Unreadable, on the one row of an answer that says whether the
+   figure was measured or generated.
+
+   So the hues get light values of their own, in this file, for these
+   seven classes only. Same families — blue, green, amber, orange,
+   purple — darkened until 9.5px passes AA on #FFFFFF:
+
+     record   #0B6A93  6.1:1      estimate #9A4A1C  6.2:1
+     dataset  #1F7038  6.2:1      derived  #5B3A8C  8.6:1
+     modelled #7A5602  6.6:1
+
+   On paper the text and the rail want the SAME value - there is no
+   lightening to undo - so --ksat-as-i-* is set to match --ksat-as-h-*.
+   public and platform are not listed because they follow --ink-2 and
+   --ink-3, which the theme layer already darkens (#47535F on white is
+   7.9:1).
+
+   js/ksat-appearance.js always stamps html[data-theme], so this
+   selector is enough and there is no second prefers-color-scheme block
+   to keep in step with it. If that contract ever changes, this block
+   and ksat-nasa.css break together and are fixed together.
+   ===================================================================== */
+:root[data-theme="light"]{
+  --ksat-as-h-record:   #0B6A93;
+  --ksat-as-h-dataset:  #1F7038;
+  --ksat-as-h-modelled: #7A5602;
+  --ksat-as-h-estimate: #9A4A1C;
+  --ksat-as-h-derived:  #5B3A8C;
+
+  --ksat-as-i-record:   #0B6A93;
+  --ksat-as-i-dataset:  #1F7038;
+  --ksat-as-i-modelled: #7A5602;
+  --ksat-as-i-estimate: #9A4A1C;
+  --ksat-as-i-derived:  #5B3A8C;
+  --ksat-as-i-public:   var(--ink-2, #47535F);
+  --ksat-as-i-platform: var(--ink-2, #47535F);
+
+  /* A 7% wash of a dark hue on white is a pastel band that reads as a
+     highlight rather than as a caution. Slightly stronger so the
+     generated rows still separate from the stated ones. */
+  --ksat-as-tint: 10%;
+
+  /* White at 4.5% is a raised surface on #0A0F18 and nothing at all on
+     paper. Same idea, inverted: the panel's own ink, very dilute.
+     ksat-nasa.css already handles .ksat-as-fab and .ksat-as-panel
+     themselves, and .ksat-as-go / .ksat-as-send ink, with selectors
+     more specific than anything here - those are left to it. */
+  --ksat-as-raise:      rgba(16,21,27,.045);
+  --ksat-as-raise-2:    rgba(16,21,27,.075);
+  --ksat-as-mine:       rgba(12,110,106,.10);
+  --ksat-as-mine-line:  rgba(12,110,106,.34);
+  --ksat-as-on-accent:  #FFFFFF;
+}
+
+/* ---------------------------------------------------------------------
+   Source numbers. They index the real SOURCES register in index.html,
+   and js/ksat-assistant.js reads the name out of that array at draw
+   time, so a reordered register cannot leave a wrong title behind here.
+   --------------------------------------------------------------------- */
+.ksat-as-srcline{
+  margin:7px 0 0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.ksat-as-srctag{
+  display:inline-block;
+  max-width:100%;
+  padding:2px 7px;
+  font-family:var(--mono, ui-monospace, monospace);
+  font-size:10px;
+  letter-spacing:.06em;
+  line-height:1.6;
+  text-decoration:none;
+  color:var(--ink-2, #A8B2C8);
+  border:1px solid var(--line-2, rgba(255,255,255,.14));
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+a.ksat-as-srctag:hover{
+  color:var(--ink, #E8ECF8);
+  border-color:var(--accent, #3FD0C9);
+}
+a.ksat-as-srctag:focus-visible{
+  outline:2px solid var(--accent, #3FD0C9);
+  outline-offset:2px;
+}
+/* js/ksat-assistant.js stamps dir="ltr" on these when the page is in
+   Arabic, because a bracketed Latin number and a Latin source title
+   inside an Arabic paragraph reorder into nonsense without isolation.
+   css/ksat-detail.css does exactly this for every other mono run on the
+   site; it lives here rather than in an inline style so nothing new
+   depends on the CSP gap that still permits inline. */
+.ksat-as-srctag[dir="ltr"]{ unicode-bidi:isolate; }
+
+/* =====================================================================
+   THE GUIDED TOUR OWNS THE BOTTOM OF THE SCREEN WHILE IT RUNS
+
+   #demoHud is a full-width panel pinned to the bottom edge. Raising the
+   assistant above it in z-order (see THE ASSISTANT'S LAYER at the top
+   of this file) stops the launcher disappearing behind it, but it would
+   then sit ON the narration. css/ksat-shell.css already lifts the
+   chapter control to bottom:86px for the same reason - its
+   body:has(#demoHud.on) #ksat-ch-fab rule - and the launcher stacks
+   above that one, so it has to clear 86px plus the chapter control's
+   own height plus a real gap.
+
+   The panel is deliberately not moved. At sheet width it would fight
+   the narration for the same edge, and the visitor opened it on
+   purpose - closing it restores the tour exactly as it was.
+
+   ONE RULE AND NO MEDIA QUERY, WHICH IS A CHANGE. This used to be a
+   pair split at the same 620/621 boundary the rest of the file uses:
+   140px from 621px up, 96px at 620px and below. The wide half was
+   right. The narrow half was a collision, and the split itself was a
+   second one.
+
+   THE NARROW HALF. Measured in a real 400px viewport - an iframe, so
+   the media queries evaluate against 400 rather than against a window
+   that reports a resize and does not perform one - with the tour
+   running and the launch sequence dismissed. In Arabic, which is the
+   taller of the two renders and therefore the one that decides:
+
+     chapter control   bottom 86px, 47.5px tall  ->  86.0 to 133.5
+     launcher at 96px  48x48 at this width       ->  96.0 to 144.0
+
+   37.5px of vertical overlap, and the launcher sits at z-index 132 over
+   the control at 130, so the launcher takes the presses. Hit-testing a
+   4px grid over the chapter control's own rectangle, 30.7% of the
+   points resolved to the launcher rather than to the control. At 560px,
+   where the launcher still carries its label, it was 66.5%. English is
+   the same failure with different numbers: 34.9px of overlap, 35.1% at
+   400px and 81.8% at 560px, worse in the wide case because the English
+   label makes the launcher 118.5px wide against the Arabic 102.1px.
+
+   Below 1700px the chapter control is the entire chapter interface, so
+   this was the page's main navigation being eaten by a corner button,
+   on a phone, during the one sequence whose whole job is to show the
+   page off.
+
+   THE SPLIT. At a viewport width of 620 CSS pixels on a display with a
+   fractional device ratio, (max-width: 620px) was false AND
+   (min-width: 621px) was false. Both were measured returning false in
+   the same breath, while window.innerWidth read exactly 620, because
+   the real viewport width is 620-point-something: (max-width: 620.98px)
+   matched it. Neither half of the pair applied, the launcher fell back
+   to its base 74px, and the result was worse than either branch - 32px
+   of vertical overlap and 48.5% of the control taken. Browser zoom
+   produces fractional widths like that routinely. A boundary written as
+   two integer media queries has a dead band between them whatever
+   integers you choose, so the pair is gone rather than re-tuned.
+
+   WHY 140px AT EVERY WIDTH. The chapter control sits at bottom:86px
+   during the tour, and its height does not move with the viewport or
+   with the density setting - only with the language, 44.9px in English
+   and 47.5px in Arabic. Its top edge is therefore 130.9px or 133.5px
+   above the bottom of the viewport, and 140px clears the taller of them
+   with 6.5px to spare and the shorter with 9.1px. Both were measured at
+   every width from 360px to 900px after this rule landed, in both
+   languages: zero vertical overlap and zero percent of the control
+   taken, at all twenty readings. Since none of that arithmetic depends
+   on the viewport, there is nothing left for a media query to decide.
+
+   WHAT 140px DOES NOT CLEAR, deliberately. At 400px the tour's own
+   narration panel is 205px tall, so both corner controls sit over the
+   narration at any of these numbers. That is the existing arrangement
+   rather than a new one - the chapter control at 86px is over it too -
+   and it belongs to css/ksat-shell.css and css/ksat-tour.css rather
+   than to this file.
+   ===================================================================== */
+body:has(#demoHud.on) .ksat-as-fab{
+  bottom:calc(140px + env(safe-area-inset-bottom, 0px));
+}
+
+/* =====================================================================
+   MOTION IS OPTIONAL, AND SO IS THE TRANSITION THAT MOVES THE LAUNCHER
+
+   The rules above change `bottom` when the tour starts. Left alone that
+   is an instant jump, which is correct for a reduced-motion reader and
+   abrupt for everyone else, so the movement is eased - and only for
+   readers who have not asked for less of it.
+   ===================================================================== */
+.ksat-as-fab{ transition:border-color .18s, background .18s, transform .18s, bottom .2s ease; }
+@media (prefers-reduced-motion: reduce){
+  .ksat-as-fab{ transition:none; }
+}
+/* The panel's entrance animation is already switched off for the same
+   reader further up this file, where it is declared. */

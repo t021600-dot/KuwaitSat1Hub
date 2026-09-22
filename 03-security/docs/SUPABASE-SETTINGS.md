@@ -31,8 +31,16 @@
 | 11 | **Auth rate limits** | Auth → Rate Limits | **Read and record. Do not raise** | 2 min |
 | 12 | **Anonymous sign-ins = OFF** | Auth → Providers | **Verify** | 30 sec |
 | 13 | **Database password + who is in the org** | Settings → Database / Org → Team | **Should, 5 min** | 5 min |
+| **14** | **The three that are STILL WRONG on 21 Sep** | Auth → Sign In / Providers → Email | **MUST — none of it is done** | 8 min |
 
 MUST rows total about **thirteen minutes**. The whole table is about twenty-eight. If you only have ten, do 1, 2, 2b and 3–6.
+
+> **STATUS, 21 Sep 2026, 20:42 UTC — read this before you plan your ten minutes.**
+> The live project was probed from outside and **§7 is not done, §9 is not done,
+> and self-signup is open**. §14 is the checklist for those three, with the exact
+> paths, the order to do them in, and a `curl` that verifies two of them without
+> trusting a dashboard form. Rows 7 and 9 above are still marked by their original
+> verdicts; **§14 is what is actually true right now.**
 
 ---
 
@@ -207,6 +215,13 @@ Expect it to flag **leaked-password protection disabled** and stay flagged — s
 **Hard gate:** if this is not finished Monday night, do not touch it Tuesday or Wednesday. Say this instead:
 > "Password rules are at the platform defaults for the prototype. On the paid tier Supabase also rejects passwords found in known breaches, which is what we would turn on with real researchers."
 
+> ⚠️ **NOT DONE — verified 21 Sep 2026, 20:42 UTC.** The minimum is still the
+> platform default **6**. Not inferred from the dashboard: GoTrue said so itself,
+> `"Password should be at least 6 characters."`, in response to a signup probe from
+> outside. **§14.1** has that command, the exact output, and the reason to probe
+> with a one-character password rather than a nine-character one. Everything in
+> this section is still the right instruction — it was simply never carried out.
+
 ---
 
 ## 8 · MFA on your own Supabase account — the biggest thing in this document
@@ -228,6 +243,15 @@ Expect it to flag **leaked-password protection disabled** and stay flagged — s
 > "That one is a Pro-tier control. It checks a new password against a breach corpus at sign-up. We are on the free tier for a four-day prototype, so we raised the minimum length instead and wrote the gap down rather than hiding the Advisor screen."
 
 **What breaks if you try to fix it:** upgrading a project's plan mid-week to clear one linter row is money and risk for a student prototype with invented data. Don't.
+
+> ⚠️ **CHECK THIS ONE BEFORE YOU REPEAT IT — see §14.3.** Still off, confirmed by
+> the Advisor on 21 Sep 2026. But the Advisor's own remediation text says *"Enable
+> this feature to enhance security"* and says nothing about a plan, and this
+> section's "paid-plan feature" claim was written from memory of the tier rather
+> than from the toggle. **Open the control and look.** If it is live, turn it on —
+> it costs nothing and it is two clicks. If it really is locked, screenshot the
+> locked control; that is a better exhibit than the sentence above. The
+> "don't upgrade the plan" advice stands either way.
 
 ---
 
@@ -287,6 +311,154 @@ Roughly what you will find (**read the real numbers, do not quote mine**):
 
 ---
 
+## 14 · THE THREE THAT ARE STILL WRONG — checked 21 Sep 2026, 20:42 UTC
+
+Sections 1–13 are the plan. This section is what the **live project**
+(`kqboenytmzagdiweqygl`) actually answered when it was asked, on Monday evening,
+from outside, with no dashboard open. Three things in this document say "MUST"
+and are **not done**. None of them can be fixed from `db/` — that is why they are
+here and not in a `.sql` file, and it is why 03's SQL files cannot prove them.
+
+**Do them in the order 3 → 1 → 2.** Step 3 changes what step 1's password reset
+is checked against, and step 2 is the one that needs a product decision first.
+
+---
+
+### 14.1 · Minimum password length is STILL 6. §7 was never done.
+
+**Path:** Authentication → **Sign In / Providers → Email** → *Minimum password length* **[CHECK IN DASHBOARD]**
+**Set it to:** **10**. Leave *Password Requirements* (uppercase/digit/symbol) alone — §7 explains why character classes are a live-demo failure, and that part of §7 is still right.
+**Then, immediately:** Authentication → **Users** → each demo account → *Reset password* / *Change password*, and write the new ones on the demo checklist card.
+
+**Why "immediately" is not a style note.** Changing the minimum does **not**
+re-validate accounts that already exist. Both demo researchers keep signing in
+with whatever they have now, the form says 10, and you will believe a rule is
+enforced that is enforced on nobody. §7 already said this. It is repeated here
+because §7 also said "Monday or never" and Monday is now.
+
+**How to verify it took — without trusting the dashboard form.** Ask the server
+what its own minimum is. A one-character password is refused by every possible
+setting, so this **cannot create an account** no matter what step 14.2 is doing:
+
+```bash
+curl -s -i -X POST "https://kqboenytmzagdiweqygl.supabase.co/auth/v1/signup" \
+  -H "apikey: <SUPABASE_PUBLISHABLE_KEY from js/config.js>" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"probe-do-not-create@example.invalid","password":"a"}'
+```
+
+Read the number GoTrue puts in its own error message. On 21 Sep 2026 it said:
+
+```
+HTTP/1.1 422 Unprocessable Entity
+x-sb-error-code: weak_password
+sb-request-id: 01a0c5b4-d7f0-75a7-bf85-79d9fa2199c0
+
+{"code":422,"error_code":"weak_password",
+ "msg":"Password should be at least 6 characters.",
+ "weak_password":{"reasons":["length"]}}
+```
+
+**"at least 6" is the platform default, in the server's own words.** After the
+change that line must read **"at least 10 characters"**. If it still says 6, the
+form was edited and not saved — the exact failure the 60-second pass exists to
+catch, caught here without opening the dashboard at all.
+
+> ⚠️ **Do not verify this with a password that would pass.** A 9-character probe
+> against a 10-character minimum tells you the same thing — but if you run it
+> *before* the change, 9 characters passes a minimum of 6 and you have just
+> created a real account on the demo project, from the open internet, in the
+> middle of your own audit. Use one character.
+
+---
+
+### 14.2 · Self-signup is STILL OPEN, and the product says it is not.
+
+**Path:** Authentication → **Sign In / Providers → Email** → *Allow new users to sign up* (some dashboards: Authentication → Providers → *Enable sign ups*) **[CHECK IN DASHBOARD — this control has moved between the Email provider and a project-wide Auth setting]**
+**Set it to:** whatever the team actually decides below. **This is the one step in this document with a decision in front of it, and the decision is not 03's to make alone.**
+
+**The evidence.** The same `curl` as 14.1 came back `422 weak_password` — not
+`422 signup_disabled`. That ordering matters and is the whole finding: GoTrue
+checks *"are signups allowed"* **before** it checks the password. Getting a
+password complaint back means the request **got past the signup gate**. Anyone
+with the publishable key — which is in `js/config.js`, public by design — can
+create an account on this project right now, with a password of six characters,
+and never verify the address (§3, *Confirm email* is off).
+
+**The contradiction, in two quotes from our own repo:**
+
+| Where | What it says |
+|---|---|
+| `js/ksat-integration.js:71` (the sign-in gate, on screen) | *"This platform is restricted to authorized researchers."* |
+| `app-retag/login.html:63` | *"Access is restricted to authorized…"* |
+| This document, §3 + D-7 | open sign-up is **deliberate**, so a judge can sign up on stage |
+
+Both cannot be true on Thursday. Pick one, tonight:
+
+- **Keep signup open** (D-7 stands, a judge signs up live) → then the gate copy is
+  false and must change, in **English and Arabic**, and §3's two accepted costs
+  get said out loud before anyone asks.
+- **Close signup** (the gate copy stands) → then D-7's stage sign-up is gone and
+  the demo needs a second pre-made account instead. Say: *"Accounts are issued,
+  not self-served — in a real deployment they come from the institution's
+  directory."* That is the stronger sentence, and it is the one the product is
+  already making.
+
+**How to verify whichever you chose took:** re-run the `curl` from 14.1.
+
+- signup open → `error_code: weak_password` (the password check was reached) —
+  this is what it returned on 21 Sep, observed
+- signup closed → **`error_code: signup_disabled`**, message
+  `"Signups not allowed for this instance"` (the gate fired first)
+
+**Read the `x-sb-error-code` header / `error_code` field, not the status line.**
+The open case was observed as `422`; the closed case has not been observed on
+this project, and GoTrue has returned both `400` and `422` for it across
+versions. The status is not the proof. The error code is.
+
+---
+
+### 14.3 · Leaked-password protection is off. Open it and look before repeating §9.
+
+**Path:** Authentication → **Sign In / Providers → Email** → *Prevent use of leaked passwords* / Password Security **[CHECK IN DASHBOARD — wording varies]**
+**Set it to:** **on, if the control is live.** The Security Advisor flags it as
+`auth_leaked_password_protection` (WARN) and its remediation text says plainly
+*"Enable this feature to enhance security"* — it does not say "upgrade your plan".
+
+**§9 of this document says it is a paid-plan feature and to leave it alone.**
+That may still be true and it is not being deleted. But §9 was written from
+memory of the plan, not from the toggle, and Supabase has moved this control
+between tiers before. **Thirty seconds of looking beats either of us being
+confident in a chat window.** So:
+
+- **If the toggle is live:** turn it on. Do it **before** the password reset in
+  14.1, so the two new demo passwords are themselves checked against
+  HaveIBeenPwned rather than being the first two passwords that skip the check.
+- **If it is genuinely locked behind the plan:** screenshot the locked control to
+  `audit/evidence/se-m6-leaked-password-locked.png`. That turns §9's rehearsed
+  sentence from a claim into an exhibit, which is worth more than the toggle was.
+
+**How to verify it took:** Advisors → **Security** → *Rerun*. This is the only
+one of the three whose result the linter reports, so the row itself is the
+verification: `auth_leaked_password_protection` disappears from the list.
+
+---
+
+### What will STILL be flagged after all three, and is fine
+
+Re-running the Advisor after 14.1–14.3 leaves two rows, both deliberate, both
+written up in [`db/12_advisor_hardening.sql`](../db/12_advisor_hardening.sql):
+
+| Row | Verdict |
+|---|---|
+| `authenticated_security_definer_function_executable` ×9 | **Accepted.** Five are the researcher write path. Four are the ownership helpers the RLS policies evaluate — and a policy is evaluated as the **querying** user, so revoking EXECUTE would not close a hole, it would turn every read in the product into a permission error. Section 2 of file 12 is the proof. |
+| `rls_enabled_no_policy` on `app_settings` | **Accepted.** RLS on, zero policies, zero grants — three locks on the kill switch. **Do not add a policy to clear this row.** |
+
+Two accepted rows with a written reason is a stronger Advisor screenshot than
+zero rows and a shrug.
+
+---
+
 ## What NOT to touch this week
 
 - **Do not upgrade the Postgres version** if the dashboard offers it. It is downtime and risk, mid-week, for a prototype with invented data. Name it: *"There is a minor-version upgrade available; we did not take it during the build week because an upgrade window is not something a four-day project can absorb."*
@@ -305,6 +477,7 @@ Do this Monday right after the sitting, and again at Wednesday rehearsal. It is 
 
 1. **(10s) Reload, don't trust.** Hard-refresh Authentication → URL Configuration. Read the Site URL and the Redirect URLs back off the reloaded page. They must be the exact values from §1 and §2, with **no `*` anywhere**. A dashboard form that was edited but not saved looks identical to one that was saved, until you reload.
 2. **(10s) Reload Auth → Providers → Email.** Confirm: *Confirm email* OFF, *Minimum password length* 10. Same reason.
+2b. **(10s) Ask the server, don't read the form.** Run the one-character signup probe from **§14.1**. The number in GoTrue's own `weak_password` message is the minimum that is *actually in force* — a saved form and an unsaved form look identical, but the API cannot lie about it. On 21 Sep it answered **6**. It must answer **10**. If §14.2 closed signup, the probe answers `signup_disabled` instead, which proves that one too. **One command verifies two settings and needs no dashboard login** — run it from the venue wifi on Thursday morning.
 3. **(15s) Sign in for real.** Normal window as Researcher A, **private** window as Researcher B (never two private windows — Incognito shares one session, so B replaces A and both windows become B). Run `tests/two-window-check.js` and read the **first line it prints: the account email.** If both accounts sign in after the password-length change, §7 is proven. If the email line is wrong, you are signed in as the wrong account and everything downstream is a lie.
 4. **(10s) Storage → Buckets.** Still empty.
 4b. **(10s) Re-read the Redirect URLs with §2b in mind.** Exactly the production URL and (until Wednesday) localhost. **No `vercel.app` preview URL left over from a test, and no `*` anywhere.** On Wednesday this step also deletes localhost.

@@ -273,13 +273,40 @@ var nodes = [
     position: [X(0), ROW_MAIN]
   },
 
-  /* --- 2 · THE TWO THINGS YOU EDIT --------------------------------- */
+  /* --- 2 · THE ONE THING YOU EDIT ----------------------------------
+     This node used to carry 'https://YOUR-PROJECT-REF.supabase.co' and
+     the import instructions said to paste the real URL by hand after
+     importing. That is what preflight A3 was failing on: the generated
+     workflow.json shipped a placeholder, so anyone who imported the file
+     and forgot the hand step got a DNS error on the first poll and no
+     hint as to why.
+
+     The URL is now baked in, because it is not a secret and never was.
+     It is the same string js/config.js already ships to every browser
+     that opens the site - the project ref is public by design, which is
+     the whole premise of 03-security: the browser holds the publishable
+     key and the URL, and every rule that matters lives in Postgres below
+     the API. Writing it here reveals nothing a judge could not read off
+     the page in DevTools.
+
+     WHAT IS STILL NOT IN THIS FILE, AND MUST NEVER BE. The service-role
+     key. It bypasses row level security entirely. n8n reads it from its
+     own credential store and each HTTP node references that credential
+     by name - never a value. build-workflow.js refuses to write this
+     file at all if a key-shaped string reaches it, and preflight A5
+     checks the committed result a second time. Two gates, because this
+     is the one mistake in this folder that cannot be undone by editing
+     a file: a leaked service key has to be rotated.
+
+     If the team ever rebuilds on a different Supabase project, this
+     string and SUPABASE_URL in js/config.js both have to move. They are
+     the only two copies.                                             */
   {
     parameters: {
       assignments: {
         assignments: [
           { id: 'url', name: 'supabase_url', type: 'string',
-            value: 'https://YOUR-PROJECT-REF.supabase.co' },
+            value: 'https://kqboenytmzagdiweqygl.supabase.co' },
           { id: 'brk', name: 'break_visualization', type: 'boolean', value: false }
         ]
       },
@@ -290,7 +317,8 @@ var nodes = [
     type: 'n8n-nodes-base.set',
     typeVersion: 3.4,
     position: [X(1), ROW_MAIN],
-    notes: 'The project URL is public. The KEY is not, and it is only in the credential.'
+    notes: 'The project URL is public - it is the same one js/config.js ships ' +
+           'to the browser. The KEY is not, and it is only in the credential.'
   },
 
   /* --- 3 · SWEEP FIRST ----------------------------------------------

@@ -51,8 +51,31 @@ console.log('%c signed in as: ' + (user?.email ?? 'NOT SIGNED IN — STOP'),
             'font-size:16px;font-weight:bold');
 if (!user) throw new Error('No session. Sign in as Researcher B and run again.');
 
-// Paste the mission id the judge just watched you copy off A's screen.
-const A_MISSION = '<paste Researcher A mission id>';
+// ---- WHERE A_MISSION COMES FROM -------------------------------------
+// This used to be a literal: `const A_MISSION = '<paste Researcher A
+// mission id>';`. It survived unedited into demo week, which is what
+// placeholders do — the line reads like code, it runs, and PostgREST
+// answers `invalid input syntax for type uuid`. That looks like a broken
+// test rather than an unfilled blank, and on the one beat the whole role
+// is graded on you do not want to be debugging a blank.
+//
+// In A's NORMAL window, run this line and copy what it prints:
+//     (await sb.from('my_missions').select('id')).data.map(r => r.id)
+//
+// Then in B's PRIVATE window, either set it before pasting this file:
+//     window.KSAT_A_MISSION = '<the id you just copied>';
+// or let the prompt ask you.
+const A_MISSION = (window.KSAT_A_MISSION ||
+                   (typeof prompt === 'function'
+                      ? prompt("Paste Researcher A's mission id") : '') ||
+                   '').trim();
+
+// Refuse to continue rather than send a non-uuid to the API. A 400 with
+// "invalid input syntax" in the console is indistinguishable, at a
+// glance, from the refusal this test exists to demonstrate.
+if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(A_MISSION)) {
+  throw new Error('A_MISSION is not a uuid. Beat 2 IS the test - do not run the rest without it.');
+}
 
 console.log('--- asking the database directly, as ' + user.email + ' ---');
 

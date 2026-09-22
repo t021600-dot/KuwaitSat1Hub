@@ -1,2 +1,71 @@
+# =====================================================================
+# .gitattributes — line endings, and what GitHub counts as our work.
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# LINE ENDINGS
+#
+# Normalise everything to LF in the repository and on checkout, on every
+# platform. This is not tidiness. The team works across Windows and macOS,
+# and the security suite compares index.html against site-original/index.html
+# line by line. When one of those two files is checked out with CRLF and the
+# other is not, a plain `diff` reports EVERY line as changed — roughly 6,000
+# of them — and the real difference is invisible underneath the noise.
+#
+# If you are on Windows and a diff still shows the whole file, your working
+# copy predates this rule. Either re-normalise:
+#     git add --renormalize .
+# or read the diff with:
+#     diff --strip-trailing-cr site-original/index.html index.html
+# ---------------------------------------------------------------------
 * text=auto eol=lf
-*.pdf binary
+
+# ---------------------------------------------------------------------
+# BINARY
+#
+# Named explicitly rather than left to auto-detection. A PNG that git decides
+# to "normalise" is a corrupt PNG, and the emblem and social-preview images
+# in assets/brand/ are the ones a judge sees first.
+# ---------------------------------------------------------------------
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+*.mp4   binary
+*.webm  binary
+*.mp3   binary
+*.wav   binary
+*.zip   binary
+
+# ---------------------------------------------------------------------
+# WHAT THE LANGUAGE BAR ON GITHUB SHOWS
+#
+# Left alone, the bar at the top of the repository page is dominated by two
+# things nobody on this team wrote: the vendored copies of Leaflet and
+# supabase-js, and site-original/index.html, which is a frozen second copy of
+# a page that is already counted once. Marking them vendored removes them
+# from the statistics only. It does not hide them, does not exclude them from
+# search, and does not collapse their diffs — an accidental edit to
+# site-original/ must still be visible in a pull request, because that folder
+# is the historical baseline the whole integration story rests on.
+# ---------------------------------------------------------------------
+vendor/**        linguist-vendored
+site-original/** linguist-vendored
+
+# The security work is SQL — the tables, the row-level security policies, the
+# column grants, the rate limits. Linguist classifies SQL as "data" and leaves
+# it out of the bar by default, which understates 03's contribution to
+# roughly zero. This puts it back.
+*.sql linguist-detectable=true
+
+# Markdown is deliberately NOT forced into the bar. There is a great deal of
+# it here and it would swamp the code, which would misrepresent the project
+# in the other direction.

@@ -1,0 +1,30 @@
+# Blank issues are switched off on purpose. The two forms ask the questions we
+# would otherwise have to ask back, and a capstone team working to a fixed date
+# cannot afford a round trip for "which browser".
+blank_issues_enabled: false
+
+contact_links:
+  - name: Report a security vulnerability (private)
+    url: https://github.com/t021600-dot/KuwaitSat1Hub/security/advisories/new
+    about: >-
+      Never in a public issue. If one account can reach another account's data,
+      or `anon` can read any table, report it privately here. Read SECURITY.md
+      first — the Supabase publishable key in js/config.js is public by design
+      and is out of scope.
+
+  - name: What this prototype is, and is not
+    url: https://github.com/t021600-dot/KuwaitSat1Hub/blob/main/SECURITY.md#what-this-project-is-not
+    about: >-
+      It holds no real KuwaitSat-1 data, every figure in it is invented, and it
+      secures nothing belonging to KFAS or Kuwait University. Worth reading
+      before filing anything.
+
+  - name: How this team works in one repo
+    url: https://github.com/t021600-dot/KuwaitSat1Hub/blob/main/CONTRIBUTING.md
+    about: >-
+      Branch prefixes, the one-reviewer rule, the freeze rule, and never
+      committing a secret.
+
+  - name: The live site
+    url: https://kuwait-sat1-hub.vercel.app/
+    about: See the behaviour before you describe it.

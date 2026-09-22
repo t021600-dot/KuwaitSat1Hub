@@ -1,0 +1,114 @@
+name: Bug report
+description: Something in the product does not do what it says it does.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Not for security problems.** If one account can reach another
+        account's data, or the `anon` identity can read any table, do not file
+        it here — it would be public the moment you press submit. Follow
+        [`SECURITY.md`](../blob/main/SECURITY.md) instead.
+
+        **Not for invented data being wrong.** Every mission, figure, cost and
+        index in this prototype is invented for the demonstration. That is by
+        design and it is labelled on the site.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, in your own words. A screenshot helps.
+      placeholder: I pressed Start with an empty objective and the pipeline ran anyway.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen again
+      description: >-
+        The shortest path you know. If it only happens with a particular
+        objective text, area or period, say which.
+      placeholder: |
+        1. Open the live site
+        2. Sign in as a researcher
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which job does this land on
+      description: >-
+        Your best guess is fine — whoever owns it answers first, and they can
+        move it. Ownership is in the team table in the README.
+      options:
+        - "Not sure"
+        - "01 · Front end — a screen, a form, layout, phone portrait"
+        - "02 · Back end and data — tables, accounts, records, the run log"
+        - "03 · Security — sign-in, isolation, validation, headers"
+        - "04 · Automation and agents — the pipeline, an agent, a guardrail"
+        - "Language — English/Arabic text, or right-to-left layout"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Which language was the site in
+      options:
+        - English
+        - العربية / Arabic
+        - Both, or it happens in both
+        - Not relevant
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 140 on Windows 11 · or · Safari on iPhone 14, portrait
+    validations:
+      required: true
+
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did you see it
+      options:
+        - "The live site (kuwait-sat1-hub.vercel.app)"
+        - "index.html opened locally from disk"
+        - "A local HTTP server"
+        - "app-retag/ — the parallel multi-page build"
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Anything red in the browser console
+      description: >-
+        Press F12, open Console, reload, and paste what appears. Paste it as it
+        is — do not tidy it. Remove any access token before pasting.
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: This is not a security problem — nothing here exposes another account's data.
+          required: true
+        - label: I searched the open issues and this is not already filed.
+          required: true

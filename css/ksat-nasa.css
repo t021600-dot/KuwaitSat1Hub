@@ -1,0 +1,1038 @@
+/* =====================================================================
+   ksat-nasa.css — LIGHT MODE, AND THE WORKSPACE REGISTER
+   Owner: 01 Front End · must be loaded LAST, after ksat-brand.css
+
+   WHAT WAS MISSING, MEASURED RATHER THAN ASSUMED
+   ---------------------------------------------------------------------
+   1 · There was no light mode at all. Not a partial one — there was no
+       prefers-color-scheme block, no data-theme attribute and no control
+       anywhere in the repository. js/ksat-theme.js is named like a theme
+       switch and is not one: it is a CanvasRenderingContext2D intercept.
+
+   2 · There was no distinction between the EDITORIAL sections (hero,
+       mission, story, vision, trust) and the WORKSPACE sections (the
+       research console, the imagery explorer, the dashboard, the map,
+       the simulator, the agent rail). Grepping every stylesheet for
+       #console, #explorer, #dashboard, #map, #simulate, #ai and #agent
+       returned nothing, so a research dashboard was being handed the
+       same 132px section padding and the same 72px headline as the
+       cinematic title card. That is the opposite of what someone
+       reading a chart needs, and it is the largest visual gap the page
+       has.
+
+   HOW THIS FILE FIGHTS THE FOUR LAYERS BELOW IT
+   ---------------------------------------------------------------------
+   ksat-theme, ksat-agency, ksat-detail and ksat-editorial between them
+   carry 205 !important declarations, most of them on section.sec, h2,
+   .panel and .btn. An !important declaration can only be beaten by
+   another !important declaration, whatever the specificity, so the
+   workspace rules below have no choice: they are !important too. Where
+   that is the case the rule carries a marked comment naming the file it
+   is answering.
+
+   The light-mode work is mostly free of it, because a token declaration
+   on :root[data-theme="light"] already out-specifies the bare :root the
+   other four layers use, and the tokens carry about two thirds of the
+   page on their own. The eight light-mode rules that DO use !important
+   are all answering a colour that ksat-agency.css or ksat-detail.css
+   nailed down for a dark ground — the near-black type on a filled
+   button, chiefly — and each of those is marked too.
+
+   WHAT THIS FILE DELIBERATELY DOES NOT DO
+   ---------------------------------------------------------------------
+   · It changes no content, no photograph, no chart datum and no number.
+   · It does not recolour the data ramps (--g0..--g5, --h0..--h5,
+     --c1..--c5). Those carry meaning by their ORDER; darkening one end
+     for a white ground would distort the reading. Section 3d records
+     honestly what that costs in light mode.
+   · It does not lighten the imagery viewports. A satellite scene, a
+     globe and a launch sequence are pictures of space: they stay dark
+     on a white page exactly as a plate stays dark in a printed journal.
+     Section 4 makes that deliberate rather than accidental.
+   ===================================================================== */
+
+
+/* =====================================================================
+   1 · TOKENS THIS FILE INTRODUCES
+   ===================================================================== */
+:root{
+  /* THE CANVAS ACCENT, AND WHY IT IS NOT SIMPLY --accent.
+     js/ksat-theme.js rewrites five hard-coded teals on their way into
+     the canvas. Four of those five are painted onto scenes that are
+     BLACK IN BOTH THEMES — the globe halo, the graticule, the orbit
+     swath, the satellite panels. So the colour those five want is not
+     the page accent, which in light mode has to be dark enough to read
+     on white, but an accent that reads on space. One token, read by
+     ksat-theme.js, so there is exactly one place to change it. */
+  --accent-canvas:var(--accent, #2FBDB6);
+
+  /* The workspace rhythm, named once so section 6 stays readable. */
+  --ws-pad:clamp(38px, 4.4vw, 64px);
+  --ws-gap:clamp(12px, 1.3vw, 20px);
+  --ws-gap-s:clamp(8px, .9vw, 12px);
+}
+
+
+/* =====================================================================
+   2 · LIGHT MODE — THE TOKENS
+
+   Spec section 18 asks for a professional scientific publication rather
+   than an inverted dark theme: white ground, panels differentiated by a
+   shade and a hairline rather than by a shadow, dark type, one
+   controlled accent.
+
+   Every value here was checked against EVERY ground it sits on, which is
+   the part the first pass got wrong: it measured the inks against --void
+   and stopped there, and --surf-2 is a full step darker than --void.
+
+                    on --void  on --surf  on --surf-2
+     --ink   #10151B   18.34      17.23       16.16
+     --ink-2 #47535F    7.86       7.39        6.93
+     --ink-3 #5E6A78    5.51       5.18        4.86
+     --accent#0C6E6A    6.08       5.71        5.36
+
+   All twelve clear 4.5:1. The tightest is --ink-3 on --surf-2 at 4.86:1,
+   and that pairing is the reason --ink-3 is #5E6A78 rather than the
+   #64707F it was; the note on the token itself has the arithmetic.
+
+   --accent is the brand teal taken down until it holds on white. It is
+   the same hue as the #2FBDB6 ksat-editorial.css settled on, not a
+   different colour: light mode must not look like a different product.
+   ===================================================================== */
+:root[data-theme="light"]{
+  color-scheme:light;
+
+  --void:#FFFFFF;
+  --deep:#F7F9FB;                  /* the workspace ground, section 6   */
+  --surf:#F6F8FA;                  /* canvas-bearing surfaces           */
+  --surf-2:#EDF1F5;
+  --glass:transparent;
+  --glass-2:transparent;
+
+  --line:#E4E9EE;
+  --line-2:#D3DAE2;
+  --line-3:#AEB8C4;
+
+  --ink:#10151B;
+  --ink-2:#47535F;
+
+  /* --ink-3 WAS #64707F, WHICH FAILED ON THE PANEL GROUND.
+     #64707F measures 5.04:1 on --void and 4.73:1 on --surf, both fine,
+     and 4.44:1 on --surf-2, which is not. Two rules in index.html put
+     --ink-3 type directly on a --surf-2 fill — `.pstep .dot` and
+     `.ag-n`, the numbered discs in the planner and in the agent rail —
+     so this is a real pairing rather than a theoretical one. It is
+     latent rather than visible on first paint: neither disc is in the
+     DOM until the planner or the rail has been run, which is why a
+     sweep of the page as it loads does not catch it.
+
+     The review offered two ways out and they are not equivalent.
+
+     Lifting --surf-2 to #F1F4F8 instead was measured and rejected.
+     It scrapes past at 4.57:1, a margin of 0.07 that the first tinted
+     overlay eats. Worse, #F1F4F8 is already the last stop of the #veil
+     page gradient in section 3a, so a --surf-2 panel would be painted
+     in exactly the page ground at the bottom of the viewport and stop
+     being a panel. And it flattens the step this theme is built on:
+     --surf-2 against --surf goes from 1.07:1 to 1.04:1 and against
+     --void from 1.14:1 to 1.10:1, while section 2's whole premise is
+     panels told apart by a shade and a hairline rather than a shadow.
+     One ground moved would perturb every pairing that sits on it.
+
+     Lifting the type is the smaller move and it is strictly better
+     everywhere: 4.86:1 on --surf-2, and every other --ink-3 node on
+     the page improves with it — 5.04 to 5.51 on --void, 4.73 to 5.18
+     on --surf, which is 247 rendered nodes at the time of writing.
+     The step is uniform (-6,-6,-7 on the channels), so the hue does
+     not move and nothing reads as a different grey; --ink-2 at 7.86:1
+     is still a clear tier above it.
+
+     Measured, not taken on trust: the review quoted 4.55:1 on --surf-2
+     and 5.44:1 on --void for this value. Re-measured here they are
+     4.86:1 and 5.51:1. The same calculator reproduces the review's
+     other four figures exactly, so the two that differ look like a
+     slip in the review rather than a different intent. Either way the
+     value passes by more than was claimed, not less. */
+  --ink-3:#5E6A78;
+
+  --accent:#0C6E6A;
+  --accent-dim:#8FC9C5;
+  --accent-glow:rgba(12,110,106,.08);
+  --focus:#0C6E6A;
+
+  /* The canvas accent goes the other way: still bright enough to sit on
+     the black space scenes, pulled down a little so it does not glare
+     against a white page frame. */
+  --accent-canvas:#1AA39B;
+
+  /* STATUS colours, not data colours. These four are read as TEXT —
+     "good", "serious" — and at their dark-theme values they are 2.9:1
+     and 3.2:1 on white, which is unreadable. Same hues, darkened until
+     they pass. The data ramps below them are untouched. */
+  --good:#21813F;
+  --warn:#8A6402;
+  --serious:#A9541F;
+  --critical:#9A2F27;
+
+  /* THE RAMP TEXT TOKENS — A SECOND COLOUR FOR A RAMP, NOT A NEW RAMP.
+     Section 3d used to close by saying the fix for a data-ramp colour
+     used as type was a change to index.html and so not this file's to
+     make. Half of that is still true: the rules are in index.html and
+     someone else has to edit them. The other half was wrong, because
+     what those rules need from this file is somewhere to point AT.
+     These four are that. The ramps themselves are still untouched.
+
+     The rule for the other file is one substitution per declaration:
+
+       color:var(--green)   ->  color:var(--green-text, var(--green))
+       color:#9FE0B5        ->  color:var(--green-text, #9FE0B5)
+
+     and the same shape for amber, ember and red. The fallback is what
+     makes this safe. These tokens are declared ONLY on the light scope
+     and on section 4's dark islands, nowhere else, so in dark mode the
+     var() falls through to the ramp value that is there today and not
+     one pixel changes. Do not add them to the bare :root.
+
+     Every value is a colour light mode already uses for that meaning,
+     so this adds no new colour to the theme. Each was measured on the
+     WORST ground it actually lands on, composited, in the browser —
+     not against white, which is the mistake that made the first set of
+     numbers look safe:
+
+       --green-text #1C6B3B  worst 5.09:1  (on the .pstep.done disc fill
+                             #D1E9D8), 6.53:1 on --void. Already this
+                             file's green in section 3g.
+       --amber-text #6E4E02  worst 6.45:1  (on the .ag.gate chip fill
+                             #EFECE1), 7.63:1 on --void. Already this
+                             file's amber for .note.warn in section 3c.
+       --ember-text #A9541F  5.28:1 on --void. Same value as --serious
+                             above, held separately because --serious
+                             exists in both themes and these must not.
+       --red-text   #9A2F27  worst 6.43:1  (on the .bacell.bad header
+                             fill #F8EBEB), 7.47:1 on --void. Same value
+                             as --critical, held apart for that reason.
+
+     WHY NOT THE #21813F THE REVIEW SUGGESTED FOR GREEN. Because 4.91:1
+     is its score on white and almost none of these labels are on white.
+     Measured on the eight real composited grounds the green ones land
+     on, #21813F comes in between 3.83:1 and 4.47:1 — it clears the 3:1
+     floor the sweep was testing but misses 4.5:1 on five of the eight,
+     and the worst of them is the planner disc. #1C6B3B clears 4.5:1 on
+     all eight with room, and it is the value section 3g already paints,
+     so light mode ends up with one green for type instead of two. */
+  --green-text:#1C6B3B;
+  --amber-text:#6E4E02;
+  --ember-text:#A9541F;
+  --red-text:#9A2F27;
+
+  /* --sand BELONGS IN THE LIST ABOVE AND WAS LEFT OUT OF IT.
+     It is not part of any ramp — grep the ramps and it is in none of
+     --g0..--g5, --h0..--h5 or --c1..--c5 — it is the "held back /
+     locked / not verified" label colour, and css/ksat-shell.css reads
+     it as TEXT in five places: the locked chapter counts in the mobile
+     sheet, the workflow rank on a rejected candidate, the checklist
+     icon. At #C4B396 that text measures 2.05:1 on white and 1.93:1 on
+     --surf, which is how "2 locked" came to be printed in pale beige
+     on a white sheet. Same hue, taken down to 6.6:1 on white. It is
+     only ever a colour and a border-colour, never a fill, so nothing
+     that carries a value moves with it. */
+  --sand:#6E5A2E;
+
+  /* THE PROVENANCE BADGE COLOURS, AS TOKENS RATHER THAN AS LITERALS.
+     Section 3c used to name these eight colours outright. That worked
+     everywhere the badge sits on the white page and failed everywhere
+     it does not: a .badge.real inside the hero, inside #intro or
+     inside an imagery viewport is a dark-for-white blue printed on
+     black, and measured 2.35:1 to 3.11:1 there. Nine more selectors
+     would have fixed it and would have had to be repeated for every
+     island added later. A token does not: section 4 already re-points
+     --ink on each island, and these ride along in the same block, so
+     ONE line per island covers every badge inside it however deeply
+     nested. The values are unchanged — same hues, 6.5:1 or better on
+     white — they have simply moved from the rule to the scope. */
+  --badge-real:#0E5F8B;
+  --badge-sim:#6E4E02;
+  --badge-ai:#5B3990;
+  --badge-demo:#1C6B3B;
+  --badge-proj:#8A4419;
+  --badge-pub:#37506E;
+  --badge-unver:#6E5310;
+  --badge-human:#3B4D61;
+}
+
+
+/* =====================================================================
+   3 · LIGHT MODE — THE THINGS THE PAGE PAINTS LITERALLY
+
+   Roughly two thirds of the page's own CSS colour use goes through
+   tokens: 450 var() references against 175 literal hexes and 72 literal
+   rgb/rgba values across index.html's five <style> blocks. Section 2
+   above carries that two thirds on its own. This section is the
+   remainder — the declarations that name a colour outright and
+   therefore cannot follow a token. It is NOT complete, and the return
+   value for this change lists what is still wrong.
+   --------------------------------------------------------------------- */
+
+/* 3a · THE GROUND.
+   #stars is a <canvas> that paints roughly 220 near-white dots over its
+   own CSS radial gradient. On a white ground those dots are DARKER than
+   the paper, so they stop being stars and become speckle — visible
+   noise across a page that is meant to read as a journal. The canvas is
+   taken out of the layout and its gradient duty moves to #veil, the
+   sibling element directly behind the content, which has no bitmap of
+   its own. Nothing leaves the DOM: it is a display rule that reverses
+   the instant the theme goes back to dark. */
+:root[data-theme="light"] #stars{ display:none; }
+:root[data-theme="light"] #veil{
+  background:
+    radial-gradient(120% 80% at 50% 0%, #FFFFFF 0%, #F8FAFC 48%, #F1F4F8 100%),
+    radial-gradient(60% 40% at 8% 6%, rgba(12,110,106,.045), transparent 62%),
+    radial-gradient(50% 42% at 96% 78%, rgba(33,129,63,.045), transparent 64%);
+}
+
+/* ksat-detail.css lays a faint engineering grid over the ground in
+   white at .028 alpha. White on white is nothing at all, so the grid
+   simply disappears in light mode unless it is inverted. */
+:root[data-theme="light"] body::before{
+  background-image:
+    linear-gradient(to right,  rgba(16,21,27,.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16,21,27,.045) 1px, transparent 1px);
+}
+
+/* 3b · ANYTHING SITTING ON THE ACCENT.
+   Five different layers set a near-black text colour on an accent fill
+   (#02060C, #04121F, #041014, #05121f, #04070D). Each was chosen
+   against a bright teal. Against the dark teal light mode needs they
+   are dark on dark. One rule, white, everywhere. The !important is
+   forced: ksat-agency.css sets .btn.pri colour with !important. */
+:root[data-theme="light"] .btn.pri,
+:root[data-theme="light"] .btn.grn,
+:root[data-theme="light"] .ksat-gate-btn,
+:root[data-theme="light"] .ksat-as-go,
+:root[data-theme="light"] .ksat-as-send,
+:root[data-theme="light"] .ksat-ch-skip,
+:root[data-theme="light"] .ksat-lang button[aria-pressed="true"],
+:root[data-theme="light"] .ksat-appearance button[aria-pressed="true"]{
+  color:#FFFFFF !important;                        /* beats ksat-agency   */
+}
+:root[data-theme="light"] ::selection{ background:var(--accent); color:#FFFFFF; }
+:root[data-theme="light"] ::-moz-selection{ background:var(--accent); color:#FFFFFF; }
+
+/* ksat-detail.css takes the primary button to a literal #5AA0FF on
+   hover, left over from the retired institutional blue. On white it
+   also needs to go darker on hover rather than lighter. */
+:root[data-theme="light"] .btn.pri:hover,
+:root[data-theme="light"] .btn.grn:hover{
+  background:#0A5D59 !important;                   /* beats ksat-detail   */
+  border-color:#0A5D59 !important;                 /* beats ksat-detail   */
+}
+:root[data-theme="light"] .btn:hover{
+  background:rgba(16,21,27,.04) !important;         /* beats ksat-detail  */
+}
+:root[data-theme="light"] .btn:active{
+  background:rgba(16,21,27,.07) !important;         /* beats ksat-detail  */
+}
+
+/* 3c · THE PROVENANCE BADGES.
+   Nine variants, every one of them a pale colour picked for a near-black
+   ground: .badge.real is #9FD9F5, which is 1.3:1 on white. These are the
+   page's whole provenance system — "acquisition record", "modelled
+   scene", "model output" — so they cannot be allowed to fade out.
+   ksat-agency.css has already stripped their fills and borders, so the
+   text colour is the only thing left to set. Same hue in each case,
+   taken down until it reads: 6.5:1 or better on white.
+
+   EACH ONE READS A TOKEN, NOT A LITERAL, and section 2 says why: a
+   badge inside one of section 4's dark islands needs the dark-ground
+   colour back, and re-pointing eight tokens on the island scope is one
+   block rather than eight more selectors per island. .badge.src is
+   already on --ink-2 and follows the island scope for free, which is
+   the behaviour the other eight now have too. */
+:root[data-theme="light"] .badge.real  { color:var(--badge-real); }
+:root[data-theme="light"] .badge.sim   { color:var(--badge-sim); }
+:root[data-theme="light"] .badge.ai    { color:var(--badge-ai); }
+:root[data-theme="light"] .badge.demo  { color:var(--badge-demo); }
+:root[data-theme="light"] .badge.proj  { color:var(--badge-proj); }
+:root[data-theme="light"] .badge.pub   { color:var(--badge-pub); }
+:root[data-theme="light"] .badge.unver { color:var(--badge-unver); }
+:root[data-theme="light"] .badge.human { color:var(--badge-human); }
+:root[data-theme="light"] .badge.src   { color:var(--ink-2); }
+/* .note.warn was the first amber-as-type this file fixed, with the
+   literal #6E4E02. That literal is now --amber-text, and reading the
+   token keeps the two from drifting apart. Same colour, same result. */
+:root[data-theme="light"] .note.warn   { color:var(--amber-text); }
+:root[data-theme="light"] .subcount    { color:var(--ink-3); }
+
+/* 3d · A KNOWN COST, NOW WITH SOMEWHERE TO GO.
+   --green-lt (#8FD8A3) and the pale end of the vegetation ramp (--g4,
+   --g5) are 1.7:1 and worse on white. They are still left alone,
+   because they are DATA: the ramp reads dark to light and re-tinting
+   one end would misreport the values it encodes. That has not changed
+   and must not.
+
+   What has changed is the second half of this note, which used to end
+   "the fix is a change to index.html and therefore not this file's to
+   make" and then stopped. Measured in the browser in light mode, the
+   ramps are used as type in sixteen places, and every one of them
+   fails: green from 1.33:1 to 2.85:1, amber from 1.37:1 to 1.54:1, red
+   at 1.72:1 and 1.75:1. The rules are indeed in index.html, css/
+   ksat-theme.css and css/ksat-shell.css, none of which is this file's,
+   but they had nothing to point at. Section 2 now declares
+   --green-text, --amber-text, --ember-text and --red-text for them,
+   the return value for this change lists the exact rules to move, and
+   the fallback form means a rule that has not been moved yet behaves
+   exactly as it does today. */
+
+/* 3e · SYSTEM CHROME. */
+:root[data-theme="light"] *{ scrollbar-color:#BCC5D0 transparent; }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb{
+  background:#C2CAD4;
+  border:2px solid var(--void);
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover{ background:#A7B2C0; }
+:root[data-theme="light"] select option{ background:#FFFFFF; color:var(--ink); }
+
+/* 3f · OUR OWN OVERLAYS. Each of these paints a near-black glass fill
+   outright, so each needs a light counterpart. The shadows are kept
+   very low: the spec asks for no heavy shadows, and a 70px drop under a
+   panel is the single most dated thing a light theme can do. */
+:root[data-theme="light"] #ksat-ch-sheet{ background:rgba(255,255,255,.86); }
+:root[data-theme="light"] #ksat-ch-fab{ box-shadow:0 8px 24px rgba(16,21,27,.14); }
+:root[data-theme="light"] .ksat-as-fab{ background:var(--void); box-shadow:0 6px 20px rgba(16,21,27,.12); }
+:root[data-theme="light"] .ksat-as-fab:hover{ background:var(--surf-2); }
+:root[data-theme="light"] .ksat-as-panel{ background:var(--void); box-shadow:0 18px 50px rgba(16,21,27,.16); }
+:root[data-theme="light"] #ksat-gate{ background:rgba(255,255,255,.90); }
+:root[data-theme="light"] .ksat-gate-card{ background:var(--void); box-shadow:0 18px 50px rgba(16,21,27,.18); }
+:root[data-theme="light"] #ksat-whoami{ background:transparent; }
+:root[data-theme="light"] .ksat-invite-btn{ background:rgba(12,110,106,.07); }
+:root[data-theme="light"] .ksat-invite-btn:hover{ background:rgba(12,110,106,.13); }
+
+/* 3f-ii · THE LAST OF THE RETIRED INSTITUTIONAL BLUE.
+   css/ksat-shell.css was written while the accent was #3D8BFF and it
+   still carries eight fills that name that blue outright as
+   rgba(61,139,255,alpha). Everything else in that file goes through
+   var(--accent, #3D8BFF), where the literal is only a fallback that
+   never fires because --accent is always declared — those are fine and
+   are left alone. The eight rgba() fills are not: they paint blue in
+   both themes on a page whose accent has been teal since
+   css/ksat-editorial.css moved it, and js/ksat-theme.js documents the
+   same drift happening to the canvases.
+
+   Two of the eight are the invite button, handled directly above. The
+   other six are below, and they are the ones a visitor actually meets:
+   the current chapter in the rail, and the whole mobile chapter sheet.
+
+   AUDITED, ONE BY ONE. A later review counted eight rather than six and
+   asked which mechanism covers each. All eight are covered; six sit on
+   four selectors because two of those rules name both a background and
+   a border. Read as declaration -> the rule that answers it:
+
+     .ksat-invite-btn            background .10  -> section 3f, above
+     .ksat-invite-btn:hover      background .17  -> section 3f, above
+     .ksat-ch-item[aria-current] background .11  -> rule 1 below
+     .ksat-ch-item[aria-current] border-color .35-> rule 1 below
+     .ksat-sheet-mode-btn        background .10  -> rule 2 below
+     .ksat-sheet-mode-btn:hover  background .17  -> rule 3 below
+     .ksat-sheet-ch[aria-current]background .11  -> rule 4 below
+     .ksat-sheet-ch[aria-current]border-color .32-> rule 4 below
+
+   Confirmed in the browser rather than by reading: with the light
+   theme on, all four base selectors compute rgba(12,110,106,...) and
+   none computes rgba(61,139,255,...). The two :hover rules cannot be
+   read that way without a pointer on them, so they were confirmed in
+   the CSSOM instead — ksat-shell.css declares them at sheet index 6
+   and this file answers each with a strictly more specific selector at
+   sheet index 13, so they win on specificity and do not depend on load
+   order. The count in this comment is the audited one.
+
+   THIS ONLY REACHES LIGHT MODE, and that is a limit of where the rules
+   live rather than a judgement. In dark mode a blue at .10 alpha over
+   a near-black ground is a faint wash and the fix belongs in
+   css/ksat-shell.css itself, which is not this file's to edit; on
+   white the same wash is plainly blue next to a teal border, which is
+   the case this sheet exists to answer. */
+:root[data-theme="light"] .ksat-ch-item[aria-current="true"]{
+  background:rgba(12,110,106,.09);                 /* was rgba(61,139,255,.11) */
+  border-color:rgba(12,110,106,.30);               /* was rgba(61,139,255,.35) */
+}
+:root[data-theme="light"] .ksat-sheet-mode-btn{
+  background:rgba(12,110,106,.07);                 /* was rgba(61,139,255,.10) */
+}
+:root[data-theme="light"] .ksat-sheet-mode-btn:hover{
+  background:rgba(12,110,106,.13);                 /* was rgba(61,139,255,.17) */
+}
+:root[data-theme="light"] .ksat-sheet-ch[aria-current="true"]{
+  background:rgba(12,110,106,.09);                 /* was rgba(61,139,255,.11) */
+  border-color:rgba(12,110,106,.28);               /* was rgba(61,139,255,.32) */
+}
+/* .audiobtn AND .skip ARE NOT IN THIS LIST, AND THE RULE THAT PUT THEM
+   HERE IS GONE. It read
+
+     :root[data-theme="light"] .audiobtn,
+     :root[data-theme="light"] .skip{ background:rgba(255,255,255,.88); }
+
+   and it contradicted section 4 of this same file. Both buttons exist
+   in exactly one place — button.audiobtn#audioBtn and button.skip
+   #skipBtn, inside <div id="intro">, the full-screen launch sequence
+   (these were two line citations until the house rule against them;
+   they were still correct when converted) — and section 4
+   keeps #intro black in light mode because it is a picture of a
+   launch. So the rule was painting an 88%-white pill onto a black
+   overlay while index.html's own #A8BACE text colour and #223247
+   border, both chosen for a dark pill, stayed where they were.
+   Measured: 1.51:1. "Skip intro" and the audio toggle were the two
+   controls a visitor needs in the first five seconds and they were
+   the least readable things on the screen — and only for a visitor
+   who had chosen light, which is why it survived review.
+
+   Nothing replaces it. The pills are rgba(10,16,26,.7) on black in
+   both themes now, which is what they were designed as. Recorded at
+   this length because "add a light background for light mode" is
+   exactly the instinct that will put it back. */
+
+/* 3g · SMALL FILLED STATES drawn as dark-green plates.
+   The colour here is where --green-text's value came from: these three
+   were already the light-mode answer to a pale green used as type, and
+   section 2 promoted the literal to a token rather than inventing a
+   second green. Reading the token back keeps the two in step.
+   Measured after the change: #1C6B3B on the composited fill #E9F2EC is
+   5.73:1, which is what it was as a literal. */
+:root[data-theme="light"] .okbox,
+:root[data-theme="light"] .passbadge.hot,
+:root[data-theme="light"] .pstep.done{ background:rgba(33,129,63,.10); color:var(--green-text); }
+:root[data-theme="light"] .ag.done{ background:rgba(33,129,63,.08); }
+/* A toast is the one thing that SHOULD stay inverted in light mode: it
+   is a transient notice over the page, not part of it. */
+:root[data-theme="light"] #toast{ background:#10151B; color:#FFFFFF; }
+
+
+/* =====================================================================
+   4 · LIGHT MODE — THE DARK ISLANDS
+
+   A scientific publication does not invert its plates. The hero title
+   card, the launch sequence and the imagery viewports hold pictures of
+   space; they stay dark in both themes, and the type sitting ON them
+   stays light. The mechanism is a token override SCOPED TO THE ISLAND,
+   which is the cleanest thing a custom property does: inside these
+   elements --ink is still near-white, so every rule underneath that
+   reads var(--ink) keeps working without being rewritten.
+
+   THE BUG THIS PREVENTS. Without it, light mode sets --ink to #10151B
+   globally; the hero headline inherits it and is painted near-black
+   over ksat-editorial.css's near-black directional scrim. The words are
+   present, correctly laid out and invisible — the same failure that
+   file already documents once, arrived at from the other direction.
+   ===================================================================== */
+:root[data-theme="light"] section.sec.hero,
+:root[data-theme="light"] #intro{
+  --ink:#F2F6FA;
+  --ink-2:#C3CEDA;
+  --ink-3:#93A2B3;
+  --accent:#2FBDB6;
+  --accent-dim:#186E6A;
+  --line:#1E222A;
+  --line-2:#2A2F39;
+  --line-3:#3A424F;
+  --void:#02060B;
+  --surf:#0A0C10;
+  --surf-2:#101319;
+  color-scheme:dark;
+
+  /* The provenance badges go back to their dark-ground values here, for
+     the same reason the inks do. Section 3c recolours all eight for a
+     white page; the hero is not a white page. Measured before this
+     block existed: .badge.real 2.93:1, .badge.sim 2.66:1, .badge.ai
+     2.35:1, .badge.demo 3.11:1 against the hero's #02060B. These are
+     index.html's own values, restored, not new colours. */
+  --badge-real:#9FD9F5;
+  --badge-sim:#F2C46B;
+  --badge-ai:#C7A9EE;
+  --badge-demo:#9FE0B5;
+  --badge-proj:#F0AF8B;
+  --badge-pub:#C4D7E8;
+  --badge-unver:#E0C98F;
+  --badge-human:#C9D6E4;
+
+  /* The ramp text tokens go back to their dark-ground values here, for
+     exactly the reason the badges do. Section 2's values are dark
+     colours chosen for white paper; the hero is not white paper, and a
+     "DONE" or an error line that follows the token into this scope
+     would be dark green on black. These four are the page's own
+     dark-theme values restored, measured on the hero ground #02060B:
+     #9FE0B5 13.36:1, #E0C98F 12.50:1, #ED946C 8.76:1, #F0A49E 10.17:1. */
+  --green-text:#9FE0B5;
+  --amber-text:#E0C98F;
+  --ember-text:#ED946C;
+  --red-text:#F0A49E;
+
+  /* ...AND RE-DECLARE colour, not only the token behind it.
+     Re-pointing --ink on this scope is not enough on its own. `color`
+     is inherited: body resolved it once against the LIGHT --ink and
+     every descendant inherited that computed near-black, so changing
+     --ink underneath changed nothing for anything that does not name
+     the token itself. .lede does (`color:var(--ink-2)`) and went light
+     correctly; the hero h1 inherits, and came out #10151B on black -
+     laid out, present, invisible. The one line below is the difference. */
+  color:var(--ink);
+}
+/* The hero ground escapes .wrap to the full viewport; its gradient ends
+   on var(--void), which the scope above has already put back to black,
+   but the first stop is a literal and has to be restated. */
+:root[data-theme="light"] section.sec.hero::before{
+  background:
+    radial-gradient(120% 90% at 78% 40%, rgba(47,189,182,.07), transparent 62%),
+    linear-gradient(180deg, #04070C 0%, #02060B 78%);
+  border-bottom:1px solid #2A2F39;
+}
+/* No extra seam is drawn where the hero meets the page. The first
+   instinct was a hairline under it, and it was wrong twice over: the
+   border would sit on the hero ELEMENT, which is inside .wrap, so it
+   would have stopped short of the bleed on both sides and read as a
+   stray rule; and black meeting white needs no help being a boundary.
+   Noted because it is the kind of rule that gets added back. */
+
+/* A button inside the hero or inside the launch gate sits on black, so
+   it takes the bright canvas teal and near-black type — not the white
+   type from rule 3b, which is for buttons on white. */
+:root[data-theme="light"] section.sec.hero .btn.pri,
+:root[data-theme="light"] section.sec.hero .btn.grn,
+:root[data-theme="light"] #intro .btn.pri,
+:root[data-theme="light"] #intro .btn.grn{
+  background:#2FBDB6 !important;                   /* beats ksat-agency   */
+  border-color:#2FBDB6 !important;                 /* beats ksat-agency   */
+  color:#02060C !important;                        /* beats rule 3b above */
+}
+
+/* The imagery viewports.
+   THE PREMISE THIS BLOCK WAS WRITTEN ON WAS ONLY HALF TRUE, and the
+   half that was false is the same bug the hero block above documents,
+   arrived at from the other side.
+
+   What it used to say was that these ten "already paint their own
+   near-black grounds literally, so there is nothing to change about
+   the ground". Six of them do: .explorer and .cmp are #05080E,
+   .stage3d and .orbcard are dark radials, .frame .view is #060A11,
+   .report is #060A11, .ag-log is #060A11. Measured in the browser,
+   four of them are NOT:
+
+     css/ksat-theme.css  {:root .photoplate}      background:var(--surf)
+     css/ksat-theme.css  {:root .photoplate .pv}  background:var(--deep)
+     css/ksat-theme.css  {:root .pholder}         background:var(--surf)
+     index.html          {.mapwrap}               background:var(--surf)
+
+   Those read the LIGHT --surf, because this block re-points the three
+   inks and never touched a ground. So the plate went white while the
+   type on it stayed near-white. The team photograph's caption came out
+   at 2.13:1 and its "View source" link at 1.02:1 — present, correctly
+   laid out, invisible, exactly the failure the hero block describes.
+   The giveaway was already in the file: the border rule immediately
+   below hands .photoplate and .pholder a #D3DAE2 hairline, which is a
+   light hairline drawn to separate a DARK plate from a white page and
+   is invisible round a light one. The plates were always meant to be
+   dark; only the tokens that make them dark were missing.
+
+   So the grounds are re-pointed here too, and the block now means what
+   it says: inside these ten elements the whole dark palette is in
+   force, ground and type together. */
+:root[data-theme="light"] .explorer,
+:root[data-theme="light"] .cmp,
+:root[data-theme="light"] .stage3d,
+:root[data-theme="light"] .orbcard,
+:root[data-theme="light"] .frame .view,
+:root[data-theme="light"] .photoplate,
+:root[data-theme="light"] .pholder,
+:root[data-theme="light"] .mapwrap,
+:root[data-theme="light"] .ag-log,
+:root[data-theme="light"] .report{
+  --ink:#E9EFF7;
+  --ink-2:#9DAEC2;
+  --ink-3:#7688A0;
+  --accent:#2FBDB6;
+  --line:#1E222A;
+  --line-2:#2A2F39;
+
+  /* The four grounds the block used to assume were already black.
+     index.html's own dark values, so a plate in light mode is the same
+     plate it is in dark mode rather than a third shade of black. */
+  --void:#04060B;
+  --deep:#080D16;
+  --surf:#0A0F18;
+  --surf-2:#0E1522;
+
+  /* Same eight as the hero: a provenance badge on a plate is on a
+     plate, not on the page. .frame .view measured 2.81:1 before. */
+  --badge-real:#9FD9F5;
+  --badge-sim:#F2C46B;
+  --badge-ai:#C7A9EE;
+  --badge-demo:#9FE0B5;
+  --badge-proj:#F0AF8B;
+  --badge-pub:#C4D7E8;
+  --badge-unver:#E0C98F;
+  --badge-human:#C9D6E4;
+
+  /* And the same four ramp text tokens as the hero. This list is the
+     one that matters most for them: .report and .ag-log are where the
+     agent writes its "DONE", its held-back gate line and its error
+     boxes, so three of the four land here in normal use. Measured in
+     the browser inside .report, whose own literal ground is #060A11
+     rather than the --void named above: #9FE0B5 13.03:1, #E0C98F
+     12.20:1, #ED946C 8.55:1, #F0A49E 9.92:1. On the --void the other
+     eight selectors use the four read 13.32, 12.47, 8.74 and 10.14. */
+  --green-text:#9FE0B5;
+  --amber-text:#E0C98F;
+  --ember-text:#ED946C;
+  --red-text:#F0A49E;
+
+  color-scheme:dark;
+}
+/* AND RE-DECLARE colour, for the reason the hero block sets out at
+   length: `color` is inherited, body resolved it once against the
+   LIGHT --ink, and re-pointing --ink underneath an element changes
+   nothing for any descendant that does not name the token itself.
+   .photoplate .cap h3 is the one that showed it — a heading with no
+   colour rule of its own, near-black on the plate.
+
+   .report and .ag-log are deliberately NOT in this list. Each already
+   declares its own colour (var(--ink-2) and var(--ink-3)), those
+   declarations read the tokens above and are correct as they stand,
+   and a colour set here would out-specify and overwrite both. */
+:root[data-theme="light"] .explorer,
+:root[data-theme="light"] .cmp,
+:root[data-theme="light"] .stage3d,
+:root[data-theme="light"] .orbcard,
+:root[data-theme="light"] .frame .view,
+:root[data-theme="light"] .photoplate,
+:root[data-theme="light"] .pholder,
+:root[data-theme="light"] .mapwrap{
+  color:var(--ink);
+}
+/* Give each plate a hairline so it reads as placed on the page rather
+   than punched through it. */
+:root[data-theme="light"] .explorer,
+:root[data-theme="light"] .cmp,
+:root[data-theme="light"] .stage3d,
+:root[data-theme="light"] .photoplate,
+:root[data-theme="light"] .pholder{
+  border:1px solid #D3DAE2;
+}
+
+
+/* =====================================================================
+   5 · THE APPEARANCE CONTROL
+
+   Built by js/ksat-appearance.js into .bar-act, immediately after the
+   EN/AR switch. It deliberately carries the .ksat-lang class as well as
+   its own, so every rule that already describes the language switch —
+   the hairline group, the square corners ksat-agency.css forces, the
+   pressed fill, the focus ring ksat-detail.css gives it — applies here
+   without being restated. One control described once, which is the
+   whole point of asking for "the same visual language".
+
+   Three glyphs rather than three words: "Light / Dark / System" in a
+   two-row masthead that already carries fourteen navigation items and a
+   signed-in identity is more width than the row has. The accessible
+   name on every button is a whole word, in the current language, so a
+   screen reader and a tooltip both get the full label.
+   ===================================================================== */
+.ksat-appearance{ margin-inline-start:6px; }
+.ksat-appearance button{
+  padding:6px 9px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:0;
+}
+.ksat-appearance svg{
+  width:14px;
+  height:14px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+/* The system glyph is a half-filled disc; that fill is the only solid
+   in the control. */
+.ksat-appearance .ks-half{ fill:currentColor; stroke:none; }
+
+@media (max-width: 520px){
+  .ksat-appearance button{ padding:6px 7px; }
+  .ksat-appearance svg{ width:13px; height:13px; }
+}
+
+
+/* =====================================================================
+   6 · THE WORKSPACE REGISTER                    spec sections 16, 29-31
+
+   ONE PRODUCT, TWO REGISTERS. The editorial sections are a printed
+   report: a 72px headline, 132px of air between parts, a 56ch measure.
+   The workspace sections are an instrument panel. You are not reading
+   them front to back, you are working in them, and every pixel of air
+   between a control and the chart it drives is a pixel of scrolling
+   between a cause and its effect.
+
+   Nothing here invents a second visual language. It is the SAME family
+   in a tighter setting — the same mono eyebrow, the same hairline
+   rules, the same square geometry, the same accent — set smaller and
+   denser, with mono doing more of the work because mono is what labels
+   and numbers want. A reader should recognise it as the same site at
+   once and feel the change of register without having to name it.
+
+   IT IS DRIVEN BY AN ATTRIBUTE, NOT BY A LIST OF IDS. The attribute
+   data-ksat-layer="workspace" is set on each section by
+   js/ksat-appearance.js, so this file never names #console or
+   #dashboard and the classification can change in one array without
+   anybody touching CSS.
+
+   ON !important. Every rule below that restates a padding, a font size
+   or a grid gap is competing with an !important declaration in
+   ksat-agency.css, ksat-detail.css or ksat-editorial.css, and
+   !important can only be answered by !important. The selectors are also
+   strictly more specific than the ones they beat, so the outcome does
+   not depend on load order. Rules that are NOT marked won an ordinary
+   cascade and are deliberately left plain.
+   ===================================================================== */
+
+/* 6a · THE GROUND CHANGES.
+   The clearest signal that the register has changed is that the paper
+   has changed. --deep is one step off --void in both themes: enough to
+   see when looked for, never enough to read as a card. The ::before
+   escapes .wrap to the full viewport the same way the hero's does, so
+   the tint runs edge to edge while the content stays on the grid. */
+section.sec[data-ksat-layer="workspace"]::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  margin-inline:calc(50% - 50vw);
+  width:100vw;
+  z-index:-1;
+  background:var(--deep);
+  pointer-events:none;
+}
+/* A run of consecutive workspace sections is one continuous surface, so
+   only the edges of the run carry the heavier seam. Without this, every
+   dashboard-to-map boundary inside the run grew a double hairline. */
+section.sec[data-ksat-layer="workspace"]{
+  border-top:1px solid var(--line-2) !important;    /* beats ksat-editorial */
+}
+section.sec[data-ksat-layer="workspace"] + section.sec[data-ksat-layer="workspace"]{
+  border-top-color:var(--line) !important;          /* beats ksat-editorial */
+}
+
+/* 6b · RHYTHM. 132px of section padding becomes about 64px, and the
+   internal spacing steps come down with it so the proportions hold. */
+section.sec[data-ksat-layer="workspace"]{
+  padding-block:var(--ws-pad) !important;           /* beats ksat-agency    */
+}
+[data-ksat-layer="workspace"] .grid{
+  gap:var(--ws-gap) !important;                     /* beats ksat-agency    */
+}
+[data-ksat-layer="workspace"] .mt{
+  margin-top:var(--ws-gap) !important;              /* beats ksat-agency    */
+}
+[data-ksat-layer="workspace"] .mt-s{
+  margin-top:var(--ws-gap-s) !important;            /* beats ksat-agency    */
+}
+section.sec[data-ksat-layer="workspace"] .eyebrow{
+  margin-bottom:12px !important;                    /* beats ksat-agency    */
+}
+
+/* 6c · TYPE. The agency headline runs 34px to 72px. A section heading
+   in a workspace is a signpost, not a title card: it names the
+   instrument and then gets out of the way. */
+section.sec[data-ksat-layer="workspace"] h2,
+section.sec[data-ksat-layer="workspace"] h2.st{
+  font-size:clamp(20px, 1.9vw, 27px) !important;    /* beats ksat-agency    */
+  line-height:1.16 !important;                      /* beats ksat-agency    */
+  letter-spacing:-.012em !important;                /* beats ksat-agency    */
+  font-weight:700 !important;                       /* beats ksat-agency    */
+  margin-bottom:8px !important;                     /* beats ksat-agency    */
+}
+section.sec[data-ksat-layer="workspace"] h3{
+  font-size:14px !important;                        /* beats ksat-agency    */
+  letter-spacing:-.005em;
+}
+/* The standfirst becomes an instruction line: still the whole sentence,
+   still every word, set at working size across a working measure. */
+section.sec[data-ksat-layer="workspace"] .lede{
+  font-size:14px !important;                        /* beats ksat-editorial */
+  line-height:1.55 !important;                      /* beats ksat-editorial */
+  max-width:80ch !important;                        /* beats ksat-editorial */
+  color:var(--ink-2) !important;                    /* beats ksat-editorial */
+}
+section.sec[data-ksat-layer="workspace"] .sub{
+  font-size:12.5px;
+  max-width:84ch;
+}
+/* A panel title is an instrument label. Mono, tracked, small — the same
+   treatment .exhud, label.fld and table th already carry, finally
+   applied to the one place that was still shouting in Archivo. */
+section.sec[data-ksat-layer="workspace"] .phead h3,
+section.sec[data-ksat-layer="workspace"] .phead .ttl h3{
+  font-family:var(--mono) !important;               /* beats ksat-agency    */
+  font-size:11px !important;                        /* beats ksat-agency    */
+  font-weight:500 !important;
+  letter-spacing:.14em !important;                  /* beats ksat-agency    */
+  text-transform:uppercase;
+  color:var(--ink-2) !important;
+}
+
+/* 6d · PANELS. ksat-agency.css unboxed every panel on the page, and for
+   an article that was right. In an instrument a panel is a real object
+   with a real edge, so the edge comes back — as a single hairline above
+   it, never as a box round it. Panels holding a canvas keep the faint
+   ground ksat-agency.css already gives them and only tighten up. */
+[data-ksat-layer="workspace"] .panel{
+  padding-block:14px 16px !important;               /* beats ksat-agency    */
+}
+/* The hairline goes only on panels that DO NOT hold a canvas. A chart
+   panel already has all four sides from ksat-agency.css's functional
+   exception, and adding a heavier top to it left three hairlines in
+   --line and a fourth in --line-2 round the same box, which reads as a
+   rendering fault rather than as emphasis. */
+[data-ksat-layer="workspace"] .panel:not(:has(canvas)){
+  border-top:1px solid var(--line-2) !important;    /* beats ksat-agency    */
+}
+[data-ksat-layer="workspace"] .panel:has(canvas),
+[data-ksat-layer="workspace"] .tile:has(canvas),
+[data-ksat-layer="workspace"] .cmp,
+[data-ksat-layer="workspace"] .shot{
+  padding:12px !important;                          /* beats ksat-agency    */
+}
+[data-ksat-layer="workspace"] .phead{
+  padding:0 0 8px !important;                       /* beats ksat-agency    */
+  margin-bottom:12px !important;                    /* beats ksat-agency    */
+}
+[data-ksat-layer="workspace"] .divider{ margin:10px 0; }
+
+/* 6e · NUMBERS. Every figure in a workspace is read against the figure
+   above it, which only works if the digits line up: mono, and
+   tabular-nums so a 1 is as wide as an 8. The editorial register keeps
+   Archivo for its display figures — that contrast is the point of the
+   split, not a side effect of it. */
+[data-ksat-layer="workspace"] .tile .v,
+[data-ksat-layer="workspace"] .kpi .v{
+  font-family:var(--mono) !important;               /* beats index.html     */
+  font-size:clamp(20px, 1.7vw, 25px) !important;    /* beats index.html     */
+  font-weight:600 !important;
+  letter-spacing:-.01em !important;
+  font-variant-numeric:tabular-nums;
+}
+[data-ksat-layer="workspace"] .tile .u{ font-size:12px; }
+[data-ksat-layer="workspace"] .tile .d{ font-size:11px; }
+[data-ksat-layer="workspace"] table{ font-variant-numeric:tabular-nums; }
+[data-ksat-layer="workspace"] table td{
+  padding-block:8px !important;                     /* beats ksat-agency    */
+  font-size:13px;
+}
+[data-ksat-layer="workspace"] table th{
+  padding-block:8px !important;                     /* beats ksat-agency    */
+}
+/* A chart legend is a key, not a caption. */
+[data-ksat-layer="workspace"] .legend span,
+[data-ksat-layer="workspace"] .maplegend span{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+/* 6f · CONTROLS. A control you use forty times in a session should be
+   the size of the value it sets, not the size of a call to action. */
+[data-ksat-layer="workspace"] .btn{
+  padding:6px 12px !important;                      /* beats index.html     */
+  font-size:12px !important;
+}
+[data-ksat-layer="workspace"] .btn.sm{
+  padding:5px 9px !important;                       /* beats index.html     */
+  font-size:11.5px !important;
+}
+/* Mono on a select and on a number field, because what they hold is a
+   value. NOT on a textarea: the research objective is a sentence a
+   person writes, and mono makes writing prose feel like filing a form. */
+[data-ksat-layer="workspace"] select,
+[data-ksat-layer="workspace"] input[type="text"],
+[data-ksat-layer="workspace"] input[type="search"],
+[data-ksat-layer="workspace"] input[type="number"]{
+  font-family:var(--mono) !important;               /* beats ksat-detail    */
+  font-size:12.5px !important;
+  padding:6px 2px !important;                       /* beats ksat-detail    */
+}
+[data-ksat-layer="workspace"] select{
+  padding-inline-end:24px !important;               /* beats ksat-detail    */
+}
+[data-ksat-layer="workspace"] textarea{
+  font-size:13.5px !important;
+  padding:8px 2px !important;                       /* beats ksat-detail    */
+}
+[data-ksat-layer="workspace"] .chip{
+  padding:6px 2px !important;                       /* beats ksat-detail    */
+  font-size:10.5px !important;
+  margin-inline-end:14px;
+}
+[data-ksat-layer="workspace"] .rowf{ gap:10px; }
+[data-ksat-layer="workspace"] label.fld{ margin-bottom:4px; }
+[data-ksat-layer="workspace"] .note{ font-size:12px; }
+
+/* 6g · THE RESEARCH BRIEF — the one workspace panel with a class set of
+   its own, and the densest thing on the page. */
+[data-ksat-layer="workspace"] .rc-wrap{ gap:14px; }
+[data-ksat-layer="workspace"] .rc-brief{ padding:14px; }
+[data-ksat-layer="workspace"] .rc-head{ margin-bottom:10px; padding-bottom:9px; }
+
+/* 6h · NARROW SCREENS. The workspace gets proportionally tighter, never
+   absolutely tighter, so it does not collapse on a phone. */
+@media (max-width: 720px){
+  section.sec[data-ksat-layer="workspace"]{
+    padding-block:clamp(28px, 8vw, 44px) !important;  /* beats ksat-agency */
+  }
+  section.sec[data-ksat-layer="workspace"] h2,
+  section.sec[data-ksat-layer="workspace"] h2.st{
+    font-size:clamp(19px, 5.2vw, 24px) !important;    /* beats ksat-agency */
+  }
+}
+
+/* 6i · The scroll reveal ksat-motion.js applies is an editorial device.
+   A dashboard whose panels rise into place one after another as you
+   scroll is a dashboard you cannot read at a glance, and the stagger
+   compounds: six panels at 45ms each is a third of a second of waiting
+   for figures already on screen. The workspace keeps the fade and drops
+   the movement. The rule is scoped to the same attribute ksat-motion.js
+   sets, so with that script absent it matches nothing at all. */
+html[data-ksat-motion="on"] [data-ksat-layer="workspace"] [data-ksat-reveal]{
+  transition-duration:220ms;
+  transform:none;
+}
+
+
+/* =====================================================================
+   7 · MOTION PREFERENCE
+
+   ksat-detail.css already collapses every transition on the page under
+   prefers-reduced-motion. This restates it for the two things added
+   here, because a rule that depends on another file happening to still
+   be loaded is a rule that quietly stops being true.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce){
+  .ksat-appearance button{ transition:none !important; }
+  html[data-ksat-motion="on"] [data-ksat-layer="workspace"] [data-ksat-reveal]{
+    opacity:1 !important;
+    transform:none !important;
+    transition:none !important;
+  }
+}
+
+
+/* =====================================================================
+   8 · FORCED COLOURS. If the operating system is driving colour, every
+   token above is irrelevant and the page should stop arguing with it.
+   ===================================================================== */
+@media (forced-colors: active){
+  .ksat-appearance{ border:1px solid ButtonBorder; }
+  .ksat-appearance button[aria-pressed="true"]{
+    background:Highlight;
+    color:HighlightText !important;
+  }
+  section.sec[data-ksat-layer="workspace"]::before{ display:none; }
+}

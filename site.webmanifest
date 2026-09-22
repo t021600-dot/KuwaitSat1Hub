@@ -1,0 +1,19 @@
+{
+  "name": "KuwaitSat Green Intelligence",
+  "short_name": "KuwaitSat",
+  "description": "An Earth-observation research platform for KuwaitSat-1: state an objective, and the agents take it from satellite acquisition to a written, sourced report.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#04060B",
+  "theme_color": "#04060B",
+  "icons": [
+    { "src": "assets/brand/ksat-emblem-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/brand/ksat-emblem-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "assets/brand/ksat-emblem-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/brand/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "maskable" }
+  ]
+}

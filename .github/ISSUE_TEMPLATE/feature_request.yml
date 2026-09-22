@@ -1,0 +1,83 @@
+name: Feature request
+description: Propose something the product should do and does not.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Read the freeze rule first.** The feature list for this capstone is
+        frozen. A new feature only goes in if an old one comes out, and you have
+        to name the one that comes out, out loud, in front of the rest of the
+        team. That rule exists because a project of this size dies of additions,
+        not of omissions — see [`CONTRIBUTING.md`](../blob/main/CONTRIBUTING.md).
+
+        Proposing something for **after** the demo is welcome. Say so below and
+        it will be parked rather than argued about.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve
+      description: >-
+        Describe the situation a researcher is in, not the feature. "There is no
+        way to tell which of my missions is still running" is a problem. "Add a
+        status column" is a solution to it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would build
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which job owns this
+      description: The owner answers first. Ownership is in the team table in the README.
+      options:
+        - "Not sure"
+        - "01 · Front end"
+        - "02 · Back end and data"
+        - "03 · Security"
+        - "04 · Automation and agents"
+        - "Shared — shipping and the demo"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: timing
+    attributes:
+      label: When
+      options:
+        - "After the demo — park it"
+        - "Before the demo, and I am naming what comes out (below)"
+    validations:
+      required: true
+
+  - type: input
+    id: trade
+    attributes:
+      label: If this goes in before the demo, what comes out
+      description: >-
+        Required by the freeze rule. Name the existing feature you are willing
+        to drop. "Nothing" is not an answer the rule accepts.
+      placeholder: Leave blank if you chose "After the demo".
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: It has to live inside the constraints we already have
+      description: >-
+        Tick what you have checked. An idea that fails one of these is not
+        rejected — it just needs a different shape.
+      options:
+        - label: No new dependency and no build step. Plain browser JavaScript, hand-written CSS, libraries vendored in `vendor/`.
+        - label: Every user-visible string has an Arabic counterpart, and the layout survives right-to-left.
+        - label: "Any animation is off under `prefers-reduced-motion: reduce`."
+        - label: It removes no existing content — sections, charts, numbers, images and paragraphs may be folded or moved, not deleted.
+        - label: It does not need an external origin. The Content-Security-Policy in `vercel.json` allows Google Fonts and Supabase, and nothing else.
+        - label: It does not let an agent take an action without a signed-in human, and does not widen a database grant.

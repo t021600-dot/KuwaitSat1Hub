@@ -348,3 +348,98 @@ html[data-ksat-motion="on"] [data-ksat-reveal]:focus-within{
    nav buttons POSITIONALLY against the NAV array.
    --------------------------------------------------------------------- */
 nav.nav button[hidden]{ display:none !important; }
+
+/* ---------------------------------------------------------------------
+   17 · THE FOLD CONTROLS               added 21 September 2026
+
+   Two fixes, both of them things seen in the browser rather than
+   reasoned about. The behaviour lives in js/ksat-density.js; these are
+   the parts that are CSS's fault.
+
+   A · `hidden="until-found"` WAS BEING CANCELLED
+   js/ksat-density.js collapses a folded run with
+   `hidden="until-found"` on purpose: the browser gives that element
+   `content-visibility:hidden` instead of `display:none`, which is what
+   lets Ctrl+F find the text inside it, fire `beforematch`, and open the
+   block for the reader. That is the whole reason the team's "do not
+   remove any content" rule survives a fold.
+
+   index.html's inline reset carries `[hidden]{display:none!important}`
+   — written long before any of this, and correct for everything else on
+   the page. But it matches `until-found` too, and `display:none` takes
+   the text out of the render tree, so find-in-page cannot see it and
+   `beforematch` can never fire. Measured in the browser: the collapsed
+   run in `#imagery` computed `display:none` with
+   `content-visibility:hidden` sitting behind it, doing nothing.
+
+   Putting the layout box back, for the run wrapper ONLY, is enough to
+   restore it. `content-visibility:hidden` still skips the contents, so
+   it paints nothing and measures 0px high — the reader sees no change.
+   The selector is one specificity step above the reset, which is why it
+   needs `!important` to answer an `!important`.
+
+   Scoped to `.ksat-run` deliberately. The card grids hide their extra
+   cards individually, and a grid ITEM with a layout box still occupies
+   its cell — restoring those would punch visible holes in the grid, so
+   they stay as they are.
+   --------------------------------------------------------------------- */
+.ksat-run[hidden="until-found"]{
+  display:block !important;
+  content-visibility:hidden !important;
+}
+
+/* PRINT. ksat-theme.css already opens a collapsed run for print, with
+   `.ksat-run[hidden]{display:block!important}`. The rule directly above
+   has the SAME specificity and sits in a later file, so it would win
+   there too and hand the printer a block with its contents skipped —
+   the fold would print as a blank line and the paragraphs behind it
+   would be gone from the record. A printed record carries everything,
+   so the print case is spelled out here rather than left to cascade
+   order between two files. */
+@media print{
+  .ksat-run[hidden="until-found"]{
+    display:block !important;
+    content-visibility:visible !important;
+  }
+}
+
+/* B · TWO CONTROLS MUST NEVER READ AS ONE LINE
+   The bug: `#imagery` rendered "READ MORE ⌄READ MORE — 1 MORE PARAGRAPH ⌄"
+   as a single run-on line. `.ksat-fold-more` is `inline-flex`, so when a
+   clamp control and a run control ended up as siblings — with only the
+   collapsed run wrapper between them, and that wrapper out of the flow —
+   they simply shared a line and read as one sentence.
+
+   js/ksat-density.js no longer builds that pair; it merges the two into
+   one control. This is the guard underneath, because a layout that can
+   be misread on the strength of one stray insertion should not depend
+   on the script never making one. Deliberately narrow: it matches ONLY
+   a control that actually follows another control, so a lone control
+   keeps its inline box and keeps whatever alignment its container gives
+   it (one of them sits in a centred column). */
+.ksat-fold-more + .ksat-fold-more,
+.ksat-fold-more + .ksat-run + .ksat-fold-more{
+  display:flex;
+  width:fit-content;
+  max-width:100%;
+}
+
+/* C · ROOM FOR A LONGER LABEL
+   A merged control names both halves — "Read more — this paragraph and
+   3 more" — which is roughly four times the width of "Read more".
+   ksat-theme.css sets `white-space:nowrap` on the label so "Read more"
+   can never break in two, and that is right at full width. On a phone
+   the same rule would push the control past the column and give the
+   page a sideways scroll, so below the narrow breakpoint the label is
+   allowed to wrap instead. */
+@media (max-width: 700px){
+  .ksat-fold-more{ max-width:100%; }
+  .ksat-fold-more .ksat-fold-word{ white-space:normal; }
+}
+
+/* D · ARABIC. The labels are bilingual (js/ksat-density.js owns both
+   strings); the control is laid out with logical properties above, so
+   RTL needs nothing here beyond letting the numerals in "عرض الكل — 18
+   بطاقة" sit inside Arabic text, which is what `unicode-bidi` already
+   does by default. Kept as a note so nobody adds a `left`/`right` here
+   later and breaks it. */

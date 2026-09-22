@@ -8,6 +8,35 @@
 <style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{margin:0;background:#04060B}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>KuwaitSat Green Intelligence</title>
 
+<!-- ============ BRAND MARK ============================================
+     The seal: assets/brand/ksat-emblem.png, cut from the supplied
+     emblem. The favicon and apple-touch icon are flattened onto the
+     seal's own cream so they read in a light tab strip; the social
+     cards are composed on the platform's void, so a shared link looks
+     like the page it opens. Every one of these is same-origin, which
+     is what the img-src 'self' in vercel.json allows.
+     ================================================================= -->
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#04060B">
+<meta name="color-scheme" content="dark light">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KuwaitSat Green Intelligence">
+<meta property="og:title" content="KuwaitSat Vision — Green Intelligence">
+<meta property="og:description" content="An Earth-observation research platform for KuwaitSat-1. State an objective; the agents take it from satellite acquisition to a written, sourced report.">
+<meta property="og:image" content="https://kuwait-sat1-hub.vercel.app/assets/brand/ksat-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The KuwaitSat Vision seal: a satellite over a map of Kuwait inside an orbit ring.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KuwaitSat Vision — Green Intelligence">
+<meta name="twitter:description" content="An Earth-observation research platform for KuwaitSat-1.">
+<meta name="twitter:image" content="https://kuwait-sat1-hub.vercel.app/assets/brand/ksat-og.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -166,7 +195,7 @@ h2.st{font-size:clamp(27px,4vw,44px); font-weight:700; margin-bottom:12px}
 .tile .spark{margin-top:9px; display:block; width:100%; height:30px}
 .tile .stripe{position:absolute; inset-inline-start:0; top:0; bottom:0; width:3px}
 .delta{font-family:var(--mono); font-size:11px; padding:1px 5px; border-radius:4px}
-.delta.up{color:#9FE0B5; background:rgba(64,173,96,.14)}
+.delta.up{color:var(--green-text, #9FE0B5); background:rgba(64,173,96,.14)}
 .delta.dn{color:#F0A49E; background:rgba(182,59,50,.16)}
 .delta.fl{color:var(--ink-3); background:rgba(255,255,255,.05)}
 
@@ -247,7 +276,13 @@ tbody tr:hover td{background:rgba(255,255,255,.025)}
 .gate-p{font-size:13.5px; color:#8AA3BC; max-width:44ch; margin-top:20px; line-height:1.65}
 .gate-btns{display:flex; gap:11px; margin-top:26px; flex-wrap:wrap; justify-content:center}
 .gate-b{padding:12px 22px; font-size:14px; border-radius:11px}
-.gate-n{font-size:11.5px; color:#5C7086; margin-top:16px}
+/* #5C7086 measured 4.12:1 on this card's black, under the 4.5:1 bar for
+   body text at 11.5px regular. #6E849C is 5.44:1 on the same black and
+   still reads as the quietest line on the gate - .gate-p above it sits at
+   8.05:1, so the hierarchy that made the old value attractive survives.
+   The gate is black in BOTH themes, so this is not a light-mode rule and
+   wants no token. */
+.gate-n{font-size:11.5px; color:#6E849C; margin-top:16px}
 
 /* ---------- intro ---------- */
 #intro{position:fixed; inset:0; z-index:200; background:#000; display:flex;
@@ -442,20 +477,38 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .pstep.run .dot{border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 4px var(--accent-glow)}
 .pstep.run .pstat{color:var(--accent)}
 .pstep.done{border-color:#1F5D37}
-.pstep.done .dot{border-color:var(--green); color:var(--green); background:rgba(64,173,96,.14)}
-.pstep.done .pstat{color:var(--green)}
+/* DATA-RAMP COLOURS USED AS TYPE. The ramp greens, ambers and reds on
+   this page were picked to be read as CHART INK on a near-black ground.
+   Several of them are also used as TEXT, and in light mode that puts a
+   pale ramp colour on a pale ground - the measurements that prompted this
+   run between 1.33:1 and 2.85:1, all of them under the 3:1 floor and most
+   of them under 4.5:1.
+
+   css/ksat-nasa.css now declares --green-text, --amber-text, --ember-text
+   and --red-text for exactly this. The substitution is one per COLOUR
+   declaration and nothing else: border-color and background are left
+   alone, because they are not type and they are what makes each of these
+   read as a state chip in the first place.
+
+   THE FALLBACK IS WHAT MAKES IT SAFE. Those four tokens are declared ONLY
+   on the light scope and on that file's dark islands, never on the bare
+   :root, so in dark mode every var() below falls through to the ramp
+   value that is there today and not one pixel moves. Do not "tidy" the
+   fallbacks away. */
+.pstep.done .dot{border-color:var(--green); color:var(--green-text, var(--green)); background:rgba(64,173,96,.14)}
+.pstep.done .pstat{color:var(--green-text, var(--green))}
 .pstep.skip{opacity:.55}
 .plink{width:2px; height:13px; background:var(--line-2); margin-inline-start:26px}
 .plink.hot{background:linear-gradient(180deg,var(--accent),var(--green))}
 .dnode{border:1px dashed var(--line-3); border-radius:var(--r-sm); padding:13px;
   background:rgba(178,127,2,.05)}
-.dnode .q{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:#E0C98F}
+.dnode .q{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--amber-text, #E0C98F)}
 .branches{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:11px}
 @media(max-width:560px){.branches{grid-template-columns:1fr}}
 .branch{border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;
   color:var(--ink-3); background:var(--surf)}
 .branch b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; margin-bottom:4px}
-.branch.yes b{color:var(--green)} .branch.no b{color:var(--ink-3)}
+.branch.yes b{color:var(--green-text, var(--green))} .branch.no b{color:var(--ink-3)}
 .branch.taken{border-color:var(--accent-dim); background:rgba(63,208,201,.08); color:var(--ink)}
 .branch.taken b{color:var(--accent)}
 
@@ -473,6 +526,16 @@ html[lang="ar"] .hero .arline{font-family:var(--body); direction:ltr}
 .arow dt{font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--accent);
   text-transform:uppercase; padding-top:3px}
 .arow dd{margin:0; color:var(--ink-2)}
+/* Spec 26 - AI interpretation must never read as measured data. The two
+   derived rows (Analysis, Recommend) carry a rule and a wash in the
+   violet of the --c4 data ramp; the measured rows are left plain. This
+   is a border AND a colour, never colour alone, so it still separates
+   the two for a reader who cannot distinguish the hue. */
+.arow.arow-derived dd{border-inline-start:3px solid var(--c4); padding-inline-start:9px;
+  background:color-mix(in srgb, var(--c4) 8%, transparent); border-radius:0 4px 4px 0}
+@supports not (background:color-mix(in srgb, red 8%, transparent)){
+  .arow.arow-derived dd{background:rgba(128,85,190,.08)}
+}
 @media(max-width:520px){.arow{grid-template-columns:1fr; gap:2px}}
 .conf{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px}
 .confbar{display:flex; gap:2px}
@@ -522,8 +585,8 @@ html[lang="ar"] .chapter .ar{direction:ltr; font-family:var(--body)}
 .bacell{border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden}
 .bacell .bh{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
   padding:7px 11px; border-bottom:1px solid var(--line)}
-.bacell.bad .bh{color:#F0A49E; background:rgba(182,59,50,.1)}
-.bacell.good .bh{color:#9FE0B5; background:rgba(64,173,96,.1)}
+.bacell.bad .bh{color:var(--red-text, #F0A49E); background:rgba(182,59,50,.1)}
+.bacell.good .bh{color:var(--green-text, #9FE0B5); background:rgba(64,173,96,.1)}
 .bacell pre{margin:0; padding:11px; font-family:var(--mono); font-size:11.5px; line-height:1.65;
   overflow-x:auto; color:var(--ink-2); white-space:pre; direction:ltr; text-align:left}
 
@@ -571,14 +634,14 @@ html[lang="ar"] .chapter .ar{direction:ltr; font-family:var(--body)}
 .lstep{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12px;
   color:var(--ink-3); opacity:.35; transition:opacity .3s,color .3s}
 .lstep.on{opacity:1; color:var(--ink-2)}
-.lstep.ok{opacity:1; color:var(--green)}
+.lstep.ok{opacity:1; color:var(--green-text, var(--green))}
 .spin{width:13px; height:13px; border-radius:50%; border:2px solid var(--line-2);
   border-top-color:var(--accent); animation:sp .8s linear infinite; flex:0 0 auto}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{text-align:center; padding:28px 16px; color:var(--ink-3); font-size:13px}
 .empty .ic{opacity:.4; margin-bottom:10px}
 .errbox{border:1px solid #6B241E; background:rgba(182,59,50,.09); border-radius:var(--r-sm);
-  padding:12px 14px; font-size:13px; color:#F0A49E}
+  padding:12px 14px; font-size:13px; color:var(--red-text, #F0A49E)}
 .okbox{border:1px solid #1F5D37; background:rgba(64,173,96,.08); border-radius:var(--r-sm);
   padding:12px 14px; font-size:13px; color:#9FE0B5}
 
@@ -737,15 +800,15 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   justify-content:center; font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
   background:var(--surf-2); border:1px solid var(--line-2); transition:.3s}
 .ag.run .ag-n{color:var(--accent); border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-glow)}
-.ag.done .ag-n{color:var(--green); border-color:#2A7A4B; background:rgba(64,173,96,.12)}
+.ag.done .ag-n{color:var(--green-text, var(--green)); border-color:#2A7A4B; background:rgba(64,173,96,.12)}
 .ag-t{font-size:14.5px; font-weight:600; letter-spacing:-.005em}
 .ag-r{font-size:12px; color:var(--ink-3); margin-top:1px}
 .ag-s{margin-inline-start:auto; display:flex; align-items:center; gap:10px; flex:0 0 auto}
 .ag-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--ink-3); border:1px solid var(--line-2); border-radius:20px; padding:3px 9px}
 .ag.run .ag-chip{color:var(--accent); border-color:var(--accent-dim); background:rgba(63,208,201,.08)}
-.ag.done .ag-chip{color:var(--green); border-color:#1F5D37; background:rgba(64,173,96,.10)}
-.ag.gate .ag-chip{color:#E0C98F; border-color:#6B5210; background:rgba(178,127,2,.10)}
+.ag.done .ag-chip{color:var(--green-text, var(--green)); border-color:#1F5D37; background:rgba(64,173,96,.10)}
+.ag.gate .ag-chip{color:var(--amber-text, #E0C98F); border-color:#6B5210; background:rgba(178,127,2,.10)}
 .ag-caret{color:var(--ink-3); transition:transform .25s}
 .ag[open] .ag-caret, .ag.open .ag-caret{transform:rotate(180deg)}
 .ag-body{border-top:1px solid var(--line); padding:16px 15px; display:none}
@@ -767,7 +830,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 .ag-log i{color:var(--accent); font-style:normal}
 .ag-gate{border:1px dashed var(--line-3); border-radius:10px; padding:14px; background:rgba(178,127,2,.05);
   display:flex; gap:14px; align-items:center; flex-wrap:wrap}
-.ag-gate .gt{font-size:13px; color:#E0C98F; flex:1 1 260px}
+.ag-gate .gt{font-size:13px; color:var(--amber-text, #E0C98F); flex:1 1 260px}
 .ag-gate .gt b{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.16em;
   text-transform:uppercase; margin-bottom:4px}
 .sp{border-top:1px solid var(--line); padding:11px 0; display:grid;
@@ -821,6 +884,78 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <link rel="stylesheet" href="css/ksat-agency.css">
 <link rel="stylesheet" href="css/ksat-detail.css">
 <link rel="stylesheet" href="css/ksat-editorial.css">
+<link rel="stylesheet" href="css/ksat-brand.css">
+
+<!-- ============ TOUR + LIGHT MODE =================================
+     Two agents each asked for their sheet to be "last", and on the
+     face of it that is a contradiction. It is not: grep ksat-nasa.css
+     for demoPan, demoHud, ksat-tour or tour-offer and you get nothing
+     back, so the two sheets share no selector and neither can override
+     the other. What each one actually needed was to come after the
+     EIGHT sheets above, and both do.
+
+     ksat-tour.css is here so its #demoPan:focus-visible ring and the
+     spotlight's z-index are not flattened by ksat-theme.css or
+     ksat-shell.css. ksat-nasa.css is last of all because it is the
+     light-mode layer: its whole job is to win over dark-mode colours
+     declared above it, and a sheet that loses that fight silently
+     produces white-on-white text rather than an error.
+     ================================================================ -->
+<link rel="stylesheet" href="css/ksat-tour.css">
+<link rel="stylesheet" href="css/ksat-nasa.css">
+
+<!-- ============ THE THREE NEW LAYERS =============================
+     nav, export and session. Three separate agents each asked for
+     their sheet to be "last", which sounds like a three-way conflict
+     and is not one: their selector namespaces are disjoint. Grep and
+     you get .ksat-nav-* / .ksat-tools-* in the first, .ksx-* in the
+     second and .ksat-ss-* in the third, with no selector in common
+     between any two of them. So no ordering among these three can
+     change a single computed value, and the order below is simply the
+     order they were written.
+
+     What each of them DID need was to come after the ten sheets above,
+     and all three do:
+
+       ksat-nav.css     folds .navwrap's display and flex, declared in
+                        css/ksat-theme.css, and inherits the research
+                        band's register from the
+                        [data-ksat-layer="workspace"] rules in
+                        css/ksat-nasa.css.
+       ksat-export.css  restates the 56ch cap that css/ksat-theme.css
+                        puts on `section.sec p` so .ksx-bar .ksx-what
+                        can run full width. That override already wins
+                        on specificity - (0,2,0) against (0,1,2) - so
+                        this is belt and braces rather than the
+                        load-bearing part.
+       ksat-session.css needs its :root[data-ksat-session="on"] main
+                        padding and its two restated scroll-margin
+                        rules to beat the base rules in
+                        css/ksat-shell.css and css/ksat-agency.css.
+
+     Selectors, not line numbers: this file has moved several hundred
+     lines across the last two passes and took every line citation in
+     the repo with it.
+     ================================================================ -->
+<link rel="stylesheet" href="css/ksat-nav.css">
+<link rel="stylesheet" href="css/ksat-export.css">
+<link rel="stylesheet" href="css/ksat-session.css">
+
+<!-- ============ THEME, BEFORE THE FIRST PAINT =====================
+     The only script on this page that is NOT at the foot of <body>,
+     and it is deliberate. It writes html[data-theme] synchronously as
+     it executes. This document is around half a megabyte, so from the foot of <body>
+     a visitor whose stored choice is light gets the entire dark page
+     painted first and a flash to white afterwards - the one bug that
+     is guaranteed to be on screen when a judge opens the site.
+     It sets two attributes and defers everything else to that file's
+     boot(), which sits at the foot of its IIFE behind a
+     document.readyState === "loading" / DOMContentLoaded guard - so the
+     cost of blocking here is parsing ~18KB and no layout at all. Cited by
+     name rather than by line: every line number quoted across this repo
+     went stale during these passes.
+     ================================================================ -->
+<script src="js/ksat-appearance.js"></script>
 </head>
 <body>
 
@@ -846,12 +981,12 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   <div class="intro-ui">
     <div class="startgate" id="startGate">
       <div class="gate-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" fill="none" width="46" height="46">
-          <circle cx="16" cy="16" r="13.5" stroke="#1E7F7C" stroke-width="1.1"/>
-          <ellipse cx="16" cy="16" rx="13.5" ry="5" stroke="#3FD0C9" stroke-width="1.1" transform="rotate(-24 16 16)"/>
-          <circle cx="16" cy="16" r="5.4" fill="#0B5D2F" stroke="#40AD60" stroke-width="1.1"/>
-          <circle cx="26.2" cy="9.6" r="2.4" fill="#3FD0C9"/>
-        </svg>
+        <!-- The start gate is the one place on a first visit with room for the
+             seal itself, so it gets the emblem rather than the 26px mark. -->
+        <span class="ksat-emblem-wrap" style="width:clamp(116px,22vw,152px)">
+          <img class="ksat-emblem" src="assets/brand/ksat-emblem-256.png"
+               width="256" height="256" alt="" decoding="async" fetchpriority="high">
+        </span>
       </div>
       <div class="gate-kw">KUWAITSAT</div>
       <h2 class="gate-h" data-i18n="gate.h">From Space to a Greener Kuwait</h2>
@@ -901,11 +1036,30 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <header class="bar">
   <div class="bar-in">
     <button class="brand" id="brandBtn" title="Top">
+      <!-- The seal's four motifs, redrawn as vector so they hold at 26px on
+           the void and can move. Kuwait is the same boundary the maps use
+           (OUTLINE, index.html), not a traced picture. Motion: css/ksat-brand.css. -->
       <svg class="mk" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <circle cx="16" cy="16" r="13.5" stroke="#1E7F7C" stroke-width="1.2"/>
-        <ellipse cx="16" cy="16" rx="13.5" ry="5" stroke="#3FD0C9" stroke-width="1.2" transform="rotate(-24 16 16)"/>
-        <circle cx="16" cy="16" r="5.4" fill="#0B5D2F" stroke="#40AD60" stroke-width="1.2"/>
-        <circle cx="26.2" cy="9.6" r="2.4" fill="#3FD0C9"/>
+        <defs>
+          <linearGradient id="mkLandBar" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#C4B396"/><stop offset=".55" stop-color="#70B884"/><stop offset="1" stop-color="#0B5D2F"/>
+          </linearGradient>
+        </defs>
+        <circle class="mk-ring" cx="16" cy="16" r="15.2"/>
+        <g transform="translate(9.9 11.3) scale(.79)">
+          <path class="mk-land" style="fill:url(#mkLandBar)" d="M7.84,0.34 10.32,0.49 10.11,1.92 9.90,4.13 9.90,5.31 7.91,6.03 9.01,6.42 10.11,6.30 10.94,6.82 11.14,8.63 11.49,10.21 13.00,12.66 0.00,8.24Z"/>
+          <path class="mk-land-edge" d="M7.84,0.34 10.32,0.49 10.11,1.92 9.90,4.13 9.90,5.31 7.91,6.03 9.01,6.42 10.11,6.30 10.94,6.82 11.14,8.63 11.49,10.21 13.00,12.66 0.00,8.24Z"/>
+        </g>
+        <g transform="rotate(-24 16 16)">
+          <ellipse class="mk-orbit" cx="16" cy="16" rx="15" ry="6.6"/>
+          <path class="mk-orbit-arc" d="M1,16 A15,6.6 0 1,1 31,16 A15,6.6 0 1,1 1,16"/>
+          <g class="mk-sat">
+            <rect class="mk-sat-panel" x="-3" y="-.45" width="1.9" height=".9" rx=".18"/>
+            <rect class="mk-sat-panel" x="1.1" y="-.45" width="1.9" height=".9" rx=".18"/>
+            <rect class="mk-sat-body" x="-.8" y="-.8" width="1.6" height="1.6" rx=".35"/>
+          </g>
+        </g>
+        <path class="mk-star" d="M25.3,15.1 26.0,17.5 28.4,18.2 26.0,18.9 25.3,21.3 24.6,18.9 22.2,18.2 24.6,17.5Z"/>
       </svg>
       <span><b>KUWAITSAT</b><i>GREEN INTELLIGENCE</i></span>
     </button>
@@ -1140,7 +1294,17 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 
   <div class="grid g-53 mt">
     <div>
-      <div class="explorer" id="explorer">
+      <!-- id="exViewer", not id="explorer". The <section> above already
+           carries id="explorer", and a duplicate id is not merely invalid
+           here: $("#explorer") is querySelector, which returns the FIRST
+           match in document order, so the pan/zoom handlers below were
+           binding to the whole section. That made wheel-to-zoom
+           preventDefault() every scroll over the section - a visitor
+           scrolling down the page got stuck zooming the image - and put
+           .drag on the section, where .explorer.drag{cursor:grabbing}
+           cannot match. The viewer is the thing you drag, so it gets its
+           own name. -->
+      <div class="explorer" id="exViewer">
         <canvas id="exCv"></canvas>
         <div class="exhud tl" id="exLayerHud">◈ MODELLED SCENE · TRUE COLOUR</div>
         <div class="exctl">
@@ -1223,6 +1387,24 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 </section>
 
 <!-- ============ GREENING MAP ============ -->
+<!-- THIS MAP HAS NO PNG EXPORT AND THAT IS DELIBERATE. js/ksat-export.js
+     gives every other surface on the page a CSV, a JSON or a PNG, and
+     skips this one on purpose, so a later editor does not read the gap as
+     an oversight and "fix" it. Two reasons, both of which survive any
+     amount of trying:
+
+       · #map is a div of cross-origin OpenStreetMap tile IMAGES. Drawing
+         them into a canvas taints it, and a tainted canvas refuses
+         toBlob/toDataURL - so there is no version of this that works
+         rather than throws at the moment somebody clicks it.
+       · The tiles are OpenStreetMap's work to redistribute, not this
+         platform's. Shipping them inside an export file would be
+         attaching somebody else's data to our provenance label.
+
+     The region scorecard underneath exports instead, which is where the
+     numbers actually live. The same note is in the header comment of
+     js/ksat-export.js; it is repeated here because this is where somebody
+     looking for the missing button will be. -->
 <section class="sec" id="map">
   <div class="eyebrow"><span class="num">SEC 07</span><span class="lab" data-i18n="map.eyebrow">Greening potential</span>
     <span class="badge ai">⬡ Derived analysis</span></div>
@@ -1600,16 +1782,6 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   </div>
 </section>
 
-<!-- ============ CAPSTONE TEAM ============ -->
-<section class="sec" id="team">
-  <div class="eyebrow"><span class="num">SEC 20</span><span class="lab" data-i18n="tm.eyebrow">Capstone team</span></div>
-  <h2 class="st" data-i18n="tm.h">Meet the Team</h2>
-  <p class="lede" data-i18n="tm.lede">Four roles, four defensible contributions. Each card states what that member can be asked about during judging.</p>
-  <div class="grid g3 mt" id="teamGrid"></div>
-  <div class="note"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.7" stroke="#64778D" stroke-width="1.2"/><path d="M8 7.2v4M8 4.9v.7" stroke="#64778D" stroke-width="1.4" stroke-linecap="round"/></svg>
-    <span data-i18n="tm.note">Each card states the role and the contribution that member owns. The sections above are written to match them.</span></div>
-</section>
-
 <!-- ============ SOURCES ============ -->
 <section class="sec" id="sources">
   <div class="eyebrow"><span class="num">SEC 21</span><span class="lab" data-i18n="src.eyebrow">Verification</span></div>
@@ -1656,11 +1828,30 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
     <div class="grid g4">
       <div>
         <div class="brand" style="cursor:default">
+          <!-- The seal's four motifs, redrawn as vector so they hold at 26px on
+               the void and can move. Kuwait is the same boundary the maps use
+               (OUTLINE, index.html), not a traced picture. Motion: css/ksat-brand.css. -->
           <svg class="mk" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <circle cx="16" cy="16" r="13.5" stroke="#1E7F7C" stroke-width="1.2"/>
-            <ellipse cx="16" cy="16" rx="13.5" ry="5" stroke="#3FD0C9" stroke-width="1.2" transform="rotate(-24 16 16)"/>
-            <circle cx="16" cy="16" r="5.4" fill="#0B5D2F" stroke="#40AD60" stroke-width="1.2"/>
-            <circle cx="26.2" cy="9.6" r="2.4" fill="#3FD0C9"/>
+            <defs>
+              <linearGradient id="mkLandFoot" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#C4B396"/><stop offset=".55" stop-color="#70B884"/><stop offset="1" stop-color="#0B5D2F"/>
+              </linearGradient>
+            </defs>
+            <circle class="mk-ring" cx="16" cy="16" r="15.2"/>
+            <g transform="translate(9.9 11.3) scale(.79)">
+              <path class="mk-land" style="fill:url(#mkLandFoot)" d="M7.84,0.34 10.32,0.49 10.11,1.92 9.90,4.13 9.90,5.31 7.91,6.03 9.01,6.42 10.11,6.30 10.94,6.82 11.14,8.63 11.49,10.21 13.00,12.66 0.00,8.24Z"/>
+              <path class="mk-land-edge" d="M7.84,0.34 10.32,0.49 10.11,1.92 9.90,4.13 9.90,5.31 7.91,6.03 9.01,6.42 10.11,6.30 10.94,6.82 11.14,8.63 11.49,10.21 13.00,12.66 0.00,8.24Z"/>
+            </g>
+            <g transform="rotate(-24 16 16)">
+              <ellipse class="mk-orbit" cx="16" cy="16" rx="15" ry="6.6"/>
+              <path class="mk-orbit-arc" d="M1,16 A15,6.6 0 1,1 31,16 A15,6.6 0 1,1 1,16"/>
+              <g class="mk-sat">
+                <rect class="mk-sat-panel" x="-3" y="-.45" width="1.9" height=".9" rx=".18"/>
+                <rect class="mk-sat-panel" x="1.1" y="-.45" width="1.9" height=".9" rx=".18"/>
+                <rect class="mk-sat-body" x="-.8" y="-.8" width="1.6" height="1.6" rx=".35"/>
+              </g>
+            </g>
+            <path class="mk-star" d="M25.3,15.1 26.0,17.5 28.4,18.2 26.0,18.9 25.3,21.3 24.6,18.9 22.2,18.2 24.6,17.5Z"/>
           </svg>
           <span><b>KUWAITSAT</b><i>GREEN INTELLIGENCE</i></span>
         </div>
@@ -1674,7 +1865,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
           <li data-i18n="ft.l1">Not affiliated with Kuwait University, KFAS or the KuwaitSat-1 project.</li>
           <li data-i18n="ft.l2">No live telemetry. No official planning authority.</li>
           <li data-i18n="ft.l3">Satellite photographs remain the property of their publishers.</li>
-          <li data-i18n="ft.l4">Runs entirely in your browser. No data leaves this page.</li>
+          <li data-i18n="ft.l4">Reference data is generated in your browser. Signing in stores missions and agent runs in the project database.</li>
         </ul>
       </div>
     </div>
@@ -1770,13 +1961,6 @@ const TEAM_PHOTO = {
 };
 
 /* ---------------- EDIT ME 1: capstone team ---------------------- */
-const TEAM = [
-  { name: "Team member 1", initials: "01", roleKey: "r.lead" },
-  { name: "Team member 2", initials: "02", roleKey: "r.ai"   },
-  { name: "Team member 3", initials: "03", roleKey: "r.sat"  },
-  { name: "Team member 4", initials: "04", roleKey: "r.fe"   },
-  { name: "Team member 5", initials: "05", roleKey: "r.sec"  }
-];
 
 /* ================= verified KuwaitSat-1 record ==================== */
 /* Each entry carries the source it came from. Nothing enters the UI
@@ -2283,6 +2467,21 @@ const Intro = (()=>{
       ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
       bar.style.width="100%";
     }
+    /* REDUCED MOTION. begin() sends a reduced-motion visitor straight to
+       showTitle(), but the loop carried on recursing behind the card:
+       drawEarth() was still being handed 1+Math.sin(t*0.25)*0.012 and
+       drawSat() an ever-increasing angle, so the Earth breathed and the
+       satellite orbited at 60fps for as long as the intro stayed open -
+       continuous animation for someone who asked for none, and a warm
+       laptop with it. The title card is a resting state: draw it once
+       and stop.
+       Only the title phase is guarded. Stopping the gate phase too would
+       leave a reduced-motion visitor who then presses a start button
+       looking at the title card over a stale pad-and-stars bitmap. The
+       loop is still running when showTitle() is called, so exactly one
+       title frame is drawn before it stops, and finish()'s
+       cancelAnimationFrame(0) is a no-op. */
+    if(reduceMotion && phase==="title"){ raf=0; return; }
     raf=requestAnimationFrame(loop);
   }
 
@@ -2303,7 +2502,18 @@ const Intro = (()=>{
     // Hard stop at 8 s regardless of what the player does.
     ytTimer=setTimeout(()=>{ vid.classList.remove("on"); slot.innerHTML=""; }, 8200);
   }
-  function killVideo(){ if(ytTimer) clearTimeout(ytTimer); $("#vidSlot").innerHTML=""; vid.classList.remove("on"); KSAudio.duck(false); }
+  /* The null guard is the fix for the page's only console error. On the
+     intro-skip path - sessionStorage ks_intro==="1", which every returning
+     visitor in a session takes - the whole #intro block is removed and
+     #vidSlot goes with it. A pending ytTimer or an audio cue still calls
+     this function afterwards, and the bare $("#vidSlot").innerHTML="" then
+     threw "Cannot set properties of null". Never fatal - the page carried
+     on and the tour layer mounted normally - but it was an uncaught
+     exception on the commonest load path, so it was the first thing in the
+     console when anyone opened devtools on the site. */
+  function killVideo(){ if(ytTimer) clearTimeout(ytTimer);
+    const slot=$("#vidSlot"); if(slot) slot.innerHTML="";
+    vid.classList.remove("on"); KSAudio.duck(false); }
 
   function showTitle(){
     phase="title"; t0=performance.now(); killVideo();
@@ -2731,6 +2941,16 @@ const S = {
   ba:"input",
   demo:{ on:false, i:0 }
 };
+/* ANY BUTTON ADDED INSIDE #nav NEEDS ITS ENTRY ADDED HERE IN THE SAME
+   CHANGE. renderNav() emits one button per entry and the scroll-spy then
+   walks the two in lockstep - it does $$("#nav button").forEach((b,i)=>
+   ... NAV[i].id ...) - so a button with no array entry behind it reads
+   NAV[i] as undefined and throws inside an IntersectionObserver callback,
+   where the exception is swallowed and takes the whole section highlight
+   out with no console error to explain it. The #console splice at the foot
+   of this file is the worked example: it adds the entry and the button in
+   one change. js/ksat-nav.js deliberately adds nothing to #nav for the
+   same reason - it groups the buttons that are already here. */
 const NAV = [
   {id:"mission", en:"Mission", ar:"المهمة"},
   {id:"builders", en:"Builders", ar:"الفريق"},
@@ -2743,7 +2963,6 @@ const NAV = [
   {id:"system", en:"Planning", ar:"نظام التخطيط"},
   {id:"ai", en:"AI", ar:"الذكاء"},
   {id:"story", en:"Story", ar:"القصة"},
-  {id:"team", en:"Our team", ar:"الفريق"},
   {id:"sources", en:"Sources", ar:"المصادر"}
 ];
 const L=(o)=> (LANG==="ar" && o && o.ar) ? o.ar : (o?o.en:"");  /* restored: this returned o.en unconditionally, which switched off every Arabic label already written into this page - NAV, metrics, region names, ambitions, spec rows. The data was never removed, only the selector. See js/ksat-i18n.js for the rest of the layer. */
@@ -3176,7 +3395,7 @@ function finishSim(r,amb){
     '<dl class="detail" style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:0;font-size:13px">'+
       '<dt>'+esc(T("sim.cur","Current green coverage"))+'</dt><dd>'+res.from+'%</dd>'+
       '<dt>'+esc(T("sim.tgt","Simulated target"))+'</dt><dd>'+res.to+'%</dd>'+
-      '<dt>'+esc(T("sim.chg","Potential change"))+'</dt><dd style="color:var(--green-lt)">+'+res.delta+' '+
+      '<dt>'+esc(T("sim.chg","Potential change"))+'</dt><dd style="color:var(--green-text, var(--green-lt))">+'+res.delta+' '+
         esc(T("sim.pp","percentage points"))+'</dd>'+
       '<dt>'+esc(T("sim.zone","Intervention footprint"))+'</dt><dd>≈ '+res.area.toLocaleString()+' km²</dd>'+
       '<dt>'+esc(T("sim.trees","Indicative planting units"))+'</dt><dd>≈ '+res.trees.toLocaleString()+'</dd>'+
@@ -3339,7 +3558,7 @@ function runCompare(){
   S.cmp.res=true;
   $("#cmpResult").innerHTML=
     '<dl class="detail" style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:0;font-size:13px">'+
-    rows.map(r=>'<dt>'+esc(r[0])+'</dt><dd style="color:'+(r[2]?css("--green-lt"):"#F0A49E")+'">'+esc(r[1])+'</dd>').join("")+'</dl>'+
+    rows.map(r=>'<dt>'+esc(r[0])+'</dt><dd style="color:'+(r[2]?'var(--green-text, var(--green-lt))':'var(--red-text, #F0A49E)')+'">'+esc(r[1])+'</dd>').join("")+'</dl>'+
     '<hr class="divider"><div style="font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:6px">'+
       esc(T("cd.int","Interpretation"))+'</div><p style="font-size:13px;color:var(--ink-2)">'+esc(L(verdict))+'</p>'+
     '<div class="note warn" style="margin-top:12px"><span>'+
@@ -3739,24 +3958,107 @@ const SUGGEST=[
   {q:{en:"Which areas should be investigated further?",ar:"أي المناطق تستحق دراسة أعمق؟"},k:"next"},
   {q:{en:"What is the environmental stress in Hawalli?",ar:"ما مستوى الإجهاد البيئي في حولي؟"},k:"stress"}
 ];
+/* NORMALISING A QUESTION SO IT CAN BE MATCHED ON WHOLE WORDS.
+
+   Arabic and English fold to one comparable form: strip tatweel and
+   harakat, unify the alef hamza forms, alef maqsura and ta marbuta, then
+   reduce everything that is not a letter or a digit to a single space, so
+   matching can be done on whole words with spaces around them.
+
+   THE BUG THIS REPLACES. The old parser matched en.split(" ")[0] as a
+   SUBSTRING, and for four of the six governorates that first token is the
+   bare string "al" - Al Jahra, Al Ahmadi, Al Asimah, Al Farwaniya. There
+   was no break, so the LAST match won. The word "Hawalli" itself contains
+   the letters a-l, which meant every question naming Hawalli fell through
+   to farwaniya on the fifth iteration, and the analyst then answered
+   confidently about a governorate nobody had asked about - with a
+   REFERENCE DATASET provenance badge on it. It also never read r.na, so
+   no Arabic question could name a region at all. */
+const normQ = t => String(t||"").toLowerCase()
+  .replace(/[ـً-ْ]/g, "")
+  .replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه")
+  .replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
+/* Every name a governorate can be called, in both languages, longest
+   first. "al" is excluded by name and short tokens are dropped, because
+   those are the ones that collide with ordinary words. The Arabic bare
+   forms drop a leading definite article so that
+   "الفروانية" also answers to "فروانيه". */
+const REGION_ALIASES = REGIONS.map(r => {
+  const en = normQ(r.n.replace(/\(.*?\)/g, ""));   /* "al asimah" */
+  const na = normQ(r.na);                          /* "العاصمه"   */
+  const set = new Set([en, na, normQ(r.id)]);
+  en.split(" ").forEach(t => { if (t !== "al" && t.length >= 4) set.add(t); });
+  na.split(" ").forEach(t => { const bare = t.replace(/^ال/, ""); if (bare.length >= 3) { set.add(t); set.add(bare); } });
+  const paren = (r.n.match(/\((.*?)\)/) || [])[1];  /* "Capital" */
+  if (paren) set.add(normQ(paren));
+  return { r, alias: [...set].filter(Boolean).sort((a,b) => b.length - a.length) };
+});
+
+function regionOf(q) {
+  const hay = " " + normQ(q) + " ";
+  let best = null, bestLen = 0;
+  for (const { r, alias } of REGION_ALIASES)
+    for (const a of alias)
+      if (a.length > bestLen && hay.indexOf(" " + a + " ") >= 0) { best = r; bestLen = a.length; }
+  return best;                                     /* longest name wins, so
+                                                      "Mubarak Al-Kabeer"
+                                                      beats "Mubarak" */
+}
+
 function classify(q){
-  const s=q.toLowerCase();
-  const ar=/[؀-ۿ]/.test(q);
-  const has=(...w)=>w.some(x=>s.includes(x));
-  let region=null;
-  REGIONS.forEach(r=>{ if(s.includes(r.n.toLowerCase().split(" ")[r.id==="asimah"?1:r.id==="mubarak"?0:1]||"") ) {} });
-  REGIONS.forEach(r=>{ const en=r.n.toLowerCase();
-    if(s.includes(en)||s.includes(en.split(" ")[0])||s.includes(r.id)) region=r; });
-  if(has("highest","top","best","most potential")) return {k:"top",region};
-  if(has("why","reason","selected","flag")) return {k:"why",region};
-  if(has("how","monitor","help","satellite data")) return {k:"how",region};
-  if(has("change","changed","difference","compare")) return {k:"change",region};
-  if(has("investigate","next","further","priority")) return {k:"next",region};
-  if(has("stress","hot","temperature","heat","dust","coverage","ndvi","vegetation","index")) return {k:"stress",region};
+  /* The route words are matched as SUBSTRINGS of the normalised question,
+     deliberately and unlike the region names above. Arabic needs it: the
+     definite article and the pronoun suffixes attach to the word, so the
+     route word "إجهاد" has to be found inside "الإجهاد". A route word
+     being a substring is harmless in a way a region name is not - the
+     worst case is a question routed to a neighbouring answer, not a
+     confident figure about the wrong governorate.
+
+     Both sides go through normQ, so the Arabic below can be written the
+     natural way - with hamza and ta marbuta - and still match a question
+     typed without them.
+
+     WHY THE ARABIC IS HERE AT ALL. These six tests used to be English
+     only, so every Arabic question fell through to k:"unknown" and got the
+     refusal branch. The page's own Arabic suggestion chip,
+     "ما مستوى الإجهاد البيئي في حولي؟", was one of them: the one demo
+     question an Arabic-speaking visitor is invited to click was the one
+     that failed. The words below are taken from the SUGGEST chips, so the
+     phrasing the page offers is the phrasing the router recognises.
+
+     ORDER MATTERS AND IS THE ENGLISH ORDER. "how ... monitor vegetation"
+     routes to `how` rather than `stress` even though it contains
+     "vegetation"; the Arabic chip behaves the same way because "كيف" is
+     tested before "غطاء". */
+  const hay=normQ(q);
+  const has=(...w)=>w.some(x=>{ const n=normQ(x); return !!n && hay.indexOf(n)>=0; });
+  const region=regionOf(q);
+  if(has("highest","top","best","most potential",
+         "أعلى","إمكانية","تشجير","أفضل","أكبر")) return {k:"top",region};
+  if(has("why","reason","selected","flag",
+         "لماذا","اختير","سبب","اختيار")) return {k:"why",region};
+  if(has("how","monitor","help","satellite data",
+         "كيف","تساعد","مراقبة","الأقمار","قمر","رصد")) return {k:"how",region};
+  if(has("change","changed","difference","compare",
+         "تغيّر","مقارنة","فرق","اختلاف")) return {k:"change",region};
+  if(has("investigate","next","further","priority",
+         "تستحق","دراسة","أعمق","أولوية","التالي")) return {k:"next",region};
+  if(has("stress","hot","temperature","heat","dust","coverage","ndvi","vegetation","index",
+         "إجهاد","حرارة","غبار","غطاء","نبات","مؤشر")) return {k:"stress",region};
   return {k:"unknown",region};
 }
 function analystAnswer(q){
-  const c=classify(q); const r=c.region||REG[S.map.sel];
+  const c=classify(q);
+  /* Falling back to the map's current selection is reasonable; doing it
+     SILENTLY is not. If the question named no governorate, the two
+     region-specific branches below say so in the first sentence of the
+     analysis, so a reader can never mistake "the one that happened to be
+     selected" for "the one I asked about". */
+  const named=!!c.region;
+  const r=c.region||REG[S.map.sel];
+  const saidWhich=()=> named ? "" :
+    (T("a.which","No governorate was named in the question, so this answers about the one currently selected on the map: ")+regName(r)+". ");
   const sorted=[...REGIONS].sort((a,b)=>b.score-a.score);
   const A={};
   if(c.k==="top"){
@@ -3768,7 +4070,7 @@ function analystAnswer(q){
     A.type="demo";
   } else if(c.k==="why"){
     A.data=T("a.d2","Indicator set for ")+regName(r)+": "+T("a.d2b","green coverage, vegetation index, stress, summer surface temperature, dust, approximate land area.");
-    A.an=L(REGION_NOTES[r.note])+" "+T("a.a2","Score ")+r.score+"/100 "+T("a.a2b","is driven mainly by the gap between modelled stress (")+
+    A.an=saidWhich()+L(REGION_NOTES[r.note])+" "+T("a.a2","Score ")+r.score+"/100 "+T("a.a2b","is driven mainly by the gap between modelled stress (")+
       r.stress+") "+T("a.a2c","and existing coverage (")+round(r.green,1)+"%).";
     A.conf= r.score>=82?"High": r.score>=72?"Medium":"Low";
     A.rec=L(recommendFor(r)); A.type="ai";
@@ -3800,7 +4102,7 @@ function analystAnswer(q){
     A.data=T("a.d6","Monthly reference series for ")+regName(r)+T("a.d6b"," over the last 36 months: stress, vegetation index, coverage, surface temperature, dust.");
     const s=SERIES[r.id].slice(-12);
     const mean=s.reduce((a,b)=>a+b.stress,0)/12;
-    A.an=regName(r)+T("a.a6"," averages ")+round(mean,0)+"/100 "+T("a.a6b","over the last twelve months, peaking in summer. Risk band: ")+
+    A.an=saidWhich()+regName(r)+T("a.a6"," averages ")+round(mean,0)+"/100 "+T("a.a6b","over the last twelve months, peaking in summer. Risk band: ")+
       riskLabel(mean)+". "+T("a.a6c","Green coverage sits at ")+round(r.green,1)+"% "+
       T("a.a6d","and summer surface temperature at ")+round(r.lst,1)+" °C.";
     A.conf="High"; A.rec=L(recommendFor(r)); A.type="demo";
@@ -3836,12 +4138,25 @@ function askAnalyst(q){
     const A=analystAnswer(q);
     const conf={High:3,Medium:2,Low:1}[A.conf];
     t.innerHTML='<div class="who">'+esc(T("an.me","KuwaitSat Analyst"))+' '+typeBadge(A.type)+'</div>'+
-      '<dl class="arow"><dt>'+esc(T("an.data","Data"))+'</dt><dd>'+esc(A.data)+'</dd></dl>'+
-      '<dl class="arow"><dt>'+esc(T("an.an","Analysis"))+'</dt><dd>'+esc(A.an)+'</dd></dl>'+
-      '<dl class="arow"><dt>'+esc(T("an.conf","Confidence"))+'</dt><dd><span class="conf"><span class="confbar">'+
+      /* MEASURED vs DERIVED. Spec 26: generated interpretation must never
+         look identical to a measured figure. Every row used to be a plain
+         .arow, so the sentence the model wrote sat in the same grey as the
+         record it was reading from, and a researcher checking a number had
+         no way to see where the reading stopped and the inference began.
+         The class says which is which; .arow-derived in the stylesheet
+         above draws the rule.
+         DO NOT REORDER THESE FOUR ROWS. js/ksat-assistant.js reads this
+         rendered DOM on purpose - one answer engine on the page, not two -
+         and mirrorRows() maps them onto DATA USED / ANALYSIS / RESULT by
+         POSITION, using the presence of a dl.arow as its "the answer has
+         landed" test. The extra class is additive and keeps dl.arow
+         matching; changing the order or the structure would not. */
+      '<dl class="arow arow-measured"><dt>'+esc(T("an.data","Data"))+'</dt><dd>'+esc(A.data)+'</dd></dl>'+
+      '<dl class="arow arow-derived"><dt>'+esc(T("an.an","Analysis"))+'</dt><dd>'+esc(A.an)+'</dd></dl>'+
+      '<dl class="arow arow-measured"><dt>'+esc(T("an.conf","Confidence"))+'</dt><dd><span class="conf"><span class="confbar">'+
         [1,2,3].map(i=>'<i class="'+(i<=conf?"on":"")+'"></i>').join("")+'</span>'+
         esc(T("conf."+A.conf.toLowerCase(),A.conf))+'</span></dd></dl>'+
-      '<dl class="arow"><dt>'+esc(T("an.rec","Recommend"))+'</dt><dd>'+esc(A.rec)+'</dd></dl>';
+      '<dl class="arow arow-derived"><dt>'+esc(T("an.rec","Recommend"))+'</dt><dd>'+esc(A.rec)+'</dd></dl>';
     $("#chat").scrollTop=$("#chat").scrollHeight;
   }, reduceMotion?80:520);
 }
@@ -3943,7 +4258,7 @@ function finishAgent(r,st){
   $("#agOut").innerHTML=
     (proposed
       ? '<div class="okbox">'+esc(T("ag.res1","Both thresholds crossed. A greening proposal was generated."))+'</div>'
-      : '<div class="errbox" style="border-color:#6B5210;background:rgba(178,127,2,.09);color:#E0C98F">'+
+      : '<div class="errbox" style="border-color:#6B5210;background:rgba(178,127,2,.09);color:var(--amber-text, #E0C98F)">'+
         esc(st.d1? T("ag.res2","Stress threshold crossed, but greening potential is below the threshold. The agent stopped at monitoring — by design.")
                  : T("ag.res3","Environmental stress is below the threshold. The agent stopped at monitoring — by design."))+'</div>')+
     '<dl class="detail" style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:14px 0 0;font-size:13px">'+
@@ -4050,6 +4365,38 @@ function renderV35(){
 <script>
 "use strict";
 /* ==================== GUARDRAILS & SECURITY ================= */
+/* =====================================================================
+   WHAT THIS SECTION IS ALLOWED TO SAY
+
+   These two arrays were written for the earlier static prototype, when
+   the page really did hold no data and make no request. Five statements
+   in them were still on the live site after the platform grew a
+   database, and every one of them was false:
+
+     GUARDS 7  "holds no personal data and makes no network request"
+     AUDIT  2  "There is no API ... no endpoint to attack"
+     AUDIT  3  "No key exists in this page"      (js/config.js ships one)
+     AUDIT  6  "Rate limiting ... Not applicable in a static page"
+     AUDIT  7  "Nothing is stored and nothing is transmitted"
+
+   On a security project a stale reassurance is worse than no claim at
+   all, because it is the sentence a judge checks first. So the rule for
+   editing anything below is: every card names WHERE the control lives,
+   and nothing is written here that has not been read out of the file it
+   cites or the live database.
+
+   Rule numbers are 04-agents/GUARDRAILS.md's own numbering, carried
+   across on purpose so the document and the site count the same way.
+
+   Checked against the live project on 21 September 2026: eight tables
+   with row level security on, ten policies, three views all
+   security_invoker=on, no table grant held by any browser role,
+   app_settings reading 5 per hour / 20 per day, the 0-40 check
+   constraint on mission_runs.tool_calls, and generate_report executable
+   by `authenticated` only. NOT claimed anywhere below: the nightly
+   monitoring table, which is written in 03-security/db/11_monitoring.sql
+   and has not been run - monitoring_events does not exist yet.
+   ===================================================================== */
 const GUARDS=[
  {en:"Never fabricate a satellite observation. If the analyst has no record for a question, it says so rather than inventing one.",
   ar:"لا تُختلق أي رصدة من القمر الاصطناعي. إن لم يجد المحلّل سجلاً للسؤال، يصرّح بذلك بدل الاختراع.",
@@ -4058,20 +4405,22 @@ const GUARDS=[
   ar:"لا تُقدَّم صورة محاكاة على أنها حقيقية. كل مشهد مرسوم يحمل شارة 🧪 داخل إطاره.",
   s:{en:"Enforced: the layer badge is written from the layer definition, not by hand.",ar:"مطبَّق: شارة الطبقة تُكتب من تعريف الطبقة لا يدوياً."}},
  {en:"Identify reference data explicitly wherever it drives a number on screen.",
-  ar:"يُصرَّح ببيانات العرض صراحةً حيثما قادت رقماً على الشاشة.",
+  ar:"يُصرّح ببيانات العرض صراحةً حيثما قادت رقماً على الشاشة.",
   s:{en:"Enforced: every chart panel renders a data badge in its header.",ar:"مطبَّق: كل لوحة رسم تعرض شارة بيانات في ترويستها."}},
  {en:"Validate data before analysis. Records outside physical range are dropped, never silently corrected.",
   ar:"يُتحقق من البيانات قبل التحليل. السجلات خارج المدى الفيزيائي تُستبعد ولا تُصحَّح بصمت.",
-  s:{en:"Enforced: the agent's validation stage runs range and type checks and reports what it dropped.",ar:"مطبَّق: مرحلة التحقق في الوكيل تفحص المدى والنوع وتعلن ما استبعدته."}},
+  s:{en:"Rule 12 · Enforced twice: the agent's validation stage reports what it dropped, and the database refuses a malformed record outright. The check constraints in 03-security/db/06_validation.sql run even when someone skips this page and calls the API by hand.",
+     ar:"القاعدة 12 · مطبَّق مرتين: مرحلة التحقق في الوكيل تعلن ما استبعدته، وقاعدة البيانات ترفض السجل المشوّه أصلاً. وقيود التحقق في 03-security/db/06_validation.sql تعمل حتى لو تجاوز أحدهم هذه الصفحة واستدعى الواجهة مباشرة."}},
  {en:"Explain every consequential decision. Both agent branch points show the question, the threshold and the path taken.",
   ar:"يُفسَّر كل قرار مؤثر. نقطتا التفرع في الوكيل تعرضان السؤال والعتبة والمسار المتّخذ.",
   s:{en:"Enforced: decision nodes are rendered, not hidden inside the code path.",ar:"مطبَّق: عقد القرار تُعرض ولا تُخفى داخل مسار الشيفرة."}},
  {en:"Make no unsupported scientific claim. No carbon, water or temperature-reduction figure is asserted anywhere.",
   ar:"لا يُقدَّم ادعاء علمي غير مسنَد. لا يُذكر أي رقم للكربون أو المياه أو خفض الحرارة في أي موضع.",
   s:{en:"Enforced: the impact calculator returns area and coverage only, with its assumptions printed.",ar:"مطبَّق: حاسبة الأثر تعيد المساحة والتغطية فقط مع طباعة افتراضاتها."}},
- {en:"Never expose private information. The platform holds no personal data and makes no network request.",
-  ar:"لا تُكشف أي معلومات خاصة. المنصة لا تحتفظ ببيانات شخصية ولا تُجري أي طلب شبكي.",
-  s:{en:"Enforced: no fetch, no storage of user input, no analytics, no third-party script.",ar:"مطبَّق: لا طلبات شبكية ولا تخزين لمدخلات المستخدم ولا تحليلات ولا سكربت خارجي."}},
+ {en:"Never expose one researcher's work to another. A signed-in researcher reaches their own missions and the ones shared with them, and nothing else.",
+  ar:"لا يُكشف عمل باحث لباحث آخر. يصل الباحث المسجَّل إلى مهماته وما شورك معه فقط، ولا شيء غير ذلك.",
+  s:{en:"Rule 3 · Enforced in the database, not in this page: row level security is on for all eight tables and every policy is scoped to the signed-in account (03-security/db/04_policies.sql).",
+     ar:"القاعدة 3 · مطبَّق في قاعدة البيانات لا في هذه الصفحة: أمن مستوى الصف مفعّل على الجداول الثمانية كلها، وكل سياسة محصورة بالحساب المسجَّل (03-security/db/04_policies.sql)."}},
  {en:"Never make an official planning decision. Output is framed as screening, with the authority left with people.",
   ar:"لا يُتخذ أي قرار تخطيطي رسمي. المخرجات مؤطَّرة كفرز، والصلاحية تبقى للبشر.",
   s:{en:"Enforced: every recommendation ships with its limits-of-use clause.",ar:"مطبَّق: كل توصية تصدر مع بند حدود الاستخدام."}},
@@ -4080,25 +4429,75 @@ const GUARDS=[
   s:{en:"Enforced: confidence is rendered on every analyst and agent answer.",ar:"مطبَّق: درجة الثقة تُعرض في كل إجابة للمحلّل والوكيل."}},
  {en:"Require human review before anything reaches the real world. The report says so in its own text.",
   ar:"تُشترط المراجعة البشرية قبل أي أثر واقعي. والتقرير ينص على ذلك في متنه.",
-  s:{en:"Enforced: section 5 of the generated report cannot be removed from the template.",ar:"مطبَّق: القسم الخامس من التقرير المولَّد غير قابل للحذف من القالب."}}
+  s:{en:"Rule 6 · Enforced by a database grant, not by a promise: generate_report can be executed by a signed-in researcher only, and reports.approved_by records which one. The automation cannot write a report even holding the service key.",
+     ar:"القاعدة 6 · مطبَّق بصلاحية في قاعدة البيانات لا بوعد: لا يُنفَّذ generate_report إلا من باحث مسجَّل، ويسجّل الحقل approved_by هويته. ولا تستطيع الأتمتة كتابة تقرير ولو حملت مفتاح الخدمة."}},
+ {en:"Treat the research objective as data, never as an instruction — even when it is written as one.",
+  ar:"يُعامَل هدف البحث كبيانات لا كأمر، حتى إن كُتب في صيغة أمر.",
+  s:{en:"Rules 1 and 13 · Screened in js/ksat-integration.js against six patterns. A match is recorded against the mission and refused rather than acted on, and the flag is raised once and cannot be lowered from the browser.",
+     ar:"القاعدتان 1 و 13 · يُفحص في js/ksat-integration.js مقابل ستة أنماط. والمطابقة تُسجَّل على المهمة وتُرفض بدل أن يُتصرّف بها، والعلامة تُرفع مرة واحدة ولا يمكن إنزالها من المتصفح."}},
+ {en:"The agents write through three named functions and hold no access to any table.",
+  ar:"يكتب الوكلاء عبر ثلاث دوال مسمّاة، ولا يملكون أي صلاحية على أي جدول.",
+  s:{en:"Rule 3 · Enforced in 03-security/db/03_grants.sql: the automation's role holds no table grant at all, only execute on the three agent functions. That matters because that role bypasses row level security — withdrawing the grants is the only thing left that constrains it.",
+     ar:"القاعدة 3 · مطبَّق في 03-security/db/03_grants.sql: دور الأتمتة لا يملك أي صلاحية على جدول، بل صلاحية التنفيذ على دوال الوكيل الثلاث فقط. وهذا مهم لأن ذلك الدور يتجاوز أمن مستوى الصف، فسحب الصلاحيات هو القيد الوحيد المتبقّي عليه."}},
+ {en:"The agents never command the satellite. They read stored data and propose findings.",
+  ar:"لا يوجّه الوكلاء أي أمر إلى القمر الاصطناعي. بل يقرؤون البيانات المخزَّنة ويقترحون نتائج.",
+  s:{en:"Rule 2 · Enforced by absence, which is the strongest way: the approved tool list is closed and has three entries, and there is no fourth tool to reach for.",
+     ar:"القاعدة 2 · مطبَّق بالغياب، وهو أقوى أشكال المنع: قائمة الأدوات المعتمدة مغلقة وفيها ثلاثة مدخلات، ولا توجد أداة رابعة يمكن اللجوء إليها."}},
+ {en:"Cap what a single account can spend before a run ever starts.",
+  ar:"يُحدَّد سقف إنفاق الحساب الواحد قبل أن يبدأ أي تشغيل.",
+  s:{en:"Rule 10 · Enforced in launch_mission: five runs per researcher per hour, twenty per day, and three per mission per hour. The limits are read from a settings row that no browser role can see.",
+     ar:"القاعدة 10 · مطبَّق في launch_mission: خمسة تشغيلات للباحث في الساعة، وعشرون في اليوم، وثلاثة للمهمة الواحدة في الساعة. وتُقرأ الحدود من صفّ إعدادات لا يراه أي دور في المتصفح."}},
+ {en:"Stop a run at forty tool calls.",
+  ar:"يتوقف التشغيل عند أربعين استدعاءً للأدوات.",
+  s:{en:"Rule 9 · Enforced twice: agent_log_step refuses call forty-one, and a check constraint on mission_runs.tool_calls will not store a higher number even if the function is bypassed.",
+     ar:"القاعدة 9 · مطبَّق مرتين: يرفض agent_log_step الاستدعاء الحادي والأربعين، وقيد تحقق على mission_runs.tool_calls يمنع تخزين رقم أعلى حتى لو جرى تجاوز الدالة."}},
+ {en:"Cap one agent result at twenty thousand characters.",
+  ar:"يُحدَّد سقف نتيجة الوكيل الواحدة بعشرين ألف حرف.",
+  s:{en:"Rule 11 · Enforced in agent_write_result, by the database rather than by the prompt. The mission form refuses an objective over 1,500 characters, and an unbounded blob written back the other way would make that refusal worthless.",
+     ar:"القاعدة 11 · مطبَّق في agent_write_result، من قاعدة البيانات لا من التوجيه. فنموذج المهمة يرفض هدفاً يتجاوز 1500 حرف، وكتلة غير محدودة تُكتب في الاتجاه المعاكس تُبطل قيمة ذلك الرفض."}},
+ {en:"A finished run never grows new steps. The record cannot be edited after the fact.",
+  ar:"لا تُضاف خطوات إلى تشغيل منتهٍ. ولا يمكن تعديل السجل بعد وقوعه.",
+  s:{en:"Rule 14 · Enforced in agent_log_step: a run that is neither queued nor running refuses the write, so a retry cannot append to a completed run. An audit trail that can be edited afterwards is not one.",
+     ar:"القاعدة 14 · مطبَّق في agent_log_step: التشغيل الذي ليس في حالة انتظار أو جريان يرفض الكتابة، فلا تستطيع إعادة المحاولة الإضافة إلى تشغيل مكتمل. والسجل الذي يمكن تعديله لاحقاً ليس سجلاً."}},
+ {en:"The prototype can be switched off, and refuses when it cannot read the switch.",
+  ar:"يمكن إيقاف النموذج الأولي، وهو يرفض العمل حين يتعذّر عليه قراءة المفتاح.",
+  s:{en:"Rule 15 · Enforced in launch_mission: it reads the settings row first and fails closed — a missing or unreadable row refuses the run rather than assuming permission.",
+     ar:"القاعدة 15 · مطبَّق في launch_mission: يقرأ صفّ الإعدادات أولاً ويفشل مغلقاً — فالصفّ المفقود أو غير المقروء يرفض التشغيل بدل افتراض الإذن."}}
 ];
 const AUDIT=[
  {t:{en:"Input validation",ar:"التحقق من المدخلات"}, st:"pass",
-  d:{en:"Analyst input is length-capped and escaped before it touches the DOM. No input is ever evaluated.",ar:"مدخل المحلّل محدود الطول ومُهرَّب قبل وصوله إلى الصفحة، ولا يُنفَّذ أي مدخل."}},
+  d:{en:"Analyst input is length-capped and escaped before it touches the page, and no input is ever evaluated. A mission is refused by the database as well: title 3–120 characters, objective 20–1,500, and both must contain a letter.",
+     ar:"مدخل المحلّل محدود الطول ومُهرَّب قبل وصوله إلى الصفحة، ولا يُنفَّذ أي مدخل. وترفض قاعدة البيانات المهمة كذلك: العنوان بين 3 و120 حرفاً، والهدف بين 20 وذ1500، وكلاهما يجب أن يحتوي حرفاً."}},
  {t:{en:"API security",ar:"أمن الواجهات"}, st:"pass",
-  d:{en:"There is no API. The analyst and agent are local functions, so there is no endpoint to attack.",ar:"لا توجد واجهة برمجية. المحلّل والوكيل دالّتان محليتان، فلا نقطة نهاية يمكن مهاجمتها."}},
- {t:{en:"No exposed keys",ar:"لا مفاتيح مكشوفة"}, st:"pass",
-  d:{en:"No key exists in this page because no external service is called. Nothing to leak in the client bundle.",ar:"لا يوجد مفتاح في هذه الصفحة لأنها لا تستدعي أي خدمة خارجية، فلا شيء يتسرب."}},
+  d:{en:"There is an API: this page reaches the database over PostgREST. No browser role holds a grant on any table, so a write only happens through a named function that re-reads ownership from the table instead of trusting the arguments it was handed.",
+     ar:"توجد واجهة برمجية: تصل هذه الصفحة إلى قاعدة البيانات عبر PostgREST. ولا يملك أي دور في المتصفح صلاحية على أي جدول، فلا تقع الكتابة إلا عبر دالة مسمّاة تعيد قراءة الملكية من الجدول بدل الوثوق بالوسائط المُمرّرة إليها."}},
+ {t:{en:"Keys and secrets",ar:"المفاتيح والأسرار"}, st:"pass",
+  d:{en:"This page ships a publishable key, and that is deliberate: the browser has to have one. It grants nothing on its own — row level security decides every row, and without a signed-in session the key reaches no data at all. The service-role key is in neither this page nor this repository.",
+     ar:"تحمل هذه الصفحة مفتاحاً قابلاً للنشر، وذلك عن قصد: لا بد أن يملك المتصفح مفتاحاً. وهو لا يمنح شيئاً بذاته — فأمن مستوى الصف هو ما يقرر كل صف، وبلا جلسة مسجَّلة لا يصل المفتاح إلى أي بيانات. أما مفتاح دور الخدمة فليس في هذه الصفحة ولا في هذا المستودع."}},
  {t:{en:"Data validation",ar:"التحقق من البيانات"}, st:"pass",
-  d:{en:"Every series value is clamped to a physical range at generation and re-checked in the agent's validation stage.",ar:"كل قيمة في السلسلة مقيَّدة بمدى فيزيائي عند التوليد ويُعاد فحصها في مرحلة تحقق الوكيل."}},
+  d:{en:"Every series value is clamped to a physical range at generation and re-checked in the agent's validation stage. A mission's map area is checked by the database too: one ring, every point inside Kuwait, and under eight kilobytes.",
+     ar:"كل قيمة في السلسلة مقيَّدة بمدى فيزيائي عند التوليد ويُعاد فحصها في مرحلة تحقق الوكيل. وتفحص قاعدة البيانات منطقة المهمة كذلك: حلقة واحدة، وكل نقطة داخل الكويت، وأقل من ثمانية كيلوبايت."}},
  {t:{en:"Safe error handling",ar:"معالجة الأخطاء بأمان"}, st:"pass",
-  d:{en:"Failures show a stated error state with a next step; stack traces and internals are never surfaced to the user.",ar:"تُعرض حالة خطأ معلنة مع خطوة تالية، ولا تُظهر للمستخدم آثار التتبع أو التفاصيل الداخلية."}},
- {t:{en:"Rate limiting (concept)",ar:"تحديد المعدل (مفهوم)"}, st:"concept",
-  d:{en:"Not applicable in a static page. In a served version, per-IP limits on the analysis endpoint and a queue on the agent are the design.",ar:"غير منطبق في صفحة ساكنة. في النسخة المستضافة، التصميم هو حدود لكل عنوان IP على نقطة التحليل وطابور للوكيل."}},
+  d:{en:"Failures show a stated error state with a next step; stack traces and internals are never surfaced to the user. A refused mission is named by its reason, and 'Mission not found' is returned for a mission that is not yours — saying 'not yours' would confirm it exists.",
+     ar:"تُعرض حالة خطأ معلنة مع خطوة تالية، ولا تُظهر للمستخدم آثار التتبع أو التفاصيل الداخلية. والمهمة المرفوضة يُسمّى سبب رفضها، ويُعاد «المهمة غير موجودة» لمهمة ليست لك — لأن قول «ليست لك» يؤكد وجودها."}},
+ {t:{en:"Rate limiting",ar:"تحديد المعدل"}, st:"pass",
+  d:{en:"Enforced in the database, not in this page: five agent runs per researcher per hour, twenty per day, and three per mission per hour. A client that skipped this page entirely would still be refused.",
+     ar:"مطبَّق في قاعدة البيانات لا في هذه الصفحة: خمسة تشغيلات للباحث في الساعة، وعشرون في اليوم، وثلاثة للمهمة الواحدة في الساعة. وحتى العميل الذي يتجاوز هذه الصفحة كلياً يُرفض."}},
  {t:{en:"No unauthorised access",ar:"لا وصول غير مصرّح"}, st:"pass",
-  d:{en:"Nothing is stored and nothing is transmitted, so there is no session, no account and no record to reach.",ar:"لا شيء يُخزَّن ولا شيء يُرسَل، فلا جلسة ولا حساب ولا سجل يمكن الوصول إليه."}},
+  d:{en:"Row level security is on for all eight tables and every policy is scoped to the signed-in account. The three views run as the caller rather than as their owner, which is the setting easiest to get wrong and the one that would hand every row to everybody. The settings row has security on and no policy at all, so only the database's own functions read it.",
+     ar:"أمن مستوى الصف مفعّل على الجداول الثمانية كلها، وكل سياسة محصورة بالحساب المسجَّل. وتعمل العروض الثلاثة بصلاحية المستدعي لا بصلاحية مالكها، وهو الإعداد الأسهل خطأً والذي كان سيسلّم كل صف للجميع. أما صفّ الإعدادات فعليه الأمن بلا أي سياسة، فلا تقرؤه إلا دوال قاعدة البيانات نفسها."}},
+ {t:{en:"Prompt injection",ar:"حقن التوجيهات"}, st:"pass",
+  d:{en:"An objective that contains an instruction rather than a research question is flagged, named in the output and refused. The flag is stored against the mission, raised once, and cannot be lowered from the browser.",
+     ar:"الهدف الذي يحتوي أمراً بدل سؤال بحثي يُعلَّم ويُسمّى في المخرجات ويُرفض. وتُخزَّن العلامة على المهمة، وتُرفع مرة واحدة، ولا يمكن إنزالها من المتصفح."}},
+ {t:{en:"Audit trail",ar:"سجل التدقيق"}, st:"pass",
+  d:{en:"Every agent step is a row: what it did, which tool it used, whether it was allowed and why it was refused. A finished run refuses new steps, so the record cannot be rewritten afterwards.",
+     ar:"كل خطوة للوكيل صفّ: ما فعلته، وأي أداة استخدمت، وهل سُمح بها، ولماذا رُفضت. والتشغيل المنتهي يرفض خطوات جديدة، فلا يمكن إعادة كتابة السجل لاحقاً."}},
+ {t:{en:"Transport and headers",ar:"النقل والترويسات"}, st:"pass",
+  d:{en:"Served over HTTPS with HSTS, and a content security policy that names every origin this page may reach, with frame-ancestors none, object-src none and base-uri none. The policy is served with the page from vercel.json rather than asserted here.",
+     ar:"تُقدَّم الصفحة عبر HTTPS مع HSTS، وسياسة أمان محتوى تسمّي كل أصل يُسمح لها بالوصول إليه، مع frame-ancestors none وobject-src none وbase-uri none. وتُرسل السياسة مع الصفحة من vercel.json بدل أن تُدّعى هنا."}},
  {t:{en:"Agent guardrails",ar:"حواجز أمان الوكيل"}, st:"pass",
-  d:{en:"The ten rules above are implemented as code paths, and the agent cannot reach a recommendation without passing both decision gates.",ar:"القواعد العشر أعلاه منفَّذة كمسارات في الشيفرة، ولا يصل الوكيل إلى توصية دون اجتياز بوابتي القرار."}}
+  d:{en:"The sixteen rules in 04-agents/GUARDRAILS.md are grants and constraints rather than prompt text, and the cards above carry the rule number for each. The agent still cannot reach a recommendation without passing both decision gates.",
+     ar:"القواعد الست عشرة في 04-agents/GUARDRAILS.md صلاحيات وقيود لا نص توجيه، والبطاقات أعلاه تحمل رقم القاعدة لكل منها. ولا يزال الوكيل عاجزاً عن بلوغ توصية دون اجتياز بوابتي القرار."}}
 ];
 const BA_EX={
  input:{ t:{en:"Input handling",ar:"معالجة المدخلات"},
@@ -4126,8 +4525,21 @@ function renderTrust(){
   $("#guardList").innerHTML=GUARDS.map((g,i)=>'<div class="rule"><span class="rn">'+String(i+1).padStart(2,"0")+
     '</span><div><p>'+esc(L(g))+'</p><small>'+esc(L(g.s))+'</small></div></div>').join("");
   $("#grCount").textContent=GUARDS.length+" "+T("gr.act","ACTIVE");
+  /* THE TOKEN REFERENCE IS WRITTEN INTO THE MARKUP, NOT RESOLVED INTO IT.
+     css() is getComputedStyle(document.documentElement).getPropertyValue(n),
+     so it READS THE TOKEN ONCE, AT RENDER TIME, and freezes the value it
+     found into an inline style. An inline style cannot be reached by any
+     rule in any stylesheet, so these glyphs kept whatever the theme was
+     when the list was last built and never followed a theme change: switch
+     to light and the ticks stayed at their dark-mode values. Emitting
+     var(--green-text, var(--green)) instead leaves the resolution to the
+     cascade, where a theme switch is allowed to reach it.
+
+     Worth grepping for other css("--…") calls written into markup strings
+     for the same reason. The canvas ones are fine - those re-read on every
+     redraw, which is the difference. */
   $("#auditList").innerHTML=AUDIT.map(a=>'<div class="rule"><span class="rn" style="color:'+
-    (a.st==="pass"?css("--green"):css("--warn"))+'">'+(a.st==="pass"?"✓":"◑")+'</span><div><p>'+esc(L(a.t))+
+    (a.st==="pass"?'var(--green-text, var(--green))':'var(--amber-text, var(--warn))')+'">'+(a.st==="pass"?"✓":"◑")+'</span><div><p>'+esc(L(a.t))+
     ' <span class="tag" style="margin-inline-start:6px">'+esc(a.st==="pass"?T("gr.p","IMPLEMENTED"):T("gr.c","DESIGN ONLY"))+
     '</span></p><small>'+esc(L(a.d))+'</small></div></div>').join("");
   const tabs=$("#baTabs"); tabs.innerHTML="";
@@ -4138,35 +4550,6 @@ function renderTrust(){
     '<div class="bacell bad"><div class="bh">'+esc(T("gr.before","Before — vulnerable"))+'</div><pre>'+esc(ex.bad)+'</pre></div>'+
     '<div class="bacell good"><div class="bh">'+esc(T("gr.after","After — hardened"))+'</div><pre>'+esc(ex.good)+'</pre></div>';
   $("#baNote").textContent=L(ex.n);
-}
-
-/* ========================= TEAM ============================= */
-const ROLES={
- "r.lead":{t:{en:"Project Lead",ar:"قيادة المشروع"},
-  c:{en:"Owns the problem statement, the Kuwait green story, the 2035 framing and the judging narrative. Can defend why this is a national opportunity and what the platform does and does not claim.",
-     ar:"مسؤول عن صياغة المشكلة وقصة الكويت الخضراء وإطار ٢٠٣٥ وسردية التحكيم. يستطيع الدفاع عن كون هذا فرصة وطنية وعن ما يدّعيه النموذج وما لا يدّعيه."}},
- "r.ai":{t:{en:"AI & Data",ar:"الذكاء الاصطناعي والبيانات"},
-  c:{en:"Built the analyst's answer structure, the greening score, the confidence model and the reference dataset. Can explain every weighting and where it is arbitrary.",
-     ar:"بنى هيكل إجابة المحلّل ودرجة التشجير ونموذج الثقة ومجموعة بيانات العرض. يستطيع شرح كل ترجيح وأين يكون اعتباطياً."}},
- "r.sat":{t:{en:"Satellite Analysis",ar:"تحليل الأقمار الاصطناعية"},
-  c:{en:"Verified the KuwaitSat-1 record against primary sources, built the footprint map, the orbit model and the 39 m sampling grid. Can state precisely what the real satellite can and cannot do.",
-     ar:"تحقق من سجل كويت سات-١ مقابل المصادر الأولية، وبنى خريطة البصمة ونموذج المدار وشبكة العيّنات ٣٩ م. يستطيع تحديد ما يقدر عليه القمر الحقيقي وما لا يقدر."}},
- "r.fe":{t:{en:"Frontend & UX",ar:"الواجهة وتجربة المستخدم"},
-  c:{en:"Built the cinematic sequence, the bilingual RTL system, the 3D view and every chart. Can walk a judge through the interface without touching a slide.",
-     ar:"بنى التسلسل السينمائي ونظام العربية من اليمين إلى اليسار والعرض ثلاثي الأبعاد وكل الرسوم. يستطيع اصطحاب المحكّم عبر الواجهة دون شريحة واحدة."}},
- "r.sec":{t:{en:"Automation & Security",ar:"الأتمتة والأمن"},
-  c:{en:"Built the agent pipeline, both decision gates, the report generator and the guardrail set. Can show where each of the ten rules is enforced in code.",
-     ar:"بنى خط معالجة الوكيل وبوابتي القرار ومولّد التقارير ومجموعة حواجز الأمان. يستطيع بيان موضع تطبيق كل قاعدة من القواعد العشر في الشيفرة."}}
-};
-function renderTeam(){
-  $("#teamGrid").innerHTML=TEAM.map(m=>{
-    const r=ROLES[m.roleKey];
-    return '<div class="member"><div class="av">'+esc(m.initials)+'</div>'+
-      '<div><div class="nm">'+esc(m.name)+'</div><div class="rl">'+esc(L(r.t))+'</div></div>'+
-      '<p class="ct">'+esc(L(r.c))+'</p>'+
-      (/^Team member/.test(m.name)?'<span class="ph">'+esc(T("tm.ph","edit TEAM[] in the script"))+'</span>':'')+
-      '</div>';
-  }).join("");
 }
 
 /* ======================== SOURCES =========================== */
@@ -4212,7 +4595,8 @@ function renderSources(){
   $("#srcList").innerHTML=SOURCES.map((s,i)=>'<li><span class="tag">['+(i+1)+']</span> <a href="'+s.url+
     '" target="_blank" rel="noopener">'+esc(s.name)+'</a> ↗<br><span style="color:var(--ink-3);font-size:12px">'+
     esc(s.note)+'</span></li>').join("");
-  $("#notClaim").innerHTML=NOT_CLAIMED.map(n=>'<div class="rule"><span class="rn" style="color:'+css("--critical")+
+  /* Same frozen-at-render-time bug as #auditList above. */
+  $("#notClaim").innerHTML=NOT_CLAIMED.map(n=>'<div class="rule"><span class="rn" style="color:var(--red-text, var(--critical))'+
     '">✕</span><p style="font-size:13px;color:var(--ink-2)">'+esc(L(n))+'</p></div>').join("");
 }
 
@@ -4232,17 +4616,32 @@ const DEMO=[
 ];
 function renderDemo(){
   const hud=$("#demoHud"), pan=$("#demoPan");
+  /* Sampled HERE, before anything is redrawn. Read after the innerHTML
+     assignments below it is always false: replacing the panel's markup
+     destroys the focused button first, so document.activeElement has
+     already fallen back to <body> by the time the question is asked. */
+  const hadFocus=hud.contains(document.activeElement);
   hud.classList.toggle("on",S.demo.on);
   $("#demoBtn").classList.toggle("on",S.demo.on);
   if(!S.demo.on){ pan.innerHTML=""; return; }
   if(S.demo.i>=DEMO.length){
+    /* The count is read from DEMO, never typed. This line said "Ten
+       steps" while DEMO held eleven entries, and the closing card of a
+       tour is the worst place on the page to be out by one. The Arabic
+       puts the numeral behind a definite article, the same trick
+       js/ksat-shell.js uses for its section count: it sidesteps Arabic
+       number-noun agreement, which changes shape between 3-10 and 11+
+       and would otherwise need a plural engine for one sentence. */
+    const fin2=T("dm.fin2","{n} steps, one pipeline, every number badged for what it is.")
+                 .replace("{n}", DEMO.length);
     pan.innerHTML='<div class="demofin"><div class="dstep">'+esc(T("dm.end","END OF TOUR"))+'</div>'+
       '<h4>'+esc(T("dm.fin","FROM SPACE TO A GREENER KUWAIT"))+'</h4>'+
-      '<p style="margin-top:6px">'+esc(T("dm.fin2","Ten steps, one pipeline, every number badged for what it is."))+'</p>'+
+      '<p style="margin-top:6px">'+esc(fin2)+'</p>'+
       '<div class="dacts" style="justify-content:center"><button class="btn sm pri" id="dmRestart">'+
         esc(T("dm.again","Run it again"))+'</button><button class="btn sm" id="dmClose">'+esc(T("dm.close","Close"))+'</button></div></div>';
     $("#dmRestart").onclick=()=>{S.demo.i=0; renderDemo(); goDemo();};
     $("#dmClose").onclick=()=>{S.demo.on=false; renderDemo();};
+    if(hadFocus) refocusDemo("#dmRestart");
     return;
   }
   const d=DEMO[S.demo.i];
@@ -4256,6 +4655,23 @@ function renderDemo(){
   $("#dmPrev").onclick=()=>{S.demo.i=Math.max(0,S.demo.i-1); renderDemo(); goDemo();};
   $("#dmNext").onclick=()=>{S.demo.i++; renderDemo(); goDemo();};
   $("#dmExit").onclick=()=>{S.demo.on=false; renderDemo();};
+  /* FOCUS SURVIVES THE REDRAW. Every press of Next replaces this panel's
+     innerHTML, which destroys the button that was focused and drops
+     focus to <body> - so a keyboard visitor had to tab back in from the
+     top of the document for every single step of an eleven-step tour.
+     Guarded on focus having been inside the HUD already: opening the
+     tour from #demoBtn or #heroTour must leave focus where the visitor
+     put it, and only a press of Prev/Next should move it. preventScroll
+     because goDemo() runs straight after and owns the scrolling. */
+  if(hadFocus) refocusDemo("#dmNext");
+}
+/* Put focus back on the control that replaced the one the visitor was
+   using. preventScroll because goDemo() runs straight after this and owns
+   the scrolling; the try/catch is for older engines that treat focus()'s
+   options argument as undefined rather than ignoring it. */
+function refocusDemo(sel){
+  const b=$(sel); if(!b) return;
+  try{ b.focus({preventScroll:true}); }catch(e){ b.focus(); }
 }
 function goDemo(){
   const d=DEMO[S.demo.i]; if(!d) return;
@@ -4299,7 +4715,7 @@ function renderAll(){
     '<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#33475F" stroke-width="1.3"/><path d="M8 12h8M12 8v8" stroke="#33475F" stroke-width="1.3" stroke-linecap="round"/></svg>'+
     '</div>'+esc(T("ag.empty","Set your thresholds and run the agent. It will stop wherever the data tells it to."))+'</div>';
   renderPassLog(); renderBuilders(); renderAnalyst();
-  renderStory(); renderV35(); renderTrust(); renderTeam(); renderSources(); renderDemo();
+  renderStory(); renderV35(); renderTrust(); renderSources(); renderDemo();
   if(S.ag.report) $("#reportBody").textContent=buildReport();
 }
 
@@ -4334,7 +4750,7 @@ function bind(){
   $("#exIn").onclick=()=>{S.ex.view.z=clamp(S.ex.view.z*1.5,0.5,8); drawExplorer();};
   $("#exOut").onclick=()=>{S.ex.view.z=clamp(S.ex.view.z/1.5,0.5,8); drawExplorer();};
   $("#exReset").onclick=()=>{S.ex.view={x:0,y:0,z:1,fx:0,fy:0}; drawExplorer();};
-  const ex=$("#explorer"); let exd=null;
+  const ex=$("#exViewer"); let exd=null;
   ex.addEventListener("pointerdown",e=>{exd={x:e.clientX,y:e.clientY,vx:S.ex.view.x,vy:S.ex.view.y};
     ex.classList.add("drag"); ex.setPointerCapture(e.pointerId);});
   ex.addEventListener("pointermove",e=>{ if(!exd) return;
@@ -5056,7 +5472,7 @@ function renderPillars(){
     '<p class="sub" style="margin-top:0">'+esc(T("v35.pp","As published by the Ministry of Foreign Affairs of the State of Kuwait. One pillar is directly environmental; this platform is written against that one. No endorsement is claimed or implied."))+
     ' '+srcChips([8])+'</p>'+
     '<div class="chips mt-s">'+PILLARS.map(p=>'<span class="chip" style="cursor:default'+
-      (p.key?';background:rgba(64,173,96,.14);border-color:#1F5D37;color:#9FE0B5':'')+'">'+esc(L(p))+'</span>').join("")+'</div>';
+      (p.key?';background:rgba(64,173,96,.14);border-color:#1F5D37;color:var(--green-text, #9FE0B5)':'')+'">'+esc(L(p))+'</span>').join("")+'</div>';
 }
 
 /* ====================== SECTION RENUMBERING ====================== */
@@ -5484,7 +5900,7 @@ const AGENTS=[
         '<dl class="ag-kv"><dt>Zone</dt><dd>'+esc(o.zone.id)+'</dd>'+
         '<dt>Cover now</dt><dd>'+p.from+'%</dd>'+
         '<dt>Cover after</dt><dd>'+p.to+'%</dd>'+
-        '<dt>Uplift</dt><dd style="color:var(--green-lt)">+'+p.uplift+' percentage points</dd></dl>')
+        '<dt>Uplift</dt><dd style="color:var(--green-text, var(--green-lt))">+'+p.uplift+' percentage points</dd></dl>')
      + block("Predicted outcomes",
         '<div class="pred"><div class="pv2">−'+p.lstLo+' to −'+p.lstHi+' °C</div>'+
         '<div class="pr">Land surface temperature, daytime</div>'+
@@ -6014,5 +6430,57 @@ addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcD
 <script src="js/ksat-density.js"></script>
 <script src="js/ksat-i18n.js"></script>
 <script src="js/ksat-motion.js"></script>
+
+<!-- The guided-tour layer, last of all and deliberately a CLASSIC
+     script. It reads this page's top-level `const S` and `const DEMO`
+     as bare identifiers, which only resolves because classic scripts
+     share one global lexical environment - adding type="module" or
+     moving it above ksat-i18n.js would break it silently rather than
+     loudly. It has to come after ksat-shell.js (its spotlight follows
+     that file's scrollIntoView redirect) and after ksat-i18n.js (so
+     <html lang> is already set when it paints its first strip). -->
+<script src="js/ksat-tour.js"></script>
+
+<!-- ============ THE THREE NEW LAYERS =============================
+     All three are CLASSIC scripts, and that is load-bearing rather
+     than incidental. Each one reads this page's top-level bindings by
+     bare name - ksat-nav.js reads NAV, ksat-export.js reads REGIONS,
+     SERIES, METRICS, SOURCES, PROV, CLAIMS, EPOCHS, SCENES, S and agg,
+     ksat-session.js reads LAYERS and MAP_METRICS. Those are top-level
+     `const` in this page's classic script blocks, which makes them
+     global LEXICAL bindings shared between classic scripts but NOT
+     properties of window. Adding type="module" to any of these three
+     gives it its own scope, every one of those lookups goes undefined,
+     and each file then fails the quiet way: the nav never folds, the
+     export writes empty files, the session bar refuses every stored
+     value. Nothing throws, which is why it is written down here.
+
+     WHY THIS ORDER. None of the three reads another, so what fixes the
+     order is what each reads from the page:
+
+       ksat-nav.js      first, because it restructures the masthead. It
+                        needs js/ksat-shell.js (it waits on
+                        html[data-ksat-shell="ready"] and reads the
+                        chapter rail) and js/ksat-i18n.js (so <html
+                        lang> and dir are settled before it paints the
+                        group names).
+       ksat-session.js  after the nav, because its bar measures .bar's
+                        live lower edge on every scroll and the nav is
+                        what changes .bar's height. It re-measures on
+                        scroll so it would recover either way; running
+                        second just means it is never briefly wrong.
+                        It also wants js/ksat-shell.js ahead of it for
+                        the window bridge, the scrollIntoView patch and
+                        the ksat:identity event.
+       ksat-export.js   last of all, because it reads RENDERED DOM -
+                        #regionTable and #cmpResult are filled by
+                        renderAll(), not present in the markup.
+
+     The guided tour above keeps its place: it was here first and
+     nothing below it reads anything it defines.
+     ================================================================ -->
+<script src="js/ksat-nav.js"></script>
+<script src="js/ksat-session.js"></script>
+<script src="js/ksat-export.js"></script>
 </body>
 </html>

@@ -1,0 +1,103 @@
+/* ============================================================
+   KuwaitSat — the brand mark
+   Owner: 01 Front End
+
+   The supplied emblem is a cream seal: a navy ring around a
+   satellite-image map of Kuwait, an orbit swoosh, a four-point
+   star, and the wordmark. At 26px in a near-black mission bar a
+   cream disc reads as a sticker and the wordmark inside it is
+   illegible mush, so the seal is split in two:
+
+     - the FULL emblem (assets/brand/ksat-emblem.png) is used
+       where it has room to be itself — the hero plate, the
+       footer, the favicon, the social card, the README;
+
+     - the MARK below redraws the seal's four motifs — orbit,
+       landmass, satellite, star — as vector, in the platform's
+       own teal and green, so it holds at 26px on the void and
+       can actually move.
+
+   The motion is deliberately small. An orbit that flows, a
+   satellite that rides it, a star that breathes. Nothing that
+   competes with the page, and nothing at all under
+   prefers-reduced-motion.
+   ============================================================ */
+
+.mk{
+  width:26px; height:26px; flex:0 0 auto;
+  overflow:visible;                 /* the satellite's glow sits proud of the box */
+}
+
+/* the seal ring */
+.mk-ring{ stroke:var(--accent-dim,#1E7F7C); stroke-width:1.1; opacity:.5; fill:none }
+
+/* Kuwait, drawn from the same boundary coordinates the maps use */
+.mk-land{ fill:url(#mkLand); opacity:.95 }
+.mk-land-edge{ stroke:var(--green-lt,#8FD8A3); stroke-width:.5; fill:none; opacity:.55 }
+
+/* the orbit: a still ellipse with a lit arc travelling round it */
+.mk-orbit{ stroke:var(--accent,#3FD0C9); stroke-width:1.05; fill:none; opacity:.28 }
+.mk-orbit-arc{
+  stroke:var(--accent,#3FD0C9); stroke-width:1.35; fill:none;
+  stroke-linecap:round; stroke-dasharray:13 62; stroke-dashoffset:0;
+  filter:drop-shadow(0 0 2.5px rgba(63,208,201,.55));
+  animation:mk-flow 9s linear infinite;
+}
+@keyframes mk-flow{ to{ stroke-dashoffset:-75 } }
+
+/* The satellite rides the same ellipse via offset-path. If a browser has
+   no motion path, the static transform below leaves it parked on the
+   orbit rather than collapsed into the corner of the viewBox. */
+.mk-sat{ transform:translate(30px,14.2px) }
+@supports (offset-path: path("M0,0 L1,1")){
+  .mk-sat{
+    transform:none;
+    offset-path:path("M1,16 A15,6.6 0 1,1 31,16 A15,6.6 0 1,1 1,16");
+    offset-rotate:0deg;
+    animation:mk-ride 9s linear infinite;
+  }
+}
+@keyframes mk-ride{ from{ offset-distance:0% } to{ offset-distance:100% } }
+.mk-sat-body{ fill:var(--ink,#E9EFF7) }
+.mk-sat-panel{ fill:var(--accent,#3FD0C9); opacity:.9 }
+
+/* the four-point star breathes */
+.mk-star{ fill:var(--ink,#E9EFF7); opacity:.75; transform-origin:24.6px 8.4px;
+  animation:mk-twinkle 4.4s ease-in-out infinite }
+@keyframes mk-twinkle{
+  0%,100%{ opacity:.35; transform:scale(.82) }
+  50%    { opacity:.95; transform:scale(1.06) }
+}
+
+/* hover lifts the whole mark a touch — it is a button, it should answer */
+.brand:hover .mk-ring{ opacity:.8 }
+.brand:hover .mk-orbit{ opacity:.45 }
+
+/* ---------- the full emblem, where it has room ---------- */
+.ksat-emblem{
+  display:block; width:100%; height:auto; max-width:100%;
+  /* the seal is cream; on the void it wants a ring of its own light */
+  filter:drop-shadow(0 6px 30px rgba(63,208,201,.20))
+         drop-shadow(0 2px 10px rgba(0,0,0,.6));
+}
+.ksat-emblem-wrap{ position:relative; display:inline-block; line-height:0 }
+/* a slow halo behind the seal, the same two accents the page paints */
+.ksat-emblem-wrap::before{
+  content:""; position:absolute; inset:-14%; border-radius:50%; z-index:-1;
+  background:radial-gradient(circle at 50% 50%,rgba(63,208,201,.20),transparent 62%);
+  animation:mk-halo 7.5s ease-in-out infinite;
+}
+@keyframes mk-halo{
+  0%,100%{ transform:scale(.94); opacity:.5 }
+  50%    { transform:scale(1.06); opacity:.95 }
+}
+
+/* ---------- honour the setting ---------- */
+@media (prefers-reduced-motion: reduce){
+  .mk-orbit-arc, .mk-sat, .mk-star, .ksat-emblem-wrap::before{
+    animation:none !important;
+  }
+  /* park the satellite somewhere deliberate rather than at 0% */
+  .mk-sat{ offset-distance:18% }
+  .mk-star{ opacity:.75; transform:none }
+}
