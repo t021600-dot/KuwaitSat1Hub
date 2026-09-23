@@ -62,6 +62,44 @@
    ===================================================================== */
 html[data-ksat-tier="public"] #mission > .grid.g-53 { display: none; }
 
+/* THE CARD ROW GOES TOO, BECAUSE ITS FOUR DESTINATIONS DID.
+
+   js/ksat-home.js builds a row of four picture cards at the top of this
+   section: Mission record, Concept chain, Ground segment, Captured From
+   Space. The first three now live in the rail below and the fourth
+   pointed at #imagery, which the rule under this one takes off the
+   public page. Four cards that all land in the same place is worse than
+   no cards. One line, and trivially reversible. */
+html[data-ksat-tier="public"] #mission > .ksh-row { display: none; }
+
+/* =====================================================================
+   1b · "delte this", OVER THE ACQUISITION RECORD
+
+   #imagery is "Captured From Space": a heading, two paragraphs about
+   where the photographs are published, and five acquisition cards that
+   each repeat the same four fields — acquired, footprint, resolution,
+   credit — and then link out. The team quoted the whole of it back and
+   said delete it.
+
+   Hidden for the public tier, not removed, for the same reason as the
+   grid above: js/ksat-explore.js and js/ksat-shell.js both resolve this
+   section by id, and a signed-in researcher still has it. What a
+   VISITOR sees is the picture-led imagery further down the page.
+
+   js/ksat-explore.js now skips any destination whose computed display
+   is none, so the Explore panel drops its #imagery card and its topic
+   row on its own rather than offering a door with nothing behind it.
+   ===================================================================== */
+/* !important, and it earns it. js/ksat-shell.js hides the chapters a
+   reader is not in with the `hidden` attribute, and css/ksat-shell.css
+   gives THAT state a collapsed geometry rather than display:none — the
+   comment there explains why, and the upshot is that a chapter-hidden
+   section still computes to display:block. Without !important this rule
+   lost to that one, so #imagery came back the moment its chapter was
+   opened. It also makes the computed value honest, which is what
+   js/ksat-explore.js's reachable() reads. */
+html[data-ksat-tier="public"] #imagery { display: none !important; }
+
 
 /* =====================================================================
    2 · THE BLOCK
@@ -233,139 +271,81 @@ html[data-ksat-tier="public"] #mission > .grid.g-53 { display: none; }
   max-width: 70ch;
 }
 
-/* ---- 3a · four figures, each showing its working -------------------- */
-.kss-figs {
-  list-style: none;
-  margin: clamp(18px, 2vw, 26px) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(16px, 2vw, 30px);
-}
-@media (max-width: 1080px) { .kss-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px)  { .kss-figs { grid-template-columns: minmax(0, 1fr); } }
+/* ---- 3a · THE RAIL: EVERY FACT AS A CHIP, ONE LINE AT A TIME ------
 
-.kss-fig {
-  display: grid;
-  gap: 5px;
-  padding-top: 14px;
-  /* A rule above each figure rather than a box around it. This is the
-     one piece of furniture nasa.gov uses for a figure row and it is the
-     reason that row does not read as a set of cards. */
-  border-top: 2px solid var(--line-3);
-}
-.kss-fig__v {
-  font-family: var(--mono);
-  font-size: clamp(20px, 2vw, 25px);
-  font-weight: 500;
-  line-height: 1.1;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.kss-fig__l {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--ink-2);
-}
-.kss-fig__w {
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.55;
-  letter-spacing: .01em;
-  color: var(--ink-3);
-}
+   This replaces a twelve-row definition grid AND a six-card pipeline,
+   on the brief "present it in a minimalist way less text more
+   interactive way". The trade it makes is the useful one: the LABELS
+   are two or three words and the VALUES are the sentences, so the
+   labels go on screen as chips and the values arrive one at a time in
+   the line underneath. Eighteen facts, two lines of standing text.
 
-/* ---- 3b · the twelve entries, unfolded ------------------------------
-
-   THE GRID ITEM IS THE ENTRY, NOT THE CELL, and that is the whole of
-   this rule. Loose <dt> and <dd> children of a two track grid flow one
-   per track, so the first build put all twelve LABELS in the left
-   column and all twelve VALUES in the right, each label carrying a rule
-   that stopped halfway across the block and lined up with nothing.
-   js/ksat-spacecraft.js wraps each pair in a div — valid inside a <dl>
-   in HTML5 — and the div is what the grid places.
+   It answers to hover, to click and to keyboard focus, all three, and
+   that is on purpose. Hover alone is a touch screen with nothing on it;
+   click alone makes a reader work for something a glance should give
+   them; focus alone is what a keyboard reader gets and is usually the
+   one that is forgotten.
    --------------------------------------------------------------------- */
-.kss-dl {
-  margin: clamp(16px, 2vw, 24px) 0 0;
-  display: grid;
-  /* Two entries across on a wide screen. Twelve in one column is the
-     table again, only taller. */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: clamp(30px, 4vw, 64px);
+.kss-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: clamp(16px, 2vw, 22px);
 }
-@media (max-width: 860px) { .kss-dl { grid-template-columns: minmax(0, 1fr); } }
 
-.kss-e {
-  display: grid;
-  gap: 4px;
-  padding: 13px 0 15px;
-  border-top: 1px solid var(--line);
-  align-content: start;
+.kss-chip {
+  appearance: none;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.2;
+  color: var(--ink-2);
+  background: none;
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  padding: 7px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .14s ease, border-color .14s ease;
 }
-.kss-dt {
+.kss-chip:hover { color: var(--ink); border-color: var(--line-3); }
+.kss-chip[aria-pressed="true"] {
+  color: var(--void);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.kss-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The pipeline steps are the same control with a different job, so they
+   are the same chip with a marker rather than a second component. The
+   word before them says where the record stops and the process starts.*/
+.kss-chips__lab {
+  align-self: center;
+  margin-inline-start: 10px;
+  padding-inline-end: 4px;
   font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: .11em;
+  font-size: 10px;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.kss-dd {
-  margin: 0;
-  font-size: 14.5px;
-  line-height: 1.5;
-  color: var(--ink);
-}
+.kss-chip--step { border-style: dashed; }
+.kss-chip--step[aria-pressed="true"] { border-style: solid; }
 
-/* ---- 3c · the chain, laid along the page ---------------------------- */
-/* THE NUMBER OF STEPS IS THE PAGE'S, NOT THIS FILE'S. #conceptFlow has
-   six of them today and had four when it was written. A fixed four
-   track grid puts 4 on one row and 2 orphaned on the next, which is the
-   worst of both. js/ksat-spacecraft.js publishes the count it actually
-   read, the same way js/ksat-explore.js does on its card list, and the
-   two cases that are not a clean row get a track count that divides. */
-.kss-steps {
-  list-style: none;
-  margin: clamp(18px, 2vw, 26px) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-  gap: clamp(16px, 2vw, 30px);
-}
-.kss-steps[data-count="5"],
-.kss-steps[data-count="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 1080px) {
-  .kss-steps,
-  .kss-steps[data-count="5"],
-  .kss-steps[data-count="6"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 560px) {
-  .kss-steps,
-  .kss-steps[data-count="5"],
-  .kss-steps[data-count="6"] { grid-template-columns: minmax(0, 1fr); }
-}
-
-.kss-step {
-  display: grid;
-  gap: 6px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line-3);
-}
-.kss-step__n {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: .12em;
-  color: var(--accent);
-}
-.kss-step__t {
-  font-family: var(--disp);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.kss-step__d {
-  font-size: 13.5px;
+/* THE LINE. It is given a fixed minimum height so that changing chips
+   does not make the page below it jump, which is the one thing that
+   would make this control unpleasant to sweep across. Three lines at
+   this size covers the longest entry in the record (the ground station
+   one) at the narrowest width this layout allows. */
+.kss-out {
+  margin: 18px 0 0;
+  min-height: 4.6em;
+  font-size: clamp(15px, 1.2vw, 17.5px);
   line-height: 1.55;
-  color: var(--ink-2);
+  color: var(--ink);
+  max-width: 62ch;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kss-out { transition: opacity .12s ease; }
 }
 
 
@@ -373,29 +353,30 @@ html[data-ksat-tier="public"] #mission > .grid.g-53 { display: none; }
    4 · RIGHT TO LEFT
 
    js/ksat-spacecraft.js sets dir on the block itself, so every logical
-   property above flips for free. Two things do not, because they are
-   physical by nature:
+   property above flips for free. One thing does not, because it is
+   physical by nature.
    ===================================================================== */
-.kss[dir="rtl"] .kss-fig__w,
-.kss[dir="rtl"] .kss-fig__v {
-  /* A formula and a numeral are left-to-right runs even inside an
-     Arabic paragraph. Without this the "→" in the working line jumps to
-     the wrong end of it. */
-  direction: ltr;
-  text-align: right;
+.kss[dir="rtl"] .kss-chips__lab {
+  /* Tracking is a Latin idea. Letter-spacing an Arabic word pulls its
+     joined letters apart, which is not emphasis, it is damage. */
+  letter-spacing: 0;
 }
-.kss[dir="rtl"] .kss-dt { letter-spacing: 0; }   /* tracking is a Latin idea */
 
 
 /* =====================================================================
    5 · PRINT
 
    The photograph is 130KB of dark pixels and a page of it is a page of
-   toner. The figures and the record are the part worth carrying out of
-   the room.
+   toner. The rail is the part worth carrying out of the room — but a
+   control that reveals one entry at a time prints as one entry, so on
+   paper the chips go and the line stays. There is a real limitation
+   here and it is better named than hidden: a printed copy of this page
+   carries the readings and the picture caption, not the record. The
+   record is a table on the researcher side and in the repository.
    ===================================================================== */
 @media print {
   .kss-shot { display: none; }
-  .kss-top, .kss-read, .kss-figs, .kss-dl, .kss-steps { grid-template-columns: 1fr 1fr; }
+  .kss-read { grid-template-columns: 1fr 1fr; }
+  .kss-chips { display: none; }
   .kss-part { break-inside: avoid; }
 }

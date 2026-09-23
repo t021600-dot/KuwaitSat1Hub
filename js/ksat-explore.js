@@ -440,7 +440,16 @@
         { sec: 'orbit',   art: 'low',  meta: 'model' }
       ] },
 
-    { key: 'space',   sec: 'imagery',
+    /* sec was 'imagery' and is now 'globe'. css/ksat-spacecraft.css
+       takes #imagery off the public tier — the team quoted its whole
+       acquisition record back and said delete it — and a topic row
+       whose destination is gone drops out of the menu entirely, which
+       would have cost the public menu a whole chapter. #globe is
+       "Kuwait From Above", it is public, and it is the section this
+       topic is actually about. The imagery CARD below stays in the
+       list: reachable() drops it on the public tier and a signed-in
+       researcher, who still has that section, still gets it. */
+    { key: 'space',   sec: 'globe',
       name: { en: 'Kuwait From Space',  ar: 'الكويت من الفضاء' },
       cards: [
         { sec: 'imagery', art: 'near', meta: 'optics' },
@@ -803,15 +812,35 @@
     if (b) b.setAttribute('aria-controls', 'ksat-ex');
   }
 
+  /* A DESTINATION HAS TO BE IN THE DOCUMENT AND ALSO ON THE SCREEN.
+
+     getElementById was enough while the only way a section left the
+     public page was being parked out of the DOM. It is not enough now:
+     css/ksat-spacecraft.css takes #imagery off the public tier with
+     display:none, and the node is deliberately still there both for
+     js/ksat-shell.js and for a signed-in researcher. A card or a topic
+     row pointing at it would open the panel, scroll, and land the
+     reader on nothing.
+
+     getComputedStyle on a handful of elements, only while this panel is
+     being painted, is not a cost worth optimising away. It also covers
+     every future case of the same shape without anyone having to
+     remember the rule. */
+  function reachable(id) {
+    var n = document.getElementById(id);
+    if (!n) return false;
+    try { return getComputedStyle(n).display !== 'none'; }
+    catch (e) { return true; }
+  }
+
   function buildRows() {
     list.innerHTML = '';
 
     TOPICS.forEach(function (topic) {
-      /* A row whose destination is not in the document does not appear.
-         Today that never fires, because all eight are public sections.
-         It fires the moment somebody parks one, and a menu that quietly
-         loses a row beats a menu with a row that goes nowhere. */
-      if (!document.getElementById(topic.sec)) return;
+      /* A row whose destination is not reachable does not appear. A
+         menu that quietly loses a row beats a menu with a row that goes
+         nowhere. */
+      if (!reachable(topic.sec)) return;
 
       var li = el('li');
       var b = el('button', 'ksat-ex-topic');
@@ -891,7 +920,7 @@
     if (!force && shownKey === key) return;
     shownKey = key;
 
-    var live = topic.cards.filter(function (c) { return !!document.getElementById(c.sec); });
+    var live = topic.cards.filter(function (c) { return reachable(c.sec); });
     cardWrap.setAttribute('data-count', String(live.length));
     cardWrap.innerHTML = '';
 
