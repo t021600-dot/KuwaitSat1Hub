@@ -1300,8 +1300,10 @@
     var srcs = doc.getElementById('geoSources');
     if (srcs) {
       clear(srcs);
-      [['Satellite (Sentinel-2)', 'Sentinel-2 cloudless 2021 by EOX. CC BY 4.0. ' +
-                                  'Modified Copernicus Sentinel data. Serves to zoom 16.'],
+      [['Satellite (Sentinel-2)', 'EOxCloudless (cloudless.eox.at) by EOX IT ' +
+                                  'Services GmbH. Contains modified Copernicus ' +
+                                  'Sentinel data 2021. CC BY-NC-SA 4.0, ' +
+                                  'non-commercial use. Serves to zoom 16.'],
        ['Street map', 'OpenStreetMap contributors. ODbL. The dark version is the same ' +
                       'tiles with a CSS filter, not a different source.'],
        ['Library', 'Leaflet 1.9.4, served from this site at vendor/leaflet.js. ' +
