@@ -34,42 +34,42 @@ body{ font-size:14px }
 
 .sub{ font-size:12px; line-height:1.55 }
 .label{ font-size:10px }
-.metric{ font-size:28px }
-td{ font-size:12px; line-height:1.55 }
-th{ font-size:9px }
-.notice{ font-size:12px; line-height:1.65; padding:12px 13px }
-.said{ font-size:12px; line-height:1.6 }
-.log{ font-size:11px; line-height:1.85 }
-.head h1{ font-size:28px }
-.head p{ font-size:13px }
-.kicker{ font-size:10px }
-.ct h3{ font-size:13px }
-.tag{ font-size:9px; padding:4px 7px }
+.metric{ font-size:30px }
+td{ font-size:13px; line-height:1.55 }
+th{ font-size:10px }
+.notice{ font-size:13px; line-height:1.65; padding:12px 13px }
+.said{ font-size:13px; line-height:1.6 }
+.log{ font-size:12px; line-height:1.85 }
+.head h1{ font-size:30px }
+.head p{ font-size:14px }
+.kicker{ font-size:11px }
+.ct h3{ font-size:14px }
+.tag{ font-size:10px; padding:4px 7px }
 .btn{ font-size:13px; padding:10px 14px }
-.field label{ font-size:9px }
-.field input, .field textarea, .field select, .search, .query{ font-size:13px }
-.agent strong{ font-size:12px }
-.agent small{ font-size:11px }
-.state{ font-size:9px }
-.rule{ font-size:12px }
-.stage span{ font-size:9px }
-.empty{ font-size:12px; padding:36px }
-aside button{ font-size:13px }
-aside h5{ font-size:10px }
+.field label{ font-size:10px }
+.field input, .field textarea, .field select, .search, .query{ font-size:14px }
+.agent strong{ font-size:13px }
+.agent small{ font-size:12px }
+.state{ font-size:10px }
+.rule{ font-size:13px }
+.stage span{ font-size:11px }
+.empty{ font-size:13px; padding:36px }
+aside button{ font-size:14px }
+aside h5{ font-size:11px }
 .nav button{ font-size:13px }
-.brand{ font-size:14px }
-.statusbar{ font-size:10px }
+.brand{ font-size:15px }
+.statusbar{ font-size:11px }
 
 .step b{ font-size:13px }
 .step small{ font-size:11px; line-height:1.65 }
 .step code{ font-size:11px }
 .finding h4{ font-size:12px }
 .finding p{ font-size:12px; line-height:1.7 }
-.detail dd{ font-size:12.5px }
+.detail dd{ font-size:13px }
 .detail dt{ font-size:9px }
-.sheet dd{ font-size:12.5px }
-.sheet dd small{ font-size:11px }
-.sheet dt{ font-size:9px }
+.sheet dd{ font-size:13px }
+.sheet dd small{ font-size:12px }
+.sheet dt{ font-size:10px }
 .aoi{ font-size:11px }
 .ksat-hud{ font-size:11px }
 .ksat-keys{ font-size:11px }
@@ -98,10 +98,10 @@ aside h5{ font-size:10px }
 .ksat-map--mini{ height:230px }
 
 /* The Leaflet furniture, restyled for a dark console. */
-.leaflet-container{ background:#070b0f; font:11px Arial,Helvetica,sans-serif; outline:none }
+.leaflet-container{ background:#070b0f; font:12px Arial,Helvetica,sans-serif; outline:none }
 .leaflet-control-attribution{
   background:#0b1116d9; color:#7d8b96; border-top:1px solid #1d2730;
-  font-size:9px; padding:2px 7px;
+  font-size:10px; padding:2px 7px;
 }
 .leaflet-control-attribution a{ color:#9bb4c6 }
 .leaflet-bar{ border:1px solid #34414c; box-shadow:none }
@@ -115,21 +115,21 @@ aside h5{ font-size:10px }
   border-radius:2px; box-shadow:none;
 }
 .leaflet-control-layers-expanded{ padding:9px 11px 9px 9px }
-.leaflet-control-layers label{ font-size:10px; margin:3px 0; display:block }
+.leaflet-control-layers label{ font-size:11px; margin:3px 0; display:block }
 .leaflet-control-layers-separator{ border-top:1px solid #26313b }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip{
   background:#0e141a; color:#dbe3e8; border:1px solid #3a4751;
   border-radius:2px; box-shadow:none;
 }
-.leaflet-popup-content{ margin:11px 13px; font-size:10px; line-height:1.6 }
-.leaflet-popup-content h4{ margin:0 0 6px; font-size:11px; font-weight:bold; color:var(--white) }
+.leaflet-popup-content{ margin:11px 13px; font-size:12px; line-height:1.6 }
+.leaflet-popup-content h4{ margin:0 0 6px; font-size:13px; font-weight:bold; color:var(--white) }
 .leaflet-popup-content img{ width:100%; display:block; margin:0 0 8px; border:1px solid var(--line) }
 .leaflet-popup-content dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:3px 9px }
-.leaflet-popup-content dt{ font-size:8px; color:#64737e; text-transform:uppercase;
+.leaflet-popup-content dt{ font-size:10px; color:#64737e; text-transform:uppercase;
                            letter-spacing:.08em; padding-top:2px }
-.leaflet-popup-content dd{ margin:0; font-size:10px; color:#c5ced4 }
-.leaflet-popup-content .btn{ margin-top:9px; padding:6px 9px; font-size:10px }
+.leaflet-popup-content dd{ margin:0; font-size:12px; color:#c5ced4 }
+.leaflet-popup-content .btn{ margin-top:9px; padding:6px 9px; font-size:12px }
 .leaflet-container a.leaflet-popup-close-button{ color:#8e9aa5 }
 .leaflet-container a.leaflet-popup-close-button:hover{ color:var(--white) }
 
@@ -151,16 +151,16 @@ aside h5{ font-size:10px }
    being an absolutely positioned div that forgets about the zoom bar. */
 .ksat-hud{
   background:#0b1116e6; border:1px solid #26313b; padding:7px 10px;
-  font-family:monospace; font-size:9px; line-height:1.7; color:#9aa8b2;
-  min-width:190px;
+  font-family:monospace; font-size:11px; line-height:1.7; color:#9aa8b2;
+  min-width:230px;
 }
 .ksat-hud b{ color:var(--white); font-weight:normal }
-.ksat-hud i{ font-style:normal; color:#64737e; display:inline-block; width:58px }
+.ksat-hud i{ font-style:normal; color:#64737e; display:inline-block; width:74px }
 
 /* The legend under a map: what each colour on it means. Written from the
    layers actually added, never hard coded - see js/ksat-geo.js. */
 .ksat-keys{ display:flex; flex-wrap:wrap; gap:6px 20px; margin-top:10px;
-            font-size:9px; color:#8e9aa5 }
+            font-size:11px; color:#8e9aa5 }
 .ksat-keys span{ display:flex; align-items:center; gap:7px }
 .ksat-keys i{ width:11px; height:11px; border-radius:2px; display:block; border:1px solid #0009 }
 
@@ -175,11 +175,11 @@ aside h5{ font-size:10px }
 .missionrow.open td{ background:#121a21 }
 
 .detail{ margin-top:12px }
-.detail .ct h3{ font-size:13px }
+.detail .ct h3{ font-size:14px }
 .detail dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:7px 16px }
-.detail dt{ font-size:8px; color:#64737e; text-transform:uppercase;
+.detail dt{ font-size:10px; color:#64737e; text-transform:uppercase;
             letter-spacing:.1em; padding-top:2px }
-.detail dd{ margin:0; font-size:11px; color:#c5ced4 }
+.detail dd{ margin:0; font-size:13px; color:#c5ced4 }
 
 /* The step list. Every row here is an agent_steps row read back OUT of
    the database - never the copy the page held while it was writing. */
@@ -191,7 +191,7 @@ aside h5{ font-size:10px }
 .step i{
   font-style:normal; width:20px; height:20px; display:grid; place-items:center;
   border:1px solid #51616d; background:#10161c; border-radius:50%;
-  font-size:8px; color:#a9bdc9;
+  font-size:10px; color:#a9bdc9;
 }
 .step.ok i{ background:#dce8ef; color:#0c1318; border-color:#dce8ef }
 .step.running i{ border-color:#9fc5dc; box-shadow:0 0 0 3px #9fc5dc18 }
@@ -228,9 +228,9 @@ aside h5{ font-size:10px }
 /* One line saying why this refusal was expected. It is the sentence a
    judge needs and a researcher should not have to be told twice. */
 .step .gloss{ color:#7c8a95; font-style:italic; margin-top:5px }
-.step b{ display:block; font-size:11px; color:var(--white); font-weight:normal }
-.step small{ display:block; color:#7c8a95; font-size:9px; margin-top:4px; line-height:1.6 }
-.step code{ font-family:monospace; font-size:9px; color:#9bb4c6 }
+.step b{ display:block; font-size:13px; color:var(--white); font-weight:normal }
+.step small{ display:block; color:#7c8a95; font-size:11px; margin-top:4px; line-height:1.6 }
+.step code{ font-family:monospace; font-size:11px; color:#9bb4c6 }
 .step .state{ white-space:nowrap; padding-top:3px }
 
 /* The refusal line is the evidence that the agent asked and was told no.
@@ -238,10 +238,10 @@ aside h5{ font-size:10px }
 .step .refusal{ color:var(--red); border-left:2px solid #553030;
                 padding-left:9px; margin-top:7px }
 
-.findings{ display:grid; grid-template-columns:repeat(auto-fill,minmax(252px,1fr)); gap:10px }
+.findings{ display:grid; grid-template-columns:repeat(auto-fill,minmax(272px,1fr)); gap:10px }
 .finding{ border:1px solid var(--line); padding:12px; background:var(--panel2) }
-.finding h4{ margin:0 0 5px; font-size:11px; font-weight:normal; color:var(--white) }
-.finding p{ margin:0; font-size:10px; color:#9ea8ae; line-height:1.7; white-space:pre-wrap }
+.finding h4{ margin:0 0 5px; font-size:13px; font-weight:normal; color:var(--white) }
+.finding p{ margin:0; font-size:12px; color:#9ea8ae; line-height:1.7; white-space:pre-wrap }
 
 /* =====================================================================
    REPORTS ARE PROSE, AND WERE BEING SET LIKE LOG OUTPUT
@@ -256,8 +256,8 @@ aside h5{ font-size:10px }
    platform the summary always carries the caveat that governs everything
    under it.
    ===================================================================== */
-.md{ font-size:14px; line-height:1.75; color:#ccd6de; max-width:68ch }
-.md h1{ font-size:24px; font-weight:normal; color:var(--white);
+.md{ font-size:15px; line-height:1.75; color:#ccd6de; max-width:68ch }
+.md h1{ font-size:26px; font-weight:normal; color:var(--white);
         margin:0 0 6px; line-height:1.2; letter-spacing:-.01em }
 .md h2{ font-size:11px; letter-spacing:.14em; text-transform:uppercase;
         color:#8ea3b2; margin:30px 0 10px; padding-bottom:6px;
@@ -279,7 +279,7 @@ aside h5{ font-size:10px }
    which is the exact misreading the paragraph exists to prevent. */
 .md p.caveat{
   background:#1a1410; border-left:3px solid var(--amber);
-  padding:13px 15px; margin:16px 0; color:#e4d9c6; font-size:13.5px;
+  padding:13px 15px; margin:16px 0; color:#e4d9c6; font-size:14px;
 }
 
 /* ---------------------------------------------------------------------
@@ -305,7 +305,7 @@ aside h5{ font-size:10px }
 @media(max-width:1180px){ .reportgrid{ grid-template-columns:minmax(0,1fr) } }
 
 .reportaside{ position:sticky; top:14px }
-.reportaside h4{ font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+.reportaside h4{ font-size:11px; letter-spacing:.13em; text-transform:uppercase;
                  color:#8ea3b2; margin:0 0 8px }
 .reportaside .ksat-map{ height:330px }
 .reportaside .sub{ margin-top:8px }
@@ -349,7 +349,7 @@ aside h5{ font-size:10px }
         gap:20px; align-items:start }
 @media(max-width:860px){ .mform{ grid-template-columns:minmax(0,1fr) } }
 
-.aoi{ font-family:monospace; font-size:9px; color:#9aa8b2; line-height:1.7;
+.aoi{ font-family:monospace; font-size:11px; color:#9aa8b2; line-height:1.7;
       border:1px solid #26313b; padding:9px 10px; background:#0a0f13; margin-top:9px }
 .aoi b{ color:var(--white); font-weight:normal }
 .aoi.bad{ border-color:#553030; color:var(--red) }
@@ -357,7 +357,7 @@ aside h5{ font-size:10px }
 .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:9px }
 .chips button{
   background:#141b22; border:1px solid #34414c; color:#c3ccd3;
-  font-size:9px; padding:6px 9px; cursor:pointer; border-radius:2px;
+  font-size:11px; padding:6px 9px; cursor:pointer; border-radius:2px;
 }
 .chips button:hover{ background:#1a232b; color:var(--white) }
 .chips button.on{ background:#dce9f1; color:#0b1116; border-color:#dce9f1 }
@@ -379,7 +379,7 @@ aside h5{ font-size:10px }
 .scrolly th{ position:sticky; top:0; background:var(--panel); z-index:1 }
 
 .dim{ color:var(--dim) }
-.mono{ font-family:monospace; font-size:9px }
+.mono{ font-family:monospace; font-size:11px }
 .nowrap{ white-space:nowrap }
 .wrap{ white-space:normal; word-break:break-word }
 
@@ -442,3 +442,72 @@ aside h5{ font-size:10px }
   html.ksat-printing .md strong{ color:#000; max-width:none }
   html.ksat-printing .md h2{ color:#333 }
 }
+
+/* =====================================================================
+   7 . THE THINGS A BIGGER TYPE SCALE EXPOSES
+   Owner: 01 Front end
+
+   Raising the workspace from its delivered 7-11px floor surfaced three
+   layout faults that were already there and already breaking on a
+   949px laptop. They are fixed here rather than by holding the type
+   down to hide them.
+
+   >>> THE NAV SCROLLS AT EVERY WIDTH, NOT BELOW 900px <<<
+   researcher.css hides nav buttons 4 and up below 900px. THIS sheet put
+   them back below 900px and let the row scroll. Between the two, a
+   viewport of 901px and up gets all eight buttons and NO scroll rescue.
+   Measured on the machine this is built for: a 949px window needs about
+   1345px for .brand + eight nav labels + the account block, so the row
+   wraps, and .top was a hard height:74px, so the second line escaped
+   the bar and landed on the page.
+
+   Moving the breakpoint to 1100px would have fixed the nav and also
+   collapsed the New Mission modal to one column and shrunk every map at
+   1000px, because those rules share the query. A scroll container costs
+   nothing when it is not needed, so the nav simply scrolls at all
+   widths and no breakpoint moves. .top is min-height in researcher.css
+   for the same reason: if it ever does wrap, the bar grows instead of
+   spilling.
+
+   WHAT ACTUALLY HAPPENS AT 949px, measured rather than predicted. The
+   row does not wrap: .nav is flex:1 with no min-width, so it refuses to
+   shrink below its content and pushes the whole PAGE into horizontal
+   overflow instead. Same cause, worse symptom, because a sideways page
+   takes the sidebar and the table with it. After this rule the nav
+   reports scrollWidth > clientWidth and overflow-x:auto, so it owns its
+   own overflow and the page stays put.
+
+   >>> THE STATUS BAR NOWRAP GUARD APPLIES EVERYWHERE <<<
+   researcher.css has overflow:hidden and white-space:nowrap on
+   .statusbar, but only inside its max-width:900px query, so the one
+   width that needed it did not have it. .statusbar is a hard 31px and
+   the five uppercase spans need about 899px at the new 11px. It is a
+   base rule now.
+
+   >>> LONG TOKENS IN A FINDING <<<
+   .finding p is white-space:pre-wrap, so a bbox string or a table name
+   does not break. At 10px it reached the card edge; at 12px it would
+   pass it.
+   ===================================================================== */
+
+.nav{ overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch }
+.nav button{ white-space:nowrap; flex:0 0 auto }
+
+/* Chrome and Firefox both show a scrollbar on an overflowing flex row.
+   The row is 74px tall and a 15px bar inside it reads as a defect, so
+   it is hidden. The row still scrolls by wheel, trackpad and keyboard. */
+.nav{ scrollbar-width:none }
+.nav::-webkit-scrollbar{ display:none }
+
+.statusbar{ overflow:hidden; white-space:nowrap }
+
+.finding p{ overflow-wrap:anywhere }
+
+/* The signed-in name is clipped with an ellipsis at a fixed width.
+   At 13px it truncates about 30% sooner than it did at 10px. */
+.who .name{ max-width:250px }
+
+/* Two .btn overrides live in sheets that load after this one and would
+   otherwise stay at 10px while everything around them moved. */
+.ksat-ap .ct .btn,
+.ksat-area-chosen .btn{ font-size:11px }
