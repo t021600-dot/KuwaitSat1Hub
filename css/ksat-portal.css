@@ -1,0 +1,214 @@
+/* =====================================================================
+   ksat-portal.css - THE STAFF PORTAL
+   Owner: 01 Front end
+
+   Dresses portal.html on top of ksat-researcher.css and
+   ksat-workspace.css, which it loads first. Everything specific to this
+   page is prefixed .prov, .tile, .resume, .ib, .item, .track or
+   .provkey, so nothing here can reach the workspace.
+
+   THE FOUR TAGS ARE THE DESIGN. They are not badges bolted on at the
+   end: the page is arranged so that every panel can carry exactly one,
+   and a reader can sweep the page and see at a glance how much of it is
+   read from the database and how much is not. A portal that looked
+   uniformly "real" would be lying about three quarters of itself.
+   ===================================================================== */
+
+.asidelink {
+  display: block;
+  padding: 9px;
+  border-radius: 3px;
+  color: #9ba7b1;
+  text-decoration: none;
+}
+.asidelink:hover { background: #151c23; color: #eef2f5 }
+
+/* =====================================================================
+   THE PROVENANCE TAGS
+   ===================================================================== */
+.prov {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 3px 7px;
+  border: 1px solid;
+  border-radius: 2px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.prov.live     { color: #79bd96; border-color: #35543f; background: #101a14 }
+.prov.derived  { color: #8eb9d8; border-color: #2f4657; background: #0f1720 }
+.prov.record   { color: #c9a86a; border-color: #55462c; background: #1a160f }
+.prov.notbuilt { color: #8e9aa5; border-color: #3a444d; background: #12171c }
+
+.provkey { margin: 4px 0 0 }
+.provkey dt { margin-top: 10px }
+.provkey dd {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #9ea8ae;
+  line-height: 1.65;
+}
+
+/* =====================================================================
+   PICK UP WHERE YOU LEFT OFF
+   ===================================================================== */
+.resume { margin-top: 2px }
+
+.resumerow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid #1d262e;
+  text-decoration: none;
+  color: inherit;
+}
+.resumerow:last-child { border-bottom: 0 }
+.resumerow:hover { background: #11181e }
+.resumerow > div { flex: 1; min-width: 0 }
+.resumerow b {
+  display: block;
+  font-size: 13px;
+  font-weight: normal;
+  color: var(--white, #f5f7f8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.resumerow small {
+  display: block;
+  font-size: 11px;
+  color: #6b7a85;
+  margin-top: 3px;
+}
+.tag.red { color: #d88484; border-color: #553232 }
+
+/* =====================================================================
+   WHAT CHANGED
+   ===================================================================== */
+.inbox { margin-top: 2px }
+
+.ibrow {
+  display: flex;
+  gap: 12px;
+  padding: 11px 2px 11px 10px;
+  border-bottom: 1px solid #1d262e;
+  border-left: 2px solid transparent;
+}
+.ibrow:last-child { border-bottom: 0 }
+.ibrow .txt { font-size: 13px; color: #c5ced4; line-height: 1.6 }
+.ibrow .sub { font-size: 11px; margin-top: 4px }
+
+.ibrow .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-top: 7px;
+  flex: 0 0 7px;
+  background: #4a5862;
+}
+.ibrow.run     .dot { background: #79bd96 }
+.ibrow.signed  .dot { background: #dce9f1 }
+.ibrow.open    .dot { background: #d2ad68 }
+.ibrow.refused .dot { background: #8eb9d8 }
+.ibrow.flag    .dot { background: #d88484 }
+
+/* Newer than the last "mark as seen". Stored in this browser only,
+   which the panel says in words. */
+.ibrow.fresh { border-left-color: #9fc5dc; background: #101922 }
+.ibrow.fresh .txt { color: #eef3f6 }
+
+/* =====================================================================
+   SERVICE TILES
+   ===================================================================== */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+  gap: 11px;
+  margin-top: 4px;
+}
+
+.tile {
+  display: block;
+  padding: 14px;
+  border: 1px solid #2b3740;
+  background: #0d141a;
+  text-decoration: none;
+  color: inherit;
+}
+.tile b {
+  display: block;
+  font-size: 13px;
+  font-weight: normal;
+  color: var(--white, #f5f7f8);
+  margin-bottom: 6px;
+}
+.tile span {
+  display: block;
+  font-size: 11.5px;
+  color: #8b96a0;
+  line-height: 1.6;
+}
+a.tile:hover { background: #141d25; border-color: #3c4a55 }
+
+/* NOT BUILT: drawn at full fidelity and inert on purpose. Dimmed rather
+   than hidden, and it does not respond to a hover, so the difference is
+   legible before anybody clicks. */
+.tile.dead {
+  opacity: 0.62;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+.tile.dead .prov { margin-top: 9px }
+
+/* =====================================================================
+   PROGRAMME RECORD
+   ===================================================================== */
+.item {
+  padding: 14px 0;
+  border-bottom: 1px solid #1d262e;
+}
+.item:last-child { border-bottom: 0 }
+.item h4 {
+  margin: 0 0 7px;
+  font-size: 14px;
+  font-weight: normal;
+  color: var(--white, #f5f7f8);
+  line-height: 1.4;
+}
+.item p {
+  margin: 0;
+  font-size: 12.5px;
+  color: #9ea8ae;
+  line-height: 1.7;
+}
+.item .src {
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: #66737e;
+  font-family: monospace;
+}
+
+.track {
+  padding: 11px 0;
+  border-bottom: 1px solid #1d262e;
+}
+.track:last-child { border-bottom: 0 }
+.track b {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  color: #cbd6dd;
+  letter-spacing: 0.04em;
+}
+.track span {
+  display: block;
+  font-size: 11.5px;
+  color: #8b96a0;
+  line-height: 1.65;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .tiles { grid-template-columns: minmax(0, 1fr) }
+}

@@ -99,6 +99,20 @@
 #     Fetch it signed out and you get a page that tells you nothing.
 !researcher.html
 
+#     portal.html is the staff portal: the account, what changed, the
+#     services and the programme record. Same rule as researcher.html
+#     and it is safe for the same reason. The file is an EMPTY shell.
+#     Every figure on it arrives over an authenticated PostgREST call
+#     that row level security answers, and the only content written INTO
+#     the file is the programme record, which is public fact about this
+#     repository with its source named on every item.
+#
+#     Without this line the page is denied by the `*` above and serves a
+#     404, which is silent: the deploy succeeds, the link in the
+#     workspace header is live, and the first person to press it is
+#     whoever is standing in front of the room.
+!portal.html
+
 !api
 !api/**
 

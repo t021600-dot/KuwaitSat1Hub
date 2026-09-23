@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staff Portal &middot; KuwaitSat-1</title>
+<meta name="description" content="KuwaitSat-1 staff portal: account, notices, services and programme record.">
+<link rel="icon" href="assets/brand/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+
+<!-- =====================================================================
+     portal.html - THE OTHER HALF OF A RESEARCHER'S DAY
+     Owner: 01 Front end
+
+     researcher.html is the instrument. This is everything else: the
+     account, what changed while you were away, the services, and the
+     record of the programme you work on.
+
+     >>> EVERY PANEL CARRIES ONE OF FOUR TAGS, AND THEY MEAN THINGS <<<
+       LIVE        read from the database just now, under your own
+                   sign-in. If the read fails the panel says so.
+       DERIVED     computed in this browser from rows you can already
+                   read. Nothing is pushed and nothing is stored.
+       RECORD      checkable fact about this programme, written into
+                   this page. Every item carries its source.
+       NOT BUILT   the shape of a service that does not exist. Drawn at
+                   full fidelity, deliberately inert, and each one says
+                   what it would need.
+
+     The temptation on a page like this is a wall of plausible
+     organisational furniture - eleven unread messages, a staff
+     directory, three upcoming events - none of which exists. That
+     would be the one lie on a platform whose whole argument is that
+     nothing on screen is invented. So the seeded content here is not
+     invented ORGANISATIONAL data dressed with a disclaimer; it is
+     content that is TRUE and checkable about this programme, which
+     makes the labelling honest by construction.
+     ===================================================================== -->
+
+<link rel="stylesheet" href="css/ksat-researcher.css">
+<link rel="stylesheet" href="css/ksat-stars.css">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="css/ksat-workspace.css">
+<link rel="stylesheet" href="css/ksat-spark.css">
+<link rel="stylesheet" href="css/ksat-portal.css">
+</head>
+<body>
+
+<div id="entry" class="entrybox"><div>
+  <div class="entrytitle">KUWAITSAT-1</div>
+  <h2>Staff portal</h2>
+  <p id="entryMsg">Checking your session&hellip;</p>
+</div></div>
+
+<div id="denied" hidden>
+  <h2>This portal is for enrolled researchers</h2>
+  <p>You are signed in, but this account is not enrolled on the KuwaitSat-1
+     programme. Nothing here is hidden from you by this page: the database
+     refuses the rows, and this page is only reporting that.</p>
+  <a class="btn" href="/">Back to the mission hub</a>
+</div>
+
+<header class="top">
+  <a class="brand" href="/" title="KuwaitSat-1 Mission Hub">
+    <img class="brandmark" src="assets/brand/ksat-emblem-192.png" alt="" width="34" height="34">
+    <span class="brandtext">KUWAITSAT-1<small>STAFF PORTAL</small></span>
+  </a>
+  <nav class="nav">
+    <button class="active" data-go="today">Today</button>
+    <button data-go="account">My account</button>
+    <button data-go="inbox">What changed</button>
+    <button data-go="services">Services</button>
+    <button data-go="news">Programme</button>
+  </nav>
+  <div class="who">
+    <div class="ident">
+      <span class="identmark" id="whoInitial" aria-hidden="true">&bull;</span>
+      <span class="name" id="whoName">Signed in<small id="whoOrg">Researcher</small></span>
+    </div>
+    <a class="btn primary" href="researcher.html" id="toWorkspace">Research workspace</a>
+    <button class="btn" id="signout">Sign out</button>
+  </div>
+</header>
+
+<div class="statusbar">
+  <span>PORTAL <b id="pbState">&#9679; READY</b></span>
+  <span>SIGNED IN AS <b id="pbWho">&#8212;</b></span>
+  <span id="pbClock">&#8212;</span>
+  <span>ACCESS: RESEARCHER</span>
+</div>
+
+<div class="layout">
+<aside>
+  <h5>Me</h5>
+  <button data-go="today">&#9635; Today</button>
+  <button data-go="account">&#9673; My account</button>
+  <button data-go="inbox">&#9744; What changed</button>
+  <h5>Work</h5>
+  <button data-go="services">&#9638; Services</button>
+  <a class="asidelink" href="researcher.html">&#8599; Research workspace</a>
+  <h5>Programme</h5>
+  <button data-go="news">&#9636; Programme record</button>
+</aside>
+
+<main>
+
+<!-- ================= TODAY ================= -->
+<section id="today" class="view">
+  <div class="head">
+    <div><div class="kicker">Staff Portal</div>
+      <h1 id="greeting">Good day</h1>
+      <p id="greetSub">Your account, your work, and what moved while you were away.</p></div>
+    <button class="btn" data-act="refresh-all">Refresh</button>
+  </div>
+
+  <div class="grid">
+    <div class="card s3"><div class="label">My missions</div>
+      <div class="metric" id="kMissions">&#8212;</div>
+      <div class="sub">my_missions <span class="prov live">LIVE</span></div></div>
+    <div class="card s3"><div class="label">Runs still open</div>
+      <div class="metric" id="kOpen">&#8212;</div>
+      <div class="sub">mission_runs <span class="prov live">LIVE</span></div></div>
+    <div class="card s3"><div class="label">Signed reports</div>
+      <div class="metric" id="kReports">&#8212;</div>
+      <div class="sub">reports <span class="prov live">LIVE</span></div></div>
+    <div class="card s3"><div class="label">Frames I can read</div>
+      <div class="metric" id="kFrames">&#8212;</div>
+      <div class="sub">payload_frames <span class="prov live">LIVE</span></div></div>
+
+    <div class="card s8">
+      <div class="ct"><h3>Pick up where you left off</h3><span class="prov live">LIVE</span></div>
+      <div id="resume" class="empty">Reading your missions&hellip;</div>
+    </div>
+
+    <div class="card s4">
+      <div class="ct"><h3>What the tags mean</h3></div>
+      <dl class="provkey">
+        <dt><span class="prov live">LIVE</span></dt>
+        <dd>Read from the database just now, under your sign-in.</dd>
+        <dt><span class="prov derived">DERIVED</span></dt>
+        <dd>Worked out in this browser from rows you can already read.</dd>
+        <dt><span class="prov record">RECORD</span></dt>
+        <dd>A checkable fact about this programme, with its source.</dd>
+        <dt><span class="prov notbuilt">NOT BUILT</span></dt>
+        <dd>The shape of something that does not exist yet.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MY ACCOUNT ================= -->
+<section id="account" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Me</div><h1>My account</h1>
+      <p>The only page on this platform where you can change something about
+         yourself. Everything else you own is a record and stays put.</p></div>
+  </div>
+
+  <div class="grid">
+    <div class="card s7">
+      <div class="ct"><h3>Display name and unit</h3><span class="prov live">LIVE</span></div>
+      <p class="sub" style="margin-bottom:14px">These two fields are yours to edit.
+        They are stored on <code>public.profiles</code> and the database will only
+        accept the change for your own row.</p>
+      <div class="form">
+        <div class="field full">
+          <label for="pfName">Display name</label>
+          <input id="pfName" type="text" maxlength="80" placeholder="How your name appears on a report">
+        </div>
+        <div class="field full">
+          <label for="pfOrg">Unit or department</label>
+          <input id="pfOrg" type="text" maxlength="120" placeholder="e.g. Coastal and Marine Monitoring Unit">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-act="profile-reset">Undo</button>
+        <button class="btn primary" data-act="profile-save">Save</button>
+      </div>
+      <div class="said" id="pfMsg"></div>
+    </div>
+
+    <div class="card s5">
+      <div class="ct"><h3>Session facts</h3><span class="prov live">LIVE</span></div>
+      <dl class="detail" id="acctFacts"></dl>
+      <div class="notice" style="margin-top:12px">
+        There is no password field here, and that is deliberate.
+        <code>public.profiles</code> has never held one. Passwords live in
+        Supabase Auth and are changed through its own flow, so this page
+        could not show you one even if it wanted to.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHAT CHANGED ================= -->
+<section id="inbox" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Me</div><h1>What changed</h1>
+      <p>Not an inbox. Nothing is pushed to you and nothing is stored about
+         what you have read. This is worked out in your browser, now, from
+         rows your account can already see.</p></div>
+    <button class="btn" data-act="mark-seen">Mark all as seen</button>
+  </div>
+  <div class="grid">
+    <div class="card s12">
+      <div class="ct"><h3>Since your last visit</h3><span class="prov derived">DERIVED</span></div>
+      <div id="inboxList" class="empty">Working it out&hellip;</div>
+      <div class="said" id="inboxMsg"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SERVICES ================= -->
+<section id="services" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Work</div><h1>Services</h1>
+      <p>The first block opens something that exists. The second block is
+         drawn at full fidelity and does nothing, because the thing behind
+         it has not been built. Each one says what it would need.</p></div>
+  </div>
+  <div class="grid">
+    <div class="card s12">
+      <div class="ct"><h3>Live services</h3><span class="prov live">LIVE</span></div>
+      <div class="tiles" id="liveTiles"></div>
+    </div>
+    <div class="card s12">
+      <div class="ct"><h3>Not built</h3><span class="prov notbuilt">NOT BUILT</span></div>
+      <p class="sub" style="margin-bottom:12px">Shown rather than omitted. A portal
+        that quietly leaves these out looks finished; one that draws them and
+        refuses to fake them tells you exactly where the edge is.</p>
+      <div class="tiles" id="deadTiles"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROGRAMME ================= -->
+<section id="news" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Programme</div><h1>Programme record</h1>
+      <p>Platform health is read live. Everything below it is a checkable
+         fact about this programme with its source named, not a news feed.</p></div>
+  </div>
+  <div class="grid">
+    <div class="card s12">
+      <div class="ct"><h3>Platform health, last 7 nights</h3><span class="prov live">LIVE</span></div>
+      <div class="scrolly">
+        <table id="healthTable"><tr><th>Night</th><th>Events</th><th>Sweeps OK</th>
+          <th>Runs swept</th><th>Anomalies</th><th>Last event</th></tr></table>
+      </div>
+      <div class="said" id="healthMsg"></div>
+    </div>
+
+    <div class="card s7">
+      <div class="ct"><h3>The programme</h3><span class="prov record">RECORD</span></div>
+      <div id="feed"></div>
+    </div>
+
+    <div class="card s5">
+      <div class="ct"><h3>Who owns what</h3><span class="prov record">RECORD</span></div>
+      <p class="sub" style="margin-bottom:12px">Tracks, not people. This platform has
+        no directory table and inventing colleagues would be the one thing this
+        page must not do.</p>
+      <div id="tracks"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script src="vendor/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/ksat-spark.js"></script>
+<script src="js/ksat-portal.js"></script>
+</body>
+</html>
