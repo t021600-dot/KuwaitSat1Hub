@@ -36,6 +36,10 @@
   'use strict';
 
   var KS = window.KSAT = window.KSAT || {};
+
+  /* The Leaflet pane the conceptual "after" vectors are drawn into, so
+     the wipe can clip them without clipping the measurement. */
+  var AFTER_PANE = 'ksatReportAfter';
   var doc = document;
 
   function el(tag, cls, text) {
@@ -112,6 +116,25 @@
       map.removeLayer(map._reportLayers.before);
       map.removeLayer(map._reportLayers.after);
     }
+
+    /* THE AFTER LAYER NEEDS ITS OWN PANE, OR THE WIPE WIPES EVERYTHING.
+
+       Leaflet draws every vector into overlayPane unless it is told
+       otherwise. before and after being separate layer groups does not
+       separate them on screen: they share one pane, so clipping that
+       pane clipped the mission-area rectangle and the measured
+       candidate outlines along with the green. Dragging the handle
+       wiped between "the whole map" and "a bare basemap" rather than
+       between measured and conceptual, which is the one comparison the
+       control exists to make.
+
+       AFTER_PANE sits at 450: above overlayPane's 400, below the
+       shadow, marker, tooltip and popup panes, so nothing else moves.
+       createPane() builds a fresh div every call, hence the guard. */
+    if (!map.getPane(AFTER_PANE)) {
+      map.createPane(AFTER_PANE).style.zIndex = 450;
+    }
+
     var before = L.layerGroup().addTo(map);
     var after = L.layerGroup();
     map._reportLayers = { before: before, after: after };
@@ -140,7 +163,8 @@
       if (isSite) {
         L.rectangle(b, { color: '#79bd96', weight: 2,
                          fill: true, fillColor: '#79bd96',
-                         fillOpacity: 0.55 }).addTo(after);
+                         fillOpacity: 0.55,
+                         pane: AFTER_PANE }).addTo(after);
         bounds.extend(b);
       }
     });
@@ -160,7 +184,10 @@
      screen reader without any extra work.
      ------------------------------------------------------------------- */
   function wipe(host, map, layers) {
-    var pane = map.getPane('overlayPane');
+    /* Clip the after pane alone. Falling back to overlayPane would put
+       the old behaviour back - everything clipped - so if the pane is
+       missing the wipe does nothing rather than something wrong. */
+    var pane = map.getPane(AFTER_PANE);
     var box = el('div', 'wipe');
     box.style.height = '330px';
 
@@ -176,9 +203,9 @@
 
     function apply() {
       var pct = Number(range.value);
-      /* The after layer is clipped from the right edge inward, so
+      /* The after layer is clipped from the left edge inward, so
          dragging left reveals more of the simulation. */
-      pane.style.clipPath = 'inset(0 0 0 ' + pct + '%)';
+      if (pane) { pane.style.clipPath = 'inset(0 0 0 ' + pct + '%)'; }
       seam.style.left = pct + '%';
     }
 
@@ -219,8 +246,16 @@
     if (!host) { return; }
     clear(host);
 
+    /* .md carries max-width:68ch, which is the right measure for ONE
+       column of prose and the wrong one for a host holding two. Left as
+       it was, the 460px map column took its width out of 529px and the
+       prose was left with 43px: one word per line, for the whole
+       report. The class moves the clamp off the host and onto the prose
+       column below, where the measure actually belongs. */
+    host.classList.add('reporthost');
+
     var grid = el('div', 'reportgrid');
-    var left = el('div');
+    var left = el('div', 'reportmain');
     var right = el('div', 'reportaside');
     grid.appendChild(left);
     grid.appendChild(right);

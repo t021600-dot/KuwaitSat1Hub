@@ -290,6 +290,16 @@ aside h5{ font-size:10px }
    and the map stays put on the right, so a candidate zone and the ground
    it sits on are on screen together.
    --------------------------------------------------------------------- */
+/* THE MEASURE BELONGS TO THE PROSE, NOT TO THE HOST.
+
+   .md above sets max-width:68ch. That is correct for a document that IS
+   one column and wrong for a host that CONTAINS two: the grid inherited
+   the 529px clamp, the map column took its 460px out of it, and the
+   prose ran in a 43px gutter one word per line. ksat-report.js adds
+   .reporthost when it builds the grid, so the clamp lands here. */
+.md.reporthost{ max-width:none }
+.reportgrid > .reportmain{ max-width:68ch }
+
 .reportgrid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,460px);
              gap:26px; align-items:start }
 @media(max-width:1180px){ .reportgrid{ grid-template-columns:minmax(0,1fr) } }
