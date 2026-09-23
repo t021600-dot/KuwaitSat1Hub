@@ -2594,10 +2594,36 @@
     }).select('id').then(function (r) {
       btn.disabled = false;
       if (r.error) {
-        say('modalMsg', 'The database refused this insert: ' + r.error.message +
-          (/kuwait_area_ok|area_shape/.test(r.error.message)
-            ? ' — the area has to be a polygon inside Kuwait. Move the map back over ' +
-              'the country and try again.' : ''));
+        var msg = r.error.message || '';
+        var areaRefused = /kuwait_area_ok|area_shape/.test(msg);
+        var extra = '';
+
+        if (areaRefused) {
+          /* TWO VERY DIFFERENT CAUSES, ONE CONSTRAINT NAME.
+
+             Either the researcher really is outside Kuwait, or the
+             browser's envelope and the database's have drifted apart.
+             The second happens when 14_widen_mission_envelope.sql has
+             not been run: the map happily lets an area be drawn out to
+             49.6 E and the database still stops at 48.8 E.
+
+             Telling somebody "move the map back over Kuwait" when their
+             area IS over Kuwait would send them hunting for a mistake
+             they did not make, so the two are separated by testing the
+             area against the OLD bound. */
+          var b = geo.polygonBounds(area);
+          var insideOld = b && b[0][1] >= 46.5 && b[1][1] <= 48.8 &&
+                               b[0][0] >= 28.5 && b[1][0] <= 30.1;
+          extra = insideOld
+            ? ' — the area has to be a polygon inside Kuwait. Move the map ' +
+              'back over the country and try again.'
+            : ' — this area is east or north of the envelope the DATABASE ' +
+              'still enforces, even though the map allowed it. That means ' +
+              '03-security/db/14_widen_mission_envelope.sql has not been run ' +
+              'against this project yet. Draw inside 46.5-48.8 E, 28.5-30.1 N ' +
+              'for now, and tell the team.';
+        }
+        say('modalMsg', 'The database refused this insert: ' + msg + extra);
         return;
       }
       closeModal();
