@@ -1,0 +1,63 @@
+/* =====================================================================
+   ksat-spark.css - THE CLICK TICK
+   Owner: 01 Front end
+
+   Dresses js/ksat-spark.js. Two selectors, both prefixed .ksat-spark.
+
+   The ring is drawn AT FULL STRENGTH when it is inserted, and .go is
+   added a tick later to expand and fade it. That order matters: under
+   reduced motion .go is never added, and what remains is a ring that
+   appears and is removed - still visible, still feedback. See the
+   header of the JS.
+   ===================================================================== */
+
+.ksat-spark-layer {
+  position: fixed;
+  inset: 0;
+  /* Above the guided tour's veil, which is 80. A click during the tour
+     should tick like any other, and nothing on this layer can be
+     clicked, so sitting on top of the veil costs nothing. */
+  z-index: 90;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ksat-spark {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;   /* centre on the point, not corner it */
+  border-radius: 50%;
+  pointer-events: none;
+
+  /* Visible the instant it exists. A 1px ring plus a soft inner glow
+     reads on both the near-black panels and the satellite basemaps,
+     which is the whole range this has to work over. */
+  border: 1px solid rgba(159, 197, 220, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(10, 16, 22, 0.55),
+    0 0 10px 2px rgba(159, 197, 220, 0.35);
+  background: radial-gradient(circle,
+              rgba(214, 233, 245, 0.42) 0%,
+              rgba(159, 197, 220, 0.14) 55%,
+              transparent 72%);
+  opacity: 1;
+}
+
+/* Added one tick later, and only when motion is allowed. */
+.ksat-spark.go {
+  transition: transform 0.36s cubic-bezier(0.22, 0.61, 0.36, 1),
+              opacity 0.36s linear;
+  transform: scale(2.6);
+  opacity: 0;
+}
+
+/* Belt and braces: if the class is somehow added under reduced motion,
+   the ring still simply sits there and is removed by the timer. */
+@media (prefers-reduced-motion: reduce) {
+  .ksat-spark.go {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
