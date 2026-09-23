@@ -182,6 +182,12 @@
     { id: 'all',     label: 'Whole of Kuwait',            s: 28.55, w: 46.55, n: 30.05, e: 48.45 },
     { id: 'bay',     label: 'Kuwait Bay and the capital', s: 29.15, w: 47.55, n: 29.60, e: 48.30 },
     { id: 'bubiyan', label: 'Bubiyan and Khor as-Sabiya', s: 29.55, w: 47.90, n: 30.05, e: 48.45 },
+    /* The city itself, not the governorate. KuwaitSat-1 has no frame
+       over either, so a mission here runs on public reference imagery -
+       see js/ksat-reference.js. The tight box matters: the whole north
+       west is 100 km across, and at that size the Sentinel-2 mosaic
+       drops to a zoom where a grid cell is kilometres wide. */
+    { id: 'jahracity', label: 'Al-Jahra city',            s: 29.30, w: 47.62, n: 29.38, e: 47.73 },
     { id: 'jahra',   label: 'Al-Jahra and the north west',s: 29.20, w: 46.60, n: 29.95, e: 47.75 },
     { id: 'ahmadi',  label: 'Al-Ahmadi and the south coast', s: 28.90, w: 47.90, n: 29.35, e: 48.40 },
     { id: 'khiran',  label: 'Al-Khiran and Wafra',        s: 28.52, w: 47.70, n: 29.00, e: 48.45 }
@@ -335,6 +341,26 @@
       'Street map': L.tileLayer(
         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         { maxZoom: 19, attribution: OSM_ATTR })
+    };
+  }
+
+  /* OVERLAYS FROM PUBLIC EARTH OBSERVATION.
+
+     Real data, not a decoration, and the only heat this platform has:
+     KuwaitSat-1 carries no thermal band at all. MODIS is a 1 km product
+     and GIBS serves it no finer than zoom 7, so it is shown as CONTEXT -
+     which part of the country is hotter - and js/ksat-reference.js
+     refuses to rank city blocks on it. The layer name says the
+     resolution so nobody has to go looking for it. */
+  function overlayLayers() {
+    if (typeof L === 'undefined') { return {}; }
+    return {
+      'Land surface temperature (MODIS, 1 km)': L.tileLayer(
+        'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/' +
+        'MODIS_Terra_Land_Surface_Temp_Day/default/2025-06-15/' +
+        'GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
+        { maxZoom: 19, maxNativeZoom: 7, opacity: 0.55,
+          attribution: 'MODIS Terra Land Surface Temperature (day), NASA GIBS' })
     };
   }
   var DEFAULT_BASE = 'Satellite (Sentinel-2)';
@@ -736,6 +762,7 @@
     fit: fit,
     goTo: goto_,
     baseLayers: baseLayers,
+    overlayLayers: overlayLayers,
     DEFAULT_BASE: DEFAULT_BASE,
 
     analyseFrame: analyseFrame

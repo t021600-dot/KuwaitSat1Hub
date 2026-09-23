@@ -851,7 +851,13 @@
         if (r.error || !r.data || !r.data.length) return;
         MD_REPORT = r.data[0];
         doc.getElementById('mdReportWrap').hidden = false;
-        renderMarkdown(doc.getElementById('mdReport'), MD_REPORT.body_md);
+        KS.report.present({
+          host: 'mdReport',
+          md: MD_REPORT.body_md,
+          mission: m,
+          missionId: m.id,
+          title: m.title
+        });
       });
   }
 
@@ -1075,7 +1081,13 @@
     var m = missionById(rep.mission_id);
     doc.getElementById('reportViewTitle').textContent =
       (m && m.title) ? m.title : 'Mission report';
-    renderMarkdown(doc.getElementById('reportView'), rep.body_md);
+    KS.report.present({
+      host: 'reportView',
+      md: rep.body_md,
+      mission: m,
+      missionId: rep.mission_id,
+      title: (m && m.title) || 'mission-report'
+    });
     doc.getElementById('reportViewWrap').hidden = false;
     doc.getElementById('reportViewWrap').scrollIntoView({ block: 'nearest' });
   }
@@ -1261,14 +1273,21 @@
       findings: L.layerGroup().addTo(GEO_MAP),
       aoi: L.layerGroup().addTo(GEO_MAP)
     };
-    /* One switcher, basemaps above and the four data layers below. The
-       basemaps come from the map because geo.make() built them. */
-    L.control.layers(GEO_MAP._ksatBases, {
+    /* One switcher: basemaps above, then this account's own data, then
+       the public reference overlays. The heat layer is off by default -
+       it is 1 km and it covers the whole country, so leaving it on would
+       bury the frame footprints under a wash of colour. */
+    var overlays = {
       'Frame footprints': GEO_GROUPS.frames,
       'Mission areas': GEO_GROUPS.missions,
       'Findings': GEO_GROUPS.findings,
       'Area of interest': GEO_GROUPS.aoi
-    }, { collapsed: false, position: 'topright' }).addTo(GEO_MAP);
+    };
+    var pub = geo.overlayLayers ? geo.overlayLayers() : {};
+    Object.keys(pub).forEach(function (k) { overlays[k] = pub[k]; });
+
+    L.control.layers(GEO_MAP._ksatBases, overlays,
+                     { collapsed: false, position: 'topright' }).addTo(GEO_MAP);
 
     keys('geoKeys', [
       ['#79bd96', 'Frame footprint'],
@@ -2175,7 +2194,17 @@
       'nobody\'s name. Pressing the button records YOUR account as the person who ' +
       'approved it, and closes the mission to further runs.';
     say('rrMsg', '');
-    renderMarkdown(doc.getElementById('rrReport'), state.reportMd || '');
+    /* js/ksat-report.js owns the presentation: the document on the left,
+       the ground it is about on the right, and the download. It reads the
+       geometry back out of public.results rather than taking it from
+       state, so the map and the database cannot disagree. */
+    KS.report.present({
+      host: 'rrReport',
+      md: state.reportMd || '',
+      mission: state.mission,
+      missionId: state.mission && state.mission.id,
+      title: state.mission && state.mission.title
+    });
     card.hidden = false;
     card.scrollIntoView({ block: 'nearest' });
   }

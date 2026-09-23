@@ -405,37 +405,35 @@
           .then(function () {
             tick();
 
-            /* ---- DECISION 1 - is there anything to analyse? -------- */
+            /* ---- DECISION 1 - is there anything to analyse? --------
+
+               THIS IS THE DECISION THE WHOLE PLATFORM TURNS ON, and it
+               used to have only two answers: measure a KuwaitSat-1
+               frame, or stop.
+
+               Stopping was right, and it is still what happens when
+               there is no evidence of ANY kind. But there is a third
+               answer the Orchestrator can now reach, and a real
+               analyst would reach it first: KuwaitSat-1 has not
+               photographed this ground, and public Earth observation
+               has. Al-Jahra is the case that forced it - an entire
+               governorate the mission archive cannot see at all.
+
+               So when the archive has nothing here, the agent falls
+               back to js/ksat-reference.js: Sentinel-2 at 10 m for
+               surface cover and MODIS Land Surface Temperature for
+               relative heat. Both real, both public, both attributed,
+               and EVERY finding produced this way is stamped with the
+               sensor that produced it. The fallback is recorded as its
+               own step in the trail, so a reader can see the
+               Orchestrator choose it.
+
+               What it must never become: a way of quietly answering a
+               KuwaitSat-1 question with somebody else's satellite. The
+               source is named in the step, in every finding, in the
+               report's Data used section and in its Limitations. */
             if (!inArea.length) {
-              step('environmental_analysis');
-              return logStep(state.run_id, 'environmental_analysis', 'frame.analyse',
-                  { frames_in_area: 0 }, false,
-                  'No archive frame has a geolocation inside this mission area, so ' +
-                  'there is nothing to measure. The Orchestrator does not substitute ' +
-                  'a frame from elsewhere.')
-                .then(function () { tick(); return writeResult(state.run_id, 'narrative',
-                    'No usable evidence in this area',
-                    'The KuwaitSat-1 archive holds ' + frames.length + ' frames, of which ' +
-                    geolocated.length + ' are geolocated. None of them falls inside the ' +
-                    'area this mission defines.\n\n' +
-                    'The pipeline stopped here rather than analysing a frame from ' +
-                    'somewhere else and labelling it with this area. Redraw the area ' +
-                    'over one of the geolocated frames - the Geospatial Layers view ' +
-                    'shows where they are - and create a new mission.',
-                    mission.area_geojson); })
-                /* 'stalled', NOT 'complete'. researcher_finish_run maps
-                   complete -> mission 'review' and everything else ->
-                   'failed'. A run that measured nothing must not leave
-                   the mission sitting in REVIEW, because REVIEW is the
-                   state that offers a Generate the report button - and
-                   the newest narrative on this mission would then be
-                   "No usable evidence in this area", which would be
-                   approved and signed as a report, and would close the
-                   mission for ever. The honest state for a run that
-                   found nothing is failed. */
-                .then(function () { return finish(state.run_id, 'stalled',
-                                      'no archive frame inside the mission area'); })
-                .then(function () { state.stopped = 'no-evidence'; tick(); return state; });
+              return referenceRun(state, mission, opts, frames, geolocated);
             }
 
             /* ---- 2 - ENVIRONMENTAL ANALYSIS ----------------------- */
@@ -626,6 +624,305 @@
      And it REFUSES rather than returning anything when the best tile is
      less than MIN_CANDIDATE_Z from the median, because below that the
      ranking is noise and a refusal is the honest output. */
+  /* -------------------------------------------------------------------
+     THE REFERENCE RUN - WHAT HAPPENS OVER GROUND KUWAITSAT-1 CANNOT SEE
+
+     Reached only from DECISION 1, and only when no archive frame has a
+     geolocation inside the mission area. It answers the question from
+     public Earth observation instead, and says so at every step.
+
+     The sequence mirrors the KuwaitSat-1 path deliberately - same index,
+     same thresholds, same separation bar, same human checkpoint -
+     because two sources measured two different ways cannot be compared,
+     and "identical method, different sensor" is the only claim worth
+     making.
+     ------------------------------------------------------------------- */
+  function referenceRun(state, mission, opts, frames, geolocated) {
+    var phase = opts.onPhase || function () {};
+    var raw = opts.onStep || function () {};
+    function tick() { raw(state); }
+
+    var ref = KS.reference;
+    var area = mission.area_geojson;
+    var bounds = geo.polygonBounds(area);
+
+    if (!ref || !bounds) {
+      return stopNoEvidence(state, mission, frames, geolocated, tick);
+    }
+
+    state.reference = true;
+    phase('Mission Orchestrator - no KuwaitSat-1 frame covers this area; ' +
+          'checking public Earth observation');
+
+    return logStep(state.run_id, 'satellite_data', 'reference.select',
+        { reason: 'no KuwaitSat-1 frame has a geolocation inside the mission area',
+          kuwaitsat_frames_released: frames.length,
+          kuwaitsat_frames_geolocated: geolocated.length,
+          kuwaitsat_frames_in_area: 0,
+          optical_source: ref.SOURCES.optical.name,
+          optical_resolution_m: ref.SOURCES.optical.resolution_m,
+          heat_source: ref.SOURCES.heat.name,
+          heat_resolution_m: ref.SOURCES.heat.resolution_m })
+      .then(function () {
+        tick();
+        phase(ROLES.satellite_data.name + ' - fetching Sentinel-2 surface imagery');
+        return ref.fetchArea('optical', bounds, 768);
+      })
+      .then(function (optical) {
+        state.opticalArea = optical;
+        var m = ref.measure(optical, 16);
+        state.refMeasure = m;
+        state.tileM = m.tileM;
+        state.tileKm2 = Math.round((m.tileM * m.tileM) / 1e6 * 100) / 100;
+
+        phase(ROLES.environmental_analysis.name + ' - measuring ' + m.total +
+              ' tiles of Sentinel-2 at ' + m.tileM + ' m');
+
+        return logStep(state.run_id, 'environmental_analysis', 'reference.analyse',
+            { source: optical.source.name,
+              zoom: optical.zoom,
+              tiles_fetched: optical.tilesLoaded + '/' + optical.tiles,
+              grid: m.grid + 'x' + m.grid,
+              tile_m: m.tileM,
+              metres_per_pixel: Math.round(optical.metresPerPixel * 10) / 10,
+              vegetation_tiles: m.counts.vegetation,
+              built_tiles: m.counts.built,
+              bare_tiles: m.counts.bare,
+              water_tiles: m.counts.water,
+              vegetation_detected: m.vegetationDetected })
+          .then(function () { tick(); return m; });
+      })
+      .then(function (m) {
+        phase(ROLES.environmental_analysis.name + ' - fetching land surface temperature');
+        return ref.fetchArea('heat', bounds, 512)
+          .then(function (heatArea) {
+            var hm = ref.measureHeat(heatArea, 16);
+            state.heat = hm;
+            return logStep(state.run_id, 'environmental_analysis', 'reference.heat',
+                { source: heatArea.source.name,
+                  date: ref.SOURCES.heat.date,
+                  resolution_m: ref.SOURCES.heat.resolution_m,
+                  source_pixels_over_area: hm.sourcePixels,
+                  tiles_measured: hm.total,
+                  can_rank_at_this_grid: hm.usable,
+                  used_for: hm.usable ? 'ranking candidates'
+                                      : 'context only, too coarse to rank this grid',
+                  units: 'relative index only, never degrees',
+                  why: hm.limitation || hm.note })
+              .then(function () { tick(); return m; });
+          })
+          .catch(function () {
+            /* A missing heat layer is not a failed run. The surface
+               analysis stands on its own, and the trail says heat was
+               unavailable rather than silently dropping it. */
+            state.heat = null;
+            return logStep(state.run_id, 'environmental_analysis', 'reference.heat',
+                { source: ref.SOURCES.heat.name }, false,
+                'The land surface temperature layer did not return tiles for this ' +
+                'area, so heat is not part of this run. The surface cover ' +
+                'measurement is unaffected.')
+              .then(function () { tick(); return m; });
+          });
+      })
+      .then(function (m) {
+        return writeResult(state.run_id, 'metric',
+          'Surface measurement from ' + state.opticalArea.source.name,
+          'NOT A KUWAITSAT-1 MEASUREMENT. No KuwaitSat-1 frame covers this area, so ' +
+          'this run measured ' + state.opticalArea.source.name + ' instead, at ' +
+          Math.round(state.opticalArea.metresPerPixel * 10) / 10 + ' m per pixel.\n\n' +
+          m.total + ' tiles of about ' + m.tileM + ' m: ' +
+          m.counts.vegetation + ' vegetated, ' + m.counts.built + ' built, ' +
+          m.counts.bare + ' bare, ' + m.counts.water + ' water.\n\n' +
+          (m.vegetationDetected
+            ? (m.counts.vegetation + ' tiles reach the Excess Green vegetation ' +
+               'threshold of ' + geo.VEG_EXG + '. Unlike the KuwaitSat-1 archive, ' +
+               'this scene contains detectable vegetation.')
+            : 'No tile reaches the Excess Green threshold of ' + geo.VEG_EXG + '.') +
+          '\n\n' + state.opticalArea.source.attribution + '.\n\n' + geo.INDEX_NOTE,
+          area)
+          .then(function () { tick(); return m; });
+      })
+      .then(function (m) {
+        /* phase(), not step(): step() is a closure inside run() and is
+           not in scope here. Calling it would throw a ReferenceError
+           mid-run, after the trail had already been written. */
+        phase(ROLES.recommendation.name);
+        return rankReference(state, m, 'hottest');
+      })
+      .then(function () {
+        if (!state.candidates.length) {
+          return finish(state.run_id, 'stalled', 'no zone separated from the background')
+            .then(function () {
+              state.stopped = 'no-separation';
+              tick();
+              phase('Mission Orchestrator - nothing in this area separates from the ' +
+                    'background. Run closed.');
+              return state;
+            });
+        }
+        phase('Mission Orchestrator - evidence sufficient, human checkpoint required');
+        if (opts.onCheckpoint) { opts.onCheckpoint(state); }
+        return state;
+      })
+      .catch(function (err) {
+        /* The reference sources are somebody else's servers. If they are
+           unreachable the honest outcome is the original one: no
+           evidence, run closed, reason recorded. */
+        return logStep(state.run_id, 'environmental_analysis', 'reference.analyse',
+            { source: 'public Earth observation' }, false,
+            'No KuwaitSat-1 frame covers this area and the public reference imagery ' +
+            'could not be reached: ' + (err && err.message ? err.message : err))
+          .then(function () {
+            return stopNoEvidence(state, mission, frames, geolocated, tick);
+          });
+      });
+  }
+
+  /* The original DECISION 1 outcome, kept whole. Reached when there is
+     no KuwaitSat-1 frame AND no reference imagery either. */
+  function stopNoEvidence(state, mission, frames, geolocated, tick) {
+    return writeResult(state.run_id, 'narrative',
+        'No usable evidence in this area',
+        'The KuwaitSat-1 archive holds ' + frames.length + ' frames, of which ' +
+        geolocated.length + ' are geolocated. None of them falls inside the area ' +
+        'this mission defines, and the public reference imagery could not be ' +
+        'reached either.\n\n' +
+        'The pipeline stopped here rather than analysing a frame from somewhere ' +
+        'else and labelling it with this area.',
+        mission.area_geojson)
+      .then(function () {
+        return finish(state.run_id, 'stalled', 'no evidence available for this area');
+      })
+      .then(function () { state.stopped = 'no-evidence'; tick(); return state; });
+  }
+
+  /* -------------------------------------------------------------------
+     RANKING A REFERENCE SCENE
+
+     The mission this was built for is "find the hottest residential
+     blocks where shade trees would help", so the criterion combines the
+     three things that question actually asks about, each measured:
+
+       built   roof and road rather than sand        Sentinel-2, 10 m
+       hot     toward the red end of the scene       MODIS LST, 1 km
+       bare    no vegetation there to begin with     Sentinel-2, 10 m
+
+     A tile clears the same 2 standard deviation bar as everything else
+     on this platform, on the heat axis, or nothing is returned. With no
+     heat layer the criterion falls back to built-and-unvegetated and
+     every finding says so.
+     ------------------------------------------------------------------- */
+  function rankReference(state, m, mode) {
+    /* HEAT RANKS ONLY IF HEAT CAN RESOLVE THE GRID.
+
+       measureHeat() reports `usable`. Over a city-sized area MODIS is a
+       handful of pixels, every cell reads the same value and every tile
+       scores 0.00 - so ranking on it would be ranking on nothing, with
+       five confident-looking candidates to show for it. When it cannot
+       resolve the grid the criterion falls back to what Sentinel-2 CAN
+       support at 10 m, which is built-up and unvegetated ground, and the
+       heat layer stays in the run as context with its limitation
+       recorded. */
+    var heat = (state.heat && state.heat.usable) ? state.heat : null;
+    state.heatRankable = !!heat;
+    mode = heat ? 'hottest' : 'built-up and unvegetated';
+    state.rankMode = mode;
+
+    var byCell = {};
+    if (heat) {
+      heat.tiles.forEach(function (t) { byCell[t.gx + ',' + t.gy] = t; });
+    }
+
+    var pool = m.tiles.filter(function (t) {
+      return t.kind === 'built' || t.kind === 'bare';
+    }).map(function (t) {
+      var h = byCell[t.gx + ',' + t.gy];
+      return { t: t, heat: h || null, z: h ? h.z : 0 };
+    });
+
+    state.landTiles = m.landTiles;
+
+    var ranked, top;
+    if (heat) {
+      ranked = pool.slice().sort(function (a, b) { return b.z - a.z; });
+      top = ranked.filter(function (c) { return c.z >= MIN_CANDIDATE_Z; }).slice(0, 5);
+    } else {
+      /* Built-up first, then the most textured - which on this measure
+         is the most densely built. Unvegetated is already true of
+         everything in the pool. */
+      ranked = pool.filter(function (c) { return c.t.kind === 'built'; })
+                   .sort(function (a, b) { return b.t.texture - a.t.texture; });
+      top = ranked.slice(0, 5);
+    }
+
+    state.candidates = top.map(function (c) {
+      return {
+        a: { frame_no: 0,
+             exg: m.exg,
+             grid: m.grid,
+             tileM: m.tileM,
+             frame: { gsd_m: state.opticalArea.metresPerPixel,
+                      image_w: m.width, image_h: m.height },
+             vegetationDetected: m.vegetationDetected },
+        t: c.t, z: c.z, km2: state.tileKm2, heat: c.heat
+      };
+    });
+
+    var best = ranked.length ? r1(ranked[0].z) : 0;
+
+    return logStep(state.run_id, 'recommendation', 'rank.candidates',
+        { criterion: heat
+            ? 'relative land surface temperature, over built and unvegetated ground'
+            : 'built and unvegetated (no heat layer available)',
+          source: state.opticalArea.source.name +
+                  (heat ? ' + ' + KS.reference.SOURCES.heat.name : ''),
+          candidate_pool: pool.length,
+          required_separation_sd: heat ? MIN_CANDIDATE_Z : null,
+          best_separation_sd: heat ? best : null,
+          candidates_returned: top.length })
+      .then(function () {
+        var w = Promise.resolve();
+        state.candidates.forEach(function (c, i) {
+          w = w.then(function () {
+            var poly = refPolygon(state.opticalArea, m, c.t, 'Candidate ' + (i + 1));
+            return writeResult(state.run_id, 'site',
+              'Candidate ' + (i + 1) + ' - tile ' + c.t.gx + ',' + c.t.gy,
+              'NOT A KUWAITSAT-1 MEASUREMENT. Measured from ' +
+              state.opticalArea.source.name + '.\n\n' +
+              'Surface: ' + c.t.kind + '. Excess Green ' + c.t.exg.toFixed(3) +
+              ', luminance ' + c.t.lum + '.\n' +
+              (state.heatRankable && c.heat
+                ? ('Land surface temperature ' + r1(c.heat.z) + ' standard deviations ' +
+                   'above the median for this scene. RELATIVE ONLY: ' +
+                   KS.reference.SOURCES.heat.name + ' is served as a rendered colour ' +
+                   'image, so no temperature in degrees is claimed.\n')
+                : ((state.heat && state.heat.limitation)
+                    ? ('Ranked on surface rather than temperature. ' +
+                       state.heat.limitation + '\n')
+                    : 'No land surface temperature was available for this run.\n')) +
+              'About ' + state.tileM + ' m square, ' + state.tileKm2 + ' km2.\n\n' +
+              state.opticalArea.source.attribution + '.',
+              poly);
+          });
+        });
+        return w;
+      });
+  }
+
+  /* A reference tile's ground footprint. The canvas covers whole map
+     tiles, so its extent is opticalArea.bounds rather than the mission
+     area, and a grid cell maps linearly onto that. Image y runs down and
+     latitude runs up, which is why y0 gives the NORTH edge. */
+  function refPolygon(areaCanvas, m, t, name) {
+    var b = areaCanvas.bounds;
+    var south = b[0][0], west = b[0][1], north = b[1][0], east = b[1][1];
+    var lon0 = west + (east - west) * (t.x0 / m.width);
+    var lon1 = west + (east - west) * (t.x1 / m.width);
+    var lat1 = north - (north - south) * (t.y0 / m.height);
+    var lat0 = north - (north - south) * (t.y1 / m.height);
+    return geo.rectPolygon(lat0, lon0, lat1, lon1, name);
+  }
+
   function rank(state, mode) {
     mode = (mode === 'driest') ? 'driest' : 'greenest';
     var all = [];

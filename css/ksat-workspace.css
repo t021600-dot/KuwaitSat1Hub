@@ -16,6 +16,65 @@
    the map furniture goes back to the white Leaflet default.
    ===================================================================== */
 
+/* =====================================================================
+   0 . TYPE SIZE, RAISED ACROSS THE WHOLE WORKSPACE
+
+   The original sheet was drawn at console sizes: 9px notices, 10px table
+   cells, 11px report body, 8px labels. It reads as dense and technical
+   on a designer's monitor and it is genuinely hard to read on a laptop
+   across a table, which is how a judge will see it.
+
+   Nothing is restyled here, only scaled. This sheet loads after
+   css/ksat-researcher.css so these win without !important. Sizes are in
+   px to stay in step with the rest of the sheet, and the report body is
+   the biggest jump because it is the one surface that is PROSE - a
+   report is read, not scanned.
+   ===================================================================== */
+body{ font-size:14px }
+
+.sub{ font-size:12px; line-height:1.55 }
+.label{ font-size:10px }
+.metric{ font-size:28px }
+td{ font-size:12px; line-height:1.55 }
+th{ font-size:9px }
+.notice{ font-size:12px; line-height:1.65; padding:12px 13px }
+.said{ font-size:12px; line-height:1.6 }
+.log{ font-size:11px; line-height:1.85 }
+.head h1{ font-size:28px }
+.head p{ font-size:13px }
+.kicker{ font-size:10px }
+.ct h3{ font-size:13px }
+.tag{ font-size:9px; padding:4px 7px }
+.btn{ font-size:13px; padding:10px 14px }
+.field label{ font-size:9px }
+.field input, .field textarea, .field select, .search, .query{ font-size:13px }
+.agent strong{ font-size:12px }
+.agent small{ font-size:11px }
+.state{ font-size:9px }
+.rule{ font-size:12px }
+.stage span{ font-size:9px }
+.empty{ font-size:12px; padding:36px }
+aside button{ font-size:13px }
+aside h5{ font-size:10px }
+.nav button{ font-size:13px }
+.brand{ font-size:14px }
+.statusbar{ font-size:10px }
+
+.step b{ font-size:13px }
+.step small{ font-size:11px; line-height:1.65 }
+.step code{ font-size:11px }
+.finding h4{ font-size:12px }
+.finding p{ font-size:12px; line-height:1.7 }
+.detail dd{ font-size:12.5px }
+.detail dt{ font-size:9px }
+.sheet dd{ font-size:12.5px }
+.sheet dd small{ font-size:11px }
+.sheet dt{ font-size:9px }
+.aoi{ font-size:11px }
+.ksat-hud{ font-size:11px }
+.ksat-keys{ font-size:11px }
+.mono{ font-size:11px }
+
 /* ---------------------------------------------------------------------
    1 . THE MAP
    --------------------------------------------------------------------- */
@@ -184,16 +243,88 @@
 .finding h4{ margin:0 0 5px; font-size:11px; font-weight:normal; color:var(--white) }
 .finding p{ margin:0; font-size:10px; color:#9ea8ae; line-height:1.7; white-space:pre-wrap }
 
-/* Reports render as prose, not as a code block. */
-.md{ font-size:11px; line-height:1.8; color:#c5ced4; max-width:80ch }
-.md h1{ font-size:16px; font-weight:normal; color:var(--white); margin:0 0 4px }
-.md h2{ font-size:11px; letter-spacing:.1em; text-transform:uppercase;
-        color:#8ea3b2; margin:20px 0 7px }
-.md ul{ margin:7px 0; padding-left:19px }
-.md li{ margin:4px 0 }
-.md p{ margin:7px 0 }
+/* =====================================================================
+   REPORTS ARE PROSE, AND WERE BEING SET LIKE LOG OUTPUT
+
+   11px, 80ch wide, headings the same size as the body in a paler grey:
+   a ten section scientific report rendered as one undifferentiated grey
+   wall. It is the single most important artefact this platform produces
+   and it was the hardest thing on the page to read.
+
+   Set as a document now: 14px on a 68ch measure, real heading hierarchy,
+   a lead paragraph, and the summary lifted into a panel because on this
+   platform the summary always carries the caveat that governs everything
+   under it.
+   ===================================================================== */
+.md{ font-size:14px; line-height:1.75; color:#ccd6de; max-width:68ch }
+.md h1{ font-size:24px; font-weight:normal; color:var(--white);
+        margin:0 0 6px; line-height:1.2; letter-spacing:-.01em }
+.md h2{ font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+        color:#8ea3b2; margin:30px 0 10px; padding-bottom:6px;
+        border-bottom:1px solid #1e2830 }
+.md h2:first-of-type{ margin-top:22px }
+.md ul{ margin:10px 0; padding-left:20px }
+.md li{ margin:7px 0 }
+.md p{ margin:10px 0 }
 .md strong{ color:var(--white); font-weight:normal }
-.md hr{ border:0; border-top:1px solid var(--line); margin:18px 0 }
+.md hr{ border:0; border-top:1px solid var(--line); margin:22px 0 }
+
+/* The byline under the title: which run assembled this. */
+.md > p:first-of-type{ color:#8794a0; font-size:12px; margin-bottom:18px }
+
+/* THE SENTENCE THAT GOVERNS THE REST OF THE DOCUMENT.
+   On this archive every report carries a paragraph in capitals saying no
+   vegetation was detected. Buried in body text a reader skims it; the
+   list of candidate zones under it then reads as a list of green places,
+   which is the exact misreading the paragraph exists to prevent. */
+.md p.caveat{
+  background:#1a1410; border-left:3px solid var(--amber);
+  padding:13px 15px; margin:16px 0; color:#e4d9c6; font-size:13.5px;
+}
+
+/* ---------------------------------------------------------------------
+   THE REPORT, TWO COLUMNS: THE DOCUMENT AND THE GROUND IT IS ABOUT
+
+   A report about a place, with no picture of the place in it, makes the
+   reader hold coordinates in their head. The prose scrolls on the left
+   and the map stays put on the right, so a candidate zone and the ground
+   it sits on are on screen together.
+   --------------------------------------------------------------------- */
+.reportgrid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,460px);
+             gap:26px; align-items:start }
+@media(max-width:1180px){ .reportgrid{ grid-template-columns:minmax(0,1fr) } }
+
+.reportaside{ position:sticky; top:14px }
+.reportaside h4{ font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+                 color:#8ea3b2; margin:0 0 8px }
+.reportaside .ksat-map{ height:330px }
+.reportaside .sub{ margin-top:8px }
+
+/* BEFORE / AFTER, AS A WIPE.
+
+   Two maps side by side at this width would be two postage stamps. One
+   map with the "after" layer clipped to a draggable edge keeps both at
+   full size and makes the comparison a gesture rather than a
+   back-and-forth. The handle is keyboard reachable: it is a range input,
+   not a div with a mousedown listener. */
+.wipe{ position:relative; overflow:hidden; border:1px solid var(--line) }
+.wipe .after{ position:absolute; inset:0; overflow:hidden; pointer-events:none }
+.wipe .after > *{ position:absolute; inset:0 }
+.wipe .seam{ position:absolute; top:0; bottom:0; width:2px; background:#dce9f1;
+             pointer-events:none; box-shadow:0 0 0 1px #0008 }
+.wipe input[type=range]{
+  position:absolute; left:0; right:0; bottom:10px; width:calc(100% - 24px);
+  margin:0 12px; z-index:5; -webkit-appearance:none; appearance:none;
+  background:transparent; height:26px;
+}
+.wipe input[type=range]::-webkit-slider-runnable-track{
+  height:4px; background:#0009; border:1px solid #dce9f14d; border-radius:2px }
+.wipe input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:20px; height:20px; margin-top:-9px;
+  border-radius:50%; background:#dce9f1; border:2px solid #0b1116; cursor:ew-resize }
+.wipe input[type=range]:focus-visible{ outline:2px solid #9fc5dc; outline-offset:2px }
+.wipe .tag{ position:absolute; top:9px; z-index:4; background:#0b1116e0 }
+.wipe .tag.l{ left:9px } .wipe .tag.r{ right:9px }
 
 /* ---------------------------------------------------------------------
    3 . THE AREA PICKER IN THE NEW MISSION MODAL
