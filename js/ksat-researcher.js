@@ -968,6 +968,28 @@
                       'that cannot support the question. The reason above is the finding.' };
     }
 
+    /* THE IMPACT AGENT REFUSING ITS OWN ZONE.
+
+       impact_model.project applies a 4.0-point floor on added
+       vegetation cover and rejects any zone below it, then re-ranks
+       without it. That is the most rigorous thing on this platform and
+       it was being painted red as REFUSED, which reads as a crash:
+
+         "Zone D projects only 3.6 points of added vegetation cover
+          (-0.07 to -0.44 C), below the 4.0-point floor. Zone rejected.
+          Ranking again without it. Re-rank 1 of 2."
+
+       Nothing failed there. An agent declined to claim a benefit its
+       own numbers do not support, said by how much, and went back for
+       another candidate. Two of these are on the live site right now,
+       both in red. */
+    if (s.step_name === 'impact_prediction') {
+      return { cls: 'held', label: 'BELOW FLOOR',
+               gloss: 'The Impact Prediction Agent would not claim a benefit its own ' +
+                      'numbers do not support, so it rejected the zone and ranked ' +
+                      'again. The figures above are why.' };
+    }
+
     /* Anything else refused is a genuine fault and stays red. On the
        current pipeline nothing should reach this. */
     return { cls: 'fault', label: 'REFUSED', gloss: null };
