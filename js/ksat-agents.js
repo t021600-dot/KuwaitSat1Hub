@@ -1446,11 +1446,37 @@
     p('## Findings');
     p('');
     state.candidates.forEach(function (c, i) {
-      p('- Candidate ' + (i + 1) + ', frame ' + String(c.a.frame_no).padStart(2, '0') +
-        ' tile ' + c.t.gx + ',' + c.t.gy + ': ExG ' + c.t.exg.toFixed(3) + ', which is ' +
-        r1(c.t.z) + ' standard deviations from that frame median of ' +
+      /* NAME THE PLACE IN THE REPORT, NOT ONLY IN THE RESULT ROWS.
+
+         rank.name_areas resolves every candidate to a real
+         OpenStreetMap area, and the result rows and map popups have
+         said "Candidate 1 - Qasr" since that landed. THIS list did
+         not. It still read
+
+             Candidate 1, frame 00 tile 15,13: ExG 0.038 ...
+
+         which is the one place it matters most, because the report is
+         the thing a reader is handed. "frame 00" was wrong twice over
+         on a reference run: there is no frame 00, the imagery is
+         Sentinel-2, and c.a.frame_no is set to 0 precisely because no
+         KuwaitSat-1 frame exists for this ground.
+
+         Where the place is known it leads and the grid reference
+         follows in brackets, so the line is still checkable against
+         the trail. Where it is not, the grid reference stands alone
+         and nothing is invented. */
+      var where = c.place && c.place.name ? c.place.name : null;
+      var ref = c.a.frame_no
+        ? 'frame ' + String(c.a.frame_no).padStart(2, '0') + ' tile ' + c.t.gx + ',' + c.t.gy
+        : 'tile ' + c.t.gx + ',' + c.t.gy;
+      p('- Candidate ' + (i + 1) + ', ' +
+        (where ? where + ' (' + ref + ')' : ref) +
+        ': ExG ' + c.t.exg.toFixed(3) + ', which is ' +
+        r1(c.t.z) + ' standard deviations from the scene median of ' +
         r3(c.a.exg.median) + '. Luminance ' + c.t.lum + '. About ' +
-        (c.km2 || 0) + ' km2 on the ground.');
+        (c.km2 || 0) + ' km2 on the ground.' +
+        (where && c.place.gov ? ' ' + c.place.gov + ' governorate, boundary from ' +
+                                'OpenStreetMap under ODbL.' : ''));
     });
     p('');
     p('## Researcher-approved recommendations');
