@@ -2565,7 +2565,14 @@
        could act on. The field is a map now: whatever is on screen is the
        polygon, clipped to the Kuwait envelope, and it is always valid by
        construction. */
-    var area = MODAL_AOI || PENDING_AOI;
+    /* A NAMED AREA BEATS THE VIEWPORT.
+
+       js/ksat-areas.js lets the researcher choose one of the 204 real
+       areas by name. When they have, that polygon IS the mission area
+       and the map is only showing it. The map still wins when nothing
+       is chosen, and moving the map clears the choice, so the two can
+       never both be true at once. */
+    var area = (KS.areas && KS.areas.pending()) || MODAL_AOI || PENDING_AOI;
     if (!area) {
       say('modalMsg', OUTSIDE);
       return;
