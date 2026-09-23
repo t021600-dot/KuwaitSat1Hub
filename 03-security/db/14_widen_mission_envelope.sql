@@ -3,18 +3,16 @@
 -- 14 · WIDEN THE MISSION ENVELOPE TO COVER KUWAIT'S SEA
 -- Owner: 03 · Security     Run: by hand in Supabase, after review
 --
--- >>> NOT YET APPLIED. <<<
--- Every other file in this folder describes the live database. This one
--- does not, and must not be assumed to, until somebody runs it and
--- changes this header.
+-- >>> APPLIED TO THE LIVE DATABASE ON 23 Sep 2026, BY HAND. <<<
+-- Run in the Supabase SQL editor by the team. js/ksat-geo.js was
+-- widened to match in the same sitting, so the browser bound and the
+-- database bound are in step.
 --
--- js/ksat-geo.js IS WAITING ON THIS FILE. Its KUWAIT constant is still
--- the old 46.5-48.8 E / 28.5-30.1 N, deliberately, so that the browser
--- and the database agree. When this runs, change that one line to
--- east 49.6 / north 30.15 in the same sitting. Either both move or
--- neither does: widening only the browser lets a researcher draw an
--- area the database will then refuse, with nothing on screen to explain
--- why.
+-- If they ever drift, the DATABASE is the one that decides and the JS
+-- is the one that is wrong. createMission() in js/ksat-researcher.js
+-- detects that specific case - an area the map allowed and the database
+-- refused - and names this file on screen rather than telling the
+-- researcher to move a map that was already in the right place.
 --
 -- ---------------------------------------------------------------------
 -- WHY

@@ -55,30 +55,27 @@
      one. If the two ever disagree the database wins and this line is
      the bug.
 
-     >>> THESE TWO NUMBERS CHANGE AS A PAIR, OR NOT AT ALL. <<<
+     >>> THESE TWO NUMBERS CHANGE AS A PAIR. <<<
 
-     The widening to 46.5-49.6 E / 28.5-30.15 N is written and measured
-     (it excludes zero of the EEZ, territorial sea, contiguous zone,
-     land and islands, against 31 % / 6 % / 65 % / 12 km2 / 0 today) and
-     it is NOT APPLIED HERE, because the database half of it is not
-     applied either - see 03-security/db/14_widen_mission_envelope.sql,
-     which has to be run by hand in Supabase.
+     Widened 2026-09-23, after 03-security/db/14_widen_mission_envelope.sql
+     was run by hand against the live database. Both halves are in step.
 
-     Widening only this file would be worse than leaving both alone: the
-     map would let a researcher drag east of 48.8 E, draw an area, press
-     Create, and get a constraint violation from the database with no
-     way to understand why. A narrower bound that AGREES with the
-     database is better than a wider one that does not.
+     The old 46.5-48.8 E / 28.5-30.1 N excluded, measured against the
+     layers now in assets/geo/: 31 % of the EEZ, 65 % of the contiguous
+     zone, 6 % of the territorial sea and a 12 km2 strip of land north
+     of 30.1 N. The new bound excludes zero of all five.
 
-     TO FINISH IT: run 14_widen_mission_envelope.sql, then change the
-     line below to east 49.6 / north 30.15. One without the other is
-     the bug.
+     If a mission insert is ever refused with `missions_area_shape` for
+     an area that looks correct on the map, these two have drifted
+     apart: the database is the one that decides, and this line is then
+     the one that is wrong. createMission() in js/ksat-researcher.js
+     detects exactly that case and says so.
 
      IT IS A RECTANGLE, NOT A MAP OF KUWAIT. It includes sea, and parts
      of Iraq and Iran. For "is this on Kuwaiti land", ask
      KS.layers.onKuwaitiLand() in js/ksat-layers.js, which tests the
      actual coastline. */
-  var KUWAIT = { west: 46.5, east: 48.8, south: 28.5, north: 30.1 };
+  var KUWAIT = { west: 46.5, east: 49.6, south: 28.5, north: 30.15 };
 
   var FOOTPRINT_NOTE =
     'Footprints are computed from the frame centre, the 39 m ground sample ' +
