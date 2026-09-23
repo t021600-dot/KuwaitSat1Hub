@@ -1,0 +1,768 @@
+/* =====================================================================
+   ksat-agents.js - THE MISSION ORCHESTRATOR AND THE SIX AGENTS
+   Owner: 04 Agents / 02 Back End
+
+   WHAT THIS IS
+   The eight roles in 04-agents (Orchestrator, Satellite Data,
+   Environmental Analysis, Recommendation, Impact Prediction,
+   Visualization, Monitoring, Reporting), implemented as the thing they
+   were specified to be: a DECISION LOOP, not a fixed sequence. At every
+   stage the Orchestrator reads what the previous stage actually returned
+   and chooses the next permitted action from it. Three of the branches
+   below end the run early, and they are the interesting ones.
+
+   WHAT THIS IS NOT
+   It is not n8n. The schema was designed for n8n to drive it -
+   mission_runs.n8n_execution_id is still there, and
+   03-security/db/08_agent_claim.sql is still the claim-and-lease an
+   external worker would use - but nothing in this platform calls n8n
+   today and nothing here pretends to. The pipeline runs in the browser,
+   in this file, and writes its trail through the four SECURITY DEFINER
+   functions in 03-security/db/09_researcher_write_path.sql. Swapping in
+   n8n later means pointing run() at a webhook and leaving everything
+   else alone; the audit trail is the same either way, which is why the
+   trail was made the interface.
+
+   It is also not a language model. There is no LLM in this loop. Every
+   decision below is arithmetic on measured pixels or a comparison
+   against a written threshold, and every one of them is recorded with
+   the number that caused it. That is a deliberate trade: a rule that can
+   be printed in the audit trail is worth more here than a judgement that
+   cannot.
+
+   >>> THE ONE RULE THIS FILE MUST NEVER BREAK <<<
+   Every step is written to the DATABASE before it is shown on screen,
+   and the screen then renders what the database returns. A trace that is
+   drawn from a variable in this file is a claim. A trace read back out
+   of agent_steps is evidence. If you ever find yourself rendering from
+   the local array because it is faster, stop.
+   ===================================================================== */
+
+(function () {
+  'use strict';
+
+  var KS = window.KSAT = window.KSAT || {};
+  var geo = KS.geo;
+
+  var ROLES = {
+    satellite_data:          { code: 'SD', name: 'Satellite Data Agent' },
+    environmental_analysis:  { code: 'EA', name: 'Environmental Analysis Agent' },
+    recommendation:          { code: 'RA', name: 'Recommendation Agent' },
+    impact_prediction:       { code: 'IP', name: 'Impact Prediction Agent' },
+    visualization:           { code: 'VZ', name: 'Visualization Agent' },
+    reporting:               { code: 'RP', name: 'Reporting Agent' }
+  };
+
+  /* -------------------------------------------------------------------
+     PROMPT INJECTION SCREENING
+
+     A researcher types a research objective. Somebody, one day, will
+     type an INSTRUCTION instead - and the objective is the one piece of
+     free text in this platform that an automated pipeline reads and acts
+     on. missions.injection_flag exists for exactly that, and
+     researcher_log_step carries p_injection through to it.
+
+     THIS IS A DETECTION HEURISTIC, NOT A CONTROL. It runs in a browser
+     and it matches on English. What actually keeps a hostile objective
+     harmless is that nothing downstream of it can do anything dangerous:
+     the payload archive carries no write grant for any signed-in role,
+     there is no outbound network call in this pipeline at all, and the
+     database is the only thing that decides what a caller may read. The
+     screen exists so the attempt is VISIBLE in the audit trail, not so
+     it is stopped - it was already stopped.
+
+     The patterns are deliberately narrow. A false positive refuses a
+     legitimate researcher's mission, which is a real cost; "delete" on
+     its own would fire on "delete-ability of the salt marsh", so every
+     pattern needs a second word that a research objective has no reason
+     to contain.
+     ------------------------------------------------------------------- */
+  var INJECTION = [
+    { re: /ignore\s+(all\s+|the\s+|any\s+)?(previous|prior|above|earlier)\s+(instruction|prompt|rule|message)/i,
+      why: 'an instruction to disregard earlier instructions' },
+    { re: /disregard\s+(your|all|the|any)\s+(instruction|rule|polic|guardrail|constraint)/i,
+      why: 'an instruction to disregard the configured rules' },
+    { re: /(you\s+are\s+now|you\s+must\s+now|from\s+now\s+on\s+you)/i,
+      why: 'an attempt to redefine the agent role' },
+    { re: /(system\s+prompt|developer\s+message|your\s+instructions)/i,
+      why: 'a request aimed at the system configuration rather than the data' },
+    { re: /(service[_\s-]?role|api[_\s-]?key|secret\s+key|bearer\s+token|password)/i,
+      why: 'a reference to a credential' },
+    /* `update \w+ set` alone matched "update the planting set for 2027",
+       which is a sentence a Kuwaiti agronomist could reasonably write.
+       Requiring the assignment makes it SQL and nothing else. */
+    { re: /(drop\s+table|truncate\s+table|delete\s+from\s+\w|update\s+\w+\s+set\s+\w+\s*=)/i,
+      why: 'SQL that modifies data' },
+    /* THIS ONE HAD A FALSE POSITIVE AND IT IS WORTH RECORDING.
+
+       It was `send (the )?(data|frames|results) to `, which flagged
+       "Compare coastal change at Bubiyan; send the results to the
+       ministry by email" - an ordinary and entirely legitimate research
+       objective. A false positive here does not merely annoy: the run
+       refuses, the mission is marked with an injection flag, and a
+       researcher is told their question looked like an attack.
+
+       So the destination now has to look like a network endpoint - a
+       URL scheme or an email address - rather than any noun at all.
+       Sending results to a ministry is research. Sending them to
+       http://somewhere is not. */
+    { re: /(exfiltrat|(?:send|post|upload|forward|email|transmit)\b[^.\n]{0,60}?\bto\b\s*(?:https?:\/\/|ftp:\/\/|[\w.+-]+@[\w.-]+\.[a-z]{2,}))/i,
+      why: 'an instruction to send data to an external address' },
+    { re: /(<script|javascript:|onerror\s*=)/i,
+      why: 'markup that would execute if it were ever rendered as HTML' },
+    { re: /(act\s+as\s+(an?\s+)?(admin|root|superuser)|pretend\s+to\s+be|jailbreak)/i,
+      why: 'an attempt to assume a different role' }
+  ];
+
+  function scan(text) {
+    var hits = [];
+    var s = String(text || '');
+    INJECTION.forEach(function (p) {
+      var m = p.re.exec(s);
+      if (m) hits.push({ matched: m[0].slice(0, 60), why: p.why });
+    });
+    return { flagged: hits.length > 0, hits: hits };
+  }
+
+  /* -------------------------------------------------------------------
+     THE WRITE PATH
+
+     Four calls, all SECURITY DEFINER, all of which re-read ownership
+     from the run row on every single call - the caller's argument is
+     used for CONTENT, never for authorisation. See the header of
+     03-security/db/09_researcher_write_path.sql.
+
+     Every one of these rejects loudly. A pipeline that writes nothing
+     and says nothing is worse than one that stops, because the audit
+     trail then quietly disagrees with the screen.
+     ------------------------------------------------------------------- */
+  function rpc(name, args) {
+    if (!window.sb) return Promise.reject(new Error('The mission database is not reachable.'));
+    return window.sb.rpc(name, args).then(function (r) {
+      if (r.error) { throw new Error(r.error.message || String(r.error)); }
+      return r.data;
+    });
+  }
+
+  function logStep(run, step, tool, args, allowed, refused, injection) {
+    return rpc('researcher_log_step', {
+      p_run_id: run,
+      p_step: step,
+      p_tool: tool || null,
+      p_args: args || null,
+      p_allowed: allowed !== false,
+      p_refused_reason: refused || null,
+      p_injection: !!injection
+    });
+  }
+
+  function writeResult(run, kind, title, body, geometry) {
+    return rpc('researcher_write_result', {
+      p_run_id: run,
+      p_kind: kind,
+      p_title: String(title).slice(0, 200),
+      p_body: String(body || '').slice(0, 20000),
+      p_geometry: geometry || null
+    });
+  }
+
+  function finish(run, status, err) {
+    return rpc('researcher_finish_run', {
+      p_run_id: run, p_status: status, p_error: err ? String(err).slice(0, 500) : null
+    });
+  }
+
+  /* -------------------------------------------------------------------
+     THE TOOL PERMISSION TABLE, PROVED RATHER THAN CLAIMED
+
+     The Research Console shows a permission table with "Modify original
+     data - DENIED" on it. A label is worth nothing, so the Satellite
+     Data Agent ATTEMPTS the forbidden write on every run and records
+     what the database said back, verbatim, as a refused step.
+
+     This is safe by construction: 03_grants.sql grants payload_frames
+     SELECT and nothing else to `authenticated`, so the statement cannot
+     succeed. If it ever DOES succeed, the run stops and says so - that
+     would mean a grant had been added and the whole archive argument had
+     quietly changed.
+     ------------------------------------------------------------------- */
+  function proveReadOnly(run) {
+    return window.sb.from('payload_frames')
+      .update({ place_label: 'permission probe' })
+      .eq('frame_no', -1)
+      .then(function (r) {
+        if (r.error) {
+          return logStep(run, 'satellite_data', 'payload_frames.update',
+            { intent: 'permission probe, expected to be refused', frame_no: -1 },
+            false, 'Refused by the database: ' + r.error.message, false)
+            .then(function () { return { refused: true, message: r.error.message }; });
+        }
+        /* No error. The grant table has changed under us. */
+        return logStep(run, 'satellite_data', 'payload_frames.update',
+          { intent: 'permission probe' }, true,
+          null, false)
+          .then(function () { return { refused: false, message: 'the write was NOT refused' }; });
+      });
+  }
+
+  /* -------------------------------------------------------------------
+     EVIDENCE GATHERING
+     ------------------------------------------------------------------- */
+
+  /* Which archive frames fall inside the mission area. A frame counts as
+     inside when its CENTRE is inside; an overlap test would need the
+     footprint corners and the footprint is already an approximation, so
+     the looser test is the honest one and it is stated as such. */
+  function framesInArea(frames, area) {
+    return frames.filter(function (f) {
+      return geo.hasFix(f) && geo.pointInPolygon(Number(f.lon), Number(f.lat), area);
+    });
+  }
+
+  /* Repeat visits. Change detection needs the same ground on two
+     different dates. This counts the pairs that actually exist, which on
+     the archive as it stands is the number that lets the Impact
+     Prediction Agent decline honestly instead of inventing a trend. */
+  function repeatPairs(list) {
+    var pairs = [];
+    for (var i = 0; i < list.length; i++) {
+      for (var j = i + 1; j < list.length; j++) {
+        var a = list[i], b = list[j];
+        if (a.captured_on === b.captured_on) continue;
+        var dLat = Math.abs(Number(a.lat) - Number(b.lat));
+        var dLon = Math.abs(Number(a.lon) - Number(b.lon));
+        /* within roughly a frame width of each other */
+        if (dLat < 0.12 && dLon < 0.15) {
+          pairs.push([a.frame_no, b.frame_no]);
+        }
+      }
+    }
+    return pairs;
+  }
+
+  function fmtPct(n) { return (Math.round(n * 10) / 10) + '%'; }
+
+  /* -------------------------------------------------------------------
+     THE RUN
+
+     opts = {
+       mission   : the mission row (id, title, objective, area_geojson)
+       frames    : the payload_frames rows this session was given
+       onPhase   : (text) -> narration for the screen
+       onStep    : () -> the screen should re-read agent_steps
+       onCheckpoint : (state) -> a human decision is required
+     }
+
+     Returns a promise for the run state. The run is left OPEN at the
+     checkpoint on purpose: researcher_log_step refuses a run that is not
+     queued or running, so holding it open is what makes the post-
+     approval steps writable at all.
+     ------------------------------------------------------------------- */
+  function run(opts) {
+    var mission = opts.mission;
+    var frames = opts.frames || [];
+    var phase = opts.onPhase || function () {};
+    var state = { mission: mission, run_id: null, analyses: [], candidates: [], stopped: null };
+
+    /* tick() is a WRAPPER and not opts.onStep itself, for two reasons.
+       It is used as `.then(tick)` in several places, so it has to ignore
+       whatever the previous promise resolved with rather than treat it
+       as an argument. And the page needs the run id the moment it
+       exists - long before this function resolves - so every tick hands
+       the live state back to the caller. Without that the trace has
+       nothing to re-read and the screen sits blank through the whole
+       run. */
+    var raw = opts.onStep || function () {};
+    function tick() { raw(state); }
+
+    function step(name) { phase(ROLES[name] ? ROLES[name].name : name); }
+
+    phase('Mission Orchestrator - requesting a run slot');
+
+    return rpc('launch_mission', { p_mission_id: mission.id })
+      .then(function (runId) {
+        state.run_id = runId;
+        phase('Run ' + String(runId).slice(0, 8) + ' opened');
+        tick();
+
+        /* ---- DECISION 0 - is the objective a question or an order? -- */
+        var sc = scan(mission.objective + ' ' + (mission.title || ''));
+        if (sc.flagged) {
+          var why = sc.hits.map(function (h) { return h.why; }).join('; ');
+          step('satellite_data');
+          return logStep(state.run_id, 'satellite_data', 'payload_frames.select',
+              { objective_excerpt: String(mission.objective).slice(0, 200) },
+              false,
+              'The objective contains ' + why + '. The Orchestrator does not pass ' +
+              'free text through to a tool call, so no data was read. The mission ' +
+              'is flagged for review.',
+              true)
+            .then(function () { tick(); return writeResult(state.run_id, 'narrative',
+                'Run stopped: the objective reads as an instruction',
+                'The Mission Orchestrator screens the research objective before any ' +
+                'tool is called. This objective matched ' + sc.hits.length +
+                ' injection pattern(s): ' + why + '.\n\n' +
+                'Matched text: ' + sc.hits.map(function (h) { return '"' + h.matched + '"'; }).join(', ') +
+                '\n\nNo frame was read and no finding was produced. The mission now ' +
+                'carries an injection flag. Rewrite the objective as a question ' +
+                'about the data and create a new mission.'); })
+            .then(function () { return finish(state.run_id, 'failed', 'objective screened as an instruction'); })
+            .then(function () { state.stopped = 'injection'; tick(); return state; });
+        }
+
+        /* ---- 1 - SATELLITE DATA ---------------------------------- */
+        step('satellite_data');
+        var inArea = framesInArea(frames, mission.area_geojson);
+        var geolocated = frames.filter(geo.hasFix);
+
+        return logStep(state.run_id, 'satellite_data', 'payload_frames.select',
+            { columns: 'frame_no,captured_on,lat,lon,gsd_m,image_w,image_h',
+              area: (mission.area_geojson && mission.area_geojson.name) || 'mission area',
+              frames_released: frames.length,
+              frames_geolocated: geolocated.length,
+              frames_in_area: inArea.length })
+          .then(function () { tick(); return proveReadOnly(state.run_id); })
+          .then(function (probe) {
+            tick();
+            state.probe = probe;
+            return writeResult(state.run_id, 'metric',
+              'Evidence available to this run',
+              frames.length + ' payload frames were released to this session by row ' +
+              'level security. ' + geolocated.length + ' of them carry a geolocation. ' +
+              inArea.length + ' fall inside the mission area.\n\n' +
+              'A write to the payload archive was attempted as a permission check and ' +
+              (probe.refused
+                ? 'was refused by the database: ' + probe.message
+                : 'WAS NOT REFUSED. Tell the team: the archive grants have changed.'));
+          })
+          .then(function () {
+            tick();
+
+            /* ---- DECISION 1 - is there anything to analyse? -------- */
+            if (!inArea.length) {
+              step('environmental_analysis');
+              return logStep(state.run_id, 'environmental_analysis', 'frame.analyse',
+                  { frames_in_area: 0 }, false,
+                  'No archive frame has a geolocation inside this mission area, so ' +
+                  'there is nothing to measure. The Orchestrator does not substitute ' +
+                  'a frame from elsewhere.')
+                .then(function () { tick(); return writeResult(state.run_id, 'narrative',
+                    'No usable evidence in this area',
+                    'The KuwaitSat-1 archive holds ' + frames.length + ' frames, of which ' +
+                    geolocated.length + ' are geolocated. None of them falls inside the ' +
+                    'area this mission defines.\n\n' +
+                    'The pipeline stopped here rather than analysing a frame from ' +
+                    'somewhere else and labelling it with this area. Redraw the area ' +
+                    'over one of the geolocated frames - the Geospatial Layers view ' +
+                    'shows where they are - and create a new mission.',
+                    mission.area_geojson); })
+                /* 'stalled', NOT 'complete'. researcher_finish_run maps
+                   complete -> mission 'review' and everything else ->
+                   'failed'. A run that measured nothing must not leave
+                   the mission sitting in REVIEW, because REVIEW is the
+                   state that offers a Generate the report button - and
+                   the newest narrative on this mission would then be
+                   "No usable evidence in this area", which would be
+                   approved and signed as a report, and would close the
+                   mission for ever. The honest state for a run that
+                   found nothing is failed. */
+                .then(function () { return finish(state.run_id, 'stalled',
+                                      'no archive frame inside the mission area'); })
+                .then(function () { state.stopped = 'no-evidence'; tick(); return state; });
+            }
+
+            /* ---- 2 - ENVIRONMENTAL ANALYSIS ----------------------- */
+            step('environmental_analysis');
+            phase(ROLES.environmental_analysis.name + ' - measuring ' +
+                  inArea.length + ' frame' + (inArea.length === 1 ? '' : 's'));
+
+            var chain = Promise.resolve();
+            inArea.forEach(function (f) {
+              chain = chain.then(function () {
+                if (!f.image_b64 || f.image_b64.length < 32) {
+                  return logStep(state.run_id, 'environmental_analysis', 'frame.analyse',
+                    { frame_no: f.frame_no }, false,
+                    'Frame ' + f.frame_no + ' has an acquisition record but no picture ' +
+                    'in the archive yet, so it cannot be measured.').then(tick);
+                }
+                return geo.analyseFrame(f, 8).then(function (a) {
+                  a.frame = f;
+                  state.analyses.push(a);
+                  return logStep(state.run_id, 'environmental_analysis', 'frame.analyse',
+                    { frame_no: f.frame_no,
+                      grid: a.grid + 'x' + a.grid,
+                      index: 'ExG on chromatic coordinates',
+                      threshold: geo.VEG_EXG,
+                      vegetation_pct: a.vegPct,
+                      water_pct: a.waterPct,
+                      bare_pct: a.barePct })
+                    .then(tick);
+                });
+              });
+            });
+
+            return chain.then(function () {
+              if (!state.analyses.length) {
+                return writeResult(state.run_id, 'narrative',
+                    'Nothing could be measured',
+                    'Every frame inside this area has an acquisition record but no ' +
+                    'picture loaded into the archive, so no measurement was possible.')
+                  .then(function () { return finish(state.run_id, 'stalled',
+                                        'no frame inside the area has a picture loaded'); })
+                  .then(function () { state.stopped = 'no-pixels'; tick(); return state; });
+              }
+
+              /* one metric result per measured frame */
+              var w = Promise.resolve();
+              state.analyses.forEach(function (a) {
+                w = w.then(function () {
+                  return writeResult(state.run_id, 'metric',
+                    'Frame ' + String(a.frame_no).padStart(2, '0') + ' surface classes',
+                    'Grid ' + a.grid + ' x ' + a.grid + ' over ' + a.width + ' x ' + a.height +
+                    ' px, ' + a.total + ' tiles.\n' +
+                    'Vegetation ' + fmtPct(a.vegPct) + ' of tiles, water ' +
+                    fmtPct(a.waterPct) + ', bare ' + fmtPct(a.barePct) + '.\n\n' +
+                    geo.INDEX_NOTE,
+                    geo.frameBounds(a.frame) ? geo.rectPolygon(
+                      geo.frameBounds(a.frame)[0][0], geo.frameBounds(a.frame)[0][1],
+                      geo.frameBounds(a.frame)[1][0], geo.frameBounds(a.frame)[1][1],
+                      'Frame ' + a.frame_no + ' footprint') : null);
+                });
+              });
+              return w;
+            });
+          })
+          .then(function () {
+            if (state.stopped) return state;
+            tick();
+
+            /* ---- DECISION 2 - is there any bare ground to rank? ----
+               Frame 8 is open Gulf water. A run over it classifies every
+               tile as water, leaves nothing to plant, and used to reach
+               the checkpoint with an empty candidate list and the
+               sentence "0 candidate zones are ready for your decision".
+               Asking a researcher to approve nothing is worse than
+               telling them there was nothing. */
+            var bare = 0;
+            state.analyses.forEach(function (a) { bare += a.counts.bare; });
+            if (!bare) {
+              step('recommendation');
+              var classes = state.analyses.map(function (a) {
+                return 'frame ' + a.frame_no + ': ' + a.vegPct + '% vegetation, ' +
+                       a.waterPct + '% water, ' + a.barePct + '% bare';
+              }).join('; ');
+              return logStep(state.run_id, 'recommendation', 'rank.candidates',
+                  { bare_tiles_considered: 0 }, false,
+                  'No tile inside this area classified as bare ground, so there is ' +
+                  'nothing to recommend. Measured: ' + classes + '.')
+                .then(function () { tick(); return writeResult(state.run_id, 'narrative',
+                    'No candidate ground in this area',
+                    'Every tile measured inside this mission area classified as water or ' +
+                    'as already vegetated. There is no bare ground here to recommend ' +
+                    'planting on.\n\n' + classes + '.\n\n' +
+                    'This is a result, not a failure: it says the area is not a ' +
+                    'candidate. ' + geo.INDEX_NOTE,
+                    mission.area_geojson); })
+                .then(function () { return finish(state.run_id, 'stalled',
+                                      'no bare ground inside the mission area'); })
+                .then(function () { state.stopped = 'no-candidates'; tick(); return state; });
+            }
+
+            /* ---- 3 - RECOMMENDATION ------------------------------- */
+            return rank(state, 'balanced').then(function () {
+              phase('Mission Orchestrator - evidence sufficient, human checkpoint required');
+              if (opts.onCheckpoint) opts.onCheckpoint(state);
+              return state;
+            });
+          });
+      });
+  }
+
+  /* -------------------------------------------------------------------
+     RANKING, AND RE-RANKING
+
+     mode 'balanced' : bare tiles next to existing vegetation first. The
+                       argument is that something already grows there, so
+                       the water and the soil are evidently not the
+                       blocker.
+     mode 'driest'   : lowest greenness first, ignoring the neighbours.
+                       This is what Reject asks for - the candidate set is
+                       REBUILT from the same evidence under a different
+                       criterion, never edited in place.
+     ------------------------------------------------------------------- */
+  function rank(state, mode) {
+    var all = [];
+    state.analyses.forEach(function (a) {
+      a.tiles.forEach(function (t) {
+        if (t.kind !== 'bare') return;
+        var score = (mode === 'driest')
+          ? (1 - t.exg)
+          : (0.65 * t.nbVeg) + (0.35 * (1 - Math.min(1, Math.max(0, t.exg + 0.5))));
+        all.push({ a: a, t: t, score: score });
+      });
+    });
+    all.sort(function (x, y) { return y.score - x.score; });
+    var top = all.slice(0, 5);
+    state.candidates = top;
+    state.rankMode = mode;
+
+    var tileKm2 = 0;
+    if (state.analyses.length) {
+      var a0 = state.analyses[0];
+      var gsd = Number(a0.frame.gsd_m) || 39;
+      tileKm2 = Math.round(((a0.width / a0.grid) * gsd) * ((a0.height / a0.grid) * gsd) / 1e6 * 10) / 10;
+    }
+    state.tileKm2 = tileKm2;
+
+    return logStep(state.run_id, 'recommendation', 'rank.candidates',
+        { criterion: mode,
+          bare_tiles_considered: all.length,
+          candidates_returned: top.length,
+          tile_area_km2: tileKm2 })
+      .then(function () {
+        var w = Promise.resolve();
+        top.forEach(function (c, i) {
+          w = w.then(function () {
+            var poly = geo.pixelPolygon(c.a.frame, c.t.x0, c.t.y0, c.t.x1, c.t.y1,
+              'Candidate ' + (i + 1));
+            return writeResult(state.run_id, 'site',
+              'Candidate ' + (i + 1) + ' - frame ' + String(c.a.frame_no).padStart(2, '0') +
+                ' tile ' + c.t.gx + ',' + c.t.gy,
+              'Ranked ' + (i + 1) + ' of ' + top.length + ' by the ' + mode + ' criterion.\n' +
+              'Greenness index ExG ' + c.t.exg.toFixed(3) + ', luminance ' + c.t.lum +
+              ', classified bare.\n' +
+              'Neighbouring tiles carrying vegetation: ' + Math.round(c.t.nbVeg * 100) + '%.\n' +
+              'Approximately ' + tileKm2 + ' km2 on the ground.\n\n' +
+              geo.FOOTPRINT_NOTE,
+              poly);
+          });
+        });
+        return w;
+      });
+  }
+
+  /* -------------------------------------------------------------------
+     AFTER THE HUMAN CHECKPOINT
+
+     approve() runs the last three agents. It is a separate function
+     because the checkpoint is a separate EVENT: the run sits open, the
+     mission sits in the researcher's list, and nothing at all happens
+     until a person presses the button. That gap is the capstone
+     requirement "the agent proposes, a person approves", and it is the
+     reason impact_prediction is not simply the next line of run().
+     ------------------------------------------------------------------- */
+  function approve(state, opts) {
+    opts = opts || {};
+    var phase = opts.onPhase || function () {};
+    var raw = opts.onStep || function () {};
+    function tick() { raw(state); }
+    var mission = state.mission;
+
+    phase(ROLES.impact_prediction.name);
+
+    var inArea = state.analyses.map(function (a) { return a.frame; });
+    var pairs = repeatPairs(inArea);
+    var totalKm2 = Math.round(state.candidates.length * state.tileKm2 * 10) / 10;
+    var dates = {};
+    inArea.forEach(function (f) { dates[f.captured_on] = 1; });
+    var nDates = Object.keys(dates).length;
+
+    /* ---- 4 - IMPACT PREDICTION -------------------------------------
+       The brief is explicit: ranges, never false precision, and "unable
+       to make a reliable estimate" when the evidence is thin. The
+       evidence here IS thin and the honest output says so with the
+       numbers that make it thin, rather than producing a percentage
+       nobody could defend. */
+    var canEstimate = pairs.length > 0;
+
+    return logStep(state.run_id, 'impact_prediction', 'change.detect',
+        { candidate_zones: state.candidates.length,
+          candidate_area_km2: totalKm2,
+          distinct_acquisition_dates: nDates,
+          repeat_visit_pairs: pairs.length },
+        canEstimate, canEstimate ? null :
+        'Change detection needs the same ground on two different dates. The frames ' +
+        'inside this area were acquired on ' + nDates + ' date' + (nDates === 1 ? '' : 's') +
+        ' and contain ' + pairs.length + ' repeat visit pairs, so no trend can be ' +
+        'measured and no impact figure is produced.')
+      .then(function () {
+        tick();
+        return writeResult(state.run_id, 'metric',
+          'Impact estimate',
+          canEstimate
+            ? ('Repeat coverage exists for ' + pairs.length + ' frame pair(s): ' +
+               pairs.map(function (p) { return p[0] + '/' + p[1]; }).join(', ') + '. ' +
+               'A change estimate over ' + totalKm2 + ' km2 of candidate ground can be ' +
+               'attempted from these pairs, and should be reported as a range.')
+            : ('No impact estimate is made, and this is the finding rather than a gap ' +
+               'in it.\n\n' +
+               'The candidate zones total approximately ' + totalKm2 + ' km2 across ' +
+               state.candidates.length + ' tiles. Estimating what planting them would ' +
+               'change requires the same ground observed on at least two dates. The ' +
+               'frames inside this area were acquired on ' + nDates + ' date' +
+               (nDates === 1 ? '' : 's') + ' and contain no repeat visit of the same ' +
+               'ground, so there is no measurable baseline.\n\n' +
+               'What can be stated: the area, the surface class of each tile, and the ' +
+               'date each measurement was taken. What cannot: any rate, trend or ' +
+               'projected effect.'));
+      })
+      .then(function () {
+        tick();
+        /* ---- 5 - VISUALIZATION ------------------------------------ */
+        phase(ROLES.visualization.name);
+        return logStep(state.run_id, 'visualization', 'map.compose',
+            { layers: ['mission area', 'frame footprints', 'candidate zones'],
+              candidate_zones: state.candidates.length })
+          .then(function () {
+            return writeResult(state.run_id, 'map_layer',
+              'Mission area and candidate zones',
+              'The mission area with the footprint of every measured frame and the ' +
+              state.candidates.length + ' candidate zones drawn on it. Open the ' +
+              'Geospatial Layers view to see it against the basemap.\n\n' +
+              geo.FOOTPRINT_NOTE,
+              mission.area_geojson);
+          });
+      })
+      .then(function () {
+        tick();
+        /* ---- 6 - REPORTING ---------------------------------------- */
+        phase(ROLES.reporting.name);
+        var md = reportMarkdown(state, { pairs: pairs, totalKm2: totalKm2, nDates: nDates });
+        state.reportMd = md;
+        return logStep(state.run_id, 'reporting', 'report.compose',
+            { sections: 10, characters: md.length, approved: false })
+          .then(function () {
+            return writeResult(state.run_id, 'narrative', 'Draft report', md);
+          });
+      })
+      .then(function () { return finish(state.run_id, 'complete', null); })
+      .then(function () {
+        tick();
+        phase('Run complete. The report is a draft until a researcher approves it.');
+        return state;
+      });
+  }
+
+  /* -------------------------------------------------------------------
+     THE REPORT
+
+     The structure is the one printed on the Reports view, in that order,
+     so the page and the document cannot drift apart. Every number in it
+     is carried in from a measurement; there is no sentence here that
+     invents one.
+     ------------------------------------------------------------------- */
+  function reportMarkdown(state, x) {
+    var m = state.mission;
+    var L = [];
+    function p(s) { L.push(s); }
+
+    p('# ' + (m.title || 'Mission report'));
+    p('');
+    p('KuwaitSat-1 Mission Hub, research operations. Draft assembled by the ' +
+      'Reporting Agent from run ' + String(state.run_id).slice(0, 8) + '.');
+    p('');
+    p('## Executive summary');
+    p('');
+    p(state.candidates.length + ' candidate zones were identified inside the mission ' +
+      'area from ' + state.analyses.length + ' KuwaitSat-1 frame' +
+      (state.analyses.length === 1 ? '' : 's') + ', totalling approximately ' +
+      x.totalKm2 + ' km2. No impact figure is given: the archive holds ' +
+      x.pairs.length + ' repeat visit pairs over this ground, which is not enough to ' +
+      'measure change.');
+    p('');
+    p('## Research objective');
+    p('');
+    p(m.objective);
+    p('');
+    p('## Data used');
+    p('');
+    state.analyses.forEach(function (a) {
+      var f = a.frame;
+      p('- Frame ' + String(a.frame_no).padStart(2, '0') + ', acquired ' + f.captured_on +
+        ', ' + (f.place_label || 'location not resolved') + ', ' +
+        Number(f.gsd_m).toFixed(0) + ' m/px, ' + a.width + ' x ' + a.height + ' px. ' +
+        'Geolocation method: ' + (f.geo_method || 'not stated') + ', confidence ' +
+        (f.geo_confidence || 'unresolved') + '.');
+    });
+    p('');
+    p('Area of interest: ' + ((m.area_geojson && m.area_geojson.name) || 'custom polygon') +
+      ', approximately ' + geo.polygonAreaKm2(m.area_geojson) + ' km2.');
+    p('');
+    p('## Methodology');
+    p('');
+    p('Each frame was divided into an 8 x 8 grid and the mean colour of every tile ' +
+      'measured in the browser. Tiles were classified as water, vegetation or bare ' +
+      'against two written thresholds: Excess Green at or above ' + geo.VEG_EXG +
+      ' is vegetation; a tile whose blue channel leads both others at a luminance ' +
+      'below 70 is water. Bare tiles were ranked by the ' + (state.rankMode || 'balanced') +
+      ' criterion and the top ' + state.candidates.length + ' returned.');
+    p('');
+    p(geo.INDEX_NOTE);
+    p('');
+    p('## Findings');
+    p('');
+    state.candidates.forEach(function (c, i) {
+      p('- Candidate ' + (i + 1) + ', frame ' + String(c.a.frame_no).padStart(2, '0') +
+        ' tile ' + c.t.gx + ',' + c.t.gy + ': ExG ' + c.t.exg.toFixed(3) +
+        ', luminance ' + c.t.lum + ', ' + Math.round(c.t.nbVeg * 100) +
+        '% of neighbouring tiles vegetated, approximately ' + state.tileKm2 + ' km2.');
+    });
+    p('');
+    p('## Researcher-approved recommendations');
+    p('');
+    p('The candidate set above was reviewed and approved by the signed-in researcher ' +
+      'at the human checkpoint. No recommendation in this report was published ' +
+      'without that approval.');
+    p('');
+    p('## Impact estimate');
+    p('');
+    p(x.pairs.length
+      ? ('Repeat coverage exists for ' + x.pairs.length + ' frame pair(s), so a change ' +
+         'estimate can be attempted and must be reported as a range.')
+      : ('None. Change detection requires the same ground on two dates. The frames used ' +
+         'here were acquired on ' + x.nDates + ' date' + (x.nDates === 1 ? '' : 's') +
+         ' with no repeat visit, so no rate, trend or projected effect is stated.'));
+    p('');
+    p('## Visualizations');
+    p('');
+    p('The mission area, the footprint of each frame used and each candidate zone are ' +
+      'drawn in the Geospatial Layers view of this workspace.');
+    p('');
+    p('## Sources and provenance');
+    p('');
+    p('- KuwaitSat-1 payload frames, released to this session by row level security ' +
+      'from public.payload_frames. Frames are not in the repository and not on the ' +
+      'deployed site.');
+    p('- Every step of this run, including refused steps, is in public.agent_steps ' +
+      'under run ' + state.run_id + ' and is readable in the Provenance / Audit view.');
+    p('- Basemap: Sentinel-2 cloudless 2021 by EOX (CC BY 4.0, modified Copernicus ' +
+      'Sentinel data), OpenStreetMap contributors (ODbL), CARTO.');
+    p('');
+    p('## Limitations');
+    p('');
+    p('- ' + geo.INDEX_NOTE);
+    p('- ' + geo.FOOTPRINT_NOTE);
+    p('- A frame counts as inside the mission area when its centre is inside. Frames ' +
+      'that overlap the edge are not included.');
+    p('- Geolocation for these frames was matched by eye against reference imagery; ' +
+      'the confidence stated on each frame is the operator judgement, not a measurement.');
+    p('- No ground truth was available for any tile in this run.');
+
+    return L.join('\n');
+  }
+
+  /* ------------------------------------------------------------------- */
+  KS.agents = {
+    ROLES: ROLES,
+    scan: scan,
+    run: run,
+    approve: approve,
+    rank: rank,
+    logStep: logStep,
+    writeResult: writeResult,
+    finish: finish,
+    reportMarkdown: reportMarkdown,
+    repeatPairs: repeatPairs,
+    framesInArea: framesInArea
+  };
+})();

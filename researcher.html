@@ -14,8 +14,8 @@
      WHAT THIS PAGE IS
      The workspace the team designed (kuwaitsat_researcher_page (4).html),
      wired to the real platform: a real session check, a real sign out,
-     and a real payload archive read out of Supabase instead of the
-     placeholder rows the prototype carried.
+     a real payload archive read out of Supabase, a real mission insert,
+     a real agent run that writes its own audit trail, and a real map.
 
      WHAT IS NOT IN THIS FILE, AND WILL NEVER BE
      Not one frame, not one coordinate, not one mission. This document is
@@ -40,12 +40,24 @@
      direction that file has been travelling. The alerts are replaced by
      inline text: a modal dialog blocks the page and says nothing the
      page could not have said in place.
+
+     >>> EVERY PANEL BELOW IS EMPTY ON PURPOSE <<<
+     There is no example row, no placeholder mission and no invented
+     number anywhere in this document. If a table is empty on screen it
+     is because the database returned nothing, and the panel says so in
+     words. A demo that ships with sample rows cannot tell the difference
+     between working and broken, and on a platform whose argument is
+     provenance that is the one failure that matters.
      ===================================================================== -->
 
 <link rel="icon" href="assets/brand/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <link rel="stylesheet" href="css/ksat-researcher.css">
 <link rel="stylesheet" href="css/ksat-stars.css">
+<!-- Leaflet first, then our overrides. Reverse these two and the map
+     furniture goes back to the white default. -->
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="css/ksat-workspace.css">
 </head>
 <body>
 
@@ -73,9 +85,11 @@
     <button class="active" data-go="overview">Overview</button>
     <button data-go="missions">Missions</button>
     <button data-go="frames">Payload Archive</button>
+    <button data-go="geo">Geospatial</button>
     <button data-go="data">Data Archive</button>
     <button data-go="console">Research Console</button>
     <button data-go="reports">Reports</button>
+    <button data-go="audit">Audit</button>
   </nav>
   <div class="who">
     <div class="name" id="whoName">Signed in<small id="whoOrg">Researcher</small></div>
@@ -86,7 +100,7 @@
 
 <div class="statusbar">
   <span>SPACECRAFT <b>● NOMINAL</b></span>
-  <span>PAYLOAD <b>● AVAILABLE</b></span>
+  <span>PAYLOAD <b id="payState">● CHECKING</b></span>
   <span>GROUND LINK <b>● NOMINAL</b></span>
   <span>DATA PIPELINE <b id="pipeState">● CHECKING</b></span>
   <span>ACCESS: RESEARCHER</span>
@@ -101,12 +115,12 @@
   <h5>Scientific Data</h5>
   <button data-go="frames">◎ Payload Imagery</button>
   <button data-go="data">▦ Data Archive</button>
-  <button data-go="frames">⌖ Geospatial Layers</button>
+  <button data-go="geo">⌖ Geospatial Layers</button>
   <h5>Analysis</h5>
   <button data-go="console">⌁ Research Console</button>
   <h5>Outputs</h5>
   <button data-go="reports">▤ Reports &amp; Exports</button>
-  <button data-go="frames">▣ Provenance / Audit</button>
+  <button data-go="audit">▣ Provenance / Audit</button>
 </aside>
 
 <main>
@@ -129,39 +143,35 @@
       <div class="metric" id="kFrames">—</div><div class="sub" id="kFramesSub">Reading the archive</div></div>
     <div class="card s3"><div class="label">Data Ingest</div>
       <div class="metric" id="kIngest">—</div><div class="sub" id="kIngestSub">Checking the link</div></div>
-    <div class="card s3"><div class="label">Agent Services</div>
-      <div class="metric">08/08</div><div class="sub">Configured</div></div>
+    <div class="card s3"><div class="label">Agent Runs</div>
+      <div class="metric" id="kRuns">—</div><div class="sub" id="kRunsSub">Reading the audit trail</div></div>
 
     <div class="card s8">
-      <div class="ct"><h3>Workflow</h3><span class="tag">ORCHESTRATED</span></div>
-      <div class="timeline">
-        <div class="stage done"><i>1</i><span>REQUEST</span></div>
-        <div class="stage done"><i>2</i><span>DATA</span></div>
-        <div class="stage done"><i>3</i><span>ANALYSIS</span></div>
-        <div class="stage active"><i>4</i><span>DECISION</span></div>
-        <div class="stage"><i>5</i><span>IMPACT</span></div>
-        <div class="stage"><i>6</i><span>REPORT</span></div>
+      <div class="ct"><h3 id="wfTitle">Workflow</h3><span class="tag" id="wfTag">NO RUN YET</span></div>
+      <!-- Driven by the latest mission_runs row and its agent_steps.
+           Nothing here is set in the markup. -->
+      <div class="timeline" id="wfLine">
+        <div class="stage" data-stage="request"><i>1</i><span>REQUEST</span></div>
+        <div class="stage" data-stage="satellite_data"><i>2</i><span>DATA</span></div>
+        <div class="stage" data-stage="environmental_analysis"><i>3</i><span>ANALYSIS</span></div>
+        <div class="stage" data-stage="recommendation"><i>4</i><span>DECISION</span></div>
+        <div class="stage" data-stage="impact_prediction"><i>5</i><span>IMPACT</span></div>
+        <div class="stage" data-stage="reporting"><i>6</i><span>REPORT</span></div>
       </div>
-      <div class="map" style="margin-top:18px">
-        <div class="coast"></div>
-        <div class="pin p1"></div><div class="pin p2"></div><div class="pin p3"></div>
-        <div class="legend">AOI · candidate zones · current observation</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:9px">
-        <span class="sub">Identify areas in Kuwait where increasing vegetation could improve environmental conditions.</span>
-        <span class="sub">Area of interest, drawn. Not a live position.</span>
+      <div id="ovMap" class="ksat-map ksat-map--mini" style="margin-top:18px"></div>
+      <div class="ksat-keys" id="ovKeys"></div>
+      <div class="bar" style="margin-top:9px">
+        <span class="sub grow" id="ovObjective">No mission selected.</span>
+        <span class="sub" id="ovArea"></span>
       </div>
     </div>
 
     <div class="card s4">
-      <div class="ct"><h3>Agent Operations</h3><span class="tag">ORCHESTRATED</span></div>
-      <div class="agent"><div class="ico">MO</div><div><strong>Mission Orchestrator</strong><small>Evaluating next action</small></div><span class="state ok">ACTIVE</span></div>
-      <div class="agent"><div class="ico">SD</div><div><strong>Satellite Data Agent</strong><small>Data sufficiency verified</small></div><span class="state ok">DONE</span></div>
-      <div class="agent"><div class="ico">EA</div><div><strong>Environmental Analysis</strong><small>Candidate zones generated</small></div><span class="state ok">DONE</span></div>
-      <div class="agent"><div class="ico">RA</div><div><strong>Recommendation Agent</strong><small>Awaiting human checkpoint</small></div><span class="state wait">HOLD</span></div>
-      <div class="agent"><div class="ico">IP</div><div><strong>Impact Prediction</strong><small>Starts after approval</small></div><span class="state">WAITING</span></div>
-      <div class="agent"><div class="ico">RP</div><div><strong>Reporting Agent</strong><small>Final outputs only</small></div><span class="state">WAITING</span></div>
-      <div class="notice" style="margin-top:12px">Human checkpoint is required before the system can advance to impact prediction.</div>
+      <div class="ct"><h3>Agent Operations</h3><span class="tag" id="agTag">CONFIGURED</span></div>
+      <div id="ovAgents"></div>
+      <div class="notice" style="margin-top:12px">Impact prediction, visualization and
+        reporting do not start until a researcher approves the recommendation. That
+        checkpoint is in the Research Console.</div>
     </div>
 
     <div class="card s7">
@@ -185,28 +195,47 @@
     <button class="btn primary" data-act="new-mission">＋ New Mission</button>
   </div>
   <div class="card">
-    <input class="search" id="missionSearch" placeholder="Search mission ID, objective, dataset…">
+    <input class="search" id="missionSearch" placeholder="Search mission name, objective, status…">
     <table style="margin-top:12px" id="missionTable">
-      <tr><th>Mission</th><th>Research objective</th><th>Created</th><th>Status</th></tr>
+      <tr><th>Mission</th><th>Research objective</th><th>Area</th><th>Created</th><th>Status</th></tr>
     </table>
     <div class="said" id="missionMsg"></div>
   </div>
-  <div class="grid" style="margin-top:12px">
-    <div class="card s8">
-      <div class="ct"><h3>Decision record</h3><span class="tag amber">HUMAN REVIEW</span></div>
-      <div class="decision"><h4>Decision required</h4>
-        <p>Candidate zones satisfy the configured screening criteria. The Recommendation Agent
-           prepares evidence; a researcher, not the system, accepts it.</p></div>
-      <div style="margin-top:12px">
-        <button class="btn primary" data-act="approve">Approve candidate</button>
-        <button class="btn" data-act="reject">Reject / Re-rank</button>
-      </div>
-      <div class="said" id="decisionMsg"></div>
+
+  <!-- Opened by clicking a row. Empty, and hidden, until then. -->
+  <div class="card detail" id="missionDetail" hidden>
+    <div class="ct">
+      <h3 id="mdTitle">Mission</h3>
+      <button class="btn" data-act="close-detail">Close</button>
     </div>
-    <div class="card s4">
-      <div class="ct"><h3>Orchestrator State</h3><span class="tag green">ACTIVE</span></div>
-      <div class="log">REQUEST RECEIVED<br>↓<br>DATA SUFFICIENCY = TRUE<br>↓<br>ENVIRONMENTAL ANALYSIS<br>↓<br>CANDIDATES = 3<br>↓<br>RECOMMENDATION<br>↓<br><span class="warn">HUMAN CHECKPOINT</span><br>↓<br>IMPACT PREDICTION<br>↓<br>REPORT</div>
-      <div class="notice" style="margin-top:15px">The Orchestrator does not blindly execute a fixed sequence. It evaluates each stage result and selects the next permitted action.</div>
+    <div class="grid">
+      <div class="card s7" style="border:0;padding:0">
+        <dl id="mdFacts"></dl>
+        <div class="bar" style="margin-top:14px" id="mdActions"></div>
+        <div class="said" id="mdMsg"></div>
+      </div>
+      <div class="card s5" style="border:0;padding:0">
+        <div id="mdMap" class="ksat-map ksat-map--mini"></div>
+        <div class="ksat-keys" id="mdKeys"></div>
+      </div>
+
+      <div class="card s12" style="border:0;padding:0">
+        <div class="ct"><h3>Runs and steps</h3><span class="sub">READ BACK FROM agent_steps</span></div>
+        <div class="steps" id="mdSteps"></div>
+        <div class="said" id="mdStepsMsg"></div>
+      </div>
+
+      <div class="card s12" style="border:0;padding:0">
+        <div class="ct"><h3>Findings</h3><span class="sub">public.results</span></div>
+        <div class="findings" id="mdFindings"></div>
+        <div class="said" id="mdFindingsMsg"></div>
+      </div>
+
+      <div class="card s12" style="border:0;padding:0" id="mdReportWrap" hidden>
+        <div class="ct"><h3>Approved report</h3>
+          <button class="btn" data-act="export-report">Download .md</button></div>
+        <div class="md" id="mdReport"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -226,20 +255,62 @@
   </div>
 
   <div class="card">
-    <div class="ct"><h3 id="framesCount">Payload frames</h3><span class="sub">PROVENANCE REQUIRED</span></div>
+    <div class="ct"><h3 id="framesCount">Payload frames</h3>
+      <span class="bar">
+        <button class="btn" data-act="export-frames">Download the record as CSV</button>
+        <span class="sub">PROVENANCE REQUIRED</span>
+      </span></div>
     <div id="framesGrid" class="frames"></div>
     <div class="said" id="framesMsg"></div>
   </div>
 
   <div class="card" id="frameSheetCard" style="margin-top:12px" hidden>
     <div class="ct"><h3 id="frameSheetTitle">Frame</h3>
-      <button class="btn" data-act="close-sheet">Close</button></div>
+      <span class="bar">
+        <button class="btn" data-act="frame-on-map">Show on the map</button>
+        <button class="btn" data-act="close-sheet">Close</button>
+      </span></div>
     <div class="sheet" id="frameSheet"></div>
   </div>
 
   <div class="card" style="margin-top:12px">
     <div class="ct"><h3>How the geolocation on these rows was produced</h3></div>
     <div class="log" id="geoMethodNote"></div>
+  </div>
+</section>
+
+<!-- ================= GEOSPATIAL LAYERS ================= -->
+<section id="geo" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Scientific Data Management</div><h1>Geospatial Layers</h1>
+      <p>Everything this account can see, on the ground: frame footprints, mission areas
+         and the findings each run produced.</p></div>
+    <span class="tag green">LIVE MAP</span>
+  </div>
+
+  <div class="card">
+    <div class="ct"><h3>Kuwait</h3>
+      <span class="bar">
+        <button class="btn" data-act="geo-fit-frames">Fit to frames</button>
+        <button class="btn" data-act="geo-fit-missions">Fit to my missions</button>
+        <button class="btn primary" data-act="geo-use-view">Use this view as an area of interest</button>
+      </span></div>
+    <div id="geoMap" class="ksat-map"></div>
+    <div class="ksat-keys" id="geoKeys"></div>
+    <div class="aoi" id="geoAoi">Pan and zoom to the ground you want, then press
+      <b>Use this view as an area of interest</b>. The rectangle is carried into the
+      New Mission dialog.</div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="card s6">
+      <div class="ct"><h3>What is drawn here</h3></div>
+      <div class="notice" id="geoNote"></div>
+    </div>
+    <div class="card s6">
+      <div class="ct"><h3>Basemap sources</h3></div>
+      <div class="log" id="geoSources"></div>
+    </div>
   </div>
 </section>
 
@@ -257,10 +328,12 @@
       <select class="search" style="margin-top:9px" id="fClass">
         <option>All data classes</option><option>MEASURED</option><option>MODELLED</option><option>ESTIMATED</option><option>DERIVED</option>
       </select>
+      <div class="sub" style="margin-top:12px">The record counts are live. A dataset that
+        says <b>refused</b> is one row level security will not answer for this account.</div>
     </div>
     <div class="card s9">
       <div class="ct"><h3 id="dataCount">Datasets</h3><span class="sub">PROVENANCE REQUIRED</span></div>
-      <input class="search" id="dataSearch" placeholder="Search variable, instrument, mission, location…">
+      <input class="search" id="dataSearch" placeholder="Search dataset, source, class…">
       <table style="margin-top:12px" id="dataTable">
         <tr><th>Dataset</th><th>Source</th><th>Class</th><th>Resolution</th><th>Records</th><th>Quality</th></tr>
       </table>
@@ -273,28 +346,57 @@
 <section id="console" class="view hidden">
   <div class="head">
     <div><div class="kicker">Scientific Analysis</div><h1>Research Console</h1>
-      <p>Formulate a question, constrain the evidence and inspect the reasoning path before accepting outputs.</p></div>
-    <button class="btn primary" data-act="run">Run Analysis</button>
+      <p>Choose a mission, run the orchestrated pipeline against your own data, and
+         inspect every decision before you accept anything.</p></div>
+    <button class="btn primary" data-act="run" id="runBtn">Run Analysis</button>
   </div>
   <div class="grid">
     <div class="card s8">
-      <div class="ct"><h3>Research Question</h3><span class="tag">ORCHESTRATOR READY</span></div>
-      <textarea id="q" class="query" placeholder="Example: Identify areas in Kuwait where increasing vegetation could improve environmental conditions. Include data sources, assumptions, uncertainty and limitations."></textarea>
+      <div class="ct"><h3>Mission</h3><span class="tag" id="runTag">ORCHESTRATOR READY</span></div>
+      <select class="search" id="runMission"></select>
+      <div class="sub" style="margin-top:8px">A run always belongs to a mission. The mission
+        carries the area of interest; the Orchestrator reads the objective from it.</div>
+      <div class="field" style="margin-top:14px">
+        <label>Research objective, as recorded on this mission</label>
+        <textarea id="q" class="query" readonly></textarea>
+      </div>
+      <div class="said" id="runMsg"></div>
     </div>
+
     <div class="card s4">
       <div class="ct"><h3>Agent Tool Permissions</h3><span class="tag">READ / ANALYZE</span></div>
       <div class="rule"><span>Search approved datasets</span><b class="state ok">ALLOWED</b></div>
       <div class="rule"><span>Retrieve authorized imagery</span><b class="state ok">ALLOWED</b></div>
       <div class="rule"><span>Retrieve metadata</span><b class="state ok">ALLOWED</b></div>
-      <div class="rule"><span>Modify original data</span><b class="state">DENIED</b></div>
+      <div class="rule"><span>Modify original data</span><b class="state" id="permWrite">DENIED</b></div>
       <div class="rule"><span>Publish externally</span><b class="state">DENIED</b></div>
       <div class="rule"><span>Real mission command</span><b class="state">HUMAN ONLY</b></div>
-      <div class="notice" style="margin-top:12px">These are not labels. The payload archive carries no insert, update or
-        delete grant for any signed in role, so "Modify original data" is refused by the database.</div>
+      <div class="notice" style="margin-top:12px">These are not labels. Every run attempts the
+        forbidden write and records what the database said back, as a refused step in the
+        audit trail. <a href="#audit" data-go="audit" style="color:#9bb4c6">See it</a>.</div>
     </div>
+
+    <div class="card s12" id="checkpointCard" hidden>
+      <div class="ct"><h3>Human checkpoint</h3><span class="tag amber">DECISION REQUIRED</span></div>
+      <div class="decision">
+        <h4 id="cpTitle">Decision required</h4>
+        <p id="cpBody"></p>
+      </div>
+      <div class="findings" id="cpFindings" style="margin-top:12px"></div>
+      <div class="bar" style="margin-top:14px">
+        <button class="btn primary" data-act="approve">Approve the candidate set</button>
+        <button class="btn" data-act="reject">Reject and re-rank</button>
+        <button class="btn" data-act="abandon">Abandon this run</button>
+      </div>
+      <div class="said" id="decisionMsg"></div>
+    </div>
+
     <div class="card s12">
-      <div class="ct"><h3>Agent Execution Trace</h3><span class="sub">DECISION-BASED WORKFLOW</span></div>
-      <div id="trace" class="empty">Run a research question to display the Orchestrator's decisions and tool calls.</div>
+      <div class="ct"><h3>Agent Execution Trace</h3>
+        <span class="sub" id="traceSrc">DECISION-BASED WORKFLOW</span></div>
+      <div id="trace" class="empty">Pick a mission and press Run Analysis. Every step the
+        Orchestrator takes is written to the database first and then read back here, so
+        what you see is the audit trail and not a script.</div>
     </div>
   </div>
 </section>
@@ -304,17 +406,92 @@
   <div class="head">
     <div><div class="kicker">Scientific Outputs</div><h1>Reports &amp; Exports</h1>
       <p>Reports are generated from researcher-approved findings and retain evidence and limitations.</p></div>
+    <span class="bar">
+      <button class="btn" data-act="export-findings">Export findings as JSON</button>
+      <button class="btn" data-act="export-frames">Export frame record as CSV</button>
+    </span>
   </div>
   <div class="card">
-    <table id="reportTable"><tr><th>Report</th><th>Mission</th><th>Approved</th><th>Status</th></tr></table>
+    <table id="reportTable"><tr><th>Report</th><th>Mission</th><th>Approved</th><th>Status</th><th></th></tr></table>
     <div class="said" id="reportMsg"></div>
   </div>
+
+  <div class="card" id="reportViewWrap" style="margin-top:12px" hidden>
+    <div class="ct"><h3 id="reportViewTitle">Report</h3>
+      <span class="bar">
+        <button class="btn" data-act="export-report">Download .md</button>
+        <button class="btn" data-act="print-report">Print</button>
+        <button class="btn" data-act="close-report">Close</button>
+      </span></div>
+    <div class="md" id="reportView"></div>
+  </div>
+
   <div class="grid" style="margin-top:12px">
     <div class="card s6"><div class="ct"><h3>Report structure</h3></div>
       <div class="log">EXECUTIVE SUMMARY<br>RESEARCH OBJECTIVE<br>DATA USED<br>METHODOLOGY<br>FINDINGS<br>RESEARCHER-APPROVED RECOMMENDATIONS<br>IMPACT ESTIMATE<br>VISUALIZATIONS<br>SOURCES / PROVENANCE<br>LIMITATIONS</div></div>
     <div class="card s6"><div class="ct"><h3>Evidence policy</h3></div>
       <div class="notice">If available evidence is insufficient, the Reporting Agent records that limitation rather
-        than inventing a quantitative conclusion. Impact outputs should use ranges or uncertainty where appropriate.</div></div>
+        than inventing a quantitative conclusion. Impact outputs use ranges or state plainly that
+        no estimate can be made.</div></div>
+  </div>
+</section>
+
+<!-- ================= PROVENANCE / AUDIT ================= -->
+<section id="audit" class="view hidden">
+  <div class="head">
+    <div><div class="kicker">Governance</div><h1>Provenance / Audit</h1>
+      <p>Every automated run leaves a row. This is that record, read back out of the
+         database, including the steps that were refused.</p></div>
+    <button class="btn" data-act="audit-refresh">Refresh</button>
+  </div>
+
+  <div class="grid">
+    <div class="card s3"><div class="label">Runs</div>
+      <div class="metric" id="aRuns">—</div><div class="sub">mission_runs</div></div>
+    <div class="card s3"><div class="label">Steps recorded</div>
+      <div class="metric" id="aSteps">—</div><div class="sub">agent_steps</div></div>
+    <div class="card s3"><div class="label">Steps refused</div>
+      <div class="metric" id="aRefused">—</div><div class="sub">evidence of a boundary</div></div>
+    <div class="card s3"><div class="label">Findings</div>
+      <div class="metric" id="aResults">—</div><div class="sub">results</div></div>
+
+    <div class="card s12">
+      <div class="ct"><h3>Runs</h3><span class="sub">NEWEST FIRST</span></div>
+      <div class="scrolly">
+        <table id="auditRuns"><tr><th>Run</th><th>Mission</th><th>Status</th><th>Started</th><th>Finished</th><th>Tool calls</th></tr></table>
+      </div>
+      <div class="said" id="auditRunsMsg"></div>
+    </div>
+
+    <div class="card s12">
+      <div class="ct"><h3>Agent steps</h3>
+        <select class="search" id="auditRunFilter" style="width:auto;padding:7px 9px"></select></div>
+      <div class="scrolly">
+        <table id="auditSteps"><tr><th>Step</th><th>Tool</th><th>Refusal reason</th><th>Allowed</th><th>Status</th><th>When</th></tr></table>
+      </div>
+      <div class="said" id="auditStepsMsg"></div>
+    </div>
+
+    <div class="card s12">
+      <div class="ct"><h3>Access test</h3><span class="tag amber">RUNS AGAINST THE LIVE DATABASE</span></div>
+      <p class="sub" style="margin-bottom:12px">Four requests this account is not supposed to be
+        able to make. Nothing here is simulated: the button sends them and prints what came
+        back. The expected result of every one of them is a refusal.</p>
+      <button class="btn" data-act="access-test">Run the access test</button>
+      <div class="log" id="accessTest" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card s12">
+      <div class="ct"><h3>What the record is for</h3></div>
+      <div class="notice">
+        Row level security scopes every table on this page to the signed-in account.
+        Another researcher signed in to this same workspace sees their own missions,
+        their own runs, their own steps and their own findings, and nothing of yours —
+        the filter is a database policy on <code>auth.uid()</code>, not a query this page
+        writes, so it cannot be turned off from a browser. The payload archive is the one
+        shared table, and it is read-only for every signed-in role.
+      </div>
+    </div>
   </div>
 </section>
 
@@ -323,19 +500,38 @@
 
 <!-- ================= NEW MISSION ================= -->
 <div id="modal" class="modal hidden">
-  <div class="modalbox">
+  <div class="modalbox modalbox--wide">
     <h2>New Research Mission</h2>
-    <p>Define the scientific question. The Mission Orchestrator will determine the permitted
-       next action from available evidence and configured rules.</p>
-    <div class="form">
-      <div class="field"><label>Mission name</label><input id="mTitle" placeholder="e.g. Kuwait vegetation assessment"></div>
-      <div class="field"><label>Mission type</label><select id="mType">
-        <option>Earth Observation</option><option>Environmental Research</option>
-        <option>Telemetry Analysis</option><option>Custom Research</option></select></div>
-      <div class="field full"><label>Research objective</label>
-        <textarea id="mObjective" placeholder="What scientific question should the mission answer?"></textarea></div>
-      <div class="field"><label>Area of interest</label><input id="mArea" placeholder="Kuwait / coordinates / polygon"></div>
-      <div class="field"><label>Time window</label><input id="mWindow" placeholder="Start → End"></div>
+    <p>Define the scientific question and the ground it applies to. The Mission
+       Orchestrator will decide the permitted next action from the evidence that
+       actually exists inside that area.</p>
+    <div class="mform">
+      <div>
+        <div class="form">
+          <div class="field full"><label>Mission name</label>
+            <input id="mTitle" maxlength="120" placeholder="e.g. Kuwait Bay vegetation assessment"></div>
+          <div class="field"><label>Mission type</label><select id="mType">
+            <option>Earth Observation</option><option>Environmental Research</option>
+            <option>Telemetry Analysis</option><option>Custom Research</option></select></div>
+          <div class="field"><label>Time window</label>
+            <input id="mWindow" placeholder="Start → End, optional"></div>
+          <div class="field full"><label>Research objective — a question, not an instruction</label>
+            <textarea id="mObjective" maxlength="1500"
+              placeholder="What scientific question should the mission answer? At least 20 characters."></textarea>
+            <div class="sub" id="mObjCount">0 / 1500 · at least 20 characters</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field"><label>Area of interest</label>
+          <div class="chips" id="mPresets"></div>
+          <div id="mMap" class="ksat-map ksat-map--mini" style="margin-top:9px"></div>
+          <div class="aoi" id="mAoi"></div>
+          <div class="sub" style="margin-top:7px">Pan and zoom the map: the area of interest
+            is whatever is on screen, clipped to Kuwait. The database will refuse a
+            polygon outside 46.5–48.8°E and 28.5–30.1°N.</div>
+        </div>
+      </div>
     </div>
     <div class="said" id="modalMsg"></div>
     <div class="actions">
@@ -346,8 +542,11 @@
 </div>
 
 <script src="vendor/supabase.js"></script>
+<script src="vendor/leaflet.js"></script>
 <script src="js/config.js"></script>
 <script src="js/ksat-stars.js"></script>
+<script src="js/ksat-geo.js"></script>
+<script src="js/ksat-agents.js"></script>
 <script src="js/ksat-researcher.js"></script>
 </body>
 </html>

@@ -692,15 +692,29 @@
 
     g.clearRect(0, 0, W, Hh);
 
-    /* A soft floor glow so the object is not floating on flat black.
-       Left as the literal teal rgba(63,208,201,a) on purpose:
-       js/ksat-theme.js intercepts exactly that triple on its way into a
-       canvas and retints it to the live --accent-canvas, so this glow
-       follows the theme for free. Change the literal and it stops. */
-    var fg = g.createRadialGradient(CX, Hh * 0.82, 10, CX, Hh * 0.82, W * 0.34);
-    fg.addColorStop(0, 'rgba(63,208,201,.10)');
-    fg.addColorStop(1, 'rgba(63,208,201,0)');
-    g.fillStyle = fg; g.fillRect(0, 0, W, Hh);
+    /* THE FLOOR GLOW IS GONE, DELIBERATELY, AND THIS NOTE IS THE REASON.
+
+       There used to be a teal radial here - a soft pool of light under
+       the spacecraft so it did not read as floating on flat black:
+
+           var fg = g.createRadialGradient(CX, Hh*0.82, 10,
+                                           CX, Hh*0.82, W*0.34);
+           fg.addColorStop(0, 'rgba(63,208,201,.10)');
+           fg.addColorStop(1, 'rgba(63,208,201,0)');
+
+       It worked when the satellite sat still in the middle of the
+       masthead. It stopped working when the hero began to orbit: the
+       glow is painted at a FIXED point in the canvas while the object
+       now travels across it on a 66s cycle, so for most of that cycle
+       the light was not behind the spacecraft at all. It read as a
+       smudge on the sky - which is what the team saw and asked to have
+       taken off.
+
+       The literal rgba(63,208,201,a) was also the hook js/ksat-theme.js
+       watches for when it retints canvas work to --accent-canvas. That
+       hook is unused here now; every other colour in this file is built
+       from the theme variables directly.
+    */
 
     var draws = [];
     var i, f, rp, n, c, view, lam, fillL, k, vdirR, rim, spec, hv, vdir;

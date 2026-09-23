@@ -10,6 +10,12 @@
          read policy tests for a profile row and not merely for a JWT
      3 · read the real rows and render them
 
+   It owns the page. Two other files do the specialist work and are
+   loaded before it:
+
+     js/ksat-geo.js     maps, georeferencing, and the pixel measurement
+     js/ksat-agents.js  the Orchestrator and the six agents
+
    WHAT IS AND IS NOT A SECURITY CONTROL HERE
 
    Nothing in this file is a security control. Every line of it runs in a
@@ -31,6 +37,12 @@
    because there is nothing to show look identical, and on a platform
    whose argument is provenance, "I do not know why this is empty" is the
    one answer that must never be silent.
+
+   NO PANEL IS EVER DRAWN FROM A LOCAL VARIABLE WHEN THE DATABASE COULD
+   BE ASKED. The run trace in particular is re-read out of agent_steps
+   after every write, never rendered from the array the pipeline was
+   holding. A trace drawn from memory is a claim; a trace drawn from the
+   table is evidence, and evidence is the entire product.
    ===================================================================== */
 
 (function () {
@@ -38,13 +50,16 @@
 
   var doc = document;
   var root = doc.documentElement;
+  var KS = window.KSAT = window.KSAT || {};
+  var geo = KS.geo;
+  var agents = KS.agents;
 
   function $(sel, ctx) { return (ctx || doc).querySelector(sel); }
   function $$(sel, ctx) { return Array.prototype.slice.call((ctx || doc).querySelectorAll(sel)); }
 
   /* textContent everywhere, never innerHTML, for anything that came out
-     of the database or off a keyboard. The one exception is the static
-     trace markup at the bottom, which is a literal in this file. */
+     of the database or off a keyboard. There is no exception in this
+     file: even the report renderer builds nodes. */
   function el(tag, cls, text) {
     var n = doc.createElement(tag);
     if (cls) n.className = cls;
@@ -57,22 +72,50 @@
     if (n) n.textContent = text || '';
   }
 
+  function clear(n) { if (n) { while (n.firstChild) n.removeChild(n.firstChild); } }
+
   function haveDb() { return !!window.sb; }
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function shortId(id) { return id ? String(id).slice(0, 8) : '—'; }
+  function when(ts) { return ts ? String(ts).replace('T', ' ').slice(0, 16) : '—'; }
 
   var LOG = [];
   function log(line) {
     LOG.unshift(line);
     var box = doc.getElementById('sessionLog');
     if (!box) return;
-    box.textContent = '';
-    LOG.slice(0, 10).forEach(function (l) {
-      box.appendChild(el('div', null, l));
-    });
+    clear(box);
+    LOG.slice(0, 12).forEach(function (l) { box.appendChild(el('div', null, l)); });
+  }
+
+  /* A download, from data this session already holds. No server round
+     trip and nothing leaves the browser except to the reader's own disk. */
+  function download(name, mime, text) {
+    var blob = new Blob([text], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = doc.createElement('a');
+    a.href = url; a.download = name;
+    doc.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
   }
 
   /* -------------------------------------------------------------------
      1 · Navigation
      ------------------------------------------------------------------- */
+
+  /* Maps are built the first time their view is shown and resized every
+     time after. Leaflet measures its container once; a map created
+     inside a display:none section is 0x0 for ever unless it is told. */
+  var MAPS_BUILT = {};
+  function onShow(id) {
+    if (id === 'geo') { buildGeoMap(); geo.resize('geoMap'); }
+    if (id === 'overview') { buildOverviewMap(); geo.resize('ovMap'); }
+    if (id === 'missions') { geo.resize('mdMap'); }
+    if (id === 'audit') { loadAudit(); }
+    if (id === 'console') { fillRunMission(); }
+  }
+
   function show(id) {
     $$('.view').forEach(function (v) { v.classList.add('hidden'); });
     var v = doc.getElementById(id);
@@ -80,33 +123,69 @@
     $$('nav button, aside button').forEach(function (b) { b.classList.remove('active'); });
     $$('[data-go="' + id + '"]').forEach(function (b) { b.classList.add('active'); });
     window.scrollTo(0, 0);
-    if (location.hash.slice(1) !== id) {
+    /* The geo view drives the hash itself (#geo@lat,lon,zoom) once the
+       map moves, so this must not overwrite a coordinate with a bare
+       '#geo'. But it DOES have to write one the first time, or the hash
+       is left saying '#frames' while the map is on screen and a reload
+       lands the researcher somewhere they were not. */
+    var current = location.hash.slice(1);
+    var wantsHash = (id === 'geo') ? (current.split('@')[0] !== 'geo') : (current !== id);
+    if (wantsHash) {
       try { history.replaceState(null, '', '#' + id); } catch (e) {}
     }
+    onShow(id);
   }
 
   function wireNav() {
     doc.addEventListener('click', function (e) {
       var go = e.target.closest ? e.target.closest('[data-go]') : null;
-      if (go) { show(go.getAttribute('data-go')); return; }
+      if (go) {
+        if (go.tagName === 'A') e.preventDefault();
+        show(go.getAttribute('data-go'));
+        return;
+      }
       var act = e.target.closest ? e.target.closest('[data-act]') : null;
       if (act) action(act.getAttribute('data-act'), act);
+    });
+
+    /* Escape closes whatever is open, innermost first. */
+    doc.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var m = doc.getElementById('modal');
+      if (m && !m.classList.contains('hidden')) { closeModal(); return; }
+      var s = doc.getElementById('frameSheetCard');
+      if (s && !s.hidden) { s.hidden = true; return; }
+      var d = doc.getElementById('missionDetail');
+      if (d && !d.hidden) { d.hidden = true; }
     });
   }
 
   function action(name, btn) {
-    if (name === 'new-mission') { $('#modal').classList.remove('hidden'); say('modalMsg', ''); }
-    else if (name === 'close-modal') { $('#modal').classList.add('hidden'); }
-    else if (name === 'create') { createMission(btn); }
-    else if (name === 'close-sheet') { $('#frameSheetCard').hidden = true; }
-    else if (name === 'run') { runTrace(); }
-    else if (name === 'approve') {
-      say('decisionMsg', 'Recorded as a researcher decision in this browser only. ' +
-          'Advancing a real mission runs through launch_mission(), which is a human action ' +
-          'on the mission record, not a button on a review panel.');
-    } else if (name === 'reject') {
-      say('decisionMsg', 'Returned to the Orchestrator for re-ranking. The candidate set is ' +
-          'rebuilt from evidence; it is not edited in place.');
+    switch (name) {
+      case 'new-mission':      openModal(); break;
+      case 'close-modal':      closeModal(); break;
+      case 'create':           createMission(btn); break;
+      case 'close-sheet':      $('#frameSheetCard').hidden = true; break;
+      case 'frame-on-map':     frameOnMap(); break;
+      case 'close-detail':     $('#missionDetail').hidden = true; break;
+      case 'run':              startRun(btn); break;
+      case 'approve':          approveRun(btn); break;
+      case 'reject':           rejectRun(btn); break;
+      case 'abandon':          abandonRun(btn); break;
+      case 'geo-fit-frames':   fitFrames(); break;
+      case 'geo-fit-missions': fitMissions(); break;
+      case 'geo-use-view':     useViewAsAoi(); break;
+      case 'audit-refresh':    loadAudit(true); break;
+      case 'access-test':      accessTest(btn); break;
+      case 'export-frames':    exportFrames(); break;
+      case 'export-findings':  exportFindings(); break;
+      case 'export-report':    exportReport(); break;
+      case 'print-report':     printReport(); break;
+      case 'close-report':     $('#reportViewWrap').hidden = true; break;
+      case 'launch':           launchFromDetail(btn); break;
+      case 'make-report':      makeReport(btn); break;
+      case 'open-in-console':  openInConsole(); break;
+      default: break;
     }
   }
 
@@ -124,10 +203,13 @@
       var p = $('#denied p');
       if (p) p.textContent = why;
     }
-    if (window.KSAT && window.KSAT.stars) window.KSAT.stars.sweep();
+    if (KS.stars) KS.stars.sweep();
   }
 
+  var ME = null;
+
   function admitted(user) {
+    ME = user;
     root.classList.remove('ksat-checking');
     root.classList.add('ksat-ready');
     var e = doc.getElementById('entry');
@@ -136,9 +218,9 @@
     /* Belt and braces. denied() and this are mutually exclusive in the
        flow as it stands, so this line should never have anything to do
        — but a refusal panel left standing over an admitted workspace is
-       the failure this page just shipped once, and it cost a live site
-       visit to find. One line is cheap insurance against it coming back
-       by a route nobody has thought of yet. */
+       the failure this page shipped once, and it cost a live site visit
+       to find. One line is cheap insurance against it coming back by a
+       route nobody has thought of yet. */
     root.classList.remove('ksat-denied');
     var d = doc.getElementById('denied');
     if (d) { d.hidden = true; }
@@ -152,7 +234,10 @@
       nameBox.appendChild(small);
     }
     log('session established for ' + (user.email || user.id));
-    show(location.hash.slice(1) || 'overview');
+
+    var want = (location.hash.slice(1) || 'overview').split('@')[0];
+    if (!doc.getElementById(want)) want = 'overview';
+    show(want);
   }
 
   /* IS THERE A SESSION IN STORAGE AT ALL?
@@ -255,6 +340,8 @@
      3 · The payload archive
      ------------------------------------------------------------------- */
   var FRAMES = [];
+  var MISSIONS = [];
+  var SHEET_FRAME = null;
 
   var FRAME_COLS = 'frame_no,captured_on,place_label,lat,lon,geo_method,' +
                    'geo_confidence,geo_note,gsd_m,band_note,processing_level,' +
@@ -281,27 +368,29 @@
     if (f.lat === null || f.lat === undefined || f.lon === null || f.lon === undefined) {
       return 'Not resolved';
     }
-    var la = Number(f.lat), lo = Number(f.lon);
-    return la.toFixed(4) + (la >= 0 ? '°N' : '°S') + '  ' +
-           lo.toFixed(4) + (lo >= 0 ? '°E' : '°W');
+    return geo.fmtCoord(Number(f.lat), Number(f.lon));
   }
 
   function loadFrames() {
     var grid = doc.getElementById('framesGrid');
-    if (!grid) return;
-    grid.textContent = '';
+    if (!grid) return Promise.resolve();
+    clear(grid);
     say('framesMsg', 'Reading the archive…');
 
-    window.sb.from('payload_frames').select(FRAME_COLS).order('frame_no')
+    return window.sb.from('payload_frames').select(FRAME_COLS).order('frame_no')
       .then(function (r) {
         if (r.error) {
           say('framesMsg', 'The archive refused this read: ' + r.error.message +
               ' — this is what an account without enrolment sees.');
+          var pay = doc.getElementById('payState');
+          if (pay) pay.textContent = '● REFUSED';
           log('payload archive: refused');
           return;
         }
         FRAMES = r.data || [];
         say('framesMsg', '');
+        var pay2 = doc.getElementById('payState');
+        if (pay2) pay2.textContent = '● AVAILABLE';
         var withPic = FRAMES.filter(hasImage).length;
         var c = doc.getElementById('framesCount');
         if (c) {
@@ -310,7 +399,7 @@
             (withPic === FRAMES.length ? '' : '  ·  ' + withPic + ' with a picture');
         }
         var k = doc.getElementById('kFrames');
-        if (k) k.textContent = String(FRAMES.length).padStart(2, '0');
+        if (k) k.textContent = pad2(FRAMES.length);
         say('kFramesSub', 'Released to this session');
         log('payload archive: ' + FRAMES.length + ' frames released');
 
@@ -335,11 +424,12 @@
           }
 
           var m = el('div', 'meta');
-          m.appendChild(el('b', null, 'Frame ' + String(f.frame_no).padStart(2, '0') +
+          m.appendChild(el('b', null, 'Frame ' + pad2(f.frame_no) +
                                       ' · ' + (f.place_label || 'Location not resolved')));
           m.appendChild(el('span', null, f.captured_on + '  ·  ' + coord(f)));
           var cf = el('span');
-          var badge = el('i', 'conf ' + (f.geo_confidence || 'unresolved'), f.geo_confidence || 'unresolved');
+          var badge = el('i', 'conf ' + (f.geo_confidence || 'unresolved'),
+                         f.geo_confidence || 'unresolved');
           badge.style.fontStyle = 'normal';
           cf.appendChild(badge);
           m.appendChild(cf);
@@ -350,17 +440,18 @@
         });
 
         geoNote();
+        paintGeoLayers();
       });
   }
 
   function sheet(f) {
+    SHEET_FRAME = f;
     var card = doc.getElementById('frameSheetCard');
     var box = doc.getElementById('frameSheet');
     if (!card || !box) return;
-    box.textContent = '';
+    clear(box);
     doc.getElementById('frameSheetTitle').textContent =
-      'Frame ' + String(f.frame_no).padStart(2, '0') +
-      (f.place_label ? ' · ' + f.place_label : '');
+      'Frame ' + pad2(f.frame_no) + (f.place_label ? ' · ' + f.place_label : '');
 
     if (hasImage(f)) {
       var img = doc.createElement('img');
@@ -386,14 +477,32 @@
     row('Confidence', f.geo_confidence || 'unresolved', f.geo_note || '');
     row('Method', f.geo_method || 'not stated');
     row('Ground sample distance', Number(f.gsd_m).toFixed(0) + ' metres per pixel');
+    if (geo.hasFix(f)) {
+      var b = geo.frameBounds(f);
+      var km = Math.round((b[1][1] - b[0][1]) * 111320 *
+                Math.cos(Number(f.lat) * Math.PI / 180) / 1000);
+      row('Footprint', 'about ' + km + ' km across', geo.FOOTPRINT_NOTE);
+    }
     row('Bands', f.band_note);
     row('Processing level', f.processing_level);
     row('Frame size', (f.image_w && f.image_h) ? (f.image_w + ' × ' + f.image_h + ' px') : 'not recorded');
     row('Source', f.source_note);
     box.appendChild(dl);
 
+    var btn = $('[data-act="frame-on-map"]');
+    if (btn) btn.disabled = !geo.hasFix(f);
+
     card.hidden = false;
     card.scrollIntoView({ block: 'nearest' });
+  }
+
+  function frameOnMap() {
+    if (!SHEET_FRAME || !geo.hasFix(SHEET_FRAME)) return;
+    show('geo');
+    var map = buildGeoMap();
+    if (!map) return;
+    geo.resize('geoMap');
+    geo.fit(map, geo.frameBounds(SHEET_FRAME), [30, 30]);
   }
 
   /* The method note is written from the rows themselves rather than
@@ -401,7 +510,7 @@
   function geoNote() {
     var box = doc.getElementById('geoMethodNote');
     if (!box) return;
-    box.textContent = '';
+    clear(box);
     var byMethod = {};
     FRAMES.forEach(function (f) {
       var k = f.geo_method || 'not stated';
@@ -410,120 +519,526 @@
     Object.keys(byMethod).forEach(function (k) {
       box.appendChild(el('div', null, byMethod[k] + ' × ' + k));
     });
-    box.appendChild(el('div', null, ' '));
+    box.appendChild(el('div', null, ' '));
     box.appendChild(el('div', null,
       'The record sheet the payload team supplied left the Geolocation column empty on ' +
       'every row. Nothing in this column came off the spacecraft, so each row states how ' +
       'its coordinate was arrived at and how far it should be trusted.'));
   }
 
+  function exportFrames() {
+    if (!FRAMES.length) { say('framesMsg', 'There is nothing to export yet.'); return; }
+    var cols = ['frame_no', 'captured_on', 'place_label', 'lat', 'lon', 'geo_method',
+                'geo_confidence', 'gsd_m', 'band_note', 'processing_level',
+                'image_w', 'image_h', 'source_note'];
+    var lines = [cols.join(',')];
+    FRAMES.forEach(function (f) {
+      lines.push(cols.map(function (c) {
+        var v = f[c];
+        if (v === null || v === undefined) return '';
+        v = String(v).replace(/"/g, '""');
+        return /[",\n]/.test(v) ? '"' + v + '"' : v;
+      }).join(','));
+    });
+    /* The pictures are deliberately NOT in this file. The record is the
+       researcher's to take away; the imagery stays behind the session. */
+    lines.push('');
+    lines.push('# KuwaitSat-1 payload record. Acquisition metadata only - the frame');
+    lines.push('# images are not included and are released only inside a signed-in session.');
+    download('kuwaitsat1-payload-record.csv', 'text/csv;charset=utf-8', lines.join('\n'));
+    log('frame record exported as CSV');
+  }
+
   /* -------------------------------------------------------------------
-     4 · Missions, reports, and the dataset summary
+     4 · Missions
      ------------------------------------------------------------------- */
-  function cell(tr, text, cls) {
-    var td = el('td', cls, text);
-    tr.appendChild(td);
-    return td;
+  function areaLabel(m) {
+    var a = m.area_geojson;
+    if (!a) return '—';
+    if (a.name) return a.name;
+    if (a.type === 'Polygon') return geo.polygonAreaKm2(a) + ' km²';
+    return 'custom';
+  }
+
+  function statusTag(status) {
+    var cls = 'tag';
+    if (status === 'complete') cls += ' green';
+    else if (status === 'running' || status === 'queued' || status === 'review') cls += ' amber';
+    return el('span', cls, String(status || 'draft').toUpperCase());
   }
 
   function loadMissions() {
     say('missionMsg', 'Reading your missions…');
-    window.sb.from('missions')
-      .select('id,title,objective,status,created_at')
+    return window.sb.from('missions')
+      .select('id,title,objective,status,created_at,area_geojson,injection_flag,launched_at')
       .order('created_at', { ascending: false })
       .then(function (r) {
-        var t = doc.getElementById('missionTable');
-        var ov = doc.getElementById('ovMissions');
         if (r.error) {
           say('missionMsg', 'Could not read missions: ' + r.error.message);
           say('ovMissionsMsg', 'Could not read missions.');
           return;
         }
-        var rows = r.data || [];
-        say('missionMsg', rows.length ? '' :
+        MISSIONS = r.data || [];
+        say('missionMsg', MISSIONS.length ? '' :
           'No missions on this account yet. Row level security shows you your own ' +
           'missions and nobody else’s, so an empty table here means you have not ' +
-          'created one.');
-        say('ovMissionsMsg', '');
+          'created one. Press New Mission.');
+        say('ovMissionsMsg', MISSIONS.length ? '' : 'Nothing yet.');
         var k = doc.getElementById('kMissions');
-        if (k) k.textContent = String(rows.length).padStart(2, '0');
+        if (k) k.textContent = pad2(MISSIONS.length);
         say('kMissionsSub', 'Visible to this account');
-
-        rows.forEach(function (m, i) {
-          var tr = doc.createElement('tr');
-          cell(tr, (m.title || 'Untitled'));
-          cell(tr, (m.objective || '').slice(0, 120));
-          cell(tr, (m.created_at || '').slice(0, 10));
-          var td = el('td');
-          td.appendChild(el('span', 'tag' + (m.status === 'complete' ? ' green' :
-                             m.status === 'running' ? ' amber' : ''), (m.status || 'draft').toUpperCase()));
-          tr.appendChild(td);
-          t.appendChild(tr);
-          if (i < 4 && ov) ov.appendChild(tr.cloneNode(true));
-        });
-        log('missions: ' + rows.length + ' visible');
+        paintMissions();
+        fillRunMission();
+        paintGeoLayers();
+        log('missions: ' + MISSIONS.length + ' visible');
       });
   }
+
+  function paintMissions() {
+    var t = doc.getElementById('missionTable');
+    var ov = doc.getElementById('ovMissions');
+    if (!t) return;
+    $$('tr:not(:first-child)', t).forEach(function (n) { n.remove(); });
+    if (ov) $$('tr:not(:first-child)', ov).forEach(function (n) { n.remove(); });
+
+    var q = (($('#missionSearch') || {}).value || '').trim().toLowerCase();
+    var rows = MISSIONS.filter(function (m) {
+      if (!q) return true;
+      return (m.title + ' ' + m.objective + ' ' + m.status + ' ' + areaLabel(m))
+        .toLowerCase().indexOf(q) >= 0;
+    });
+
+    if (!rows.length && q) { say('missionMsg', 'No mission on this account matches “' + q + '”.'); }
+    else if (MISSIONS.length) { say('missionMsg', ''); }
+
+    rows.forEach(function (m, i) {
+      var tr = el('tr', 'missionrow');
+      tr.setAttribute('data-mid', m.id);
+      tr.appendChild(el('td', null, m.title || 'Untitled'));
+      tr.appendChild(el('td', 'wrap', (m.objective || '').slice(0, 110)));
+      tr.appendChild(el('td', null, areaLabel(m)));
+      tr.appendChild(el('td', 'nowrap', (m.created_at || '').slice(0, 10)));
+      var td = el('td');
+      td.appendChild(statusTag(m.status));
+      if (m.injection_flag) td.appendChild(el('span', 'tag', ' FLAGGED'));
+      tr.appendChild(td);
+      tr.addEventListener('click', function () { openMission(m.id); });
+      t.appendChild(tr);
+
+      if (i < 4 && ov) {
+        var o = el('tr');
+        o.appendChild(el('td', null, m.title || 'Untitled'));
+        o.appendChild(el('td', 'wrap', (m.objective || '').slice(0, 70)));
+        o.appendChild(el('td', 'nowrap', (m.created_at || '').slice(0, 10)));
+        var otd = el('td'); otd.appendChild(statusTag(m.status)); o.appendChild(otd);
+        ov.appendChild(o);
+      }
+    });
+  }
+
+  /* -------------------------------------------------------------------
+     5 · One mission, opened
+     ------------------------------------------------------------------- */
+  var OPEN_MISSION = null;
+  var OPEN_REPORT = null;
+
+  function missionById(id) {
+    for (var i = 0; i < MISSIONS.length; i++) if (MISSIONS[i].id === id) return MISSIONS[i];
+    return null;
+  }
+
+  function openMission(id) {
+    var m = missionById(id);
+    if (!m) return;
+    OPEN_MISSION = m;
+    var card = doc.getElementById('missionDetail');
+    card.hidden = false;
+    $$('.missionrow').forEach(function (r) {
+      r.classList.toggle('open', r.getAttribute('data-mid') === id);
+    });
+    doc.getElementById('mdTitle').textContent = m.title || 'Mission';
+
+    var dl = doc.getElementById('mdFacts');
+    clear(dl);
+    function row(k, v) { dl.appendChild(el('dt', null, k)); dl.appendChild(el('dd', null, v)); }
+    row('Mission id', m.id);
+    row('Status', String(m.status || 'draft').toUpperCase());
+    row('Objective', m.objective);
+    row('Area', areaLabel(m) + ' · about ' + geo.polygonAreaKm2(m.area_geojson) + ' km²');
+    row('Created', when(m.created_at));
+    row('Launched', m.launched_at ? when(m.launched_at) : 'not yet');
+    if (m.injection_flag) {
+      row('Flag', 'The objective on this mission was screened as an instruction rather ' +
+                  'than a question. No data was read for it.');
+    }
+    var inArea = agents.framesInArea(FRAMES, m.area_geojson);
+    row('Frames inside the area', inArea.length + ' of ' + FRAMES.filter(geo.hasFix).length +
+        ' geolocated frames');
+
+    /* the map for this mission */
+    var map = geo.make('mdMap', { view: [29.35, 47.75, 8] });
+    if (map) {
+      geo.resize('mdMap');
+      if (map._ksatLayer) { map.removeLayer(map._ksatLayer); }
+      var g = L.layerGroup().addTo(map);
+      map._ksatLayer = g;
+      var b = geo.polygonBounds(m.area_geojson);
+      if (b) {
+        L.rectangle(b, { color: '#dce9f1', weight: 1, fill: true, fillOpacity: 0.05 }).addTo(g);
+      }
+      inArea.forEach(function (f) {
+        L.rectangle(geo.frameBounds(f),
+          { color: '#79bd96', weight: 1, fill: true, fillOpacity: 0.08 }).addTo(g);
+      });
+      if (b) setTimeout(function () { geo.fit(map, b, [16, 16]); }, 80);
+      keys('mdKeys', [['#dce9f1', 'Mission area'], ['#79bd96', 'Frames inside it']]);
+    }
+
+    actionsFor(m);
+    say('mdMsg', '');
+    loadMissionTrail(m);
+    card.scrollIntoView({ block: 'nearest' });
+  }
+
+  function actionsFor(m) {
+    var bar = doc.getElementById('mdActions');
+    clear(bar);
+    function add(label, act, primary) {
+      var b = el('button', 'btn' + (primary ? ' primary' : ''), label);
+      b.setAttribute('data-act', act);
+      bar.appendChild(b);
+      return b;
+    }
+    if (m.status === 'draft' || m.status === 'failed') {
+      add('Run the pipeline on this mission', 'launch', true);
+    } else if (m.status === 'queued' || m.status === 'running') {
+      add('Open the checkpoint in the console', 'open-in-console', true);
+    } else if (m.status === 'review') {
+      add('Generate the report', 'make-report', true);
+      add('Open in the console', 'open-in-console');
+    }
+    add('Show the area on the map', 'geo-fit-open');
+  }
+
+  function loadMissionTrail(m) {
+    var stepsBox = doc.getElementById('mdSteps');
+    var findBox = doc.getElementById('mdFindings');
+    clear(stepsBox); clear(findBox);
+    say('mdStepsMsg', 'Reading the audit trail…');
+    say('mdFindingsMsg', '');
+    doc.getElementById('mdReportWrap').hidden = true;
+    OPEN_REPORT = null;
+
+    window.sb.from('mission_runs')
+      .select('id,status,started_at,finished_at,tool_calls')
+      .eq('mission_id', m.id).order('started_at', { ascending: false })
+      .then(function (r) {
+        if (r.error) { say('mdStepsMsg', 'Could not read runs: ' + r.error.message); return; }
+        var runs = r.data || [];
+        if (!runs.length) {
+          say('mdStepsMsg', 'This mission has not been run yet. There is nothing in ' +
+                            'agent_steps for it, which is exactly what an un-run mission ' +
+                            'should look like.');
+          return;
+        }
+        say('mdStepsMsg', '');
+        var ids = runs.map(function (x) { return x.id; });
+        return window.sb.from('agent_steps')
+          .select('id,run_id,step_name,tool,allowed,refused_reason,status,started_at,finished_at,injection_flag')
+          .in('run_id', ids).order('started_at')
+          .then(function (s) {
+            if (s.error) { say('mdStepsMsg', 'Could not read steps: ' + s.error.message); return; }
+            renderSteps(stepsBox, runs, s.data || []);
+          });
+      });
+
+    window.sb.from('results')
+      .select('id,kind,title,body,geometry,created_at,run_id')
+      .eq('mission_id', m.id).order('created_at')
+      .then(function (r) {
+        if (r.error) { say('mdFindingsMsg', 'Could not read findings: ' + r.error.message); return; }
+        var rows = r.data || [];
+        if (!rows.length) { say('mdFindingsMsg', 'No findings recorded for this mission yet.'); return; }
+        say('mdFindingsMsg', '');
+        rows.forEach(function (x) { findBox.appendChild(findingCard(x)); });
+      });
+
+    window.sb.from('reports').select('id,body_md,approved_at,approved_by')
+      .eq('mission_id', m.id).order('approved_at', { ascending: false }).limit(1)
+      .then(function (r) {
+        if (r.error || !r.data || !r.data.length) return;
+        OPEN_REPORT = r.data[0];
+        doc.getElementById('mdReportWrap').hidden = false;
+        renderMarkdown(doc.getElementById('mdReport'), OPEN_REPORT.body_md);
+      });
+  }
+
+  function findingCard(x) {
+    var d = el('div', 'finding');
+    d.appendChild(el('h4', null, x.title));
+    d.appendChild(el('p', null, x.body || ''));
+    var t = el('div', 'sub', String(x.kind).toUpperCase() + ' · ' + when(x.created_at));
+    d.appendChild(t);
+    return d;
+  }
+
+  var STEP_ORDER = ['satellite_data', 'environmental_analysis', 'recommendation',
+                    'impact_prediction', 'visualization', 'reporting'];
+
+  function renderSteps(box, runs, steps) {
+    clear(box);
+    runs.forEach(function (run) {
+      var head = el('div', 'step');
+      head.appendChild(el('i', null, '▸'));
+      var mid = el('div');
+      mid.appendChild(el('b', null, 'Run ' + shortId(run.id) + ' · ' +
+        String(run.status).toUpperCase() + ' · ' + run.tool_calls + ' tool calls'));
+      mid.appendChild(el('small', null, 'Started ' + when(run.started_at) +
+        (run.finished_at ? ', finished ' + when(run.finished_at) : ', still open')));
+      head.appendChild(mid);
+      head.appendChild(el('span', 'state', ''));
+      box.appendChild(head);
+
+      var mine = steps.filter(function (s) { return s.run_id === run.id; });
+      if (!mine.length) {
+        var none = el('div', 'step');
+        none.appendChild(el('i', null, '—'));
+        var nd = el('div');
+        nd.appendChild(el('b', null, 'No steps recorded for this run'));
+        none.appendChild(nd);
+        none.appendChild(el('span', 'state', ''));
+        box.appendChild(none);
+      }
+      mine.forEach(function (s, i) { box.appendChild(stepRow(s, i + 1)); });
+    });
+  }
+
+  function stepRow(s, n) {
+    var cls = 'step ' + (s.status === 'refused' ? 'refused' :
+                         s.status === 'complete' ? 'ok' : 'running');
+    var d = el('div', cls);
+    d.appendChild(el('i', null, String(n)));
+    var mid = el('div');
+    var role = (agents.ROLES[s.step_name] || {}).name || s.step_name;
+    mid.appendChild(el('b', null, role));
+    if (s.tool) {
+      var c = el('small');
+      c.appendChild(el('code', null, s.tool));
+      mid.appendChild(c);
+    }
+    if (s.refused_reason) {
+      mid.appendChild(el('small', 'refusal', s.refused_reason));
+    }
+    if (s.injection_flag) {
+      mid.appendChild(el('small', 'refusal', 'Objective screened as an instruction. ' +
+        'The mission carries an injection flag.'));
+    }
+    mid.appendChild(el('small', null, when(s.started_at)));
+    d.appendChild(mid);
+    d.appendChild(el('span', 'state' + (s.status === 'complete' ? ' ok' :
+                     s.status === 'refused' ? '' : ' wait'),
+                     String(s.status).toUpperCase()));
+    return d;
+  }
+
+  /* -------------------------------------------------------------------
+     6 · Markdown, rendered as nodes
+
+     Six constructs, which is all the Reporting Agent emits: h1, h2,
+     bullet, paragraph, blank, rule. No innerHTML anywhere — a report
+     body is text a researcher typed into an objective at one remove, and
+     the one place this platform must not parse hostile text as markup is
+     the place that renders findings.
+     ------------------------------------------------------------------- */
+  function renderMarkdown(host, md) {
+    clear(host);
+    var lines = String(md || '').split('\n');
+    var ul = null;
+    lines.forEach(function (line) {
+      if (/^\s*-\s+/.test(line)) {
+        if (!ul) { ul = el('ul'); host.appendChild(ul); }
+        ul.appendChild(el('li', null, line.replace(/^\s*-\s+/, '')));
+        return;
+      }
+      ul = null;
+      if (/^#\s+/.test(line)) { host.appendChild(el('h1', null, line.slice(2))); return; }
+      if (/^##\s+/.test(line)) { host.appendChild(el('h2', null, line.slice(3))); return; }
+      if (/^---+$/.test(line.trim())) { host.appendChild(el('hr')); return; }
+      if (!line.trim()) return;
+      host.appendChild(el('p', null, line));
+    });
+  }
+
+  /* -------------------------------------------------------------------
+     7 · Reports
+     ------------------------------------------------------------------- */
+  var REPORTS = [];
 
   function loadReports() {
     say('reportMsg', 'Reading reports…');
-    window.sb.from('reports').select('id,mission_id,approved_at').then(function (r) {
-      var t = doc.getElementById('reportTable');
-      if (r.error) { say('reportMsg', 'Could not read reports: ' + r.error.message); return; }
-      var rows = r.data || [];
-      say('reportMsg', rows.length ? '' :
-        'No reports on this account yet. A report exists only once a researcher has ' +
-        'approved the findings behind it.');
-      rows.forEach(function (rep) {
-        var tr = doc.createElement('tr');
-        cell(tr, 'Mission report');
-        cell(tr, rep.mission_id);
-        cell(tr, rep.approved_at ? rep.approved_at.slice(0, 10) : 'not approved');
-        var td = el('td');
-        td.appendChild(el('span', 'tag' + (rep.approved_at ? ' green' : ' amber'),
-                          rep.approved_at ? 'FINAL' : 'DRAFT'));
-        tr.appendChild(td);
-        t.appendChild(tr);
+    return window.sb.from('reports').select('id,mission_id,approved_at,body_md')
+      .order('approved_at', { ascending: false })
+      .then(function (r) {
+        var t = doc.getElementById('reportTable');
+        $$('tr:not(:first-child)', t).forEach(function (n) { n.remove(); });
+        if (r.error) { say('reportMsg', 'Could not read reports: ' + r.error.message); return; }
+        REPORTS = r.data || [];
+        say('reportMsg', REPORTS.length ? '' :
+          'No reports on this account yet. A report exists only once a researcher has ' +
+          'approved the findings behind it — run a mission in the Research Console, ' +
+          'approve the candidate set, then generate the report.');
+        REPORTS.forEach(function (rep) {
+          var m = missionById(rep.mission_id);
+          var tr = el('tr');
+          tr.appendChild(el('td', null, (m && m.title) ? m.title : 'Mission report'));
+          tr.appendChild(el('td', 'mono', shortId(rep.mission_id)));
+          tr.appendChild(el('td', 'nowrap', rep.approved_at ? rep.approved_at.slice(0, 10) : '—'));
+          var td = el('td');
+          td.appendChild(el('span', 'tag green', 'APPROVED'));
+          tr.appendChild(td);
+          var act = el('td');
+          var b = el('button', 'btn', 'Open');
+          b.addEventListener('click', function () { openReport(rep); });
+          act.appendChild(b);
+          tr.appendChild(act);
+          t.appendChild(tr);
+        });
+      });
+  }
+
+  function openReport(rep) {
+    OPEN_REPORT = rep;
+    var m = missionById(rep.mission_id);
+    doc.getElementById('reportViewTitle').textContent =
+      (m && m.title) ? m.title : 'Mission report';
+    renderMarkdown(doc.getElementById('reportView'), rep.body_md);
+    doc.getElementById('reportViewWrap').hidden = false;
+    doc.getElementById('reportViewWrap').scrollIntoView({ block: 'nearest' });
+  }
+
+  function exportReport() {
+    if (!OPEN_REPORT) { return; }
+    var m = missionById(OPEN_REPORT.mission_id);
+    var name = ((m && m.title) ? m.title : 'mission-report')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    download(name + '.md', 'text/markdown;charset=utf-8', OPEN_REPORT.body_md);
+    log('report exported');
+  }
+
+  function printReport() {
+    if (!OPEN_REPORT) return;
+    root.classList.add('ksat-printing');
+    window.print();
+    setTimeout(function () { root.classList.remove('ksat-printing'); }, 800);
+  }
+
+  function exportFindings() {
+    say('reportMsg', 'Collecting findings…');
+    window.sb.from('results').select('id,mission_id,run_id,kind,title,body,geometry,created_at')
+      .order('created_at')
+      .then(function (r) {
+        if (r.error) { say('reportMsg', 'Could not read findings: ' + r.error.message); return; }
+        var rows = r.data || [];
+        if (!rows.length) { say('reportMsg', 'There are no findings on this account to export yet.'); return; }
+        say('reportMsg', '');
+        /* GeoJSON, so it opens in QGIS as well as in a text editor. Rows
+           without geometry are kept as features with a null geometry,
+           which is legal GeoJSON and loses nothing. */
+        var fc = {
+          type: 'FeatureCollection',
+          name: 'KuwaitSat-1 findings',
+          generated: new Date().toISOString(),
+          note: 'Exported from the KuwaitSat-1 research workspace by the account that ' +
+                'owns these missions. ' + geo.FOOTPRINT_NOTE,
+          features: rows.map(function (x) {
+            return {
+              type: 'Feature',
+              geometry: x.geometry || null,
+              properties: {
+                id: x.id, mission_id: x.mission_id, run_id: x.run_id,
+                kind: x.kind, title: x.title, body: x.body, created_at: x.created_at
+              }
+            };
+          })
+        };
+        download('kuwaitsat1-findings.geojson', 'application/geo+json',
+                 JSON.stringify(fc, null, 2));
+        log(rows.length + ' findings exported');
+      });
+  }
+
+  /* -------------------------------------------------------------------
+     8 · The Data Archive
+     ------------------------------------------------------------------- */
+  var DATASETS = [];
+
+  function loadDatasets() {
+    say('dataMsg', 'Counting what this session can reach…');
+    var want = [
+      { name: 'KuwaitSat-1 payload frames', table: 'payload_frames', source: 'KuwaitSat-1',
+        cls: 'MEASURED', res: '39 m/px', quality: 'Raw decoded' },
+      { name: 'Mission records', table: 'missions', source: 'Derived',
+        cls: 'DERIVED', res: 'per mission', quality: 'Researcher entered' },
+      { name: 'Agent run log', table: 'mission_runs', source: 'Derived',
+        cls: 'MEASURED', res: 'per run', quality: 'Append only' },
+      { name: 'Agent step log', table: 'agent_steps', source: 'Derived',
+        cls: 'MEASURED', res: 'per step', quality: 'Append only' },
+      { name: 'Findings', table: 'results', source: 'Derived',
+        cls: 'DERIVED', res: 'per finding', quality: 'Reviewed' },
+      { name: 'Reports', table: 'reports', source: 'Derived',
+        cls: 'DERIVED', res: 'per mission', quality: 'Approved' },
+      { name: 'Researcher profiles', table: 'profiles', source: 'Reference',
+        cls: 'DERIVED', res: 'per account', quality: 'Own row only' }
+    ];
+    DATASETS = [];
+    var done = 0;
+    want.forEach(function (d) {
+      window.sb.from(d.table).select('*', { count: 'exact', head: true }).then(function (r) {
+        d.records = r.error ? 'refused' : String(r.count === null ? 0 : r.count);
+        d.ok = !r.error;
+        DATASETS.push(d);
+        if (++done === want.length) {
+          DATASETS.sort(function (a, b) { return want.indexOf(a) - want.indexOf(b); });
+          say('dataMsg', '');
+          paintDatasets();
+        }
       });
     });
   }
 
-  /* The Data Archive view lists what this workspace can actually reach,
-     counted from the database, rather than the prototype's five invented
-     rows with a "128 datasets" heading above them. */
-  function loadDatasets() {
+  function paintDatasets() {
     var t = doc.getElementById('dataTable');
-    say('dataMsg', 'Counting what this session can reach…');
-    var want = [
-      { name: 'KuwaitSat-1 payload frames', table: 'payload_frames', source: 'Payload camera',
-        cls: 'MEASURED', res: '39 m/px', quality: 'Raw decoded' },
-      { name: 'Mission records', table: 'missions', source: 'This platform',
-        cls: 'DERIVED', res: 'per mission', quality: 'Researcher entered' },
-      { name: 'Agent step log', table: 'agent_steps', source: 'Orchestrator',
-        cls: 'MEASURED', res: 'per step', quality: 'Append only' },
-      { name: 'Findings', table: 'results', source: 'Analysis agents',
-        cls: 'DERIVED', res: 'per finding', quality: 'Reviewed' },
-      { name: 'Reports', table: 'reports', source: 'Reporting agent',
-        cls: 'DERIVED', res: 'per mission', quality: 'Approved' }
-    ];
-    var done = 0;
-    want.forEach(function (d) {
-      window.sb.from(d.table).select('*', { count: 'exact', head: true }).then(function (r) {
-        var tr = doc.createElement('tr');
-        cell(tr, d.name);
-        cell(tr, d.source);
-        cell(tr, d.cls);
-        cell(tr, d.res);
-        cell(tr, r.error ? 'refused' : String(r.count === null ? 0 : r.count));
-        cell(tr, r.error ? 'no access' : d.quality);
-        t.appendChild(tr);
-        if (++done === want.length) {
-          say('dataMsg', '');
-          var c = doc.getElementById('dataCount');
-          if (c) c.textContent = want.length + ' datasets reachable from this session';
-        }
-      });
+    if (!t) return;
+    $$('tr:not(:first-child)', t).forEach(function (n) { n.remove(); });
+    var src = (($('#fSource') || {}).value || 'All sources');
+    var cls = (($('#fClass') || {}).value || 'All data classes');
+    var q = (($('#dataSearch') || {}).value || '').trim().toLowerCase();
+
+    var rows = DATASETS.filter(function (d) {
+      if (src.indexOf('All') !== 0 && d.source !== src) return false;
+      if (cls.indexOf('All') !== 0 && d.cls !== cls) return false;
+      if (q && (d.name + ' ' + d.source + ' ' + d.cls + ' ' + d.quality)
+               .toLowerCase().indexOf(q) < 0) return false;
+      return true;
     });
+
+    rows.forEach(function (d) {
+      var tr = el('tr');
+      tr.appendChild(el('td', null, d.name));
+      tr.appendChild(el('td', null, d.source));
+      tr.appendChild(el('td', null, d.cls));
+      tr.appendChild(el('td', null, d.res));
+      tr.appendChild(el('td', null, d.records));
+      tr.appendChild(el('td', null, d.ok ? d.quality : 'no access'));
+      t.appendChild(tr);
+    });
+
+    var c = doc.getElementById('dataCount');
+    if (c) {
+      c.textContent = rows.length + ' of ' + DATASETS.length +
+        ' datasets reachable from this session';
+    }
+    say('dataMsg', rows.length ? '' : 'No dataset matches these filters.');
   }
 
   function pipeline() {
@@ -538,73 +1053,1049 @@
       });
   }
 
-  function load() {
-    pipeline();
-    loadFrames();
-    loadMissions();
-    loadReports();
-    loadDatasets();
+  /* -------------------------------------------------------------------
+     9 · The map views
+     ------------------------------------------------------------------- */
+  function keys(hostId, pairs) {
+    var host = doc.getElementById(hostId);
+    if (!host) return;
+    clear(host);
+    pairs.forEach(function (p) {
+      var s = el('span');
+      var i = el('i');
+      i.style.background = p[0];
+      s.appendChild(i);
+      s.appendChild(doc.createTextNode(p[1]));
+      host.appendChild(s);
+    });
+  }
+
+  var GEO_MAP = null, GEO_GROUPS = null, AOI_RECT = null;
+
+  function buildGeoMap() {
+    if (GEO_MAP) { geo.resize('geoMap'); return GEO_MAP; }
+    GEO_MAP = geo.make('geoMap', { hud: true, view: [29.35, 47.75, 9] });
+    if (!GEO_MAP) return null;
+    MAPS_BUILT.geo = true;
+
+    GEO_GROUPS = {
+      frames: L.layerGroup().addTo(GEO_MAP),
+      missions: L.layerGroup().addTo(GEO_MAP),
+      findings: L.layerGroup().addTo(GEO_MAP),
+      aoi: L.layerGroup().addTo(GEO_MAP)
+    };
+    /* One switcher, basemaps above and the four data layers below. The
+       basemaps come from the map because geo.make() built them. */
+    L.control.layers(GEO_MAP._ksatBases, {
+      'Frame footprints': GEO_GROUPS.frames,
+      'Mission areas': GEO_GROUPS.missions,
+      'Findings': GEO_GROUPS.findings,
+      'Area of interest': GEO_GROUPS.aoi
+    }, { collapsed: false, position: 'topright' }).addTo(GEO_MAP);
+
+    keys('geoKeys', [
+      ['#79bd96', 'Frame footprint'],
+      ['#8eb9d8', 'Frame centre'],
+      ['#dce9f1', 'Mission area'],
+      ['#d2ad68', 'Finding'],
+      ['#d88484', 'Area of interest']
+    ]);
+
+    var srcs = doc.getElementById('geoSources');
+    if (srcs) {
+      clear(srcs);
+      [['Satellite (Sentinel-2)', 'Sentinel-2 cloudless 2021 by EOX. CC BY 4.0. ' +
+                                  'Modified Copernicus Sentinel data. Serves to zoom 16.'],
+       ['Street map', 'OpenStreetMap contributors. ODbL. The dark version is the same ' +
+                      'tiles with a CSS filter, not a different source.'],
+       ['Library', 'Leaflet 1.9.4, served from this site at vendor/leaflet.js. ' +
+                   'No map code is loaded from a CDN: the Content-Security-Policy ' +
+                   'sets script-src to this origin only.'],
+       ['Not used', 'CARTO basemaps. They now answer a caller without an API key with ' +
+                    'a watermark image instead of a map, and an HTTP 200 while doing it.']]
+        .forEach(function (p) { srcs.appendChild(el('div', null, p[0] + ' — ' + p[1])); });
+    }
+
+    var note = doc.getElementById('geoNote');
+    if (note) {
+      note.textContent =
+        'Frame footprints are drawn for every archive frame that has a geolocation. ' +
+        geo.FOOTPRINT_NOTE + ' Mission areas and findings are yours alone: row level ' +
+        'security answers these tables for the signed-in account only.';
+    }
+
+    paintGeoLayers();
+    GEO_MAP.on('moveend zoomend', paintAoiPreview);
+    paintAoiPreview();
+    return GEO_MAP;
+  }
+
+  function framePopup(f) {
+    var d = el('div');
+    d.appendChild(el('h4', null, 'Frame ' + pad2(f.frame_no)));
+    if (hasImage(f)) {
+      var img = doc.createElement('img');
+      img.src = dataUri(f);
+      img.alt = 'KuwaitSat-1 frame ' + f.frame_no;
+      d.appendChild(img);
+    }
+    var dl = doc.createElement('dl');
+    function row(k, v) { dl.appendChild(el('dt', null, k)); dl.appendChild(el('dd', null, v)); }
+    row('Acquired', f.captured_on);
+    row('Place', f.place_label || 'not resolved');
+    row('Centre', coord(f));
+    row('Confidence', f.geo_confidence || 'unresolved');
+    row('GSD', Number(f.gsd_m).toFixed(0) + ' m/px');
+    d.appendChild(dl);
+    var b = el('button', 'btn', 'Open the record');
+    b.addEventListener('click', function () { show('frames'); sheet(f); });
+    d.appendChild(b);
+    return d;
+  }
+
+  function paintGeoLayers() {
+    if (!GEO_GROUPS) return;
+    GEO_GROUPS.frames.clearLayers();
+    GEO_GROUPS.missions.clearLayers();
+
+    FRAMES.filter(geo.hasFix).forEach(function (f) {
+      var b = geo.frameBounds(f);
+      L.rectangle(b, { color: '#79bd96', weight: 1, fillOpacity: 0.06 })
+        .bindPopup(framePopup(f)).addTo(GEO_GROUPS.frames);
+      L.circleMarker([Number(f.lat), Number(f.lon)],
+        { radius: 4, color: '#8eb9d8', weight: 2, fillOpacity: 0.9 })
+        .bindPopup(framePopup(f)).addTo(GEO_GROUPS.frames);
+    });
+
+    MISSIONS.forEach(function (m) {
+      var b = geo.polygonBounds(m.area_geojson);
+      if (!b) return;
+      var r = L.rectangle(b, { color: '#dce9f1', weight: 1, dashArray: '4 3', fillOpacity: 0.03 });
+      var p = el('div');
+      p.appendChild(el('h4', null, m.title || 'Mission'));
+      p.appendChild(el('div', null, (m.objective || '').slice(0, 160)));
+      p.appendChild(el('div', 'sub', String(m.status || 'draft').toUpperCase() +
+        ' · about ' + geo.polygonAreaKm2(m.area_geojson) + ' km²'));
+      var b2 = el('button', 'btn', 'Open the mission');
+      b2.addEventListener('click', function () { show('missions'); openMission(m.id); });
+      p.appendChild(b2);
+      r.bindPopup(p).addTo(GEO_GROUPS.missions);
+    });
+
+    loadFindingsLayer();
+  }
+
+  function loadFindingsLayer() {
+    if (!GEO_GROUPS || !haveDb()) return;
+    window.sb.from('results').select('id,kind,title,body,geometry,mission_id')
+      .then(function (r) {
+        if (r.error || !GEO_GROUPS) return;
+        GEO_GROUPS.findings.clearLayers();
+        (r.data || []).forEach(function (x) {
+          var b = geo.polygonBounds(x.geometry);
+          if (!b) return;
+          var rect = L.rectangle(b, { color: '#d2ad68', weight: 1, fillOpacity: 0.12 });
+          var p = el('div');
+          p.appendChild(el('h4', null, x.title));
+          p.appendChild(el('div', null, (x.body || '').slice(0, 260)));
+          rect.bindPopup(p).addTo(GEO_GROUPS.findings);
+        });
+      });
+  }
+
+  function fitFrames() {
+    var map = buildGeoMap();
+    var fixed = FRAMES.filter(geo.hasFix);
+    if (!map || !fixed.length) { say('geoAoi', 'No geolocated frame to fit to.'); return; }
+    var b = L.latLngBounds([]);
+    fixed.forEach(function (f) { b.extend(geo.frameBounds(f)); });
+    geo.fit(map, b, [30, 30]);
+  }
+
+  function fitMissions() {
+    var map = buildGeoMap();
+    var withArea = MISSIONS.filter(function (m) { return geo.polygonBounds(m.area_geojson); });
+    if (!map || !withArea.length) {
+      var n = doc.getElementById('geoAoi');
+      if (n) n.textContent = 'You have no mission with an area yet. Press New Mission.';
+      return;
+    }
+    var b = L.latLngBounds([]);
+    withArea.forEach(function (m) { b.extend(geo.polygonBounds(m.area_geojson)); });
+    geo.fit(map, b, [30, 30]);
+  }
+
+  /* The AOI is the map view, clipped to Kuwait. It is shown live so the
+     researcher can see what they are about to claim, and the clip is
+     shown too — a view half over Saudi Arabia becomes a smaller polygon
+     and saying so on the spot is better than a refused insert later. */
+  var PENDING_AOI = null;
+
+  function viewPolygon(map, name) {
+    var b = map.getBounds();
+    return geo.rectPolygon(b.getSouth(), b.getWest(), b.getNorth(), b.getEast(), name);
+  }
+
+  function describeAoi(poly) {
+    var b = geo.polygonBounds(poly);
+    return 'S ' + b[0][0].toFixed(4) + '  W ' + b[0][1].toFixed(4) +
+           '   N ' + b[1][0].toFixed(4) + '  E ' + b[1][1].toFixed(4) +
+           '   ·  about ' + geo.polygonAreaKm2(poly) + ' km²';
+  }
+
+  function paintAoiPreview() {
+    if (!GEO_MAP) return;
+    var n = doc.getElementById('geoAoi');
+    if (!n || PENDING_AOI) return;
+    var b = GEO_MAP.getBounds();
+    var outside = b.getWest() < geo.KUWAIT.west || b.getEast() > geo.KUWAIT.east ||
+                  b.getSouth() < geo.KUWAIT.south || b.getNorth() > geo.KUWAIT.north;
+    clear(n);
+    n.className = 'aoi';
+    n.appendChild(doc.createTextNode(
+      'Current view, clipped to Kuwait: ' + describeAoi(viewPolygon(GEO_MAP))));
+    if (outside) {
+      n.appendChild(el('div', null,
+        'Part of this view is outside Kuwait and has been clipped. The database ' +
+        'refuses any polygon outside 46.5–48.8°E, 28.5–30.1°N.'));
+    }
+  }
+
+  function useViewAsAoi() {
+    var map = buildGeoMap();
+    if (!map) return;
+    PENDING_AOI = viewPolygon(map, 'Drawn on the map');
+    GEO_GROUPS.aoi.clearLayers();
+    AOI_RECT = L.rectangle(geo.polygonBounds(PENDING_AOI),
+      { color: '#d88484', weight: 2, fillOpacity: 0.06 }).addTo(GEO_GROUPS.aoi);
+    var n = doc.getElementById('geoAoi');
+    clear(n);
+    n.className = 'aoi';
+    n.appendChild(el('b', null, 'Area of interest set. '));
+    n.appendChild(doc.createTextNode(describeAoi(PENDING_AOI)));
+    n.appendChild(el('div', null, 'It is carried into the New Mission dialog. ' +
+      'Move the map and press the button again to replace it.'));
+    log('area of interest set from the map');
   }
 
   /* -------------------------------------------------------------------
-     5 · New mission — a real insert, refused visibly when it is refused
+     10 · The Overview, driven by the newest run
      ------------------------------------------------------------------- */
-  function createMission(btn) {
-    var title = $('#mTitle').value.trim();
-    var objective = $('#mObjective').value.trim();
-    if (!title || !objective) {
-      say('modalMsg', 'A mission needs a name and a research objective.');
+  function buildOverviewMap() {
+    if (MAPS_BUILT.ov) { geo.resize('ovMap'); return; }
+    var map = geo.make('ovMap', { view: [29.35, 47.75, 8], minimal: true });
+    if (!map) return;
+    MAPS_BUILT.ov = true;
+    map._ksatG = L.layerGroup().addTo(map);
+    keys('ovKeys', [['#79bd96', 'Frame footprints'], ['#dce9f1', 'Your mission areas']]);
+    paintOverviewMap();
+  }
+
+  function paintOverviewMap() {
+    var host = doc.getElementById('ovMap');
+    if (!host || !host._ksatMap || !host._ksatMap._ksatG) return;
+    var map = host._ksatMap, g = map._ksatG;
+    g.clearLayers();
+    var any = L.latLngBounds([]);
+    FRAMES.filter(geo.hasFix).forEach(function (f) {
+      var b = geo.frameBounds(f);
+      L.rectangle(b, { color: '#79bd96', weight: 1, fillOpacity: 0.06 }).addTo(g);
+      any.extend(b);
+    });
+    MISSIONS.forEach(function (m) {
+      var b = geo.polygonBounds(m.area_geojson);
+      if (!b) return;
+      L.rectangle(b, { color: '#dce9f1', weight: 1, dashArray: '4 3', fillOpacity: 0.03 }).addTo(g);
+      any.extend(b);
+    });
+    if (any.isValid()) { setTimeout(function () { geo.fit(map, any, [14, 14]); }, 80); }
+  }
+
+  var AGENT_ROWS = [
+    ['satellite_data', 'Satellite Data Agent'],
+    ['environmental_analysis', 'Environmental Analysis'],
+    ['recommendation', 'Recommendation Agent'],
+    ['impact_prediction', 'Impact Prediction'],
+    ['visualization', 'Visualization Agent'],
+    ['reporting', 'Reporting Agent']
+  ];
+
+  function loadOverviewRun() {
+    if (!haveDb()) return;
+    window.sb.from('mission_runs')
+      .select('id,mission_id,status,started_at,finished_at,tool_calls')
+      .order('started_at', { ascending: false }).limit(1)
+      .then(function (r) {
+        if (r.error) { say('kRunsSub', 'Could not read runs.'); return; }
+        var runs = r.data || [];
+        paintAgents(null, null);
+        if (!runs.length) {
+          doc.getElementById('wfTag').textContent = 'NO RUN YET';
+          doc.getElementById('wfTitle').textContent = 'Workflow';
+          doc.getElementById('ovObjective').textContent =
+            'No run yet. Create a mission and run it in the Research Console.';
+          return;
+        }
+        var run = runs[0];
+        var m = missionById(run.mission_id);
+        doc.getElementById('wfTitle').textContent =
+          'Workflow · ' + ((m && m.title) ? m.title : 'run ' + shortId(run.id));
+        doc.getElementById('wfTag').textContent = String(run.status).toUpperCase();
+        doc.getElementById('ovObjective').textContent =
+          (m && m.objective) ? m.objective : 'Run ' + shortId(run.id);
+        doc.getElementById('ovArea').textContent = m ? areaLabel(m) : '';
+
+        window.sb.from('agent_steps').select('step_name,status,allowed')
+          .eq('run_id', run.id)
+          .then(function (s) {
+            if (s.error) return;
+            paintWorkflow(run, s.data || []);
+            paintAgents(run, s.data || []);
+          });
+      });
+
+    window.sb.from('mission_runs').select('id', { count: 'exact', head: true })
+      .then(function (r) {
+        var k = doc.getElementById('kRuns');
+        if (k) k.textContent = r.error ? '—' : pad2(r.count || 0);
+        if (!r.error) say('kRunsSub', (r.count || 0) === 0 ? 'Nothing has been run yet'
+                                                           : 'On your missions');
+      });
+  }
+
+  function paintWorkflow(run, steps) {
+    var byName = {};
+    steps.forEach(function (s) { byName[s.step_name] = s; });
+    $$('#wfLine .stage').forEach(function (st) {
+      var key = st.getAttribute('data-stage');
+      st.classList.remove('done', 'active');
+      if (key === 'request') { st.classList.add('done'); return; }
+      var s = byName[key];
+      if (!s) return;
+      if (s.status === 'complete') st.classList.add('done');
+      else st.classList.add('active');
+    });
+  }
+
+  function paintAgents(run, steps) {
+    var host = doc.getElementById('ovAgents');
+    if (!host) return;
+    clear(host);
+    var byName = {};
+    (steps || []).forEach(function (s) { byName[s.step_name] = s; });
+    AGENT_ROWS.forEach(function (p) {
+      var s = byName[p[0]];
+      var d = el('div', 'agent');
+      d.appendChild(el('div', 'ico', (agents.ROLES[p[0]] || {}).code || '··'));
+      var mid = el('div');
+      mid.appendChild(el('strong', null, p[1]));
+      mid.appendChild(el('small', null,
+        !run ? 'Configured, not yet run' :
+        !s ? 'Not reached on this run' :
+        s.status === 'refused' ? 'Refused — see the audit trail' :
+        s.status === 'complete' ? 'Completed on this run' : 'Running'));
+      d.appendChild(mid);
+      d.appendChild(el('span', 'state' + (!s ? '' : s.status === 'complete' ? ' ok' :
+                        s.status === 'refused' ? '' : ' wait'),
+                        !run ? 'CONFIGURED' : !s ? 'WAITING' :
+                        s.status === 'refused' ? 'REFUSED' :
+                        s.status === 'complete' ? 'DONE' : 'ACTIVE'));
+      host.appendChild(d);
+    });
+    var tag = doc.getElementById('agTag');
+    if (tag) tag.textContent = run ? 'FROM RUN ' + shortId(run.id) : 'CONFIGURED';
+  }
+
+  /* -------------------------------------------------------------------
+     11 · The Research Console — a real run
+     ------------------------------------------------------------------- */
+  var RUN_STATE = null;
+  var RUNNING = false;
+
+  function fillRunMission() {
+    var sel = doc.getElementById('runMission');
+    if (!sel) return;
+    var keep = sel.value;
+    clear(sel);
+    if (!MISSIONS.length) {
+      var o = el('option', null, 'No mission yet — create one first');
+      o.value = '';
+      sel.appendChild(o);
+      objectiveFor(null);
       return;
     }
-    if (!haveDb()) { say('modalMsg', 'The mission database is not reachable.'); return; }
-    btn.disabled = true;
-    say('modalMsg', 'Creating…');
+    MISSIONS.forEach(function (m) {
+      var o = el('option', null,
+        (m.title || 'Untitled') + '  ·  ' + String(m.status || 'draft').toUpperCase());
+      o.value = m.id;
+      sel.appendChild(o);
+    });
+    if (keep && missionById(keep)) sel.value = keep;
+    objectiveFor(missionById(sel.value));
+  }
 
-    var area = $('#mArea').value.trim();
-    window.sb.from('missions').insert({
-      title: title,
-      objective: objective,
-      area_geojson: area ? { note: area } : null
-    }).select('id').then(function (r) {
+  function objectiveFor(m) {
+    var q = doc.getElementById('q');
+    if (q) q.value = m ? m.objective : '';
+    var tag = doc.getElementById('runTag');
+    if (tag) tag.textContent = m ? String(m.status || 'draft').toUpperCase() : 'NO MISSION';
+    var btn = doc.getElementById('runBtn');
+    if (btn) {
+      btn.disabled = !m || RUNNING;
+      btn.textContent = (m && (m.status === 'queued' || m.status === 'running'))
+        ? 'Resume — a run is already open' : 'Run Analysis';
+    }
+    say('runMsg', m ? '' : 'Create a mission first: a run belongs to a mission, and the ' +
+                           'mission carries the area of interest the pipeline reads.');
+  }
+
+  function traceMsg(text, cls) {
+    var box = doc.getElementById('trace');
+    if (!box) return;
+    box.className = cls || 'log';
+    clear(box);
+    box.appendChild(el('div', null, text));
+  }
+
+  /* THE TRACE IS READ BACK OUT OF THE DATABASE. Every call to this
+     function is a fresh select on agent_steps. See the file header. */
+  function refreshTrace(runId) {
+    var box = doc.getElementById('trace');
+    if (!box || !runId) return Promise.resolve();
+    return window.sb.from('agent_steps')
+      .select('id,run_id,step_name,tool,allowed,refused_reason,status,started_at,injection_flag')
+      .eq('run_id', runId).order('started_at')
+      .then(function (r) {
+        if (r.error) { traceMsg('Could not read the trail: ' + r.error.message); return; }
+        box.className = 'steps';
+        clear(box);
+        (r.data || []).forEach(function (s, i) { box.appendChild(stepRow(s, i + 1)); });
+        var src = doc.getElementById('traceSrc');
+        if (src) src.textContent = 'READ FROM agent_steps · RUN ' + shortId(runId);
+      });
+  }
+
+  /* The live commentary goes in the message line under the mission, NOT
+     in the trace. The trace is the audit trail and has to stay exactly
+     what agent_steps says; mixing a narration line into it would be the
+     one thing this file is not allowed to do. */
+  function narrate(text) {
+    var n = doc.getElementById('runMsg');
+    if (!n) return;
+    clear(n);
+    var s = el('span', 'spin');
+    if (!RUNNING) s.className = '';
+    n.appendChild(s);
+    n.appendChild(doc.createTextNode(text));
+  }
+
+  /* A RUN LEFT OPEN BY A PAGE RELOAD, AND WHY THIS EXISTS.
+
+     The pipeline deliberately leaves the run OPEN while it waits at the
+     human checkpoint: researcher_log_step refuses a run that is not
+     queued or running, so holding it open is the only way the last three
+     agents can write anything after the approval.
+
+     The cost is that the candidate set lives in this browser. Reload the
+     page at the checkpoint - or close the laptop, or come back tomorrow
+     - and the mission is still QUEUED, launch_mission refuses with "This
+     mission is already running", and there is no button anywhere to get
+     out of it. That is a dead end a researcher cannot escape, and on a
+     demo day it is the kind of dead end that happens in front of people.
+
+     So: if the selected mission has an open run that this page did not
+     start, say so plainly and offer the one honest way forward. The old
+     run is closed as stalled with a reason, which leaves it in the audit
+     trail rather than deleting it, and then a fresh run can start. */
+  function openRunPrompt(m) {
+    var n = doc.getElementById('runMsg');
+    clear(n);
+    n.appendChild(doc.createTextNode(
+      'This mission already has a run open, started earlier or in another tab. ' +
+      'The candidate set from that run lived in the browser that started it and ' +
+      'is gone, so it cannot be resumed. Close it and start again: everything it ' +
+      'did record stays in the audit trail.'));
+    var b = el('button', 'btn', 'Close the open run and start again');
+    b.style.marginTop = '10px';
+    b.addEventListener('click', function () {
+      b.disabled = true;
+      window.sb.from('mission_runs').select('id')
+        .eq('mission_id', m.id).in('status', ['queued', 'running'])
+        .order('started_at', { ascending: false }).limit(1)
+        .then(function (r) {
+          if (r.error || !r.data || !r.data.length) {
+            throw new Error('The open run could not be found. Reload the page.');
+          }
+          return agents.finish(r.data[0].id, 'stalled',
+            'closed by the researcher: the run was left open by a reload');
+        })
+        .then(function () {
+          say('runMsg', 'The open run is closed. Press Run Analysis to start a new one.');
+          log('stale run closed on ' + (m.title || m.id));
+          return refreshAfterRun();
+        })
+        .catch(function (e) {
+          b.disabled = false;
+          say('runMsg', String(e && e.message ? e.message : e));
+        });
+    });
+    n.appendChild(doc.createElement('br'));
+    n.appendChild(b);
+  }
+
+  function startRun(btn) {
+    var sel = doc.getElementById('runMission');
+    var m = missionById(sel && sel.value);
+    if (!m) { say('runMsg', 'Choose a mission first.'); return; }
+    if (RUNNING) return;
+
+    if (m.status === 'queued' || m.status === 'running') {
+      /* Same browser, same run, checkpoint still in memory: just show it
+         again rather than telling the researcher anything is wrong. */
+      if (RUN_STATE && RUN_STATE.mission && RUN_STATE.mission.id === m.id &&
+          RUN_STATE.candidates && RUN_STATE.candidates.length) {
+        checkpoint(RUN_STATE);
+        refreshTrace(RUN_STATE.run_id);
+        return;
+      }
+      openRunPrompt(m);
+      return;
+    }
+
+    RUNNING = true;
+    btn.disabled = true;
+    say('decisionMsg', '');
+    doc.getElementById('checkpointCard').hidden = true;
+    traceMsg('Mission Orchestrator — requesting a run slot…', 'log');
+    narrate('Mission Orchestrator — requesting a run slot');
+
+    agents.run({
+      mission: m,
+      frames: FRAMES,
+      onPhase: narrate,
+      /* Every tick hands back the live state, so the run id is known
+         from the first write and the trace can be re-read while the
+         pipeline is still working. */
+      onStep: function (state) {
+        RUN_STATE = state;
+        if (state && state.run_id) refreshTrace(state.run_id);
+      },
+      onCheckpoint: function (state) { checkpoint(state); }
+    }).then(function (state) {
+      RUN_STATE = state;
+      RUNNING = false;
       btn.disabled = false;
-      if (r.error) { say('modalMsg', 'The database refused this insert: ' + r.error.message); return; }
-      $('#modal').classList.add('hidden');
-      $('#mTitle').value = ''; $('#mObjective').value = ''; $('#mArea').value = '';
-      doc.getElementById('missionTable').querySelectorAll('tr:not(:first-child)')
-         .forEach(function (n) { n.remove(); });
-      loadMissions();
-      show('missions');
-      log('mission created');
+      refreshTrace(state.run_id);
+      if (state.stopped) {
+        doc.getElementById('checkpointCard').hidden = true;
+        say('runMsg', state.stopped === 'injection'
+          ? 'The run stopped before it read anything: the objective on this mission reads ' +
+            'as an instruction rather than a question. The mission is flagged and the ' +
+            'refusal is in the audit trail.'
+          : state.stopped === 'no-evidence'
+          ? 'The run stopped honestly: no archive frame has a geolocation inside this ' +
+            'mission area. Open Geospatial Layers to see where the frames actually are, ' +
+            'then create a mission over one of them.'
+          : state.stopped === 'no-candidates'
+          ? 'The run measured the area and found no bare ground in it: every tile ' +
+            'classified as water or as already vegetated. That is a result about this ' +
+            'area, not a failure. It is written up in the findings on the mission.'
+          : 'The run stopped: the frames inside this area have an acquisition record but ' +
+            'no picture in the archive yet.');
+      }
+      return refreshAfterRun();
+    }).catch(function (e) {
+      RUNNING = false;
+      btn.disabled = false;
+      say('runMsg', 'The database refused this run: ' + (e && e.message ? e.message : e));
+      log('run refused: ' + (e && e.message ? e.message : e));
+    });
+  }
+
+  function checkpoint(state) {
+    RUN_STATE = state;
+    var card = doc.getElementById('checkpointCard');
+    card.hidden = false;
+    doc.getElementById('cpTitle').textContent =
+      state.candidates.length + ' candidate zones are ready for your decision';
+    doc.getElementById('cpBody').textContent =
+      'The Recommendation Agent ranked every bare tile inside this mission area by the ' +
+      state.rankMode + ' criterion and returned the top ' + state.candidates.length + '. ' +
+      'Nothing downstream of this point has run. Impact prediction, the map layer and ' +
+      'the report are written only after you approve, and the approval is recorded ' +
+      'against your account.';
+    var box = doc.getElementById('cpFindings');
+    clear(box);
+    state.candidates.forEach(function (c, i) {
+      var d = el('div', 'finding');
+      d.appendChild(el('h4', null, 'Candidate ' + (i + 1) + ' · frame ' +
+        pad2(c.a.frame_no) + ' tile ' + c.t.gx + ',' + c.t.gy));
+      d.appendChild(el('p', null,
+        'ExG ' + c.t.exg.toFixed(3) + ' · luminance ' + c.t.lum + ' · ' +
+        Math.round(c.t.nbVeg * 100) + '% of neighbours vegetated · about ' +
+        state.tileKm2 + ' km²'));
+      box.appendChild(d);
+    });
+    card.scrollIntoView({ block: 'nearest' });
+    log('human checkpoint reached on run ' + shortId(state.run_id));
+  }
+
+  function approveRun(btn) {
+    if (!RUN_STATE || !RUN_STATE.run_id) { say('decisionMsg', 'There is no open run.'); return; }
+    btn.disabled = true;
+    say('decisionMsg', 'Approved. Running impact prediction, visualization and reporting…');
+    agents.approve(RUN_STATE, {
+      onPhase: narrate,
+      onStep: function () { refreshTrace(RUN_STATE.run_id); }
+    }).then(function () {
+      btn.disabled = false;
+      doc.getElementById('checkpointCard').hidden = true;
+      say('decisionMsg', '');
+      say('runMsg', 'Run complete. The draft report is on the mission record. ' +
+        'Open Missions, choose this mission and press Generate the report to sign it.');
+      refreshTrace(RUN_STATE.run_id);
+      return refreshAfterRun();
+    }).catch(function (e) {
+      btn.disabled = false;
+      say('decisionMsg', 'The database refused: ' + (e && e.message ? e.message : e));
+    });
+  }
+
+  function rejectRun(btn) {
+    if (!RUN_STATE || !RUN_STATE.run_id) { say('decisionMsg', 'There is no open run.'); return; }
+    btn.disabled = true;
+    say('decisionMsg', 'Rejected. The candidate set is being rebuilt from the same ' +
+                       'evidence under the driest-first criterion — it is not edited in place.');
+    agents.rank(RUN_STATE, RUN_STATE.rankMode === 'driest' ? 'balanced' : 'driest')
+      .then(function () {
+        btn.disabled = false;
+        refreshTrace(RUN_STATE.run_id);
+        checkpoint(RUN_STATE);
+        say('decisionMsg', 'Re-ranked by the ' + RUN_STATE.rankMode + ' criterion. ' +
+          'Both candidate sets stay in the findings; neither was overwritten.');
+      }).catch(function (e) {
+        btn.disabled = false;
+        say('decisionMsg', 'The database refused: ' + (e && e.message ? e.message : e));
+      });
+  }
+
+  function abandonRun(btn) {
+    if (!RUN_STATE || !RUN_STATE.run_id) { say('decisionMsg', 'There is no open run.'); return; }
+    btn.disabled = true;
+    agents.finish(RUN_STATE.run_id, 'stalled', 'abandoned by the researcher at the checkpoint')
+      .then(function () {
+        btn.disabled = false;
+        doc.getElementById('checkpointCard').hidden = true;
+        say('decisionMsg', '');
+        say('runMsg', 'Run abandoned. The steps that did happen stay in the audit trail; ' +
+          'nothing is deleted.');
+        refreshTrace(RUN_STATE.run_id);
+        RUN_STATE = null;
+        return refreshAfterRun();
+      }).catch(function (e) {
+        btn.disabled = false;
+        say('decisionMsg', 'The database refused: ' + (e && e.message ? e.message : e));
+      });
+  }
+
+  function refreshAfterRun() {
+    return loadMissions().then(function () {
+      loadOverviewRun();
+      paintOverviewMap();
+      loadReports();
+      loadDatasets();
+      if (OPEN_MISSION) {
+        var again = missionById(OPEN_MISSION.id);
+        if (again && !doc.getElementById('missionDetail').hidden) openMission(again.id);
+      }
+      loadFindingsLayer();
+    });
+  }
+
+  function openInConsole() {
+    if (!OPEN_MISSION) return;
+    show('console');
+    var sel = doc.getElementById('runMission');
+    if (sel) { sel.value = OPEN_MISSION.id; objectiveFor(OPEN_MISSION); }
+  }
+
+  function launchFromDetail(btn) {
+    if (!OPEN_MISSION) return;
+    show('console');
+    var sel = doc.getElementById('runMission');
+    if (sel) { sel.value = OPEN_MISSION.id; objectiveFor(OPEN_MISSION); }
+    var rb = doc.getElementById('runBtn');
+    if (rb && !rb.disabled) startRun(rb);
+  }
+
+  /* generate_report() is the human checkpoint in SQL: a report cannot
+     exist without a signed-in person calling it, and approved_by is that
+     person. The button therefore does exactly one thing — it passes the
+     draft the Reporting Agent wrote and the researcher has read. */
+  function makeReport(btn) {
+    if (!OPEN_MISSION) return;
+    btn.disabled = true;
+    say('mdMsg', 'Reading the draft the Reporting Agent wrote…');
+    window.sb.from('results').select('body,created_at,kind,title')
+      .eq('mission_id', OPEN_MISSION.id).eq('kind', 'narrative')
+      .order('created_at', { ascending: false }).limit(1)
+      .then(function (r) {
+        if (r.error) throw new Error(r.error.message);
+        if (!r.data || !r.data.length) {
+          throw new Error('There is no draft on this mission yet. Run the pipeline and ' +
+                          'approve the candidate set first.');
+        }
+        return window.sb.rpc('generate_report',
+          { p_mission_id: OPEN_MISSION.id, p_body_md: r.data[0].body });
+      })
+      .then(function (r) {
+        if (r && r.error) throw new Error(r.error.message);
+        btn.disabled = false;
+        say('mdMsg', 'Report approved and signed against your account. It is in ' +
+                     'Reports & Exports, and this mission is now closed to further runs.');
+        log('report approved');
+        return refreshAfterRun();
+      })
+      .catch(function (e) {
+        btn.disabled = false;
+        say('mdMsg', String(e && e.message ? e.message : e));
+      });
+  }
+
+  /* -------------------------------------------------------------------
+     12 · Provenance / Audit
+     ------------------------------------------------------------------- */
+  var AUDIT_RUNS = [], AUDIT_STEPS = [];
+
+  function loadAudit(force) {
+    if (!haveDb()) return;
+    if (AUDIT_RUNS.length && !force) { paintAudit(); return; }
+    say('auditRunsMsg', 'Reading the audit trail…');
+    window.sb.from('mission_runs')
+      .select('id,mission_id,status,started_at,finished_at,tool_calls')
+      .order('started_at', { ascending: false })
+      .then(function (r) {
+        if (r.error) { say('auditRunsMsg', 'Could not read runs: ' + r.error.message); return; }
+        AUDIT_RUNS = r.data || [];
+        doc.getElementById('aRuns').textContent = pad2(AUDIT_RUNS.length);
+        say('auditRunsMsg', AUDIT_RUNS.length ? '' :
+          'No runs on this account yet. Every run this account starts appears here, ' +
+          'including runs that were refused or abandoned.');
+        return window.sb.from('agent_steps')
+          .select('id,run_id,step_name,tool,allowed,refused_reason,status,started_at,injection_flag')
+          .order('started_at', { ascending: false });
+      })
+      .then(function (s) {
+        if (!s) return;
+        if (s.error) { say('auditStepsMsg', 'Could not read steps: ' + s.error.message); return; }
+        AUDIT_STEPS = s.data || [];
+        doc.getElementById('aSteps').textContent = pad2(AUDIT_STEPS.length);
+        doc.getElementById('aRefused').textContent =
+          pad2(AUDIT_STEPS.filter(function (x) { return x.status === 'refused'; }).length);
+        paintAudit();
+      });
+
+    window.sb.from('results').select('id', { count: 'exact', head: true }).then(function (r) {
+      var n = doc.getElementById('aResults');
+      if (n) n.textContent = r.error ? '—' : pad2(r.count || 0);
+    });
+  }
+
+  function paintAudit() {
+    var t = doc.getElementById('auditRuns');
+    $$('tr:not(:first-child)', t).forEach(function (n) { n.remove(); });
+    AUDIT_RUNS.forEach(function (run) {
+      var m = missionById(run.mission_id);
+      var tr = el('tr');
+      tr.appendChild(el('td', 'mono', shortId(run.id)));
+      tr.appendChild(el('td', null, (m && m.title) ? m.title : shortId(run.mission_id)));
+      var td = el('td'); td.appendChild(statusTag(run.status)); tr.appendChild(td);
+      tr.appendChild(el('td', 'nowrap', when(run.started_at)));
+      tr.appendChild(el('td', 'nowrap', run.finished_at ? when(run.finished_at) : 'open'));
+      tr.appendChild(el('td', null, String(run.tool_calls)));
+      t.appendChild(tr);
+    });
+
+    var sel = doc.getElementById('auditRunFilter');
+    var keep = sel.value;
+    clear(sel);
+    var all = el('option', null, 'All runs'); all.value = ''; sel.appendChild(all);
+    AUDIT_RUNS.forEach(function (run) {
+      var m = missionById(run.mission_id);
+      var o = el('option', null, shortId(run.id) + ' · ' +
+        ((m && m.title) ? m.title : 'mission ' + shortId(run.mission_id)));
+      o.value = run.id;
+      sel.appendChild(o);
+    });
+    if (keep) sel.value = keep;
+    paintAuditSteps();
+  }
+
+  function paintAuditSteps() {
+    var t = doc.getElementById('auditSteps');
+    if (!t) return;
+    $$('tr:not(:first-child)', t).forEach(function (n) { n.remove(); });
+    var filter = (doc.getElementById('auditRunFilter') || {}).value || '';
+    var rows = AUDIT_STEPS.filter(function (s) { return !filter || s.run_id === filter; });
+    say('auditStepsMsg', rows.length ? '' :
+      (AUDIT_STEPS.length ? 'No step recorded for that run.'
+                          : 'No agent step has been recorded on this account yet.'));
+    rows.forEach(function (s) {
+      var tr = el('tr');
+      tr.appendChild(el('td', null, (agents.ROLES[s.step_name] || {}).name || s.step_name));
+      tr.appendChild(el('td', 'mono', s.tool || '—'));
+      tr.appendChild(el('td', 'wrap', s.refused_reason || '—'));
+      var td = el('td');
+      td.appendChild(el('span', 'tag' + (s.allowed ? ' green' : ' amber'),
+                        s.allowed ? 'ALLOWED' : 'REFUSED'));
+      if (s.injection_flag) td.appendChild(el('span', 'tag amber', ' INJECTION'));
+      tr.appendChild(td);
+      tr.appendChild(el('td', null, String(s.status).toUpperCase()));
+      tr.appendChild(el('td', 'nowrap', when(s.started_at)));
+      t.appendChild(tr);
+    });
+  }
+
+  /* FOUR REQUESTS THIS ACCOUNT IS NOT SUPPOSED TO BE ABLE TO MAKE.
+
+     They are sent for real. Nothing here is simulated and nothing is
+     caught before it leaves — the point is the answer the database
+     gives. All four are expected to be refused, and if one is not, this
+     panel says so in the loudest words it has, because it would mean a
+     grant had been widened without anybody noticing. */
+  function accessTest(btn) {
+    var box = doc.getElementById('accessTest');
+    clear(box);
+    btn.disabled = true;
+    box.appendChild(el('div', null, 'Sending…'));
+
+    var tests = [
+      { name: 'UPDATE public.payload_frames',
+        why: 'The archive must be read-only for every signed-in role.',
+        go: function () {
+          return window.sb.from('payload_frames')
+            .update({ place_label: 'access test' }).eq('frame_no', -1);
+        } },
+      { name: 'INSERT public.payload_frames',
+        why: 'A researcher must not be able to add a frame to the archive.',
+        go: function () {
+          return window.sb.from('payload_frames')
+            .insert({ frame_no: -999, captured_on: '2026-01-01', gsd_m: 1 });
+        } },
+      { name: 'INSERT public.agent_steps (direct, bypassing the RPC)',
+        why: 'The audit trail must only be writable through the checked function.',
+        go: function () {
+          return window.sb.from('agent_steps').insert({
+            run_id: '00000000-0000-0000-0000-000000000000',
+            step_name: 'reporting'
+          });
+        } },
+      { name: 'UPDATE public.missions SET status',
+        why: 'Mission state is set by the database, not by the browser.',
+        go: function () {
+          return window.sb.from('missions')
+            .update({ status: 'complete' })
+            .eq('id', '00000000-0000-0000-0000-000000000000');
+        } }
+    ];
+
+    var out = [];
+    var chain = Promise.resolve();
+    tests.forEach(function (t) {
+      chain = chain.then(function () {
+        return t.go().then(function (r) {
+          out.push({ t: t, refused: !!r.error, msg: r.error ? r.error.message : 'NOT REFUSED' });
+        }).catch(function (e) {
+          out.push({ t: t, refused: true, msg: String(e && e.message ? e.message : e) });
+        });
+      });
+    });
+
+    chain.then(function () {
+      return window.sb.from('profiles').select('user_id');
+    }).then(function (p) {
+      clear(box);
+      out.forEach(function (o) {
+        box.appendChild(el('div', o.refused ? 'good' : 'warn',
+          (o.refused ? 'REFUSED  ' : 'NOT REFUSED  ') + o.t.name));
+        box.appendChild(el('div', null, '    ' + o.msg));
+        box.appendChild(el('div', null, '    ' + o.t.why));
+        box.appendChild(el('div', null, ' '));
+      });
+      var n = (p && p.data) ? p.data.length : 0;
+      box.appendChild(el('div', null,
+        'SELECT public.profiles returned ' + n + ' row' + (n === 1 ? '' : 's') + '.'));
+      box.appendChild(el('div', null,
+        '    Row level security scopes this table to your own account, so one row is ' +
+        'the correct answer however many researchers are enrolled.'));
+      var bad = out.filter(function (o) { return !o.refused; }).length;
+      box.appendChild(el('div', null, ' '));
+      box.appendChild(el('div', bad ? 'warn' : 'good',
+        bad ? bad + ' of ' + out.length + ' requests were NOT refused. Tell the team: ' +
+              'a grant has been widened.'
+            : 'All ' + out.length + ' requests were refused by the database, which is ' +
+              'the expected result.'));
+      btn.disabled = false;
+      log('access test run: ' + (bad ? bad + ' unexpected' : 'all refused'));
     });
   }
 
   /* -------------------------------------------------------------------
-     6 · The console trace
+     13 · New mission
      ------------------------------------------------------------------- */
-  function runTrace() {
-    var q = ($('#q').value || '').trim() ||
-      'Identify areas in Kuwait where increasing vegetation could improve environmental conditions.';
-    var box = doc.getElementById('trace');
-    box.className = 'log';
-    box.textContent = '';
-    var lines = [
-      'REQUEST',
-      '“' + q + '”',
-      '',
-      'MISSION ORCHESTRATOR — evaluating required evidence',
-      'SATELLITE DATA AGENT — ' + FRAMES.length + ' payload frames available to this account',
-      'ENVIRONMENTAL ANALYSIS AGENT — candidate zones identified',
-      'ORCHESTRATOR DECISION — evidence sufficient for recommendation review',
-      'HUMAN CHECKPOINT — researcher approval required',
-      'Impact Prediction Agent remains on hold until approval.',
-      '',
-      'This trace is drawn from the workspace, not from a run. A real run is ' +
-      'recorded step by step in agent_steps and is readable from the mission record.'
-    ];
-    lines.forEach(function (l) { box.appendChild(el('div', null, l)); });
+  var MODAL_MAP = null;
+  var MODAL_AOI = null;
+
+  function openModal() {
+    $('#modal').classList.remove('hidden');
+    say('modalMsg', '');
+
+    var chips = doc.getElementById('mPresets');
+    if (chips && !chips.childNodes.length) {
+      geo.PRESETS.forEach(function (p) {
+        var b = el('button', null, p.label);
+        b.type = 'button';
+        b.addEventListener('click', function () {
+          $$('button', chips).forEach(function (x) { x.classList.remove('on'); });
+          b.classList.add('on');
+          var poly = geo.presetPolygon(p.id);
+          geo.fit(MODAL_MAP, geo.polygonBounds(poly), [8, 8]);
+          modalAoi();
+        });
+        chips.appendChild(b);
+      });
+    }
+
+    setTimeout(function () {
+      MODAL_MAP = geo.make('mMap', { view: [29.35, 47.75, 8] });
+      if (!MODAL_MAP) return;
+      geo.resize('mMap');
+      MODAL_MAP.off('moveend zoomend', modalAoi);
+      MODAL_MAP.on('moveend zoomend', modalAoi);
+      if (!MODAL_MAP._ksatAoi) { MODAL_MAP._ksatAoi = L.layerGroup().addTo(MODAL_MAP); }
+      /* The area set on the Geospatial Layers view is carried in here.
+         That is the whole point of the button over there. */
+      if (PENDING_AOI) {
+        geo.fit(MODAL_MAP, geo.polygonBounds(PENDING_AOI), [8, 8]);
+      }
+      modalAoi();
+    }, 60);
   }
 
-  /* ------------------------------------------------------------------- */
+  function modalAoi() {
+    if (!MODAL_MAP) return;
+    MODAL_AOI = viewPolygon(MODAL_MAP, 'Drawn on the map');
+    MODAL_MAP._ksatAoi.clearLayers();
+    L.rectangle(geo.polygonBounds(MODAL_AOI),
+      { color: '#d88484', weight: 2, fillOpacity: 0.05 }).addTo(MODAL_MAP._ksatAoi);
+    var n = doc.getElementById('mAoi');
+    if (!n) return;
+    clear(n);
+    n.className = 'aoi';
+    n.appendChild(el('b', null, 'Area of interest '));
+    n.appendChild(doc.createTextNode(describeAoi(MODAL_AOI)));
+  }
+
+  function closeModal() {
+    $('#modal').classList.add('hidden');
+  }
+
+  function createMission(btn) {
+    var title = $('#mTitle').value.trim();
+    var objective = $('#mObjective').value.trim();
+
+    /* The database checks all of this too — missions_title_len,
+       missions_objective_len and the two has-a-letter constraints in
+       03-security/db/06_validation.sql. It is repeated here only so the
+       researcher is told before the round trip, in the same words. */
+    if (title.length < 3) { say('modalMsg', 'A mission name needs at least 3 characters.'); return; }
+    if (title.length > 120) { say('modalMsg', 'A mission name may be at most 120 characters.'); return; }
+    if (objective.length < 20) {
+      say('modalMsg', 'The research objective needs at least 20 characters. It is the ' +
+                      'question the Orchestrator reads, so write the question.');
+      return;
+    }
+    if (objective.length > 1500) { say('modalMsg', 'The objective may be at most 1500 characters.'); return; }
+    if (!/[A-Za-z؀-ۿ]/.test(title) || !/[A-Za-z؀-ۿ]/.test(objective)) {
+      say('modalMsg', 'The name and the objective both have to contain letters.');
+      return;
+    }
+    if (!haveDb()) { say('modalMsg', 'The mission database is not reachable.'); return; }
+
+    /* THE AREA. This is the field that was refusing every mission.
+
+       missions.area_geojson is NOT NULL and is checked by
+       kuwait_area_ok(), so a note like "Kuwait Bay" typed into a text
+       box could never be accepted — the old field sent
+       {note:"Kuwait Bay"}, the check said false, and the insert came
+       back as a constraint violation with no explanation a researcher
+       could act on. The field is a map now: whatever is on screen is the
+       polygon, clipped to the Kuwait envelope, and it is always valid by
+       construction. */
+    var area = MODAL_AOI || PENDING_AOI || geo.presetPolygon('all');
+    var type = ($('#mType') || {}).value || '';
+    var win = ($('#mWindow') || {}).value || '';
+
+    btn.disabled = true;
+    say('modalMsg', 'Creating…');
+
+    /* Mission type and time window are not columns on public.missions.
+       Rather than invent a schema change the night before a demo, they
+       are appended to the objective where they stay visible, auditable
+       and inside the 1500 character check. */
+    var extra = [];
+    if (type) extra.push('Mission type: ' + type + '.');
+    if (win.trim()) extra.push('Time window: ' + win.trim() + '.');
+    var fullObjective = extra.length
+      ? (objective + '\n\n' + extra.join(' ')).slice(0, 1500)
+      : objective;
+
+    window.sb.from('missions').insert({
+      title: title,
+      objective: fullObjective,
+      area_geojson: area
+    }).select('id').then(function (r) {
+      btn.disabled = false;
+      if (r.error) {
+        say('modalMsg', 'The database refused this insert: ' + r.error.message +
+          (/kuwait_area_ok|area_shape/.test(r.error.message)
+            ? ' — the area has to be a polygon inside Kuwait. Move the map back over ' +
+              'the country and try again.' : ''));
+        return;
+      }
+      closeModal();
+      $('#mTitle').value = '';
+      $('#mObjective').value = '';
+      if ($('#mWindow')) $('#mWindow').value = '';
+      var c = doc.getElementById('mObjCount');
+      if (c) c.textContent = '0 / 1500 · at least 20 characters';
+      log('mission created: ' + title);
+      loadMissions().then(function () {
+        show('missions');
+        var id = r.data && r.data[0] && r.data[0].id;
+        if (id) openMission(id);
+        paintOverviewMap();
+      });
+    });
+  }
+
+  /* -------------------------------------------------------------------
+     14 · Boot
+     ------------------------------------------------------------------- */
+  /* Order matters in one place only: loadReports() names each report
+     after its mission, so it runs after the mission list has arrived.
+     Everything else is independent and goes in parallel. */
+  function load() {
+    pipeline();
+    loadFrames().then(paintOverviewMap);
+    loadMissions().then(function () {
+      loadOverviewRun();
+      paintOverviewMap();
+      return loadReports();
+    });
+    loadDatasets();
+  }
+
   function boot() {
     wireNav();
 
@@ -621,24 +2112,46 @@
 
     var out = doc.getElementById('signout');
     if (out) out.addEventListener('click', signOut);
+
     var ms = doc.getElementById('missionSearch');
-    if (ms) ms.addEventListener('input', function () {
-      var v = ms.value.toLowerCase();
-      $$('#missionTable tr').slice(1).forEach(function (tr) {
-        tr.hidden = v && tr.textContent.toLowerCase().indexOf(v) < 0;
-      });
-    });
+    if (ms) ms.addEventListener('input', paintMissions);
+
     var ds = doc.getElementById('dataSearch');
-    if (ds) ds.addEventListener('input', function () {
-      var v = ds.value.toLowerCase();
-      $$('#dataTable tr').slice(1).forEach(function (tr) {
-        tr.hidden = v && tr.textContent.toLowerCase().indexOf(v) < 0;
-      });
+    if (ds) ds.addEventListener('input', paintDatasets);
+    var fs = doc.getElementById('fSource');
+    if (fs) fs.addEventListener('change', paintDatasets);
+    var fc = doc.getElementById('fClass');
+    if (fc) fc.addEventListener('change', paintDatasets);
+
+    var rm = doc.getElementById('runMission');
+    if (rm) rm.addEventListener('change', function () {
+      objectiveFor(missionById(rm.value));
     });
-    window.addEventListener('hashchange', function () {
-      var id = location.hash.slice(1);
-      if (id && doc.getElementById(id)) show(id);
+
+    var arf = doc.getElementById('auditRunFilter');
+    if (arf) arf.addEventListener('change', paintAuditSteps);
+
+    var ob = doc.getElementById('mObjective');
+    if (ob) ob.addEventListener('input', function () {
+      var n = ob.value.trim().length;
+      var c = doc.getElementById('mObjCount');
+      if (c) {
+        c.textContent = n + ' / 1500 · ' +
+          (n < 20 ? (20 - n) + ' more characters needed' : 'long enough');
+      }
     });
+
+    /* The detail panel's "show on the map" button is built by
+       actionsFor(), so it is wired by delegation like everything else. */
+    doc.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('[data-act="geo-fit-open"]') : null;
+      if (!b || !OPEN_MISSION) return;
+      show('geo');
+      var map = buildGeoMap();
+      var bb = geo.polygonBounds(OPEN_MISSION.area_geojson);
+      if (map && bb) { geo.resize('geoMap'); geo.fit(map, bb, [30, 30]); }
+    });
+
     gate();
   }
 

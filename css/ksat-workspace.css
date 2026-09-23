@@ -1,0 +1,271 @@
+/* =====================================================================
+   ksat-workspace.css - the parts of the research workspace that did not
+   exist when css/ksat-researcher.css was written
+   Owner: 01 Front End
+
+   Three new things live here and nothing else:
+
+     1 . the Leaflet map surface, and the dark treatment it needs to sit
+         inside this UI without looking like a web page pasted into a
+         console
+     2 . the mission detail panel, the audit tables and the run trace
+     3 . the New Mission area picker
+
+   Loaded AFTER vendor/leaflet.css so the overrides in section 1 win
+   without !important. If you move the <link> order in researcher.html,
+   the map furniture goes back to the white Leaflet default.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1 . THE MAP
+   --------------------------------------------------------------------- */
+
+/* A Leaflet map MUST have a height in CSS. It reads the container size
+   once at init and again on invalidateSize(); a container that is
+   height:auto computes to 0 and the map renders as a 1px strip with no
+   error anywhere. Every map host on this page therefore gets an explicit
+   height, and js/ksat-geo.js calls invalidateSize() whenever the view it
+   sits in is shown - because a map built inside a display:none section
+   measures 0 no matter what this file says. */
+.ksat-map{
+  height:520px;
+  width:100%;
+  background:#070b0f;
+  border:1px solid var(--line);
+  position:relative;
+  z-index:0;                 /* keeps the Leaflet panes under the modal */
+}
+.ksat-map--short{ height:300px }
+.ksat-map--mini{ height:230px }
+
+/* The Leaflet furniture, restyled for a dark console. */
+.leaflet-container{ background:#070b0f; font:11px Arial,Helvetica,sans-serif; outline:none }
+.leaflet-control-attribution{
+  background:#0b1116d9; color:#7d8b96; border-top:1px solid #1d2730;
+  font-size:9px; padding:2px 7px;
+}
+.leaflet-control-attribution a{ color:#9bb4c6 }
+.leaflet-bar{ border:1px solid #34414c; box-shadow:none }
+.leaflet-bar a,
+.leaflet-bar a:hover{
+  background:#141b22; color:#dbe3e8; border-bottom:1px solid #26313b;
+}
+.leaflet-bar a:hover{ background:#1a232b }
+.leaflet-control-layers{
+  background:#0e141a; color:#dbe3e8; border:1px solid #34414c;
+  border-radius:2px; box-shadow:none;
+}
+.leaflet-control-layers-expanded{ padding:9px 11px 9px 9px }
+.leaflet-control-layers label{ font-size:10px; margin:3px 0; display:block }
+.leaflet-control-layers-separator{ border-top:1px solid #26313b }
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip{
+  background:#0e141a; color:#dbe3e8; border:1px solid #3a4751;
+  border-radius:2px; box-shadow:none;
+}
+.leaflet-popup-content{ margin:11px 13px; font-size:10px; line-height:1.6 }
+.leaflet-popup-content h4{ margin:0 0 6px; font-size:11px; font-weight:bold; color:var(--white) }
+.leaflet-popup-content img{ width:100%; display:block; margin:0 0 8px; border:1px solid var(--line) }
+.leaflet-popup-content dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:3px 9px }
+.leaflet-popup-content dt{ font-size:8px; color:#64737e; text-transform:uppercase;
+                           letter-spacing:.08em; padding-top:2px }
+.leaflet-popup-content dd{ margin:0; font-size:10px; color:#c5ced4 }
+.leaflet-popup-content .btn{ margin-top:9px; padding:6px 9px; font-size:10px }
+.leaflet-container a.leaflet-popup-close-button{ color:#8e9aa5 }
+.leaflet-container a.leaflet-popup-close-button:hover{ color:var(--white) }
+
+/* THE DARK STREET MAP IS A FILTER, NOT A PROVIDER.
+
+   These are the ordinary OpenStreetMap tiles with the colours inverted
+   and rotated back, which is the standard recipe for a dark OSM and the
+   reason this platform needs no tile account. The data is untouched and
+   the ODbL attribution in the corner is unchanged - only the pixels in
+   this browser are. js/ksat-geo.js attaches the class through Leaflet's
+   `className` tile-layer option, so it lands on that layer's tile
+   container and not on the satellite layer stacked with it. */
+.ksat-tiles-dark{
+  filter:invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) saturate(70%);
+}
+
+/* The coordinate read-out, in the corner, the way georef.html had it.
+   It is a Leaflet control so it sits with the map furniture rather than
+   being an absolutely positioned div that forgets about the zoom bar. */
+.ksat-hud{
+  background:#0b1116e6; border:1px solid #26313b; padding:7px 10px;
+  font-family:monospace; font-size:9px; line-height:1.7; color:#9aa8b2;
+  min-width:190px;
+}
+.ksat-hud b{ color:var(--white); font-weight:normal }
+.ksat-hud i{ font-style:normal; color:#64737e; display:inline-block; width:58px }
+
+/* The legend under a map: what each colour on it means. Written from the
+   layers actually added, never hard coded - see js/ksat-geo.js. */
+.ksat-keys{ display:flex; flex-wrap:wrap; gap:6px 20px; margin-top:10px;
+            font-size:9px; color:#8e9aa5 }
+.ksat-keys span{ display:flex; align-items:center; gap:7px }
+.ksat-keys i{ width:11px; height:11px; border-radius:2px; display:block; border:1px solid #0009 }
+
+/* ---------------------------------------------------------------------
+   2 . MISSION DETAIL, AUDIT, RUN TRACE
+   --------------------------------------------------------------------- */
+
+/* A row you can open has to look like one. .missionrow in the base sheet
+   already sets the cursor; this adds the affordance a cursor alone does
+   not give a reader who is not moving a mouse. */
+.missionrow td:first-child{ color:var(--white) }
+.missionrow.open td{ background:#121a21 }
+
+.detail{ margin-top:12px }
+.detail .ct h3{ font-size:13px }
+.detail dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:7px 16px }
+.detail dt{ font-size:8px; color:#64737e; text-transform:uppercase;
+            letter-spacing:.1em; padding-top:2px }
+.detail dd{ margin:0; font-size:11px; color:#c5ced4 }
+
+/* The step list. Every row here is an agent_steps row read back OUT of
+   the database - never the copy the page held while it was writing. */
+.steps{ display:grid; gap:1px; background:#1e2830; border:1px solid #1e2830 }
+.step{
+  display:grid; grid-template-columns:22px 1fr auto; gap:11px;
+  align-items:start; padding:11px 12px; background:var(--panel);
+}
+.step i{
+  font-style:normal; width:20px; height:20px; display:grid; place-items:center;
+  border:1px solid #51616d; background:#10161c; border-radius:50%;
+  font-size:8px; color:#a9bdc9;
+}
+.step.ok i{ background:#dce8ef; color:#0c1318; border-color:#dce8ef }
+.step.refused i{ border-color:#553030; color:var(--red) }
+.step.running i{ border-color:#9fc5dc; box-shadow:0 0 0 3px #9fc5dc18 }
+.step b{ display:block; font-size:11px; color:var(--white); font-weight:normal }
+.step small{ display:block; color:#7c8a95; font-size:9px; margin-top:4px; line-height:1.6 }
+.step code{ font-family:monospace; font-size:9px; color:#9bb4c6 }
+.step .state{ white-space:nowrap; padding-top:3px }
+
+/* The refusal line is the evidence that the agent asked and was told no.
+   It gets the loudest treatment on the page, on purpose. */
+.step .refusal{ color:var(--red); border-left:2px solid #553030;
+                padding-left:9px; margin-top:7px }
+
+.findings{ display:grid; grid-template-columns:repeat(auto-fill,minmax(252px,1fr)); gap:10px }
+.finding{ border:1px solid var(--line); padding:12px; background:var(--panel2) }
+.finding h4{ margin:0 0 5px; font-size:11px; font-weight:normal; color:var(--white) }
+.finding p{ margin:0; font-size:10px; color:#9ea8ae; line-height:1.7; white-space:pre-wrap }
+
+/* Reports render as prose, not as a code block. */
+.md{ font-size:11px; line-height:1.8; color:#c5ced4; max-width:80ch }
+.md h1{ font-size:16px; font-weight:normal; color:var(--white); margin:0 0 4px }
+.md h2{ font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+        color:#8ea3b2; margin:20px 0 7px }
+.md ul{ margin:7px 0; padding-left:19px }
+.md li{ margin:4px 0 }
+.md p{ margin:7px 0 }
+.md strong{ color:var(--white); font-weight:normal }
+.md hr{ border:0; border-top:1px solid var(--line); margin:18px 0 }
+
+/* ---------------------------------------------------------------------
+   3 . THE AREA PICKER IN THE NEW MISSION MODAL
+   --------------------------------------------------------------------- */
+
+/* The modal grew a map, so it grew a second column and a scrollbar. The
+   viewport cap matters: on a 768px-tall laptop the old fixed box already
+   ran off the bottom of the screen with six fields in it. */
+.modalbox{ max-height:92vh; overflow:auto }
+.modalbox--wide{ width:min(1020px,94vw) }
+.mform{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,420px);
+        gap:20px; align-items:start }
+@media(max-width:860px){ .mform{ grid-template-columns:minmax(0,1fr) } }
+
+.aoi{ font-family:monospace; font-size:9px; color:#9aa8b2; line-height:1.7;
+      border:1px solid #26313b; padding:9px 10px; background:#0a0f13; margin-top:9px }
+.aoi b{ color:var(--white); font-weight:normal }
+.aoi.bad{ border-color:#553030; color:var(--red) }
+
+.chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:9px }
+.chips button{
+  background:#141b22; border:1px solid #34414c; color:#c3ccd3;
+  font-size:9px; padding:6px 9px; cursor:pointer; border-radius:2px;
+}
+.chips button:hover{ background:#1a232b; color:var(--white) }
+.chips button.on{ background:#dce9f1; color:#0b1116; border-color:#dce9f1 }
+
+/* ---------------------------------------------------------------------
+   4 . SMALL THINGS
+   --------------------------------------------------------------------- */
+.bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+.bar .grow{ flex:1 }
+.spin{ display:inline-block; width:9px; height:9px; border:1px solid #51616d;
+       border-top-color:#dce8ef; border-radius:50%;
+       animation:ksat-spin .8s linear infinite; vertical-align:-1px; margin-right:7px }
+@keyframes ksat-spin{ to{ transform:rotate(360deg) } }
+@media(prefers-reduced-motion:reduce){ .spin{ animation:none; border-top-color:#51616d } }
+
+/* A table that can be long gets its own scroll rather than stretching
+   the page to the height of an audit trail. */
+.scrolly{ max-height:440px; overflow:auto }
+.scrolly th{ position:sticky; top:0; background:var(--panel); z-index:1 }
+
+.dim{ color:var(--dim) }
+.mono{ font-family:monospace; font-size:9px }
+.nowrap{ white-space:nowrap }
+.wrap{ white-space:normal; word-break:break-word }
+
+/* ---------------------------------------------------------------------
+   5 . THE NARROW SCREEN, WHICH WAS BROKEN
+
+   css/ksat-researcher.css line 22 hides the sidebar below 900px AND
+   hides every top-nav button after the third:
+
+       .nav button:nth-child(n+4){ display:none }
+
+   With the sidebar gone that left a phone with exactly three reachable
+   views out of eight - Payload Archive, Data Archive, the Console,
+   Reports, Geospatial and Audit simply could not be opened at all. That
+   is not a layout preference, it is half the workspace missing.
+
+   This sheet loads after that one, so the rule is put back and the nav
+   is allowed to scroll sideways instead. A row that scrolls is a known
+   pattern on a phone; a row that silently drops its own contents is not.
+   --------------------------------------------------------------------- */
+@media(max-width:900px){
+  .nav{ overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch }
+  .nav button:nth-child(n+4){ display:block }
+  .nav button{ padding:24px 10px; white-space:nowrap; flex:0 0 auto }
+  .ksat-map{ height:380px }
+  .mform{ grid-template-columns:minmax(0,1fr) }
+}
+
+/* ---------------------------------------------------------------------
+   6 . PRINTING A REPORT
+
+   window.print() on this page would otherwise print the console chrome,
+   the sidebar and every other panel in the reports view. js/ksat-
+   researcher.js puts .ksat-printing on <html> for the duration of the
+   call and takes it off again, so nothing about the screen changes.
+
+   Colours are inverted to ink on white here rather than left dark: a
+   report is the one artefact on this platform that leaves the building,
+   and it leaves it on paper or as a PDF.
+   --------------------------------------------------------------------- */
+@media print{
+  html.ksat-printing body{ background:#fff; color:#000 }
+  html.ksat-printing .top,
+  html.ksat-printing .statusbar,
+  html.ksat-printing aside,
+  html.ksat-printing #entry,
+  html.ksat-printing #denied,
+  html.ksat-printing .modal,
+  html.ksat-printing #reports > .head,
+  html.ksat-printing #reports > .card:not(#reportViewWrap),
+  html.ksat-printing #reports > .grid,
+  html.ksat-printing #reportViewWrap .ct,
+  html.ksat-printing .view:not(#reports){ display:none !important }
+  html.ksat-printing .layout{ display:block }
+  html.ksat-printing main{ padding:0; max-width:none }
+  html.ksat-printing .card{ background:#fff; border:0; padding:0 }
+  html.ksat-printing .md,
+  html.ksat-printing .md h1,
+  html.ksat-printing .md h2,
+  html.ksat-printing .md strong{ color:#000; max-width:none }
+  html.ksat-printing .md h2{ color:#333 }
+}

@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KuwaitSat-1 Research Workspace · Researcher Guide</title>
+<!-- =====================================================================
+     SOURCE OF docs/researcher-guide.pdf
+     Owner: 01 Front End / 04 Agents
+
+     This file is the document. The PDF is generated from it with:
+
+       chrome --headless --disable-gpu --no-pdf-header-footer \
+              --print-to-pdf="docs/researcher-guide.pdf" \
+              docs/researcher-guide.html
+
+     Edit this, regenerate, never hand-edit the PDF.
+
+     It is in docs/ and docs/ is denied in .vercelignore, so it is not
+     uploaded with the site. It describes the inside of the workspace and
+     that is a document for enrolled researchers, handed over, not
+     published at a URL anybody can guess.
+     ===================================================================== -->
+<style>
+  @page { size: A4; margin: 18mm 16mm 16mm; }
+
+  :root{
+    --ink:#101820; --soft:#4a5966; --faint:#7b8a97; --line:#c9d4dd;
+    --accent:#0f6d67; --warn:#8a5a12; --bad:#8f2f2f;
+  }
+  *{ box-sizing:border-box }
+  body{
+    margin:0; color:var(--ink); background:#fff;
+    font:10.5pt/1.65 Georgia,"Times New Roman",serif;
+  }
+  .sans{ font-family:Arial,Helvetica,sans-serif }
+
+  h1,h2,h3,h4{ font-family:Arial,Helvetica,sans-serif; font-weight:bold; margin:0 }
+  h1{ font-size:24pt; line-height:1.15; letter-spacing:-.01em }
+  h2{ font-size:13pt; margin:26pt 0 8pt; padding-bottom:4pt;
+      border-bottom:1.5pt solid var(--ink); page-break-after:avoid }
+  h3{ font-size:11pt; margin:16pt 0 5pt; page-break-after:avoid }
+  h4{ font-size:9.5pt; margin:11pt 0 3pt; color:var(--accent);
+      letter-spacing:.04em; text-transform:uppercase; page-break-after:avoid }
+  p{ margin:0 0 7pt }
+  ul,ol{ margin:0 0 8pt; padding-left:17pt }
+  li{ margin:0 0 3.5pt }
+  code, .mono{ font-family:"Consolas","Courier New",monospace; font-size:9pt;
+               background:#f1f4f7; padding:0 3pt; border-radius:2pt }
+  a{ color:var(--accent); text-decoration:none }
+  strong{ font-weight:bold }
+  .lead{ font-size:11.5pt; color:var(--soft) }
+  .kicker{ font-family:Arial,Helvetica,sans-serif; font-size:8pt; letter-spacing:.18em;
+           text-transform:uppercase; color:var(--faint) }
+
+  .cover{ page-break-after:always; padding-top:32mm }
+  .cover .rule{ height:3pt; background:var(--accent); width:44mm; margin:10pt 0 16pt }
+  .cover dl{ margin-top:26mm; display:grid; grid-template-columns:34mm 1fr;
+             gap:5pt 0; font-size:9.5pt }
+  .cover dt{ font-family:Arial,Helvetica,sans-serif; font-size:8pt; letter-spacing:.1em;
+             text-transform:uppercase; color:var(--faint); padding-top:2pt }
+  .cover dd{ margin:0 }
+
+  .note{ border-left:2.5pt solid var(--accent); padding:6pt 0 6pt 10pt;
+         background:#f4f8f8; margin:9pt 0; font-size:9.5pt; page-break-inside:avoid }
+  .warn{ border-left-color:var(--warn); background:#fbf6ec }
+  .stop{ border-left-color:var(--bad); background:#fbf0f0 }
+
+  table{ width:100%; border-collapse:collapse; margin:8pt 0; font-size:9pt;
+         page-break-inside:avoid }
+  th{ font-family:Arial,Helvetica,sans-serif; font-size:7.5pt; letter-spacing:.08em;
+      text-transform:uppercase; text-align:left; color:var(--faint);
+      border-bottom:1pt solid var(--ink); padding:4pt 6pt 4pt 0; vertical-align:bottom }
+  td{ padding:5pt 6pt 5pt 0; border-bottom:.5pt solid var(--line); vertical-align:top }
+  td:first-child{ font-family:Arial,Helvetica,sans-serif; font-size:8.5pt;
+                  font-weight:bold; width:36%; padding-right:9pt }
+
+  .panel{ border:.75pt solid var(--line); padding:9pt 11pt; margin:9pt 0;
+          page-break-inside:avoid }
+  .panel h4{ margin-top:0 }
+
+  ol.steps{ counter-reset:s; list-style:none; padding-left:0 }
+  ol.steps > li{ counter-increment:s; position:relative; padding-left:20pt; margin-bottom:7pt }
+  ol.steps > li:before{
+    content:counter(s); position:absolute; left:0; top:1pt;
+    font-family:Arial,Helvetica,sans-serif; font-size:8pt; font-weight:bold;
+    width:13pt; height:13pt; line-height:13pt; text-align:center;
+    color:#fff; background:var(--accent); border-radius:50%;
+  }
+
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:0 16pt }
+  .avoid{ page-break-inside:avoid }
+  .newpage{ page-break-before:always }
+  footer.doc{ margin-top:22pt; padding-top:7pt; border-top:.75pt solid var(--line);
+              font-size:8pt; color:var(--faint) }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="cover">
+  <div class="kicker">KuwaitSat-1 Mission Hub</div>
+  <h1>The Research Workspace</h1>
+  <div class="rule"></div>
+  <p class="lead">What every part of it is for, and how to use it.<br>
+     Written for enrolled researchers on the KuwaitSat-1 programme.</p>
+
+  <dl>
+    <dt>Workspace</dt><dd>/researcher.html, reached by signing in on the mission hub</dd>
+    <dt>Audience</dt><dd>Researchers enrolled on the programme. One account, one workspace.</dd>
+    <dt>Data</dt><dd>KuwaitSat-1 payload frames, held in the mission database and
+        released only inside a signed-in session</dd>
+    <dt>Version</dt><dd>23 September 2026</dd>
+    <dt>Keep this</dt><dd>This document describes the inside of a restricted workspace.
+        It is handed to enrolled researchers. It is not published with the site.</dd>
+  </dl>
+</section>
+
+<!-- ============================ 1 ============================ -->
+<h2>1 &nbsp; What this workspace is, in one page</h2>
+
+<p>The KuwaitSat-1 research workspace is where a researcher works with the imagery the
+satellite actually returned. It does four things, and it is worth being clear about them
+before any button is pressed.</p>
+
+<p><strong>It releases the payload archive to you.</strong> The frames KuwaitSat-1 decoded
+are held in the mission database. They are not in the public code repository, they are not
+part of the deployed website, and there is no web address that serves them without a
+session. When you sign in, the database releases them to your browser. When you sign out,
+that stops.</p>
+
+<p><strong>It lets you define a mission.</strong> A mission is a research question plus the
+ground it applies to. Both are recorded. The ground is a polygon over Kuwait, drawn on a
+map, and the database will refuse a polygon that is not over Kuwait.</p>
+
+<p><strong>It runs an orchestrated pipeline against your mission, and it stops halfway for
+you.</strong> Six agents take turns. Three of them run, then everything halts and waits for
+a human decision. Nothing downstream of that point happens until you press Approve, and
+your account is recorded as the approver.</p>
+
+<p><strong>It keeps the receipt for all of it.</strong> Every step every agent took, every
+tool it called, every request the database refused, and every finding it produced is a row
+you can read back. That record is the product. The pictures are evidence; the trail is what
+makes them usable in research.</p>
+
+<div class="note">
+  <strong>The one rule the workspace holds to.</strong> Nothing on the screen is invented.
+  If a table is empty, it is because the database returned nothing, and the panel says so
+  in words. If a number is missing, the workspace says it cannot be measured rather than
+  estimating it. If an agent was refused, the refusal is shown, not hidden. A platform
+  whose argument is provenance cannot have a single placeholder row in it.
+</div>
+
+<h4>Who can see your work</h4>
+<p>Only you. Missions, runs, agent steps, findings and reports are scoped to your account by
+a database policy on your user id. Another researcher signed into the same workspace sees
+their own work and nothing of yours. This is not a filter the page applies, so it cannot be
+turned off from a browser: it is enforced inside the database, on every request, before any
+row is sent. The payload archive is the one shared table, and it is read-only for everyone.</p>
+
+<!-- ============================ 2 ============================ -->
+<h2>2 &nbsp; Getting in</h2>
+
+<ol class="steps">
+  <li>Go to the mission hub and press <strong>Researcher sign in</strong> in the top right.</li>
+  <li>The waiting screen appears while the session is established. Read the notice on it:
+      it states who the workspace is for and that your work is private to your account.</li>
+  <li>Enter your email address and password. If you do not have an account, the programme
+      lead creates one for you. There is no self sign-up.</li>
+  <li>You land in the research workspace. Signing in always brings you here, not to the
+      public site.</li>
+  <li>To go back to the public mission hub, use <strong>Mission hub</strong> in the top
+      right. To end the session everywhere, use <strong>Sign out</strong>, which signs you
+      out of every tab and device.</li>
+</ol>
+
+<div class="note warn">
+  <strong>If you see "This workspace is restricted".</strong> Your session was not
+  recognised. Reload the page once: the workspace waits and retries before refusing, but a
+  session arriving from another page can occasionally lose the race. If it happens twice,
+  sign in again from the mission hub.
+</div>
+
+<h4>The status strip</h4>
+<p>The thin bar under the top navigation is live, not decoration.
+<strong>PAYLOAD</strong> says whether the archive answered your account.
+<strong>DATA PIPELINE</strong> says whether the database is reachable at all.
+If either reads <span class="mono">REFUSED</span>, stop and tell the team: it means your
+account reached the database and the database declined, which is different from the site
+being down.</p>
+
+<!-- ============================ 3 ============================ -->
+<h2 class="newpage">3 &nbsp; The nine places in the sidebar</h2>
+
+<p>The sidebar is grouped the way the work is: operations, then data, then analysis, then
+outputs. Every item opens a real view and every view reads live rows. The same views are on
+the top navigation bar, which is what you use on a narrow screen.</p>
+
+<!-- 3.1 -->
+<h3>3.1 &nbsp; Research Overview</h3>
+<h4>What it is for</h4>
+<p>The one screen that answers "where is everything". Open it first and last.</p>
+<h4>What is on it</h4>
+<table>
+  <tr><th>Panel</th><th>What it tells you</th></tr>
+  <tr><td>Active Missions</td><td>How many missions exist on your account. Nobody else's are counted.</td></tr>
+  <tr><td>Payload Frames</td><td>How many frames the archive released to this session.</td></tr>
+  <tr><td>Data Ingest</td><td>Whether the archive answered. "Refused" is a real answer and means something.</td></tr>
+  <tr><td>Agent Runs</td><td>How many pipeline runs have been started on your missions, ever.</td></tr>
+  <tr><td>Workflow</td><td>The six stages of your most recent run. A filled marker is a step that completed; an outlined one has not been reached.</td></tr>
+  <tr><td>Map</td><td>Every geolocated frame footprint in green, and your own mission areas in white outline.</td></tr>
+  <tr><td>Agent Operations</td><td>The six agents and what each one actually did on the most recent run. Before your first run they all read CONFIGURED, which is honest: they exist and have not been asked to do anything.</td></tr>
+  <tr><td>Your Missions</td><td>The four most recent. Open Missions for the rest.</td></tr>
+  <tr><td>Session</td><td>What this browser has done since you signed in. It is a local log and is not stored anywhere.</td></tr>
+</table>
+<h4>How to use it</h4>
+<p>Check the four numbers across the top. If Payload Frames is zero and Data Ingest says
+Refused, nothing below it will work and the problem is access, not analysis.</p>
+
+<!-- 3.2 -->
+<h3>3.2 &nbsp; Missions</h3>
+<h4>What it is for</h4>
+<p>The list of everything you have asked the platform to investigate, and the place where a
+single mission is opened, run, decided and closed.</p>
+<h4>How to use it</h4>
+<ol class="steps">
+  <li>Type in the search box to narrow the list. It matches the name, the objective, the
+      status and the area.</li>
+  <li><strong>Click any row</strong> to open the mission. The row highlights and a detail
+      panel opens underneath it.</li>
+  <li>The detail panel shows the mission id, its status, the full objective, the area with
+      its size in square kilometres, how many archive frames fall inside that area, a map of
+      the area with those frames drawn on it, and the complete run history.</li>
+  <li>Under <strong>Runs and steps</strong> is every step every agent took on this mission,
+      read back out of the database. Refused steps are shown in red with the reason.</li>
+  <li>Under <strong>Findings</strong> is everything the run produced.</li>
+  <li>The buttons change with the state of the mission. See the table below.</li>
+</ol>
+
+<table>
+  <tr><th>Button</th><th>When it appears, and what it does</th></tr>
+  <tr><td>Run the pipeline on this mission</td>
+      <td>On a mission that is <span class="mono">DRAFT</span> or <span class="mono">FAILED</span>. Opens the Research Console with this mission selected and starts the run.</td></tr>
+  <tr><td>Open the checkpoint in the console</td>
+      <td>On a mission that is <span class="mono">QUEUED</span> or <span class="mono">RUNNING</span>, which means a run is open and waiting for your decision.</td></tr>
+  <tr><td>Generate the report</td>
+      <td>On a mission in <span class="mono">REVIEW</span>, which means the pipeline finished and a draft report is waiting. This is the act that signs it.</td></tr>
+  <tr><td>Show the area on the map</td>
+      <td>Always. Jumps to Geospatial Layers with the map fitted to this mission's area.</td></tr>
+  <tr><td>Download .md</td>
+      <td>Once a report exists. Saves the approved report to your computer as a Markdown file.</td></tr>
+</table>
+
+<h4>What the statuses mean</h4>
+<table>
+  <tr><th>Status</th><th>Meaning</th></tr>
+  <tr><td>DRAFT</td><td>Created, never run.</td></tr>
+  <tr><td>QUEUED / RUNNING</td><td>A run is open. Either the pipeline is working or it is waiting at the human checkpoint.</td></tr>
+  <tr><td>REVIEW</td><td>The pipeline finished and produced a draft report. It is not a report until you approve it.</td></tr>
+  <tr><td>COMPLETE</td><td>A report has been approved and signed against your account. The mission is closed: it cannot be run again, because evidence behind a signed conclusion must not be able to change after it is signed.</td></tr>
+  <tr><td>FAILED</td><td>The run was abandoned, or the objective was screened as an instruction rather than a question. See section 6.</td></tr>
+  <tr><td>FLAGGED</td><td>Not a status but a marker beside one. The objective on this mission matched the injection screen. See section 6.</td></tr>
+</table>
+
+<!-- 3.3 -->
+<h3 class="newpage">3.3 &nbsp; New Mission</h3>
+<h4>What it is for</h4>
+<p>Creating the thing everything else hangs off. A mission is a question plus a place.</p>
+<h4>How to use it</h4>
+<ol class="steps">
+  <li><strong>Mission name.</strong> Between 3 and 120 characters and it must contain
+      letters. Name it after the ground and the question, for example
+      "Kuwait Bay vegetation assessment".</li>
+  <li><strong>Mission type</strong> and <strong>Time window</strong> are optional. They are
+      recorded with the objective.</li>
+  <li><strong>Research objective.</strong> At least 20 characters, at most 1500. Write a
+      <em>question</em>. The Mission Orchestrator reads this text and screens it before it
+      calls any tool, and an objective phrased as an order to the system is refused. See
+      section 6.</li>
+  <li><strong>Area of interest.</strong> The map is the field. Whatever is on screen is the
+      area. Pan and zoom until the map frames the ground you mean, and the read-out under it
+      updates live with the corners and the size in square kilometres.</li>
+  <li>The six grey buttons above the map jump to named areas: the whole country, Kuwait Bay
+      and the capital, Bubiyan and Khor as-Sabiya, Al-Jahra and the north west, Al-Ahmadi
+      and the south coast, Al-Khiran and Wafra. Use one as a starting point and adjust.</li>
+  <li>Press <strong>Create mission</strong>. You land on the mission you just made.</li>
+</ol>
+
+<div class="note">
+  <strong>The area is always valid, by construction.</strong> The database only accepts a
+  polygon inside 46.5 to 48.8 degrees east and 28.5 to 30.1 degrees north, which is Kuwait
+  and its waters. The map clips your view to that box before it sends it, and tells you when
+  it has. You cannot accidentally create a mission over Saudi Arabia.
+</div>
+
+<div class="note warn">
+  <strong>Draw the area over ground the satellite actually photographed.</strong> An area
+  with no archive frame inside it is a legitimate mission and the pipeline will run, but it
+  will stop at the first step and tell you there is nothing to measure. Open Geospatial
+  Layers first and look at where the frames are.
+</div>
+
+<!-- 3.4 -->
+<h3>3.4 &nbsp; Payload Imagery</h3>
+<h4>What it is for</h4>
+<p>The archive itself: the frames KuwaitSat-1 returned, each with its acquisition record.</p>
+<h4>How to use it</h4>
+<ol class="steps">
+  <li>The grid shows every frame released to your session, with its number, the place it was
+      matched to, the date it was acquired, its coordinate and a confidence badge.</li>
+  <li><strong>Click a frame</strong> to open the full record sheet underneath: the picture at
+      size, the acquisition date, the geolocation and how it was arrived at, the confidence
+      and the note explaining it, the ground sample distance, the footprint size, the bands,
+      the processing level, the pixel dimensions and the source.</li>
+  <li><strong>Show on the map</strong> takes you to Geospatial Layers with the map fitted to
+      that frame's footprint. It is disabled for a frame with no geolocation.</li>
+  <li><strong>Download the record as CSV</strong> saves the acquisition metadata for every
+      frame. The pictures are deliberately not in that file: the record is yours to take
+      away, the imagery stays inside the session.</li>
+</ol>
+
+<h4>The confidence badges, and why some frames have no coordinate</h4>
+<table>
+  <tr><th>Badge</th><th>What it means</th></tr>
+  <tr><td>high</td><td>The coastline in the frame matches the reference imagery closely and unambiguously.</td></tr>
+  <tr><td>medium</td><td>A clear match on distinctive features, with some uncertainty in the exact centre.</td></tr>
+  <tr><td>low</td><td>A plausible match. Treat the coordinate as indicative.</td></tr>
+  <tr><td>unresolved</td><td>No coordinate. The frame was searched for and not found.</td></tr>
+</table>
+<p>The payload record sheet the team was given left the geolocation column empty on every
+row. Nothing in that column came off the spacecraft. Every coordinate in this archive was
+produced by matching the coastline in the frame against reference imagery by eye, and each
+row says so and states how far it should be trusted. Three frames were searched for across
+the whole of Kuwait at every orientation and scale and did not match anything in the
+country. They are left empty rather than guessed. That is the right answer, and it is why
+those frames cannot be used in an analysis.</p>
+
+<!-- 3.5 -->
+<h3 class="newpage">3.5 &nbsp; Data Archive</h3>
+<h4>What it is for</h4>
+<p>A statement of every dataset this workspace can reach, counted live.</p>
+<h4>How to use it</h4>
+<p>The Records column is a real count from the database at the moment you opened the view.
+A dataset that says <span class="mono">refused</span> is one your account is not allowed to
+read, which is information rather than an error. Use the two dropdowns to filter by source
+and by data class, and the search box to filter by name.</p>
+<p>The data class matters when you write up. <span class="mono">MEASURED</span> came off an
+instrument or is a direct record of something that happened.
+<span class="mono">DERIVED</span> was computed from something else. Nothing in this workspace
+is <span class="mono">MODELLED</span> or <span class="mono">ESTIMATED</span> today, and that
+is deliberate.</p>
+
+<!-- 3.6 -->
+<h3>3.6 &nbsp; Geospatial Layers</h3>
+<h4>What it is for</h4>
+<p>Everything this account can see, on the ground. This is the view to open before creating
+a mission, and the one to open when a finding needs to be understood in place.</p>
+<h4>What is on it</h4>
+<table>
+  <tr><th>Layer</th><th>What it shows</th></tr>
+  <tr><td>Frame footprints (green)</td><td>Where each geolocated archive frame was pointing. Click one for the record and a thumbnail.</td></tr>
+  <tr><td>Frame centres (blue dot)</td><td>The coordinate itself, which is what the pipeline tests against a mission area.</td></tr>
+  <tr><td>Mission areas (white dashed)</td><td>Your own missions. Click one to open it.</td></tr>
+  <tr><td>Findings (amber)</td><td>Every candidate zone and map layer any of your runs produced. Click for the numbers behind it.</td></tr>
+  <tr><td>Area of interest (red)</td><td>The rectangle you have set with the button. It is carried into the New Mission dialog.</td></tr>
+</table>
+<p>Three basemaps are offered in the control at the top right.
+<strong>Satellite (Sentinel-2)</strong> is real satellite imagery of Kuwait and is the
+default. <strong>Street map, dark</strong> and <strong>Street map</strong> are
+OpenStreetMap, which carries the place names and roads that imagery alone does not. Any
+layer can be switched off with its tick box.</p>
+<h4>How to use it</h4>
+<ul>
+  <li><strong>Fit to frames</strong> zooms to the ground KuwaitSat-1 has actually covered.</li>
+  <li><strong>Fit to my missions</strong> zooms to everything you have defined.</li>
+  <li><strong>Use this view as an area of interest</strong> takes the rectangle currently on
+      screen, clips it to Kuwait, and remembers it. Open New Mission next and the map starts
+      there.</li>
+  <li>The read-out in the bottom left gives the centre coordinate, the zoom and the width of
+      the view in kilometres. The address bar follows the map, so you can copy the link out
+      of it and send a colleague the exact view you are looking at.</li>
+</ul>
+
+<!-- 3.7 -->
+<h3>3.7 &nbsp; Research Console</h3>
+<h4>What it is for</h4>
+<p>Running the pipeline and watching it decide. This is where the work happens.</p>
+<h4>How to use it</h4>
+<ol class="steps">
+  <li>Choose a mission from the dropdown. Its recorded objective appears below, read only:
+      the objective belongs to the mission, so that a run can always be traced back to the
+      exact question that was asked. To ask a different question, create a different mission.</li>
+  <li>Press <strong>Run Analysis</strong>. The line under the dropdown narrates what the
+      Orchestrator is doing. The <strong>Agent Execution Trace</strong> at the bottom fills
+      with steps.</li>
+  <li>Read the trace. Each row is one agent, the tool it called, whether it was allowed, and
+      when. Every one of those rows was written to the database before it appeared on your
+      screen, and the screen is showing you what the database returned. It is the audit
+      trail, not a script.</li>
+  <li>The run stops at the <strong>Human checkpoint</strong> panel. See section 5.</li>
+</ol>
+<h4>Agent Tool Permissions</h4>
+<p>The panel on the right is not a list of intentions. Every run attempts the forbidden write
+to the payload archive on purpose and records what the database said back, as a refused step
+in the trail. You can see that row in Provenance / Audit after any run. If a run ever reports
+that the write was <em>not</em> refused, stop and tell the team: it would mean a permission
+had been widened.</p>
+
+<!-- 3.8 -->
+<h3 class="newpage">3.8 &nbsp; Reports &amp; Exports</h3>
+<h4>What it is for</h4>
+<p>The outputs that leave the workspace.</p>
+<table>
+  <tr><th>Control</th><th>What it does</th></tr>
+  <tr><td>The report table</td><td>Every report approved on your account, newest first. Press <strong>Open</strong> to read one.</td></tr>
+  <tr><td>Download .md</td><td>Saves the open report as a Markdown file. It opens in any text editor, Word, or a Markdown viewer.</td></tr>
+  <tr><td>Print</td><td>Prints just the report, on white paper with black ink, without the workspace around it. Choose "Save as PDF" in the print dialog to get a PDF.</td></tr>
+  <tr><td>Export findings as JSON</td><td>Saves every finding on your account as GeoJSON. It opens in QGIS, ArcGIS or any text editor, with the geometry attached.</td></tr>
+  <tr><td>Export frame record as CSV</td><td>The acquisition metadata for the archive. Opens in Excel.</td></tr>
+</table>
+<p>A report exists only because a person pressed a button. It carries the account that
+approved it and the moment it was approved. The ten sections it contains are listed on the
+view and are the same ten every time, so two reports from this platform can be read side by
+side.</p>
+
+<!-- 3.9 -->
+<h3>3.9 &nbsp; Provenance / Audit</h3>
+<h4>What it is for</h4>
+<p>The receipt. Every automated run on your account leaves a row here, including the runs
+that were refused and the ones you abandoned. Nothing is deleted.</p>
+<table>
+  <tr><th>Panel</th><th>What it tells you</th></tr>
+  <tr><td>Runs</td><td>Every run: which mission, its status, when it started and finished, and how many tool calls it made.</td></tr>
+  <tr><td>Agent steps</td><td>Every step of every run. Use the dropdown to narrow to one run. The Arguments column carries the refusal reason where there is one.</td></tr>
+  <tr><td>Steps refused</td><td>A count. A healthy number here is not zero: each refusal is evidence that a boundary held.</td></tr>
+  <tr><td>Access test</td><td>Four requests your account is not supposed to be able to make, sent for real against the live database, with the answers printed verbatim.</td></tr>
+</table>
+<h4>The access test</h4>
+<p>Press <strong>Run the access test</strong> and the workspace attempts to modify the
+payload archive, insert a frame into it, write directly to the audit trail without going
+through the checked function, and change a mission's state from the browser. All four should
+come back refused, with the database's own words. The test also reads the researcher profile
+table and reports how many rows came back: one, your own, however many researchers are
+enrolled. That single row is row level security working.</p>
+<p>Nothing in this test is simulated and nothing is caught before it leaves. Run it in front
+of anyone who asks how the platform is secured.</p>
+
+<!-- ============================ 4 ============================ -->
+<h2 class="newpage">4 &nbsp; A complete mission, end to end</h2>
+
+<p>This is the whole workflow in one pass. It takes about five minutes.</p>
+
+<ol class="steps">
+  <li><strong>Look at where the data is.</strong> Open <strong>Geospatial Layers</strong> and
+      press <strong>Fit to frames</strong>. The green rectangles are the ground KuwaitSat-1
+      has photographed. Pick one you want to study.</li>
+  <li><strong>Frame the ground.</strong> Pan and zoom so the map covers that footprint with
+      some margin, then press <strong>Use this view as an area of interest</strong>.</li>
+  <li><strong>Create the mission.</strong> Press <strong>New Mission</strong>. Name it. Write
+      the objective as a question, for example: <em>Identify areas inside Kuwait Bay where
+      increasing vegetation could improve environmental conditions, and state the data,
+      assumptions, uncertainty and limitations.</em> The map already shows the area you set.
+      Press <strong>Create mission</strong>.</li>
+  <li><strong>Run it.</strong> On the mission that just opened, press <strong>Run the
+      pipeline on this mission</strong>. You land in the Research Console and the run
+      starts.</li>
+  <li><strong>Watch the trace.</strong> The Satellite Data Agent reports how many frames were
+      released, how many are geolocated and how many fall inside your area, then attempts the
+      forbidden write and records the refusal. The Environmental Analysis Agent measures each
+      frame inside the area. The Recommendation Agent ranks the bare ground.</li>
+  <li><strong>Decide.</strong> The run stops. Read the candidate zones in the Human checkpoint
+      panel: each carries its greenness index, its luminance, how much of the ground around it
+      already carries vegetation, and roughly how many square kilometres it covers.</li>
+  <li><strong>Approve, re-rank or abandon.</strong> See section 5.</li>
+  <li><strong>After approval</strong>, the Impact Prediction, Visualization and Reporting
+      agents run and the mission moves to <span class="mono">REVIEW</span>. A draft report
+      now exists.</li>
+  <li><strong>Read the draft.</strong> Open <strong>Missions</strong>, click the mission, and
+      read it under Findings. If it is not right, that is a signal to change the area or the
+      question and run a new mission, not to edit the draft.</li>
+  <li><strong>Sign it.</strong> Press <strong>Generate the report</strong>. Your account is
+      recorded as the approver and the mission closes. The report is in Reports &amp; Exports,
+      where it can be downloaded, printed or saved as a PDF.</li>
+</ol>
+
+<!-- ============================ 5 ============================ -->
+<h2>5 &nbsp; The six agents and the human checkpoint</h2>
+
+<p>The Mission Orchestrator is not one of the six. It is the control flow: at every stage it
+reads what the previous stage actually returned and chooses the next permitted action from
+it. Three of its branches end the run early, and those are the interesting ones.</p>
+
+<table>
+  <tr><th>Agent</th><th>What it does, and what it is allowed to do</th></tr>
+  <tr><td>Satellite Data Agent</td>
+      <td>Reads the payload archive and reports what evidence exists inside the mission area.
+          Allowed to search and retrieve. Not allowed to modify anything, and it proves that
+          on every run.</td></tr>
+  <tr><td>Environmental Analysis Agent</td>
+      <td>Measures each frame inside the area. It divides the frame into an 8 by 8 grid and
+          computes the mean colour of every tile, classifying each as water, vegetation or
+          bare ground against two written thresholds.</td></tr>
+  <tr><td>Recommendation Agent</td>
+      <td>Ranks the bare tiles and returns the best five. It proposes. It does not decide.</td></tr>
+  <tr><td>Impact Prediction Agent</td>
+      <td>Runs only after you approve. It reports a range or states plainly that no estimate
+          can be made. See below.</td></tr>
+  <tr><td>Visualization Agent</td>
+      <td>Composes the map layer: the mission area, the footprint of every frame used and the
+          candidate zones.</td></tr>
+  <tr><td>Reporting Agent</td>
+      <td>Assembles the ten section draft from the measurements. It writes a draft. Only a
+          researcher turns a draft into a report.</td></tr>
+</table>
+
+<h4>What happens at the checkpoint</h4>
+<table>
+  <tr><th>Your choice</th><th>What the platform does</th></tr>
+  <tr><td>Approve the candidate set</td>
+      <td>The last three agents run and the mission moves to REVIEW with a draft report
+          attached. Your approval is recorded in the trail.</td></tr>
+  <tr><td>Reject and re-rank</td>
+      <td>The candidate set is <em>rebuilt</em> from the same measurements under a different
+          criterion: driest ground first rather than bare ground beside existing greenery.
+          The first set is not deleted. Both stay in the findings and the trail shows both
+          rankings, so a reader can see what was considered and what was chosen.</td></tr>
+  <tr><td>Abandon this run</td>
+      <td>The run closes as stalled. Every step that did happen stays in the audit trail.
+          Nothing is deleted, ever.</td></tr>
+</table>
+
+<div class="note">
+  <strong>Why the pipeline stops here and not somewhere else.</strong> Everything before the
+  checkpoint is measurement. Everything after it is a claim about what should be done. The
+  platform will measure on its own; it will not make a recommendation in your name without
+  you. That is why the run is deliberately left open while it waits, and why the report
+  carries the account of the person who approved it.
+</div>
+
+<!-- ============================ 6 ============================ -->
+<h2 class="newpage">6 &nbsp; When the pipeline stops early, and why that is correct</h2>
+
+<h3>The objective reads as an instruction</h3>
+<p>The Orchestrator screens the research objective before it calls any tool. An objective that
+contains an instruction to disregard the rules, a reference to a credential, SQL that modifies
+data, an instruction to send data to an external address, or markup that would execute if it
+were rendered, is refused. No frame is read, no finding is produced, the mission is marked with
+an injection flag and the refusal is written to the trail.</p>
+<p>Rewrite the objective as a question about the data and create a new mission.</p>
+<div class="note">
+  The screen is a detection heuristic, not the defence. What actually keeps a hostile
+  objective harmless is that nothing downstream of it can do anything dangerous: the archive
+  carries no write permission for any signed-in account, there is no outbound network call in
+  the pipeline at all, and the database decides what any caller may read. The screen exists so
+  that the attempt is <em>visible</em>, not so that it is stopped. It was already stopped.
+</div>
+
+<h3>No archive frame falls inside the mission area</h3>
+<p>The run stops at the first step and records that there was nothing to measure. It does not
+substitute a frame from somewhere else and label it with your area. Open Geospatial Layers,
+see where the frames actually are, and create a mission over one of them.</p>
+
+<h3>No impact estimate is produced</h3>
+<p>This is the most important one to understand, because it will happen on every mission you
+run against the archive as it stands today, and it is the correct result.</p>
+<p>Estimating what a change would do requires observing the same ground on at least two
+different dates. The Impact Prediction Agent counts the repeat visits that actually exist in
+the frames it used. On the current archive there are none: every frame is a single pass over
+different ground. So the agent states the candidate area, the surface class of each tile and
+the date each measurement was taken, and then says plainly that no rate, trend or projected
+effect can be given.</p>
+<p>That is not a gap in the finding. It <em>is</em> the finding, and it is the sentence that
+makes the rest of the report trustworthy. A platform that produced a percentage here would be
+inventing one.</p>
+
+<!-- ============================ 7 ============================ -->
+<h2>7 &nbsp; What the measurements can and cannot support</h2>
+
+<p>Every report the platform produces carries these limitations in its own words. They are
+repeated here so you can quote them before you have run anything.</p>
+
+<h4>The greenness index is a proxy, not a vegetation measurement</h4>
+<p>KuwaitSat-1 carries three visible bands and no near infrared band. NDVI, the standard
+vegetation index, needs near infrared and therefore cannot be computed from these frames. The
+platform uses Excess Green on the visible bands instead, which is a published visible band
+proxy. The frames are JPEG, raw decoded, with no radiometric or atmospheric correction and no
+illumination normalisation between passes. Values are comparable <em>within</em> one frame and
+not <em>between</em> frames. Do not read a vegetation percentage off them.</p>
+
+<h4>Footprints are an indication of extent, not a survey boundary</h4>
+<p>A footprint is computed from the frame centre, the 39 metre ground sample distance and the
+pixel dimensions. The payload record carries no attitude, so north is assumed to be up and no
+rotation is applied, and the ground is treated as flat at the frame centre. Both are
+approximations and both are stated on every footprint the platform draws.</p>
+
+<h4>A frame counts as inside the area when its centre is inside</h4>
+<p>Frames that overlap the edge of your mission area are not included. Draw the area a little
+wider than the ground you care about.</p>
+
+<h4>The geolocations are operator judgement</h4>
+<p>They were matched by eye against reference imagery. The confidence on each frame is that
+judgement, not a measurement. Cite the confidence when you cite the coordinate.</p>
+
+<h4>There is no ground truth</h4>
+<p>No tile in any run has been checked against an observation on the ground. Every
+classification in this platform is an inference from colour.</p>
+
+<!-- ============================ 8 ============================ -->
+<h2 class="newpage">8 &nbsp; If something goes wrong</h2>
+
+<table>
+  <tr><th>What you see</th><th>What it means and what to do</th></tr>
+  <tr><td>This workspace is restricted</td>
+      <td>No session was recognised. Reload once, then sign in again from the mission hub.</td></tr>
+  <tr><td>The archive refused this read</td>
+      <td>Your account reached the database and was declined. Usually it means enrolment has
+          not completed. Sign out, sign in again from the mission hub, and tell the team if it
+          persists.</td></tr>
+  <tr><td>The database refused this insert</td>
+      <td>A field failed a check. The message names the reason. If it mentions the area, move
+          the map back over Kuwait.</td></tr>
+  <tr><td>This mission is already running</td>
+      <td>A run is open on it. Open the mission and use "Open the checkpoint in the console",
+          then approve or abandon it.</td></tr>
+  <tr><td>This mission has an approved report</td>
+      <td>The mission is closed on purpose. Evidence behind a signed conclusion must not be
+          able to change after it is signed. Create a new mission.</td></tr>
+  <tr><td>Limit reached: N agent runs per hour / per day</td>
+      <td>A rate limit, applied per mission and per account. Wait, or use the time on a
+          different mission.</td></tr>
+  <tr><td>The prototype is not accepting new missions right now</td>
+      <td>Runs have been paused centrally. Ask the team.</td></tr>
+  <tr><td>A report needs at least 50 characters</td>
+      <td>You pressed Generate the report with no draft behind it. Run the pipeline and
+          approve the candidate set first.</td></tr>
+  <tr><td>A table is empty and says so</td>
+      <td>That is the database answering with nothing, which is a real answer. An empty
+          mission list means you have not created one; it never means somebody else's work is
+          hidden from view by accident.</td></tr>
+  <tr><td>The map is blank</td>
+      <td>The basemap tiles come from the internet. Check the connection, then try a different
+          basemap in the control at the top right.</td></tr>
+</table>
+
+<!-- ============================ 9 ============================ -->
+<h2>9 &nbsp; Words used in this workspace</h2>
+
+<table>
+  <tr><th>Term</th><th>Meaning here</th></tr>
+  <tr><td>Mission</td><td>A research question plus a polygon over Kuwait. Everything else hangs off one.</td></tr>
+  <tr><td>Run</td><td>One pass of the pipeline over one mission. A mission can have several.</td></tr>
+  <tr><td>Step</td><td>One agent doing one thing, recorded whether it succeeded, was refused, or failed.</td></tr>
+  <tr><td>Finding</td><td>Something a run produced: a candidate site, a measurement, a map layer or a narrative.</td></tr>
+  <tr><td>Frame</td><td>One picture KuwaitSat-1 returned, with its acquisition record.</td></tr>
+  <tr><td>Footprint</td><td>The ground a frame covers, computed rather than recorded.</td></tr>
+  <tr><td>GSD</td><td>Ground sample distance. 39 metres per pixel on this payload: one pixel is 39 metres on the ground.</td></tr>
+  <tr><td>ExG</td><td>Excess Green. A visible band greenness proxy, used because there is no near infrared band.</td></tr>
+  <tr><td>Area of interest</td><td>The polygon on a mission. Always inside Kuwait, always four corners, always checked by the database.</td></tr>
+  <tr><td>Human checkpoint</td><td>The point where the pipeline stops and a person decides.</td></tr>
+  <tr><td>Row level security</td><td>The database rule that scopes every table to your account. It is why your work is private.</td></tr>
+  <tr><td>Injection flag</td><td>A marker on a mission whose objective was screened as an instruction rather than a question.</td></tr>
+</table>
+
+<footer class="doc">
+  KuwaitSat-1 Mission Hub &middot; research workspace guide &middot; 23 September 2026.
+  Basemaps: Sentinel-2 cloudless 2021 by EOX, CC BY 4.0, modified Copernicus Sentinel data;
+  OpenStreetMap contributors, ODbL. Payload imagery: KuwaitSat-1, Kuwait University with the
+  Kuwait Foundation for the Advancement of Sciences.
+</footer>
+
+</body>
+</html>
