@@ -234,25 +234,6 @@
      would mean a grant had been added and the whole archive argument had
      quietly changed.
      ------------------------------------------------------------------- */
-  function proveReadOnly(run) {
-    return window.sb.from('payload_frames')
-      .update({ place_label: 'permission probe' })
-      .eq('frame_no', -1)
-      .then(function (r) {
-        if (r.error) {
-          return logStep(run, 'satellite_data', 'payload_frames.update',
-            { intent: 'permission probe, expected to be refused', frame_no: -1 },
-            false, 'Refused by the database: ' + r.error.message, false)
-            .then(function () { return { refused: true, message: r.error.message }; });
-        }
-        /* No error. The grant table has changed under us. */
-        return logStep(run, 'satellite_data', 'payload_frames.update',
-          { intent: 'permission probe' }, true,
-          null, false)
-          .then(function () { return { refused: false, message: 'the write was NOT refused' }; });
-      });
-  }
-
   /* -------------------------------------------------------------------
      EVIDENCE GATHERING
      ------------------------------------------------------------------- */
@@ -384,19 +365,42 @@
               frames_released: frames.length,
               frames_geolocated: geolocated.length,
               frames_in_area: inArea.length })
-          .then(function () { tick(); return proveReadOnly(state.run_id); })
-          .then(function (probe) {
+          /* THE PERMISSION PROBE USED TO RUN HERE, ON EVERY MISSION.
+
+             It attempted the forbidden write to payload_frames so that
+             "the archive is read only" was a sentence the DATABASE said
+             rather than a label on a panel, and it wrote the refusal
+             into the trail as the evidence.
+
+             The argument was right and the PLACE was wrong. A mission
+             record is a scientific document. Putting a security test in
+             the middle of one means every run a researcher shows anybody
+             has a "permission denied" in it, and no amount of colouring
+             makes that read as good news in a research trail. The team
+             said so twice. They were right.
+
+             The proof did not go away, it moved somewhere better: the
+             Access Test panel on the Provenance / Audit view fires FOUR
+             forbidden requests instead of this one, on demand, against
+             the live database, and prints what came back for each. That
+             is a stronger demonstration and it is where somebody looks
+             for it.
+
+             Nothing about the database changed. payload_frames still
+             carries no insert, update or delete grant for any signed-in
+             role. The claim is identical; the evidence for it is now on
+             the page that is about evidence. */
+          .then(function () {
             tick();
-            state.probe = probe;
             return writeResult(state.run_id, 'metric',
               'Evidence available to this run',
               frames.length + ' payload frames were released to this session by row ' +
               'level security. ' + geolocated.length + ' of them carry a geolocation. ' +
               inArea.length + ' fall inside the mission area.\n\n' +
-              'A write to the payload archive was attempted as a permission check and ' +
-              (probe.refused
-                ? 'was refused by the database: ' + probe.message
-                : 'WAS NOT REFUSED. Tell the team: the archive grants have changed.'));
+              'This archive is read only for every signed-in role: it carries no ' +
+              'insert, update or delete grant at all. The Access Test on the ' +
+              'Provenance / Audit view demonstrates that against the live database ' +
+              'whenever you want to see it.');
           })
           .then(function () {
             tick();
@@ -813,16 +817,35 @@
        nobody could defend. */
     var canEstimate = pairs.length > 0;
 
+    /* THIS STEP IS NOT A REFUSAL AND SHOULD NEVER HAVE BEEN LOGGED AS ONE.
+
+       It was written with allowed = false whenever the archive had no
+       repeat coverage, which put a red REFUSED row in the trail of every
+       healthy run. But nothing refused anything. The agent RAN, it
+       counted the repeat visit pairs, and it concluded that no estimate
+       is supportable. That is a completed analysis with a negative
+       result.
+
+       allowed = false is for a step that was NOT PERMITTED: a tool the
+       agent may not call, or a guardrail that stopped it. Using it for
+       "the agent ran and found the evidence insufficient" conflates a
+       boundary with a finding, and an audit trail is the one place those
+       two must never look alike.
+
+       The conclusion is not softened anywhere. The step arguments carry
+       impact_estimate_possible and the conclusion in words, the finding
+       written immediately below states it in full, and the report's
+       Impact estimate section states it again. Nothing is hidden; it is
+       simply no longer painted as a failure. */
     return logStep(state.run_id, 'impact_prediction', 'change.detect',
         { candidate_zones: state.candidates.length,
           candidate_area_km2: totalKm2,
           distinct_acquisition_dates: nDates,
-          repeat_visit_pairs: pairs.length },
-        canEstimate, canEstimate ? null :
-        'Change detection needs the same ground on two different dates. The frames ' +
-        'inside this area were acquired on ' + nDates + ' date' + (nDates === 1 ? '' : 's') +
-        ' and contain ' + pairs.length + ' repeat visit pairs, so no trend can be ' +
-        'measured and no impact figure is produced.')
+          repeat_visit_pairs: pairs.length,
+          impact_estimate_possible: canEstimate,
+          conclusion: canEstimate
+            ? 'repeat coverage exists; a change estimate can be attempted as a range'
+            : 'no repeat coverage, so no rate, trend or projected effect is stated' })
       .then(function () {
         tick();
         return writeResult(state.run_id, 'metric',

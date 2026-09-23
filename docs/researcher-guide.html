@@ -411,11 +411,20 @@ layer can be switched off with its tick box.</p>
   <li>The run stops at the <strong>Human checkpoint</strong> panel. See section 5.</li>
 </ol>
 <h4>Agent Tool Permissions</h4>
-<p>The panel on the right is not a list of intentions. Every run attempts the forbidden write
-to the payload archive on purpose and records what the database said back, as a refused step
-in the trail. You can see that row in Provenance / Audit after any run. If a run ever reports
-that the write was <em>not</em> refused, stop and tell the team: it would mean a permission
-had been widened.</p>
+<p>The panel on the right is not a list of intentions. The payload archive carries no insert,
+update or delete grant for any signed-in role, so the three DENIED rows are refused by the
+database itself and not by this page. To prove that against the live database, open
+<strong>Provenance / Audit</strong> and press <strong>Run the access test</strong>: it fires
+four forbidden requests for real and prints what came back for each.</p>
+<div class="note">
+  <strong>A normal run contains no refusals.</strong> An earlier version of this platform
+  attempted the forbidden write once per mission and wrote the denial into the mission trail
+  as evidence. The argument was right but the place was wrong: a mission record is a
+  scientific document, and a "permission denied" row in the middle of one reads as a fault no
+  matter how it is coloured. The proof moved to the Access Test, where it is stronger and
+  where somebody actually goes looking for it. If you see a refusal in a run, something
+  genuinely stopped, and the reason beside it says what.
+</div>
 
 <!-- 3.8 -->
 <h3 class="newpage">3.8 &nbsp; Reports &amp; Exports</h3>
@@ -477,8 +486,8 @@ of anyone who asks how the platform is secured.</p>
       pipeline on this mission</strong>. You land in the Research Console and the run
       starts.</li>
   <li><strong>Watch the trace.</strong> The Satellite Data Agent reports how many frames were
-      released, how many are geolocated and how many fall inside your area, then attempts the
-      forbidden write and records the refusal. The Environmental Analysis Agent measures each
+      released, how many are geolocated and how many fall inside your area. The Environmental
+      Analysis Agent measures each
       frame inside the area and records the greenness range it found. The Recommendation
       Agent ranks the land tiles, or refuses if nothing separates from the background.</li>
   <li><strong>Decide.</strong> The run stops. Read the panel from the top: the first sentence

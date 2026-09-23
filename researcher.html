@@ -379,9 +379,11 @@
       <div class="rule"><span>Modify original data</span><b class="state" id="permWrite">DENIED</b></div>
       <div class="rule"><span>Publish externally</span><b class="state">DENIED</b></div>
       <div class="rule"><span>Real mission command</span><b class="state">HUMAN ONLY</b></div>
-      <div class="notice" style="margin-top:12px">These are not labels. Every run attempts the
-        forbidden write and records what the database said back, as a refused step in the
-        audit trail. <a href="#audit" data-go="audit" style="color:#9bb4c6">See it</a>.</div>
+      <div class="notice" style="margin-top:12px">These are not labels. The payload archive
+        carries no insert, update or delete grant for any signed in role, so the three DENIED
+        rows are refused by the database itself rather than by this page. Prove it against the
+        live database with the Access Test on
+        <a href="#audit" data-go="audit" style="color:#9bb4c6">Provenance / Audit</a>.</div>
     </div>
 
     <div class="card s12" id="checkpointCard" hidden>

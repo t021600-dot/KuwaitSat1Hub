@@ -942,16 +942,28 @@
      time and the renderer has to carry the knowledge. */
   function refusalKind(s) {
     if (s.status !== 'refused') { return null; }
-    if (s.step_name === 'satellite_data' && s.tool === 'payload_frames.update') {
-      return { cls: 'held', label: 'BOUNDARY HELD',
-               gloss: 'Attempted on purpose, every run. The database refused it. ' +
-                      'That refusal is the evidence the archive is read only.' };
+
+    /* A guardrail firing. The objective was screened as an instruction
+       rather than a question, so the Orchestrator called no tool at all.
+       That is the protection working. */
+    if (s.injection_flag) {
+      return { cls: 'held', label: 'SCREENED',
+               gloss: 'The objective read as an instruction, so no data was read and ' +
+                      'no tool was called. The mission carries a flag.' };
     }
-    if (s.step_name === 'impact_prediction') {
-      return { cls: 'nodata', label: 'NO ESTIMATE',
-               gloss: 'The agent declined to produce a figure this evidence cannot ' +
-                      'support. Stating that is the finding.' };
+
+    /* The Orchestrator stopping because the evidence will not carry the
+       question. These END the run - there is no report - so they have to
+       be visible, but they are results about the area rather than faults
+       in the platform. Amber, not red. */
+    if (s.step_name === 'environmental_analysis' || s.step_name === 'recommendation') {
+      return { cls: 'nodata', label: 'NO EVIDENCE',
+               gloss: 'The Orchestrator stopped here rather than answering from data ' +
+                      'that cannot support the question. The reason above is the finding.' };
     }
+
+    /* Anything else refused is a genuine fault and stays red. On the
+       current pipeline nothing should reach this. */
     return { cls: 'fault', label: 'REFUSED', gloss: null };
   }
 
