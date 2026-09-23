@@ -591,8 +591,33 @@
     var a = m.area_geojson;
     if (!a) return '—';
     if (a.name) return a.name;
-    if (a.type === 'Polygon') return geo.polygonAreaKm2(a) + ' km²';
+    if (a.type === 'Polygon') return geo.polygonTrueAreaKm2(a) + ' km²';
     return 'custom';
+  }
+
+  /* THE NAME IS CONTEXT. THE FIGURE IS WHAT THE COLUMN IS HEADED.
+
+     areaLabel() returns the polygon's name the moment it has one, and
+     every mission created through the UI has one, so the AREA column
+     read "Drawn on the map" and "Al-Jahra city" while a column headed
+     AREA was asking a different question. The rows that DID show a
+     figure were the ones that had lost their name, which is the
+     opposite of what it looked like.
+
+     areaLabel() itself is left alone: openMission() at the detail panel
+     already appends the km2 by hand, and changing it there would print
+     the figure twice.
+
+     The figure is polygonTrueAreaKm2, not polygonAreaKm2. For a
+     map-drawn area or a preset the two agree exactly, because the
+     polygon IS a rectangle. For a mission that is a real residential
+     block they do not: Qasr is 4.3 km2 of ground in an 8.53 km2 box. */
+  function areaCell(m) {
+    var a = m.area_geojson;
+    if (!a) return '—';
+    if (a.type !== 'Polygon') return a.name || 'custom';
+    var km = geo.polygonTrueAreaKm2(a) + ' km²';
+    return a.name ? a.name + ' · ' + km : km;
   }
 
   function statusTag(status) {
@@ -651,7 +676,7 @@
       tr.setAttribute('data-mid', m.id);
       tr.appendChild(el('td', null, m.title || 'Untitled'));
       tr.appendChild(el('td', 'wrap', (m.objective || '').slice(0, 110)));
-      tr.appendChild(el('td', null, areaLabel(m)));
+      tr.appendChild(el('td', null, areaCell(m)));
       tr.appendChild(el('td', 'nowrap', (m.created_at || '').slice(0, 10)));
       var td = el('td');
       td.appendChild(statusTag(m.status));
@@ -728,7 +753,7 @@
     row('Mission id', m.id);
     row('Status', String(m.status || 'draft').toUpperCase());
     row('Objective', m.objective);
-    row('Area', areaLabel(m) + ' · about ' + geo.polygonAreaKm2(m.area_geojson) + ' km²');
+    row('Area', areaLabel(m) + ' · about ' + geo.polygonTrueAreaKm2(m.area_geojson) + ' km²');
     row('Created', when(m.created_at));
     row('Launched', m.launched_at ? when(m.launched_at) : 'not yet');
     if (m.injection_flag) {
@@ -1420,7 +1445,7 @@
       p.appendChild(el('h4', null, m.title || 'Mission'));
       p.appendChild(el('div', null, (m.objective || '').slice(0, 160)));
       p.appendChild(el('div', 'sub', String(m.status || 'draft').toUpperCase() +
-        ' · about ' + geo.polygonAreaKm2(m.area_geojson) + ' km²'));
+        ' · about ' + geo.polygonTrueAreaKm2(m.area_geojson) + ' km²'));
       var b2 = el('button', 'btn', 'Open the mission');
       b2.addEventListener('click', function () { show('missions'); openMission(m.id); });
       p.appendChild(b2);

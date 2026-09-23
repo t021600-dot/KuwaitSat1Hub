@@ -331,6 +331,47 @@
     return a < 10 ? Math.round(a * 100) / 100 : Math.round(a);
   }
 
+  /* THE AREA OF THE BOUNDARY, NOT OF THE BOX AROUND IT.
+
+     polygonAreaKm2 above multiplies the width of the bounding box by
+     its height. That is EXACT for the five-point rectangles
+     rectPolygon() builds, which is every map-drawn area and every
+     preset, and it was the only area function in the codebase for as
+     long as a mission area could only be a rectangle.
+
+     js/ksat-areas.js changed that: a mission can now BE Qasr, an
+     L-shaped residential block. Qasr is 4.3 km2 of ground inside an
+     8.53 km2 box, so the bounding-box figure was almost exactly double
+     and the Missions table would have printed it as the area.
+
+     Shoelace on an equirectangular projection about the ring's own
+     mean latitude. Across Kuwait's 1.6 degrees of latitude that costs
+     well under one percent, which is far inside the error already
+     accepted by assuming frames are north-up. Holes are subtracted.
+     For a rectangle it returns what polygonAreaKm2 returns. */
+  function polygonTrueAreaKm2(poly) {
+    if (!poly || !poly.coordinates || !poly.coordinates.length) return 0;
+
+    function ringArea(ring) {
+      if (!ring || ring.length < 4) return 0;
+      var latSum = 0, k;
+      for (k = 0; k < ring.length; k++) { latSum += ring[k][1]; }
+      var mLon = mPerDegLon(latSum / ring.length);
+      var sum = 0, i, j;
+      for (i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        sum += (ring[j][0] * mLon) * (ring[i][1] * M_PER_DEG_LAT) -
+               (ring[i][0] * mLon) * (ring[j][1] * M_PER_DEG_LAT);
+      }
+      return Math.abs(sum / 2) / 1e6;
+    }
+
+    var rings = poly.coordinates;
+    var a = ringArea(rings[0]);
+    for (var h = 1; h < rings.length; h++) { a -= ringArea(rings[h]); }
+    if (!(a > 0)) return 0;
+    return a < 10 ? Math.round(a * 100) / 100 : Math.round(a);
+  }
+
   function fmtCoord(lat, lon) {
     return Math.abs(lat).toFixed(4) + (lat >= 0 ? 'N' : 'S') + ' ' +
            Math.abs(lon).toFixed(4) + (lon >= 0 ? 'E' : 'W');
@@ -796,6 +837,7 @@
     rectPolygon: rectPolygon,
     polygonBounds: polygonBounds,
     polygonAreaKm2: polygonAreaKm2,
+    polygonTrueAreaKm2: polygonTrueAreaKm2,
     pointInPolygon: pointInPolygon,
     inEnvelope: inEnvelope,
     envelopeText: envelopeText,
