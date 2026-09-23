@@ -1,0 +1,257 @@
+# =====================================================================
+# CI — the checks that genuinely run with no network and no secrets.
+#
+# WHY THIS FILE LOOKS LIKE THIS, AND NOT LIKE EVERY OTHER CI FILE
+#
+# There is no package.json in this repository, and that is deliberate: it is
+# a static site with no bundler, no framework and no install step. So there is
+# nothing for `npm ci` to install and no lockfile for actions/setup-node to
+# cache. Copying the usual Node workflow in here would fail on its second line
+# with "Dependencies lock file is not found", which is the kind of red badge
+# that teaches a team to ignore red badges.
+#
+# WHAT IS DELIBERATELY NOT HERE
+#
+#   04-agents/tools/preflight.js      It is a demo-night readiness board, not a
+#                                     test. It checks things only a human can
+#                                     finish — whether the n8n workflow is
+#                                     switched on, whether a rehearsal was run —
+#                                     and it currently reports one FAIL and two
+#                                     TODOs on purpose. Running it here would
+#                                     hard-wire a red badge to a checklist.
+#
+#   03-security/tests/security-check.mjs
+#                                     It fires 36 checks at the LIVE Vercel
+#                                     deployment and the LIVE Supabase project.
+#                                     It needs network access, it depends on
+#                                     services being up, and pointing a CI
+#                                     runner at production on every push is a
+#                                     load test nobody asked for. Run it by hand
+#                                     before the demo. It also currently fails
+#                                     three checks that assert index.html is
+#                                     byte-identical to site-original/ — an
+#                                     invariant the project retired on purpose.
+#                                     See the README section about the diff.
+#
+# Every step below was run locally against this tree before being written here.
+# =====================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Syntax, data and agent tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          # No `cache:` on purpose. There is no lockfile to key a cache on,
+          # and asking for one is a hard failure rather than a warning.
+
+      - name: Node version in use
+        run: node --version
+
+      # -----------------------------------------------------------------
+      # 1 · Every JavaScript file still parses.
+      #
+      # vendor/ is excluded because it holds third-party builds (Leaflet,
+      # supabase-js) that we do not write and would not fix here. Everything
+      # else is ours.
+      #
+      # Note for whoever adds the first ES module with a .js extension: node
+      # parses .js as CommonJS, so `import` at the top of a .js file fails this
+      # step. That is not a bug in the step — give the file a .mjs extension,
+      # which is checked below as a module, or keep to the IIFE style the rest
+      # of js/ uses.
+      # -----------------------------------------------------------------
+      - name: Syntax-check every .js file
+        run: |
+          set -euo pipefail
+          failed=0
+          count=0
+          while IFS= read -r f; do
+            count=$((count + 1))
+            if ! node --check "$f"; then
+              echo "::error file=$f::$f does not parse"
+              failed=1
+            fi
+          done < <(find . \
+                     -path ./.git -prune -o \
+                     -path ./vendor -prune -o \
+                     -path ./node_modules -prune -o \
+                     -name '*.js' -print)
+          echo "checked $count JavaScript files"
+          exit $failed
+
+      - name: Syntax-check every .mjs file
+        run: |
+          set -euo pipefail
+          failed=0
+          count=0
+          while IFS= read -r f; do
+            count=$((count + 1))
+            if ! node --check "$f"; then
+              echo "::error file=$f::$f does not parse"
+              failed=1
+            fi
+          done < <(find . \
+                     -path ./.git -prune -o \
+                     -path ./node_modules -prune -o \
+                     -name '*.mjs' -print)
+          echo "checked $count ES module files"
+          exit $failed
+
+      # -----------------------------------------------------------------
+      # 2 · Every JSON file still parses.
+      #
+      # vercel.json carries the security response headers and the CSP. A
+      # trailing comma in it does not break the build — Vercel silently falls
+      # back to serving the site with no headers at all, which is the worst
+      # possible failure shape: a site that looks fine and is not protected.
+      # That is the bug this step exists to catch.
+      # -----------------------------------------------------------------
+      - name: Parse every .json file
+        run: |
+          set -euo pipefail
+          failed=0
+          count=0
+          while IFS= read -r f; do
+            count=$((count + 1))
+            if ! node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))' "$f"; then
+              echo "::error file=$f::$f is not valid JSON"
+              failed=1
+            fi
+          done < <(find . \
+                     -path ./.git -prune -o \
+                     -path ./node_modules -prune -o \
+                     -name '*.json' -print)
+          echo "parsed $count JSON files"
+          exit $failed
+
+      # -----------------------------------------------------------------
+      # 3 · Everything index.html asks for is actually in the repository.
+      #
+      # THE BUG THIS EXISTS FOR: a file can be present on the machine that
+      # built the page and absent from the commit. The page then works
+      # perfectly for its author and ships to Vercel with a 404 behind a
+      # <script> tag or a favicon. Nothing in a local browser tells you.
+      #
+      # If this step fails, the fix is almost always `git add` on the file it
+      # names, not an edit to index.html.
+      # -----------------------------------------------------------------
+      - name: Every local file index.html references exists
+        run: |
+          set -euo pipefail
+          cat > /tmp/refcheck.js <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const re = /(?:src|href)\s*=\s*["']([^"'#?]+)["']/gi;
+          const seen = new Set();
+          const missing = [];
+          let m;
+          while ((m = re.exec(html)) !== null) {
+            let u = m[1].trim();
+            if (!u) continue;
+            // Skip anything that is not a path into this repository.
+            if (/^(https?:|data:|mailto:|tel:|blob:|javascript:|\/\/)/i.test(u)) continue;
+            u = u.replace(/^\//, '');
+            if (seen.has(u)) continue;
+            seen.add(u);
+            if (!fs.existsSync(path.join(process.cwd(), u))) missing.push(u);
+          }
+          console.log('local references checked: ' + seen.size);
+          for (const f of missing) {
+            console.log('::error file=index.html::index.html references ' + f +
+                        ', which is not in the repository. If it exists on your ' +
+                        'machine, it was never committed: git add ' + f);
+          }
+          if (missing.length) {
+            console.log(missing.length + ' referenced file(s) are missing from the repository.');
+            process.exit(1);
+          }
+          console.log('all referenced files are present');
+          NODE
+          node /tmp/refcheck.js
+
+      # -----------------------------------------------------------------
+      # 4 · The agent test suites, run verbatim.
+      #
+      # These four need no network, no secrets and no install. They read only
+      # files inside 04-agents/ and resolve those paths from __dirname, so they
+      # do not care what the working directory is. Locally, on this tree, they
+      # report 17, 20, 35 and 38 checks passed.
+      # -----------------------------------------------------------------
+      - name: Decision engine tests
+        run: node 04-agents/tests/decision.test.js
+
+      - name: Workflow phase tests
+        run: node 04-agents/tests/phases.test.js
+
+      - name: Prompt-injection guardrail tests
+        run: node 04-agents/tests/injection.test.js
+
+      - name: Automation panel tests
+        run: node 04-agents/tests/automation-panel.test.js
+
+      # -----------------------------------------------------------------
+      # 5 · The two rules we promised in writing and would otherwise forget.
+      #
+      # Both are in CONTRIBUTING.md and js/README.md. Both are cheap to check
+      # and expensive to discover on stage.
+      # -----------------------------------------------------------------
+      - name: No CDN for scripts or stylesheets
+        run: |
+          set -euo pipefail
+          # script-src and style-src in the CSP allow 'self' plus Google Fonts
+          # for styles, and nothing else. A <script src> or a <link rel=
+          # stylesheet> pointing anywhere else is silently blocked in
+          # production and works perfectly on a local file:// page, which is
+          # exactly how it gets missed. Libraries are vendored under vendor/.
+          #
+          # Scoped to <script> and <link> on purpose. An ordinary <a href> to
+          # an outside site is not a CSP concern, and neither is the
+          # youtube-nocookie iframe, which frame-src names explicitly.
+          if grep -rInoE '<(script|link)[^>]*(src|href)=["'"'"']https?://[^"'"'"']*' index.html \
+               | grep -viE 'fonts\.(googleapis|gstatic)\.com' ; then
+            echo "::error file=index.html::index.html loads a script or stylesheet from an external origin. Vendor it under vendor/ instead — the CSP in vercel.json blocks it in production."
+            exit 1
+          fi
+          if grep -rInoE '(@import[^;]*|url\()["'"'"']?https?://[^)"'"'"' ]*' css/ \
+               | grep -viE 'fonts\.(googleapis|gstatic)\.com' ; then
+            echo "::error::A stylesheet in css/ pulls from an external origin other than Google Fonts. The CSP blocks it in production."
+            exit 1
+          fi
+          echo "no external script or stylesheet origins beyond Google Fonts"
+
+      - name: No inline onclick handlers in js/
+        run: |
+          set -euo pipefail
+          # js/README.md, house rule: addEventListener only, never onclick=.
+          # The CSP bans inline event-handler attributes, so one of these means
+          # a control that does nothing in production and everything locally.
+          if grep -rInE '\bon(click|change|input|submit|load)\s*=\s*["'"'"']' js/ ; then
+            echo "::error::An inline event-handler attribute was found in js/. Use addEventListener — the CSP blocks inline handlers in production."
+            exit 1
+          fi
+          echo "no inline event-handler attributes in js/"
