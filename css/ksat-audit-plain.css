@@ -1,0 +1,56 @@
+/* =====================================================================
+   ksat-audit-plain.css - THE AUDIT TAB, ANSWER FIRST
+   Owner: 03 Security
+
+   Dresses js/ksat-audit-plain.js. Every selector is prefixed .ksat-ap.
+
+   The rest of the audit view runs at 10px, which is right for six
+   columns of provenance and wrong for the paragraph that tells somebody
+   what the six columns mean. This panel is 14px.
+   ===================================================================== */
+
+.ksat-ap { border-color: #35444f }
+
+.ksat-ap-body { margin-top: 4px }
+
+.ksat-ap-line {
+  font-size: 14px;
+  line-height: 1.68;
+  color: #b8c4cc;
+  padding: 9px 0 9px 14px;
+  border-left: 2px solid #2b3740;
+}
+
+.ksat-ap-line + .ksat-ap-line { margin-top: 2px }
+
+.ksat-ap-line b {
+  color: var(--white, #f5f7f8);
+  font-weight: normal;
+}
+
+/* A boundary holding. Green on the rule, never on the whole line: this
+   panel is a summary, not a status light. */
+.ksat-ap-line.ok { border-left-color: #79bd96 }
+.ksat-ap-line.ok b { color: #9fd3b4 }
+
+/* Something that actually needs a person. */
+.ksat-ap-line.bad { border-left-color: #d88484; background: #190f0f }
+.ksat-ap-line.bad b { color: #eaa6a6 }
+
+/* The breakdown under a headline sentence. */
+.ksat-ap-line.sub2 {
+  font-size: 12.5px;
+  color: #93a1ab;
+  padding-left: 26px;
+  border-left-color: #222c34;
+}
+.ksat-ap-line.sub2 b { color: #cbd6dd }
+
+.ksat-ap .ct .btn { padding: 6px 10px; font-size: 10px }
+
+/* The two fold buttons sit in the card headers of Runs and Agent steps. */
+.ksat-ap-fold {
+  padding: 6px 10px;
+  font-size: 10px;
+  margin-left: auto;
+}
