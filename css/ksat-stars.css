@@ -125,7 +125,12 @@
 :root[data-theme="light"] #ksat-gate .ksat-gate-note{
   color:#E8ECF8;
 }
-:root[data-theme="light"] #ksat-gate .ksat-gate-sub,
+/* .ksat-gate-sub IS NOT IN THIS RULE, and that is the point of the
+   restyle below. At (1,3,0) it beat the restyle's (1,1,0) and put the
+   security notice back to the muted secondary ink the moment anybody
+   chose the light theme — 9.8:1 instead of 17.3:1, on a card ground
+   that stays dark in both themes anyway. The note keeps it: that one
+   IS secondary. */
 :root[data-theme="light"] #ksat-gate .ksat-gate-note{
   color:#A8B6C8;
 }
@@ -236,11 +241,13 @@
 #ksat-gate .ksat-gate-sub {
   position: relative;
   margin-top: 18px;
-  padding: 12px 0 12px 14px;
+  /* padding-block, not a four-value shorthand. The shorthand version
+     of this hard-coded left:14px and was only saved from being a
+     wrong-side bug in Arabic by the logical pair that followed it. */
+  padding-block: 12px;
+  padding-inline: 14px 0;
   border-inline-start: 2px solid #3FD0C9;
   border-top: 0;
-  padding-inline-start: 14px;
-  padding-inline-end: 0;
   font-size: 14px;
   line-height: 1.6;
   color: #E8EEF8;

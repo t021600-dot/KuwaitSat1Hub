@@ -1,6 +1,7 @@
 /* =====================================================================
    ksat-spacecraft.css — THE SPACECRAFT BLOCK
-   Owner: 01 Front End.  Companion to js/ksat-spacecraft.js.
+   Owner: 01 Front End.  The script this was the companion to is gone;
+   section 2 says what is left and why the file stayed.
 
    ---------------------------------------------------------------------
    WHAT THIS REPLACES, AND WHAT IT DOES NOT DELETE
@@ -19,17 +20,17 @@
 
    Nothing is removed from the document, only hidden for this tier. The
    block that replaced those two has been cut three times since and is
-   now a heading, the flight unit photograph, four short readings and
-   the launch clip. js/ksat-spacecraft.js's header carries
-   the full ledger of what was taken out and where it went.
+   now one photograph: the team who built the satellite. The ledger of
+   everything that was taken out of this section, and where each piece
+   went, is in the git history of js/ksat-spacecraft.js.
 
    ---------------------------------------------------------------------
    WHAT IS LEFT OF THIS FILE
 
    Everything below section 1 used to dress a block js/ksat-spacecraft.js
    built at the foot of #mission: a heading, the flight unit photograph,
-   four short readings and the launch clip. That block was cut down four
-   times and then asked for in full, so the script is deleted and this
+   four short readings and the launch clip. The block was cut down four
+   times and then removed outright, so THE SCRIPT IS DELETED and this
    file is now only the list of what the public tier does not show.
 
    The photograph did not go with it. It moved into #legend, beside the
@@ -70,9 +71,9 @@
 
    display:none rather than visibility or height: the grid is 700px tall
    and anything that leaves it in the flow leaves the hole the team was
-   looking at. The nodes stay in the DOM for js/ksat-spacecraft.js to
-   read and for js/ksat-home.js's twelve-row count assertion, both of
-   which query the document rather than the rendering.
+   looking at. The nodes stay in the DOM because js/ksat-home.js's
+   twelve-row count assertion queries the document rather than the
+   rendering, and because a signed-in researcher still has them.
    ===================================================================== */
 html[data-ksat-tier="public"] #mission > .grid.g-53 { display: none; }
 
@@ -137,6 +138,16 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
    other rule in this file.
    ===================================================================== */
 html[data-ksat-tier="public"] #mission .ksh-band__copy { display: none; }
+
+/* THE SAME TWO NODES, WHERE THEY START OUT. The eyebrow and the h2 are
+   static children of #mission in index.html; js/ksat-home.js moves them
+   into .ksh-band__copy, and the rule above only reaches them once it
+   has. render() swallows a throw, so a failure in that layer — or the
+   file not loading at all, while js/ksat-shell.js still stamps the
+   public tier — would put the MEASURED badge and "KuwaitSat-1 on the
+   record" back on screen. Two selectors cover both states. */
+html[data-ksat-tier="public"] #mission > .eyebrow,
+html[data-ksat-tier="public"] #mission > h2.st { display: none; }
 html[data-ksat-tier="public"] #mission #ksat-ex-facts { display: none; }
 
 /* The scrim over the photograph existed to keep the copy readable. With

@@ -122,15 +122,11 @@
     '#ksat-as-panel', '.ksat-invite', '.ksat-wf', '#ksat-wf',
     '.ag-p', '.dstep', '.demopan', '.demofin',
     '#intro', '.intro',
-    /* The spacecraft block. js/ksat-spacecraft.js writes four short
-       readings, a caption and three section notes, every one of them
-       already under the 240 characters this file folds at — but they
-       are four <p> in a row inside one section, which is the RUN test,
-       and the control it grew ("SHOW ALL 5") landed under a list of six
-       numbered steps it had nothing to do with. That block is already
-       the short form of what it replaced; folding it again hides the
-       only prose on the page that explains the instrument. */
-    '.kss'
+    /* '.kss' was here, exempting the spacecraft block from folding.
+       js/ksat-spacecraft.js is deleted and nothing emits that class any
+       more, so the clause could never match. A never-matching selector
+       in a keep-whole list is not a bug, it is an instruction to the
+       next reader that is no longer true. */
   ].join(',');
 
   function el(tag, cls, text) {

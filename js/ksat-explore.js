@@ -254,7 +254,12 @@
   var H = {
     top:     { en: 'From Space to a Greener Kuwait',                   ar: 'من الفضاء إلى كويت أكثر اخضراراً' },   /* hero.h1a + hero.h1b */
     legend:  { en: 'Every panel declares what it is',                  ar: 'كل لوحة تُعلن عن طبيعتها' },            /* leg.h   */
-    mission: { en: 'KuwaitSat-1 on the record',                        ar: 'كويت سات-١ في السجل' },                /* mis.h   */
+    /* NOT mis.h ANY MORE, and js/ksat-home.js's H map says the same in
+       the same words. #mission's own heading is hidden for the public
+       tier and the section is now one photograph: the team who built
+       the satellite. A card that promises "KuwaitSat-1 on the record"
+       and lands on a group portrait is a card that lied. */
+    mission: { en: 'The team who built it',                            ar: 'الفريق الذي بناه' },
     imagery: { en: 'Captured From Space',                              ar: 'مُلتقَط من الفضاء' },                   /* img.h   */
     system:  { en: 'An AI-powered environmental planning system',      ar: 'نظام تخطيط بيئي مدعوم بالذكاء الاصطناعي' }, /* sys.h */
     globe:   { en: 'Kuwait From Above',                                ar: 'الكويت من الأعلى' },                   /* d3.h    */
@@ -421,7 +426,7 @@
     { key: 'home',    sec: 'top',
       name: { en: 'Home',               ar: 'الرئيسية' },
       cards: [
-        { sec: 'mission', art: 'unit', meta: 'spec' },
+        { sec: 'mission', art: 'team', meta: null },
         { sec: 'imagery', art: 'near', meta: 'frames' },
         /* `region` was here and was pulled after looking at the row:
            near and region are both wide night views over the same
@@ -435,7 +440,7 @@
     { key: 'mission', sec: 'mission',
       name: { en: 'The Mission',        ar: 'المهمة' },
       cards: [
-        { sec: 'mission', art: 'unit', meta: 'spec' },
+        { sec: 'mission', art: 'team', meta: null },
         { sec: 'legend',  art: 'term', meta: 'legend' },
         { sec: 'orbit',   art: 'low',  meta: 'model' }
       ] },
@@ -616,6 +621,10 @@
        reason the emblem needs it: cover would crop the antennas off. */
     unit:   { day: 'assets/cards/ksat1-flight-unit.png',
               night: 'assets/cards/ksat1-flight-unit.png', w: 752, h: 454, fit: 'contain' },
+    /* The section it labels is now a photograph of the team, so the
+       card carries that photograph. */
+    team:   { day: 'assets/cards/ksat1-team.webp',
+              night: 'assets/cards/ksat1-team.webp', w: 770, h: 513 },
 
     near:   { day: 'assets/cards/card-kuwait-day.jpg',    night: 'assets/cards/card-kuwait-night.jpg',    w: 1200, h: 900 },
     gulf:   { day: 'assets/cards/card-gulf-day.jpg',      night: 'assets/cards/card-gulf-night.jpg',      w: 1200, h: 900 },
@@ -750,6 +759,12 @@
        visible stutter. */
     var s = document.getElementById(id);
     var h = s.querySelector('h2, h3') || s;
+    /* focus() on a display:none element is a no-op, and this panel
+       closes straight afterwards — so a heading hidden for the public
+       tier strands a keyboard reader on a destroyed node, which is the
+       precise failure the note above says this exists to prevent. Same
+       test as js/ksat-shell.js's scroll anchor. */
+    if (h !== s && !h.getClientRects().length) { h = s; }
     if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
     setTimeout(function () {
       try { h.focus({ preventScroll: true }); } catch (e) { try { h.focus(); } catch (e2) {} }

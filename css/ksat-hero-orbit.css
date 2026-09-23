@@ -49,13 +49,18 @@
    rather than .80. It leaves the frame on the right, which is what a
    pass does.
 
-   The bound is the headline, measured at a 1424px viewport: its line
-   box ends at x=562. The stage is 560px wide with its left edge at 799,
-   and the spacecraft inside it is about 125px across at the zoom
-   js/ksat-hero-orbit.js sets, so it sits around x=1017 at rest. At -70%
-   that is 1017 minus 392, which is 625, and the spacecraft's own left
-   edge is at 562. It arrives at the headline exactly as it fades out,
-   and the fade is well under way by then.
+   The bound is the headline. Measured at a 1424px viewport its line box
+   ends at x=562; the stage is 560px wide with its left edge at 799, so
+   js/ksat-cubesat.js centres the model at 1079. At -70% that is 1079
+   minus 392, which is 687, and at scale .55 the model is about 69px
+   across, so its left edge reaches 653. Ninety-one pixels of clearance,
+   and the opacity is past its last keyframe by then.
+
+   THAT IS ONE WIDTH'S MEASUREMENT, not a proof. Between 901px and about
+   1200px the stage is 46vw while the copy gutter shrinks, so the pass
+   can cross the copy band geometrically. Nothing is obscured, because
+   the copy carries z-index 2 against the stage's 1, but the clearance
+   above is a number from one viewport rather than a guarantee.
 
    ---------------------------------------------------------------------
    THE STILL FRAME IS THE MIDDLE OF THE PASS

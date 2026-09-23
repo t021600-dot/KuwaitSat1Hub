@@ -267,7 +267,6 @@
      not exist.
      =================================================================== */
   var ART = {
-    band:   { day: 'assets/cards/band-kuwait-day.jpg',   night: 'assets/cards/band-kuwait-night.jpg',  alt: 'wide' },
     kuwait: { day: 'assets/cards/card-kuwait-day.jpg',   night: 'assets/cards/card-kuwait-night.jpg',  alt: 'wide' },
     gulf:   { day: 'assets/cards/card-gulf-day.jpg',     night: 'assets/cards/card-gulf-night.jpg',    alt: 'gulf' },
     region: { day: 'assets/cards/card-region-day.jpg',   night: 'assets/cards/card-region-night.jpg',  alt: 'region' },
@@ -393,7 +392,18 @@
      transparency is the thing that actually decides the answer, and a
      future PNG export of an Earth frame would silently get the wrong
      ground if this were a test on ".png". */
-  var PHOTO_ART = ['band', 'kuwait', 'gulf', 'region', 'limb', 'globe', 'term', 'lowlimb'];
+  /* 'team' IS A PHOTOGRAPH AND HAS TO BE IN THIS LIST. Everything here
+     gets the flat near-black tile ground; everything NOT here gets
+     --ksh-plate, the radial lift that exists for the transparent
+     spacecraft PNGs and the emblem. The team photograph is opaque and
+     1.5 in a 4/3 tile, so contain leaves ~11% of the tile as mat, and
+     on the light theme --ksh-plate turns that mat near-white: two pale
+     bars above and below a photograph, which is the exact bug the note
+     at css/ksat-home.css:918 says .ksh-tile--photo exists to prevent.
+
+     'band' comes out in the same breath. ART.band was the wide Kuwait
+     plate and nothing points at it any more. */
+  var PHOTO_ART = ['team', 'kuwait', 'gulf', 'region', 'limb', 'globe', 'term', 'lowlimb'];
 
   function artSrc(key) {
     var a = ART[key];
@@ -1253,7 +1263,16 @@
     ksf.dataset.kshArt = want;
 
     var figs = ksf.querySelectorAll('.ksh-feature__media img');
-    var keys = ['limb', 'gulf'];
+    /* ['limb', 'gulf'] UNTIL AN AUDIT CAUGHT IT. This list is the art
+       key for each feature figure in document order, and it was not
+       updated when the figure changed to the flight unit photograph.
+       There is one figure now, so keys[0] was still 'limb' and every
+       theme toggle, system scheme change or 760px crossing rewrote the
+       src back to the Earth limb — while the figcaption still read
+       "KuwaitSat-1, photographed by the project before launch". The
+       picture and its caption disagreed after the first click on the
+       theme control. */
+    var keys = ['unit'];
     for (var i = 0; i < figs.length && i < keys.length; i++) {
       figs[i].setAttribute('src', artSrc(keys[i]));
       figs[i].alt = artAlt(keys[i], code);

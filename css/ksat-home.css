@@ -1025,7 +1025,7 @@ html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: translateX
    Below this width the band becomes what the reference also does on a
    phone: the picture, then the words under it on the page ground.
 
-   js/ksat-home.js swaps the art at the same 760px, from the 2400 x 1000
+   js/ksat-home.js USED TO swap the art at this same 760px, from 2400 x 1000
    band plate to the 1200 x 900 card plate, so the box below is 4/3 and
    the new picture fills it exactly. One breakpoint, two files, and the
    number is written in both of them with this comment beside it. */
@@ -1042,12 +1042,21 @@ html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: translateX
     padding-inline: 0;
     padding-block: 0;
   }
+  /* THE 4/3 BOX WENT WITH THE ART SWAP THAT USED TO FEED IT. This
+     rule was written when js/ksat-home.js swapped the band art at this
+     same 760px, from the 2400x1000 plate to a 1200x900 card plate, so
+     a 4/3 box fitted the picture exactly. The band carries one
+     photograph at every width now and it is 770x513, so a 4/3 box
+     covers it and takes 11% off the WIDTH — the people at each end of
+     the row — and overflows the band below. The image follows the
+     band's own ratio instead. */
   .ksh-band__img {
     position: relative;
     inset: auto;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: auto;
+    width: 100%;
     height: auto;
-    object-fit: cover;          /* 4/3 art in a 4/3 box: no crop */
+    object-fit: cover;
     border-radius: 0;
   }
   /* Nothing to scrim once nothing sits on the photograph. */
@@ -1187,8 +1196,15 @@ html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: scaleX(-1)
    So when the band carries the team it stops being full bleed and
    becomes a contained photograph at its own ratio. #mission holds
    nothing else now, so there is no strip for it to be the top of.
+
+   NOT SCOPED TO THE PUBLIC TIER, and that was a bug for one commit.
+   js/ksat-home.js has no tier check at all: it draws the team
+   photograph into the band for a signed-in researcher too. Scoping the
+   SHAPE to the public tier therefore left the insider view with the
+   1.5 photograph in the 2.4 box and the whole 36% crop this note
+   exists to describe.
    ===================================================================== */
-html[data-ksat-tier="public"] #mission .ksh-band {
+#mission .ksh-band {
   aspect-ratio: 770 / 513;
   min-height: 0;
   width: 100%;

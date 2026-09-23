@@ -1944,6 +1944,21 @@
        the air when a reader scrolls naturally, and puts the content
        where they expect it when they navigate. */
     var anchor = target.querySelector('.eyebrow, h2, h3') || target;
+
+    /* AND IT HAS TO HAVE A BOX. scrollIntoView on an element with no
+       layout box returns immediately and the page does not move — so a
+       section whose eyebrow and heading are both display:none becomes
+       unnavigable, silently, from every tile, card and deep link that
+       points at it. That is exactly what happened to #mission once the
+       public tier stopped showing its copy: the hash changed and
+       nothing else did.
+
+       getClientRects().length is the cheap test for "has a box at all".
+       Falling back to the section itself is what the line above already
+       intends; this just makes it true when the anchor is hidden rather
+       than absent. */
+    if (anchor !== target && !anchor.getClientRects().length) { anchor = target; }
+
     try {
       anchor.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
     } catch (e) { anchor.scrollIntoView(); }
