@@ -1,0 +1,135 @@
+/* =====================================================================
+   ksat-researcher-tour.css - THE GUIDED TOUR, RESEARCHER WORKSPACE
+   Owner: 01 Front end
+
+   Dresses js/ksat-researcher-tour.js. NOT css/ksat-tour.css, which is
+   the public page's tour and is loaded only by index.html. Every
+   selector here is prefixed .ksat-tour- and scoped to researcher.html,
+   which loads neither of the public files.
+
+   A spotlight, a card, and nothing that moves.
+
+   NOTHING HERE ANIMATES, AND THAT IS DELIBERATE.
+   Windows animation settings are off on the machine this is built for,
+   and the automated browser tab runs hidden, where requestAnimationFrame
+   never fires. A tour that fades between steps would be a tour that
+   sometimes shows a blank screen and never says why. Every state change
+   here is a paint, not a transition.
+   ===================================================================== */
+
+.ksat-tour-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 80;                 /* .modal is 50, the top bar is 20 */
+}
+
+/* THE HOLE IS THE SHADOW, NOT THE BOX.
+
+   An overlay with a transparent cut-out is four divs and a rounding
+   error at every edge. One box with a 9999px spread shadow is the same
+   picture with one element, and the "hole" is simply where the shadow
+   is not. */
+.ksat-tour-hole {
+  position: absolute;
+  border: 1px solid #9fc5dc;
+  border-radius: 3px;
+  box-shadow: 0 0 0 9999px rgba(4, 7, 10, 0.74);
+  pointer-events: none;
+}
+
+/* When a step has no element to point at, the card stands on its own
+   and the veil is plain. */
+.ksat-tour-veil.plain .ksat-tour-hole {
+  display: none;
+}
+.ksat-tour-veil.plain {
+  background: rgba(4, 7, 10, 0.74);
+}
+
+.ksat-tour-card {
+  position: absolute;
+  width: min(430px, calc(100vw - 32px));
+  background: #10161c;
+  border: 1px solid #3a4751;
+  padding: 20px 22px 18px;
+  color: var(--text, #e8edf1);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6);
+}
+
+.ksat-tour-card .step {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6f7f8b;
+  margin-bottom: 9px;
+}
+
+.ksat-tour-card h4 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: normal;
+  color: var(--white, #f5f7f8);
+  line-height: 1.35;
+}
+
+/* 14.5px, not the 10px the rest of the workspace uses for secondary
+   text. This is the one surface on the platform whose entire job is to
+   be read. */
+.ksat-tour-card p {
+  margin: 0 0 11px;
+  font-size: 14.5px;
+  line-height: 1.68;
+  color: #c3ced6;
+}
+
+.ksat-tour-card p.do {
+  border-left: 2px solid var(--blue, #8eb9d8);
+  padding-left: 12px;
+  color: #dbe6ee;
+}
+
+.ksat-tour-card p:last-of-type { margin-bottom: 16px; }
+
+.ksat-tour-card b { color: var(--white, #f5f7f8); font-weight: normal; }
+
+.ksat-tour-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #222c34;
+  padding-top: 14px;
+}
+
+.ksat-tour-bar .dots { flex: 1; display: flex; gap: 5px; align-items: center; }
+
+.ksat-tour-bar .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #2f3b45;
+  border: 0; padding: 0; cursor: pointer;
+}
+.ksat-tour-bar .dot.on { background: #9fc5dc; }
+.ksat-tour-bar .dot.done { background: #55656f; }
+
+.ksat-tour-card .btn { font-size: 13px; padding: 9px 15px; }
+
+.ksat-tour-hint {
+  margin-top: 11px;
+  font-size: 10.5px;
+  color: #66737e;
+  letter-spacing: 0.04em;
+}
+
+/* The launcher, in the top bar beside Mission hub. */
+.ksat-tour-open {
+  background: none;
+  border: 1px solid #34414c;
+  color: #a9b6bf;
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ksat-tour-open:hover { background: #151c23; color: #eef2f5; }
+
+@media (max-width: 900px) {
+  .ksat-tour-open { display: none }
+}
