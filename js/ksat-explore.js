@@ -676,6 +676,17 @@
        NASA Black Marble and the day plates NASA Blue Marble, reprojected
        onto a sphere — the same provenance the two originals carry, and
        it is in assets/earth/CREDITS.txt. */
+    /* ALT AND ART ARE KEYED THE SAME HERE, unlike js/ksat-home.js where
+       ART carries an `alt:` pointer. artAlt() does ALT[key][phase]
+       directly, so an ART entry with no ALT twin throws a TypeError
+       inside the card loop and the FEATURED row comes out empty — which
+       is exactly what adding `team` to ART alone did. */
+    team: {
+      day:   { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch above them.',
+               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة.' },
+      night: { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch above them.',
+               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة.' }
+    },
     unit: {
       day:   { en: 'KuwaitSat-1: a black anodised CubeSat frame with four deep blue solar faces, a circuit board on the top deck and four thin whip antennas.',
                ar: 'كويت سات-١: هيكل مكعّب أسود مؤكسد بأربعة أوجه شمسية زرقاء داكنة، ولوحة إلكترونية على السطح العلوي، وأربعة هوائيات رفيعة.' },
