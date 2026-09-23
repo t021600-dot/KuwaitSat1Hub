@@ -147,6 +147,24 @@
     var n = clampLat(Math.max(south, north));
     var w = clampLon(Math.min(west, east));
     var e = clampLon(Math.max(west, east));
+
+    /* CLAMPING A RECTANGLE THAT IS ENTIRELY OUTSIDE KUWAIT COLLAPSES IT
+       ONTO AN EDGE, AND THE RESULT STILL PASSES kuwait_area_ok.
+
+       Pan the New Mission map south into the Gulf, or west into Saudi
+       Arabia, and every corner clamps to the same latitude or the same
+       longitude. What comes out is a valid GeoJSON Polygon with four
+       corners and zero area, sitting on the border. The database accepts
+       it - every point IS inside the envelope - the mission is created
+       reading "about 0 km2", and the run then stalls with "no archive
+       frame is inside this mission area", which tells the researcher
+       nothing about what actually went wrong.
+
+       A degenerate rectangle is not an area of interest. Return null and
+       let the caller say so in words. 1e-4 degrees is about 11 m: below
+       that there is nothing a 39 m/px sensor could resolve anyway. */
+    if ((e - w) < 1e-4 || (n - s) < 1e-4) { return null; }
+
     var p = {
       type: 'Polygon',
       coordinates: [[
@@ -256,7 +274,12 @@
     var midLat = (b[0][0] + b[1][0]) / 2;
     var h = (b[1][0] - b[0][0]) * M_PER_DEG_LAT / 1000;
     var w = (b[1][1] - b[0][1]) * mPerDegLon(midLat) / 1000;
-    return Math.round(h * w);
+    /* Adaptive, so a small area does not read "about 0 km2". Zooming the
+       New Mission map onto a single farm gives roughly 0.03 km2, and
+       rounding that to a whole number told the researcher their area was
+       nothing. A genuine 0 now means genuinely degenerate. */
+    var a = h * w;
+    return a < 10 ? Math.round(a * 100) / 100 : Math.round(a);
   }
 
   function fmtCoord(lat, lon) {
@@ -635,13 +658,31 @@
           t.z = (sd > 0 && t.kind !== 'water') ? (t.exg - median) / sd : 0;
         });
 
-        var topZ = land.length ? Math.max.apply(null, land.map(function (t) { return t.z; })) : 0;
+        /* NULL, NOT ZERO, WHEN THERE IS NO LAND.
+
+           Frame 08 is open Gulf water: every tile classifies as water,
+           `vals` is empty, and min/median/max/sd were all reported as 0.
+           The Environmental Analysis agent then printed "ExG ranges 0 to
+           0, median 0" and went on to narrate "the greenest tile stands
+           0 standard deviations above the median, so there is a real
+           gradient in the ground here" - about a frame with no ground in
+           it at all. Zero is a measurement. Absent is not, and the
+           difference has to survive into the trail. */
+        var hasLand = vals.length > 0;
+        var topZ = land.length ? Math.max.apply(null, land.map(function (t) { return t.z; })) : null;
 
         return {
           frame_no: f.frame_no,
           grid: grid,
           width: w, height: h,
-          tileM: Math.round((w / grid) * (Number(f.gsd_m) || 39)),
+          /* Both axes, because the tiles are not square: a 520 x 500 px
+             frame at grid 16 gives 1248 x 1209 m, and the last row and
+             column are larger again because the remainder pixels go
+             there. tileM stays as the width for the one place a single
+             figure reads better than two, and it is described as
+             "across" rather than "square" wherever it is printed. */
+          tileM: Math.round(Math.floor(w / grid) * (Number(f.gsd_m) || 39)),
+          tileH_m: Math.round(Math.floor(h / grid) * (Number(f.gsd_m) || 39)),
           tiles: tiles,
           counts: counts,
           total: tiles.length,
@@ -654,10 +695,10 @@
              ranking as if it were true. */
           vegetationDetected: counts.veg > 0,
           exg: {
-            min: vals.length ? vals[0] : 0,
-            median: median,
-            max: vals.length ? vals[vals.length - 1] : 0,
-            sd: sd,
+            min: hasLand ? vals[0] : null,
+            median: hasLand ? median : null,
+            max: hasLand ? vals[vals.length - 1] : null,
+            sd: hasLand ? sd : null,
             topZ: topZ,
             landTiles: land.length
           }

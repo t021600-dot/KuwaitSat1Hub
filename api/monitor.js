@@ -8,7 +8,7 @@
    Scheduled at 02:00 UTC by the "crons" entry in vercel.json. It makes
    two POSTs and decides nothing:
 
-       /rest/v1/rpc/sweep_stalled_runs   {"p_idle_minutes": 3}     -> n
+       /rest/v1/rpc/sweep_stalled_runs   {"p_minutes": 3}          -> n
        /rest/v1/rpc/monitor_record       {"p_source":"vercel_cron",
                                           "p_action":"sweep_stalled_runs",
                                           "p_runs_swept": n, "p_ok": …}
@@ -299,7 +299,28 @@ module.exports = async function monitor(req, res) {
   /* --------------------------------------------------------------
      CALL 1 · the sweep. This is the one that matters.
      -------------------------------------------------------------- */
-  var sweep = await rpc(base, key, SWEEP, { p_idle_minutes: IDLE_MINUTES });
+  /* p_minutes, NOT p_idle_minutes.
+
+     PostgREST resolves an RPC by its ARGUMENT NAMES, so a wrong name is
+     not a wrong value - it is a 404, "Could not find the function
+     public.sweep_stalled_runs(p_idle_minutes) in the schema cache". The
+     deployed signature is sweep_stalled_runs(p_minutes integer);
+     checked against pg_proc, not against the comment at the top of this
+     file, which said p_idle_minutes and was wrong.
+
+     Nothing caught it because nothing had ever run: the three
+     environment variables were unset until 23 Sep 2026, so every
+     invocation failed at the config check before reaching this line. The
+     first real run would have been 02:00 the morning of the demo, and it
+     would have written ok=false with a 404 anomaly straight into the
+     Platform Health panel on the Audit view.
+
+     The name is changed HERE rather than in the database on purpose:
+     `create or replace function` cannot rename an input parameter (it
+     raises "cannot change name of input parameter"), so aligning the SQL
+     would mean a drop and recreate, which is not a thing to do to a live
+     database the night before a demo. */
+  var sweep = await rpc(base, key, SWEEP, { p_minutes: IDLE_MINUTES });
 
   var swept = null;
   var sweepError = null;

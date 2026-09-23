@@ -98,10 +98,18 @@
   </div>
 </header>
 
+<!-- EVERY CELL HERE IS READ FROM THE DATABASE.
+
+     SPACECRAFT and GROUND LINK used to read "NOMINAL" from static
+     markup, on a page whose own header says nothing on screen is
+     invented and whose argument to a judge is provenance. Nobody on this
+     team has telemetry for either. They are replaced by the one thing
+     the archive can actually support: the date of the most recent frame
+     it holds. -->
 <div class="statusbar">
-  <span>SPACECRAFT <b>● NOMINAL</b></span>
+  <span>LAST FRAME <b id="lastFrame">● READING</b></span>
   <span>PAYLOAD <b id="payState">● CHECKING</b></span>
-  <span>GROUND LINK <b>● NOMINAL</b></span>
+  <span>ARCHIVE <b id="archiveState">● CHECKING</b></span>
   <span>DATA PIPELINE <b id="pipeState">● CHECKING</b></span>
   <span>ACCESS: RESEARCHER</span>
 </div>

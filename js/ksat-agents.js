@@ -137,11 +137,59 @@
      trail then quietly disagrees with the screen.
      ------------------------------------------------------------------- */
   function rpc(name, args) {
-    if (!window.sb) return Promise.reject(new Error('The mission database is not reachable.'));
+    if (!window.sb) {
+      var e0 = new Error('The mission database is not reachable.');
+      e0.fromDb = false;
+      return Promise.reject(e0);
+    }
     return window.sb.rpc(name, args).then(function (r) {
-      if (r.error) { throw new Error(r.error.message || String(r.error)); }
+      if (r.error) {
+        /* TAGGED, so the page can stop calling every failure a database
+           refusal. An image that would not decode is not the database
+           saying no, and telling a researcher it was is a lie about
+           where the fault is - on a platform whose whole argument is
+           that it tells you exactly what happened. */
+        var e = new Error(r.error.message || String(r.error));
+        e.fromDb = true;
+        throw e;
+      }
       return r.data;
     });
+  }
+
+  /* CLOSE THE RUN, WHATEVER HAPPENED.
+
+     Every step of a run is written through researcher_log_step, which
+     refuses a run whose status is not 'queued' or 'running'. launch_mission
+     commits the mission_runs row and sets missions.status='queued' before
+     anything downstream can fail. So an unhandled rejection anywhere after
+     the launch leaves the run OPEN FOR EVER:
+
+       - the mission sits at 'queued' and launch_mission refuses another
+         run with "This mission is already running."
+       - sweep_stalled_runs cannot help: it matches status='running', and
+         this pipeline never moves a run off 'queued'
+       - the researcher has no button that closes it
+
+     There are roughly sixteen network round trips in a run. One dropped
+     request on a venue wifi is all it takes, and the mission on the
+     projector is bricked until somebody reloads - which also destroys the
+     candidate set held in the page.
+
+     So: one terminal handler, on both chains, that finishes the run as
+     'failed' with the reason and then re-throws so the caller still sees
+     the error. It deliberately swallows a failure of finish() itself -
+     if the network is gone, the sweeper and the researcher's own
+     "close the open run" button are the remaining backstops, and
+     throwing a second error over the first would hide the real one. */
+  function closeOnFailure(state) {
+    return function (err) {
+      if (!state.run_id || state.stopped) { throw err; }
+      var why = (err && err.message ? err.message : String(err)).slice(0, 400);
+      return finish(state.run_id, 'failed', why)
+        .catch(function () { /* nothing left to try; report the first error */ })
+        .then(function () { throw err; });
+    };
   }
 
   function logStep(run, step, tool, args, allowed, refused, injection) {
@@ -414,10 +462,11 @@
                       index: 'ExG on chromatic coordinates',
                       vegetation_threshold: geo.VEG_EXG,
                       vegetation_detected: a.vegetationDetected,
-                      exg_min: r3(a.exg.min),
-                      exg_median: r3(a.exg.median),
-                      exg_max: r3(a.exg.max),
-                      top_tile_z: r1(a.exg.topZ),
+                      land_tiles: a.exg.landTiles,
+                      exg_min: a.exg.landTiles ? r3(a.exg.min) : null,
+                      exg_median: a.exg.landTiles ? r3(a.exg.median) : null,
+                      exg_max: a.exg.landTiles ? r3(a.exg.max) : null,
+                      top_tile_z: a.exg.landTiles ? r1(a.exg.topZ) : null,
                       water_pct: a.waterPct })
                     .then(tick);
                 });
@@ -445,17 +494,27 @@
                     ' px: ' + a.total + ' tiles of about ' + a.tileM + ' m on the ground.\n' +
                     'Water ' + fmtPct(a.waterPct) + ' of tiles, land ' +
                     fmtPct(100 - a.waterPct) + '.\n\n' +
-                    'Greenness over the land tiles: ExG ranges ' + r3(a.exg.min) +
-                    ' to ' + r3(a.exg.max) + ', median ' + r3(a.exg.median) +
-                    '. The vegetation threshold is ' + geo.VEG_EXG + '.\n' +
-                    (a.vegetationDetected
-                      ? (a.counts.veg + ' tile(s) reach it.')
-                      : 'NO TILE REACHES IT, so no vegetation was detected in this frame. ' +
-                        'ExG = 0 is neutral grey and negative means redder than neutral, ' +
-                        'which is what bare sand is. The greenest tile stands ' +
-                        r1(a.exg.topZ) + ' standard deviations above the median, so there ' +
-                        'is a real gradient in the ground here - but it is a gradient ' +
-                        'within bare ground, not vegetation.') + '\n\n' +
+                    /* A FRAME WITH NO LAND GETS NO GREENNESS PARAGRAPH.
+                       Frame 08 is open Gulf water. This used to print
+                       "ExG ranges 0 to 0, median 0" and then narrate a
+                       "real gradient in the ground" for a frame with no
+                       ground in it. */
+                    (a.exg.landTiles === 0
+                      ? 'Every tile in this frame classified as water, so there is no ' +
+                        'land in it to measure greenness on and no greenness figure is ' +
+                        'given. That is the measurement, not a gap in it.'
+                      : 'Greenness over the ' + a.exg.landTiles + ' land tiles: ExG ranges ' +
+                        r3(a.exg.min) + ' to ' + r3(a.exg.max) + ', median ' +
+                        r3(a.exg.median) + '. The vegetation threshold is ' +
+                        geo.VEG_EXG + '.\n' +
+                        (a.vegetationDetected
+                          ? (a.counts.veg + ' tile(s) reach it.')
+                          : 'NO TILE REACHES IT, so no vegetation was detected in this ' +
+                            'frame. ExG = 0 is neutral grey and negative means redder ' +
+                            'than neutral, which is what bare sand is. The greenest tile ' +
+                            'stands ' + r1(a.exg.topZ) + ' standard deviations above the ' +
+                            'median, so there is a real gradient in the ground here - but ' +
+                            'it is a gradient within bare ground, not vegetation.')) + '\n\n' +
                     geo.INDEX_NOTE,
                     geo.frameBounds(a.frame) ? geo.rectPolygon(
                       geo.frameBounds(a.frame)[0][0], geo.frameBounds(a.frame)[0][1],
@@ -524,7 +583,8 @@
               return state;
             });
           });
-      });
+      })
+      .catch(closeOnFailure(state));
   }
 
   /* -------------------------------------------------------------------
@@ -620,15 +680,41 @@
         });
     }
 
-    var top = all.slice(0, 5);
+    /* FILTER, NOT SLICE, AND THIS WAS A REAL FALSE CLAIM.
+
+       The guard above only ever tested the SINGLE most extreme tile, and
+       then slice(0,5) took the next four whatever they were. Measured on
+       a mission covering frames 02 and 03 under the driest criterion,
+       the five returned tiles were at z = -2.06, -1.94, -1.89, -1.73 and
+       -1.73: four of the five did NOT clear the 2.0 bar, while the
+       checkpoint told the researcher every zone stood clear of its frame
+       median and the signed report repeated it in the Methodology
+       section.
+
+       Every candidate now has to clear the bar on its own. Returning two
+       zones that mean something beats returning five where three are
+       filler, and the count is written into the step record so the
+       number in the report comes from the data rather than from the word
+       "five". */
+    var top = all.filter(function (c) {
+      return ((mode === 'driest') ? -c.z : c.z) >= MIN_CANDIDATE_Z;
+    }).slice(0, 5);
+
     state.candidates = top;
+    state.weakest = top.length
+      ? r1((mode === 'driest') ? -top[top.length - 1].z : top[top.length - 1].z)
+      : null;
 
     return logStep(state.run_id, 'recommendation', 'rank.candidates',
         { criterion: mode,
-          basis: 'relative greenness within each frame, in standard deviations',
+          basis: (mode === 'driest')
+            ? 'relative dryness within each frame, in standard deviations'
+            : 'relative greenness within each frame, in standard deviations',
           vegetation_detected_anywhere: vegAnywhere,
           land_tiles_considered: all.length,
+          required_separation_sd: MIN_CANDIDATE_Z,
           best_separation_sd: r1(separation),
+          weakest_returned_sd: state.weakest,
           candidates_returned: top.length,
           tile_m: tileM,
           tile_area_km2: tileKm2 })
@@ -638,20 +724,46 @@
           w = w.then(function () {
             var poly = geo.pixelPolygon(c.a.frame, c.t.x0, c.t.y0, c.t.x1, c.t.y1,
               'Candidate ' + (i + 1));
+
+            /* PER-CANDIDATE GROUND SIZE, AND PER-AXIS.
+
+               These were taken from analyses[0] and printed against
+               candidates from every frame. On a "Whole of Kuwait"
+               mission that put frame 02's 1277 m tiles on the label of a
+               candidate that is actually in frame 06, whose tiles are
+               1231 m. The tiles are also not square - a 520 x 500 px
+               frame at grid 16 gives 1248 x 1209 m - and the last row
+               and column are larger again, because the remainder pixels
+               go there. */
+            var w = c.t.x1 - c.t.x0, h = c.t.y1 - c.t.y0;
+            var gsd = Number(c.a.frame.gsd_m) || 39;
+            var cw = Math.round(w * gsd), ch = Math.round(h * gsd);
+            var ckm2 = Math.round((cw * ch) / 1e6 * 100) / 100;
+            c.km2 = ckm2;
+
+            /* 'driest' returns the MOST red ground, not the least. The
+               wording used to be hard-coded to "least red", so pressing
+               Reject and re-rank produced five findings that said the
+               exact opposite of what had been measured. */
+            var isDry = (mode === 'driest');
+
             return writeResult(state.run_id, 'site',
               'Candidate ' + (i + 1) + ' - frame ' + String(c.a.frame_no).padStart(2, '0') +
                 ' tile ' + c.t.gx + ',' + c.t.gy,
               'Ranked ' + (i + 1) + ' of ' + top.length + ' by the ' + mode +
-              ' criterion, which is relative greenness within frame ' +
-              String(c.a.frame_no).padStart(2, '0') + '.\n' +
-              'ExG ' + c.t.exg.toFixed(3) + ', which is ' + r1(c.t.z) +
-              ' standard deviations from that frame median of ' + r3(c.a.exg.median) +
+              ' criterion, which is relative ' + (isDry ? 'dryness' : 'greenness') +
+              ' within frame ' + String(c.a.frame_no).padStart(2, '0') + '.\n' +
+              'ExG ' + c.t.exg.toFixed(3) + ', which is ' + r1(Math.abs(c.t.z)) +
+              ' standard deviations ' + (isDry ? 'below' : 'above') +
+              ' that frame median of ' + r3(c.a.exg.median) +
               '. Luminance ' + c.t.lum + '.\n' +
-              'About ' + tileM + ' m square, ' + tileKm2 + ' km2 on the ground.\n\n' +
+              'About ' + cw + ' x ' + ch + ' m, ' + ckm2 + ' km2 on the ground.\n\n' +
               (c.a.vegetationDetected
                 ? 'This frame does contain tiles above the vegetation threshold.'
-                : 'NO VEGETATION WAS DETECTED IN THIS FRAME. This tile is the least ' +
-                  'red ground in it, not a vegetated one.') + '\n\n' +
+                : 'NO VEGETATION WAS DETECTED IN THIS FRAME. This tile is the ' +
+                  (isDry ? 'MOST red ground in it - the driest-looking ground measured'
+                         : 'least red ground in it') +
+                  ', not a vegetated one.') + '\n\n' +
               geo.EVIDENCE_NOTE + '\n\n' + geo.FOOTPRINT_NOTE,
               poly);
           });
@@ -681,7 +793,14 @@
 
     var inArea = state.analyses.map(function (a) { return a.frame; });
     var pairs = repeatPairs(inArea);
-    var totalKm2 = Math.round(state.candidates.length * state.tileKm2 * 10) / 10;
+    /* SUM the candidates, do not multiply a count by one frame tile
+       area. Candidates can come from frames of different pixel sizes,
+       and the last row and column of any grid are larger than the rest,
+       so count x area was wrong by up to a third on a multi-frame
+       mission. rank() stamps c.km2 on each candidate for exactly this. */
+    var totalKm2 = Math.round(state.candidates.reduce(function (sum, c) {
+      return sum + (c.km2 || 0);
+    }, 0) * 100) / 100;
     var dates = {};
     inArea.forEach(function (f) { dates[f.captured_on] = 1; });
     var nDates = Object.keys(dates).length;
@@ -759,7 +878,8 @@
         tick();
         phase('Run complete. The report is a draft until a researcher approves it.');
         return state;
-      });
+      })
+      .catch(closeOnFailure(state));
   }
 
   /* -------------------------------------------------------------------
@@ -819,7 +939,8 @@
     p('');
     p('Each frame was divided into a ' + (state.analyses[0] ? state.analyses[0].grid : 16) +
       ' x ' + (state.analyses[0] ? state.analyses[0].grid : 16) + ' grid, giving tiles of ' +
-      'about ' + state.tileM + ' m on the ground, and the mean colour of every tile was ' +
+      'about ' + state.tileM + ' m across (tiles are not square; the last row and ' +
+      'column are larger), and the mean colour of every tile was ' +
       'measured in the browser. A tile whose blue channel leads both others at a ' +
       'luminance below 70 is classified as water and left out of the land statistics. ' +
       'Every remaining tile is tested against the Excess Green vegetation threshold of ' +
@@ -841,8 +962,8 @@
       p('- Candidate ' + (i + 1) + ', frame ' + String(c.a.frame_no).padStart(2, '0') +
         ' tile ' + c.t.gx + ',' + c.t.gy + ': ExG ' + c.t.exg.toFixed(3) + ', which is ' +
         r1(c.t.z) + ' standard deviations from that frame median of ' +
-        r3(c.a.exg.median) + '. Luminance ' + c.t.lum + '. About ' + state.tileM +
-        ' m square, ' + state.tileKm2 + ' km2.');
+        r3(c.a.exg.median) + '. Luminance ' + c.t.lum + '. About ' +
+        (c.km2 || 0) + ' km2 on the ground.');
     });
     p('');
     p('## Researcher-approved recommendations');

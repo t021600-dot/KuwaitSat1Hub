@@ -340,6 +340,11 @@
      3 · The payload archive
      ------------------------------------------------------------------- */
   var FRAMES = [];
+  /* False until loadFrames() has resolved either way. Run Analysis stays
+     disabled while it is false, because a run started against an empty
+     FRAMES writes "the archive holds 0 frames" into a permanent audit
+     trail - and eight base64 images take a moment on a venue connection. */
+  var FRAMES_READY = false;
   var MISSIONS = [];
   var SHEET_FRAME = null;
 
@@ -379,11 +384,22 @@
 
     return window.sb.from('payload_frames').select(FRAME_COLS).order('frame_no')
       .then(function (r) {
+        /* Set on BOTH paths. A refusal is an answer: the archive state is
+           now known, so Run Analysis should stop saying "loading" and
+           become enabled or not on the real facts. */
+        FRAMES_READY = true;
+        if (doc.getElementById('runMission')) {
+          objectiveFor(missionById(doc.getElementById('runMission').value));
+        }
         if (r.error) {
           say('framesMsg', 'The archive refused this read: ' + r.error.message +
               ' — this is what an account without enrolment sees.');
           var pay = doc.getElementById('payState');
           if (pay) pay.textContent = '● REFUSED';
+          var lf0 = doc.getElementById('lastFrame');
+          if (lf0) lf0.textContent = '● UNKNOWN';
+          var ar0 = doc.getElementById('archiveState');
+          if (ar0) ar0.textContent = '● REFUSED';
           log('payload archive: refused');
           return;
         }
@@ -391,6 +407,17 @@
         say('framesMsg', '');
         var pay2 = doc.getElementById('payState');
         if (pay2) pay2.textContent = '● AVAILABLE';
+
+        /* The status strip, from the rows rather than from the markup.
+           "LAST FRAME" is the newest captured_on in the archive; that is
+           a fact this platform holds. "SPACECRAFT NOMINAL" was not. */
+        var newest = FRAMES.reduce(function (d, f) {
+          return (f.captured_on && f.captured_on > d) ? f.captured_on : d;
+        }, '');
+        var lf = doc.getElementById('lastFrame');
+        if (lf) lf.textContent = newest ? '● ' + newest : '● NONE';
+        var arch = doc.getElementById('archiveState');
+        if (arch) arch.textContent = '● ' + FRAMES.length + ' FRAMES';
         var withPic = FRAMES.filter(hasImage).length;
         var c = doc.getElementById('framesCount');
         if (c) {
@@ -640,7 +667,31 @@
      5 · One mission, opened
      ------------------------------------------------------------------- */
   var OPEN_MISSION = null;
-  var OPEN_REPORT = null;
+
+  /* TWO PANELS, TWO BINDINGS.
+
+     A single OPEN_REPORT was written by the Reports viewer AND by the
+     mission detail panel. Open mission A's report in Reports, then click
+     mission B (which has none) in Missions: loadMissionTrail nulled the
+     shared variable, A's report stayed visible in #reportView, and
+     pressing Download .md under it did nothing at all. Worse the other
+     way round: with B's report loaded from the detail panel, Download
+     under A's visible report saved B.
+
+     VIEW_REPORT is what the Reports view is showing. MD_REPORT is what
+     the mission detail panel is showing. Each button reads its own. */
+  var VIEW_REPORT = null;
+  var MD_REPORT = null;
+
+  /* Which one a Download/Print press means depends on which panel is on
+     screen, and only one of them ever is. */
+  function reportInView() {
+    var rv = doc.getElementById('reportViewWrap');
+    if (rv && !rv.hidden && VIEW_REPORT) { return VIEW_REPORT; }
+    var md = doc.getElementById('mdReportWrap');
+    if (md && !md.hidden && MD_REPORT) { return MD_REPORT; }
+    return VIEW_REPORT || MD_REPORT;
+  }
 
   function missionById(id) {
     for (var i = 0; i < MISSIONS.length; i++) if (MISSIONS[i].id === id) return MISSIONS[i];
@@ -720,19 +771,33 @@
     add('Show the area on the map', 'geo-fit-open');
   }
 
+  /* EVERY OPEN GETS A GENERATION NUMBER.
+
+     Three independent reads fan out here and all of them write into fixed
+     element ids. Click mission A then mission B within a second and A's
+     slower response lands under B's heading - A's runs, A's steps, A's
+     findings, all labelled as B's. Double-click one row and both reads
+     resolve, so every finding card is rendered twice, on a page whose
+     argument is that findings map one-to-one onto database rows.
+
+     A stale callback now returns before touching the DOM. */
+  var TRAIL_GEN = 0;
+
   function loadMissionTrail(m) {
+    var gen = ++TRAIL_GEN;
     var stepsBox = doc.getElementById('mdSteps');
     var findBox = doc.getElementById('mdFindings');
     clear(stepsBox); clear(findBox);
     say('mdStepsMsg', 'Reading the audit trail…');
     say('mdFindingsMsg', '');
     doc.getElementById('mdReportWrap').hidden = true;
-    OPEN_REPORT = null;
+    MD_REPORT = null;
 
     window.sb.from('mission_runs')
       .select('id,status,started_at,finished_at,tool_calls')
       .eq('mission_id', m.id).order('started_at', { ascending: false })
       .then(function (r) {
+        if (gen !== TRAIL_GEN) { return; }
         if (r.error) { say('mdStepsMsg', 'Could not read runs: ' + r.error.message); return; }
         var runs = r.data || [];
         if (!runs.length) {
@@ -747,6 +812,7 @@
           .select('id,run_id,step_name,tool,allowed,refused_reason,status,started_at,finished_at,injection_flag')
           .in('run_id', ids).order('started_at')
           .then(function (s) {
+            if (gen !== TRAIL_GEN) { return; }
             if (s.error) { say('mdStepsMsg', 'Could not read steps: ' + s.error.message); return; }
             renderSteps(stepsBox, runs, s.data || []);
           });
@@ -756,20 +822,23 @@
       .select('id,kind,title,body,geometry,created_at,run_id')
       .eq('mission_id', m.id).order('created_at')
       .then(function (r) {
+        if (gen !== TRAIL_GEN) { return; }
         if (r.error) { say('mdFindingsMsg', 'Could not read findings: ' + r.error.message); return; }
         var rows = r.data || [];
         if (!rows.length) { say('mdFindingsMsg', 'No findings recorded for this mission yet.'); return; }
         say('mdFindingsMsg', '');
+        clear(findBox);
         rows.forEach(function (x) { findBox.appendChild(findingCard(x)); });
       });
 
     window.sb.from('reports').select('id,body_md,approved_at,approved_by')
       .eq('mission_id', m.id).order('approved_at', { ascending: false }).limit(1)
       .then(function (r) {
+        if (gen !== TRAIL_GEN) { return; }
         if (r.error || !r.data || !r.data.length) return;
-        OPEN_REPORT = r.data[0];
+        MD_REPORT = r.data[0];
         doc.getElementById('mdReportWrap').hidden = false;
-        renderMarkdown(doc.getElementById('mdReport'), OPEN_REPORT.body_md);
+        renderMarkdown(doc.getElementById('mdReport'), MD_REPORT.body_md);
       });
   }
 
@@ -907,7 +976,7 @@
   }
 
   function openReport(rep) {
-    OPEN_REPORT = rep;
+    VIEW_REPORT = rep;
     var m = missionById(rep.mission_id);
     doc.getElementById('reportViewTitle').textContent =
       (m && m.title) ? m.title : 'Mission report';
@@ -917,16 +986,17 @@
   }
 
   function exportReport() {
-    if (!OPEN_REPORT) { return; }
-    var m = missionById(OPEN_REPORT.mission_id);
+    var rep = reportInView();
+    if (!rep) { return; }
+    var m = missionById(rep.mission_id);
     var name = ((m && m.title) ? m.title : 'mission-report')
       .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    download(name + '.md', 'text/markdown;charset=utf-8', OPEN_REPORT.body_md);
+    download(name + '.md', 'text/markdown;charset=utf-8', rep.body_md);
     log('report exported');
   }
 
   function printReport() {
-    if (!OPEN_REPORT) return;
+    if (!reportInView()) return;
     root.classList.add('ksat-printing');
     window.print();
     setTimeout(function () { root.classList.remove('ksat-printing'); }, 800);
@@ -975,25 +1045,37 @@
   function loadDatasets() {
     say('dataMsg', 'Counting what this session can reach…');
     var want = [
-      { name: 'KuwaitSat-1 payload frames', table: 'payload_frames', source: 'KuwaitSat-1',
-        cls: 'MEASURED', res: '39 m/px', quality: 'Raw decoded' },
-      { name: 'Mission records', table: 'missions', source: 'Derived',
+      { name: 'KuwaitSat-1 payload frames', table: 'payload_frames', key: 'frame_no',
+        source: 'KuwaitSat-1', cls: 'MEASURED', res: '39 m/px', quality: 'Raw decoded' },
+      { name: 'Mission records', table: 'missions', key: 'id', source: 'Derived',
         cls: 'DERIVED', res: 'per mission', quality: 'Researcher entered' },
-      { name: 'Agent run log', table: 'mission_runs', source: 'Derived',
+      { name: 'Agent run log', table: 'mission_runs', key: 'id', source: 'Derived',
         cls: 'MEASURED', res: 'per run', quality: 'Append only' },
-      { name: 'Agent step log', table: 'agent_steps', source: 'Derived',
+      { name: 'Agent step log', table: 'agent_steps', key: 'id', source: 'Derived',
         cls: 'MEASURED', res: 'per step', quality: 'Append only' },
-      { name: 'Findings', table: 'results', source: 'Derived',
+      { name: 'Findings', table: 'results', key: 'id', source: 'Derived',
         cls: 'DERIVED', res: 'per finding', quality: 'Reviewed' },
-      { name: 'Reports', table: 'reports', source: 'Derived',
+      { name: 'Reports', table: 'reports', key: 'id', source: 'Derived',
         cls: 'DERIVED', res: 'per mission', quality: 'Approved' },
-      { name: 'Researcher profiles', table: 'profiles', source: 'Reference',
+      { name: 'Researcher profiles', table: 'profiles', key: 'user_id', source: 'Reference',
         cls: 'DERIVED', res: 'per account', quality: 'Own row only' }
     ];
     DATASETS = [];
     var done = 0;
     want.forEach(function (d) {
-      window.sb.from(d.table).select('*', { count: 'exact', head: true }).then(function (r) {
+      /* NEVER '*'.
+
+         A select('*') asks for every column, and 03_grants.sql grants
+         named columns only - mission_runs withholds n8n_execution_id and
+         error_note, agent_steps withholds raw_prompt, raw_response and
+         confidence, results withholds source_ref. PostgREST refuses the
+         WHOLE request when any requested column is ungranted, so the
+         Data Archive reported the researcher's own run log, step log and
+         findings as "refused / no access" while the Missions and Audit
+         views showed the same rows perfectly. It made a correct security
+         model look broken. Every other count in this file already names
+         a column; this was the one that did not. */
+      window.sb.from(d.table).select(d.key, { count: 'exact', head: true }).then(function (r) {
         d.records = r.error ? 'refused' : String(r.count === null ? 0 : r.count);
         d.ok = !r.error;
         DATASETS.push(d);
@@ -1231,12 +1313,21 @@
      and saying so on the spot is better than a refused insert later. */
   var PENDING_AOI = null;
 
+  /* Returns null when the view is entirely outside Kuwait: geo.rectPolygon
+     refuses a rectangle that clamping has collapsed onto the envelope
+     edge. Every caller has to handle it. */
   function viewPolygon(map, name) {
     var b = map.getBounds();
     return geo.rectPolygon(b.getSouth(), b.getWest(), b.getNorth(), b.getEast(), name);
   }
 
+  var OUTSIDE = 'This view is entirely outside Kuwait, so there is no area of ' +
+                'interest to take from it. Move the map back over the country: ' +
+                'the database only accepts a polygon inside 46.5-48.8 degrees ' +
+                'east and 28.5-30.1 north.';
+
   function describeAoi(poly) {
+    if (!poly) { return OUTSIDE; }
     var b = geo.polygonBounds(poly);
     return 'S ' + b[0][0].toFixed(4) + '  W ' + b[0][1].toFixed(4) +
            '   N ' + b[1][0].toFixed(4) + '  E ' + b[1][1].toFixed(4) +
@@ -1250,10 +1341,12 @@
     var b = GEO_MAP.getBounds();
     var outside = b.getWest() < geo.KUWAIT.west || b.getEast() > geo.KUWAIT.east ||
                   b.getSouth() < geo.KUWAIT.south || b.getNorth() > geo.KUWAIT.north;
+    var vp = viewPolygon(GEO_MAP);
     clear(n);
-    n.className = 'aoi';
+    n.className = vp ? 'aoi' : 'aoi bad';
+    if (!vp) { n.appendChild(doc.createTextNode(OUTSIDE)); return; }
     n.appendChild(doc.createTextNode(
-      'Current view, clipped to Kuwait: ' + describeAoi(viewPolygon(GEO_MAP))));
+      'Current view, clipped to Kuwait: ' + describeAoi(vp)));
     if (outside) {
       n.appendChild(el('div', null,
         'Part of this view is outside Kuwait and has been clipped. The database ' +
@@ -1264,7 +1357,15 @@
   function useViewAsAoi() {
     var map = buildGeoMap();
     if (!map) return;
-    PENDING_AOI = viewPolygon(map, 'Drawn on the map');
+    var vp = viewPolygon(map, 'Drawn on the map');
+    if (!vp) {
+      var bad = doc.getElementById('geoAoi');
+      clear(bad);
+      bad.className = 'aoi bad';
+      bad.appendChild(doc.createTextNode(OUTSIDE));
+      return;
+    }
+    PENDING_AOI = vp;
     GEO_GROUPS.aoi.clearLayers();
     AOI_RECT = L.rectangle(geo.polygonBounds(PENDING_AOI),
       { color: '#d88484', weight: 2, fillOpacity: 0.06 }).addTo(GEO_GROUPS.aoi);
@@ -1437,16 +1538,62 @@
   function objectiveFor(m) {
     var q = doc.getElementById('q');
     if (q) q.value = m ? m.objective : '';
+
+    /* THE CHECKPOINT BELONGS TO ONE RUN, SO IT GOES WHEN THE MISSION DOES.
+
+       Reach the checkpoint on mission A, then open mission B and press
+       "Open the checkpoint in the console" - the flow the researcher
+       guide documents. The console showed B selected and B's objective,
+       with A's candidate zones underneath and Approve still armed.
+       Pressing it ran impact prediction, visualization and reporting on
+       A using B's mission on screen, and signed a report for A that the
+       researcher believed was for B. */
+    if (!m || !RUN_STATE || !RUN_STATE.mission || RUN_STATE.mission.id !== m.id) {
+      var cp = doc.getElementById('checkpointCard');
+      if (cp) cp.hidden = true;
+      say('decisionMsg', '');
+      var tr = doc.getElementById('trace');
+      if (tr && tr.className === 'steps') {
+        tr.className = 'empty';
+        clear(tr);
+        tr.appendChild(doc.createTextNode(
+          'Pick a mission and press Run Analysis. Every step the Orchestrator ' +
+          'takes is written to the database first and then read back here, so ' +
+          'what you see is the audit trail and not a script.'));
+        var src = doc.getElementById('traceSrc');
+        if (src) src.textContent = 'DECISION-BASED WORKFLOW';
+      }
+      if (!RUNNING) { RUN_STATE = null; }
+    }
     var tag = doc.getElementById('runTag');
     if (tag) tag.textContent = m ? String(m.status || 'draft').toUpperCase() : 'NO MISSION';
     var btn = doc.getElementById('runBtn');
     if (btn) {
-      btn.disabled = !m || RUNNING;
-      btn.textContent = (m && (m.status === 'queued' || m.status === 'running'))
-        ? 'Resume — a run is already open' : 'Run Analysis';
+      /* FRAMES_READY, because a run started while the archive is still
+         in flight writes a FALSE finding into a permanent audit trail:
+         satellite_data logged with frames_released: 0, then a narrative
+         result reading "The KuwaitSat-1 archive holds 0 frames". Eight
+         base64 images take a moment on a venue connection, and the
+         presenter clicking Run Analysis two seconds in is the most
+         likely thing to happen tomorrow. */
+      btn.disabled = !m || RUNNING || !FRAMES_READY;
+      btn.textContent = !FRAMES_READY ? 'Loading the payload archive...'
+        : (m && (m.status === 'queued' || m.status === 'running'))
+        ? 'Resume - a run is already open' : 'Run Analysis';
     }
-    say('runMsg', m ? '' : 'Create a mission first: a run belongs to a mission, and the ' +
-                           'mission carries the area of interest the pipeline reads.');
+    /* ONLY WRITES, NEVER CLEARS.
+
+       It used to `say('runMsg','')` whenever a mission WAS selected. Every
+       refreshAfterRun() calls loadMissions() -> fillRunMission() ->
+       objectiveFor(), so roughly 200ms after the console printed "The run
+       stopped honestly: no archive frame has a geolocation inside this
+       mission area", that sentence was erased. Every terminal message in
+       the Research Console was written and then silently deleted, which
+       looked exactly like the run having done nothing at all. */
+    if (!m) {
+      say('runMsg', 'Create a mission first: a run belongs to a mission, and the ' +
+                    'mission carries the area of interest the pipeline reads.');
+    }
   }
 
   function traceMsg(text, cls) {
@@ -1612,8 +1759,33 @@
     }).catch(function (e) {
       RUNNING = false;
       btn.disabled = false;
-      say('runMsg', 'The database refused this run: ' + (e && e.message ? e.message : e));
-      log('run refused: ' + (e && e.message ? e.message : e));
+
+      /* TWO BUGS LIVED IN THESE FOUR LINES.
+
+         ONE. It announced every failure as "The database refused this
+         run". A frame whose image will not decode is not a refusal; the
+         database allowed everything it was asked, and the trail proves
+         it. js/ksat-agents.js now tags errors that really did come back
+         from PostgREST with err.fromDb, so the sentence can be true.
+
+         TWO. It never refreshed MISSIONS. launch_mission commits the run
+         row and sets the mission to 'queued' before anything downstream
+         can fail, so after a mid-run failure the database says 'queued'
+         and this page still says 'draft'. startRun's guard reads the
+         stale copy, skips openRunPrompt, calls launch_mission again and
+         gets "This mission is already running." - for ever, on every
+         press, with the only recovery button unreachable. The single
+         escape was a page reload, which also destroys the candidate set.
+
+         refreshAfterRun() re-reads the missions, so the next press finds
+         'queued' and lands on the recovery prompt. */
+      var msg = (e && e.message) ? e.message : String(e);
+      say('runMsg', (e && e.fromDb)
+        ? ('The database refused this run: ' + msg)
+        : ('This run could not finish: ' + msg +
+           ' The run has been closed in the audit trail.'));
+      log('run failed: ' + msg);
+      refreshAfterRun();
     });
   }
 
@@ -1659,15 +1831,35 @@
     log('human checkpoint reached on run ' + shortId(state.run_id));
   }
 
+  /* ONE BUSY FLAG FOR ALL THREE CHECKPOINT BUTTONS.
+
+     Approve, Reject and Abandon each disabled only ITSELF. Press Approve,
+     then press the still-enabled Reject while approve() is mid-chain, and
+     rank('driest') replaces state.candidates and state.rankMode under the
+     report that is about to be composed - so the signed report lists five
+     zones that were never the ones approved. Abandon during an approve
+     closes the run and the remaining writes then fail against it. */
+  var DECIDING = false;
+
+  function decisionButtons(disabled) {
+    ['approve', 'reject', 'abandon'].forEach(function (a) {
+      var b = $('[data-act="' + a + '"]');
+      if (b) b.disabled = disabled;
+    });
+  }
+
   function approveRun(btn) {
     if (!RUN_STATE || !RUN_STATE.run_id) { say('decisionMsg', 'There is no open run.'); return; }
-    btn.disabled = true;
+    if (DECIDING) return;
+    DECIDING = true;
+    decisionButtons(true);
     say('decisionMsg', 'Approved. Running impact prediction, visualization and reporting…');
     agents.approve(RUN_STATE, {
       onPhase: narrate,
       onStep: function () { refreshTrace(RUN_STATE.run_id); }
     }).then(function () {
-      btn.disabled = false;
+      DECIDING = false;
+      decisionButtons(false);
       doc.getElementById('checkpointCard').hidden = true;
       say('decisionMsg', '');
       say('runMsg', 'Run complete. The draft report is on the mission record. ' +
@@ -1675,36 +1867,83 @@
       refreshTrace(RUN_STATE.run_id);
       return refreshAfterRun();
     }).catch(function (e) {
-      btn.disabled = false;
-      say('decisionMsg', 'The database refused: ' + (e && e.message ? e.message : e));
+      DECIDING = false;
+      decisionButtons(false);
+      /* The card stays hidden on failure too: agents.approve() closes the
+         run as 'failed' in its terminal catch, so a second Approve would
+         write against a closed run and be refused. */
+      doc.getElementById('checkpointCard').hidden = true;
+      say('decisionMsg', 'This approval could not finish: ' +
+        (e && e.message ? e.message : e) +
+        ' The run has been closed in the audit trail; nothing was signed.');
+      refreshAfterRun();
     });
   }
 
   function rejectRun(btn) {
     if (!RUN_STATE || !RUN_STATE.run_id) { say('decisionMsg', 'There is no open run.'); return; }
-    btn.disabled = true;
+    if (DECIDING) return;
+    DECIDING = true;
+    decisionButtons(true);
+
+    /* KEEP THE SET WE ALREADY HAVE.
+
+       rank() refuses when nothing clears the separation bar, and a
+       refusal empties state.candidates. Measured on a real mission: the
+       greenest criterion separated at 2.6 sd and produced five zones,
+       and the driest criterion on the same frame reached only 1.3 sd. So
+       pressing Reject replaced a good candidate set with an EMPTY one,
+       the panel repainted as "0 candidate zones are ready for your
+       decision" over nothing, and Approve stayed armed - signing a
+       report whose summary read "0 candidate zones were identified" and
+       whose Recommendations section said a researcher had approved them.
+
+       So the previous set is held, and restored if the other criterion
+       comes back with nothing. */
+    var previous = RUN_STATE.candidates.slice();
+    var previousMode = RUN_STATE.rankMode;
+    var asking = (RUN_STATE.rankMode === 'driest') ? 'greenest' : 'driest';
+
     say('decisionMsg', 'Rejected. The candidate set is being rebuilt from the same ' +
-                       'evidence under the opposite criterion. It is not edited in ' +
-                       'place: both sets stay in the findings.');
-    agents.rank(RUN_STATE, RUN_STATE.rankMode === 'driest' ? 'greenest' : 'driest')
+                       'evidence under the ' + asking + ' criterion. It is not edited ' +
+                       'in place: both sets stay in the findings.');
+
+    agents.rank(RUN_STATE, asking)
       .then(function () {
-        btn.disabled = false;
+        DECIDING = false;
+        decisionButtons(false);
         refreshTrace(RUN_STATE.run_id);
+
+        if (!RUN_STATE.candidates.length) {
+          RUN_STATE.candidates = previous;
+          RUN_STATE.rankMode = previousMode;
+          checkpoint(RUN_STATE);
+          say('decisionMsg', 'Nothing separated from the background under the ' +
+            asking + ' criterion, so there is no alternative set to offer. The ' +
+            'refusal and its numbers are in the audit trail, and the original ' +
+            previousMode + ' set is still on screen. Approve it or abandon the run.');
+          return;
+        }
         checkpoint(RUN_STATE);
         say('decisionMsg', 'Re-ranked by the ' + RUN_STATE.rankMode + ' criterion. ' +
           'Both candidate sets stay in the findings; neither was overwritten.');
       }).catch(function (e) {
-        btn.disabled = false;
-        say('decisionMsg', 'The database refused: ' + (e && e.message ? e.message : e));
+        DECIDING = false;
+        decisionButtons(false);
+        say('decisionMsg', 'The re-rank could not finish: ' +
+          (e && e.message ? e.message : e));
       });
   }
 
   function abandonRun(btn) {
     if (!RUN_STATE || !RUN_STATE.run_id) { say('decisionMsg', 'There is no open run.'); return; }
-    btn.disabled = true;
+    if (DECIDING) return;
+    DECIDING = true;
+    decisionButtons(true);
     agents.finish(RUN_STATE.run_id, 'stalled', 'abandoned by the researcher at the checkpoint')
       .then(function () {
-        btn.disabled = false;
+        DECIDING = false;
+        decisionButtons(false);
         doc.getElementById('checkpointCard').hidden = true;
         say('decisionMsg', '');
         say('runMsg', 'Run abandoned. The steps that did happen stay in the audit trail; ' +
@@ -1713,7 +1952,8 @@
         RUN_STATE = null;
         return refreshAfterRun();
       }).catch(function (e) {
-        btn.disabled = false;
+        DECIDING = false;
+        decisionButtons(false);
         say('decisionMsg', 'The database refused: ' + (e && e.message ? e.message : e));
       });
   }
@@ -1729,6 +1969,12 @@
         if (again && !doc.getElementById('missionDetail').hidden) openMission(again.id);
       }
       loadFindingsLayer();
+      /* The Audit view used to cache AUDIT_RUNS on first visit and never
+         re-read, so every run made after that visit was missing from it.
+         The Access Test panel lives on that view, so visiting it early is
+         the natural thing to do - and it is also the view a judge is most
+         likely to ask to see AFTER a run. */
+      loadAudit(true);
     });
   }
 
@@ -2053,11 +2299,17 @@
     if (!MODAL_MAP) return;
     MODAL_AOI = viewPolygon(MODAL_MAP, 'Drawn on the map');
     MODAL_MAP._ksatAoi.clearLayers();
-    L.rectangle(geo.polygonBounds(MODAL_AOI),
-      { color: '#d88484', weight: 2, fillOpacity: 0.05 }).addTo(MODAL_MAP._ksatAoi);
     var n = doc.getElementById('mAoi');
     if (!n) return;
     clear(n);
+
+    if (!MODAL_AOI) {
+      n.className = 'aoi bad';
+      n.appendChild(doc.createTextNode(OUTSIDE));
+      return;
+    }
+    L.rectangle(geo.polygonBounds(MODAL_AOI),
+      { color: '#d88484', weight: 2, fillOpacity: 0.05 }).addTo(MODAL_MAP._ksatAoi);
     n.className = 'aoi';
     n.appendChild(el('b', null, 'Area of interest '));
     n.appendChild(doc.createTextNode(describeAoi(MODAL_AOI)));
@@ -2099,7 +2351,11 @@
        could act on. The field is a map now: whatever is on screen is the
        polygon, clipped to the Kuwait envelope, and it is always valid by
        construction. */
-    var area = MODAL_AOI || PENDING_AOI || geo.presetPolygon('all');
+    var area = MODAL_AOI || PENDING_AOI;
+    if (!area) {
+      say('modalMsg', OUTSIDE);
+      return;
+    }
     var type = ($('#mType') || {}).value || '';
     var win = ($('#mWindow') || {}).value || '';
 
