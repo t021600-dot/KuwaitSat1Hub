@@ -1,22 +1,68 @@
 /* =====================================================================
-   ksat-stars.js — THE FIELD BEHIND THE DOOR
-   Owner: 01 Front End
+   ksat-stars.js — THE GALAXY BEHIND THE DOOR
+   Owner: 01 Front End.  Pairs with css/ksat-stars.css.
 
+   ---------------------------------------------------------------------
    WHAT THIS IS FOR
-
+   ---------------------------------------------------------------------
    The sign-in gate is the one screen on this platform that a researcher
    looks at while doing nothing. It is a wait: the account exists, the
-   password is being typed, the session is being established. Until now
-   that wait was a flat panel of rgba(4,8,18,.93) over a blurred page,
-   which reads as a modal that is in the way rather than as the front
-   door of a spacecraft programme.
+   password is being typed, the session is being established. It used to
+   be a flat panel over a blurred page, which reads as a modal in the
+   way rather than as the front door of a spacecraft programme.
 
-   The brief was a star field in the manner of the OpenAI Astra page:
-   depth, slow drift, a sense that the panel is floating in something
-   rather than sitting on something. Not a copy of it.
+   ---------------------------------------------------------------------
+   THE SECOND PASS: "exactly like this galaxy"
+   ---------------------------------------------------------------------
+   The first version of this file drew three parallax layers of stars,
+   two nebula washes and an occasional meteor, on a brief that said "not
+   exactly the same but something like that". The team came back with
+   "make sure the waiting page is exactly like this galaxy", so the page
+   was opened and looked at properly rather than remembered.
 
+   What is actually on it: ONE SPIRAL GALAXY, face on, centred, drawn as
+   individual point stars rather than as a painted nebula. Two arms,
+   each sweeping a little over a turn. A bright core with a soft bloom.
+   The stars are mostly blue-white with a scattering of warm amber ones
+   through the arms, which is what gives it the look of a real stellar
+   population instead of a graphic. Background black, with the faintest
+   navy wash at the edges. It turns, slowly, as one piece.
+
+   That last word matters and is the one thing that would have been got
+   wrong from memory. A real galaxy rotates DIFFERENTIALLY — the inside
+   goes round faster — and a particle field built that way winds its own
+   arms into a smear within a minute. This one rotates rigidly. So does
+   ours, and the note at rotate() says so, so nobody "fixes" it later.
+
+   ---------------------------------------------------------------------
+   HOW IT IS BUILT, AND WHY IT IS 2D CANVAS AND NOT WebGL
+   ---------------------------------------------------------------------
+   The reference is a WebGL2 canvas. It does not need to be: the whole
+   image is under a thousand soft round blobs. Five sprites are
+   pre-rendered once, one per colour in the palette, and every star is
+   one drawImage of a sprite scaled to its size. That is a blit, not a
+   shader, and it holds 60fps on an integrated GPU with no context to
+   lose, no extension to feature-detect and no fallback path to keep.
+
+   The geometry is a logarithmic spiral, which is what a real one is:
+
+       theta = arm + TURNS * 2pi * t,     r = R * (0.18 + 0.82 * t^0.72)
+
+   with t the position along the arm, gaussian scatter across it that
+   widens as it goes out, a gaussian bulge of small bright stars at the
+   core, and a sparse halo over the whole frame so the galaxy is in
+   something rather than on something.
+
+   The 0.18 is the gap between the bulge and where the arms begin. The
+   first build ran the arms all the way in, and with additive blending
+   the inner turn and the core merged into one white blob about 150px
+   across. On the reference you can see black between the nucleus and
+   the first arm, and that gap is most of what makes it read as a
+   galaxy rather than as a light source with confetti round it.
+
+   ---------------------------------------------------------------------
    WHERE IT MOUNTS, AND WHY IT WATCHES FOR ITS OWN HOST
-
+   ---------------------------------------------------------------------
    #ksat-gate does not exist at parse time. js/ksat-integration.js
    builds it only when a reader asks to sign in, so a script that runs
    on DOMContentLoaded and looks for it finds nothing and gives up. The
@@ -24,35 +70,33 @@
    its splash.
 
    So this file does not look once. It observes document.body for
-   childList additions and attaches to either host the moment it
-   appears. That is the same shape js/ksat-minimal.js uses against
-   renderNav(), and it is here for the same reason: this page builds
-   large parts of itself after load, and a feature that assumes
-   otherwise disappears the first time the DOM is rebuilt.
+   childList additions and attaches the moment a host appears. AND IT
+   PAUSES RATHER THAN STOPS: js/ksat-shell.js captures #ksat-gate out of
+   the document immediately after creating it and re-appends it on every
+   open, so a field that stopped on detach drew exactly one frame in its
+   life. That was the bug; the MutationObserver at watch() is the fix.
 
-   WHAT IS DRAWN
-
-   Three parallax layers of stars, a slow rotation about a centre below
-   the frame, two drifting nebula washes in the platform's own teal and
-   indigo, and an occasional meteor. Nothing here is data. It is
-   decoration on a waiting screen and it is not badged as anything else
-   — every figure on this platform declares whether it was measured or
-   modelled, and the correct declaration for this one is "neither".
-
+   ---------------------------------------------------------------------
    MOTION IS A SETTING, NOT A DECISION
-
-   Under prefers-reduced-motion the field is painted ONCE and the loop
-   never starts: no rotation, no twinkle, no meteors. The stars stay,
-   because a still star field is not a motion effect. The media query is
+   ---------------------------------------------------------------------
+   Under prefers-reduced-motion the galaxy is painted ONCE and the loop
+   never starts: no rotation and no twinkle. The stars stay, because a
+   still galaxy is not a motion effect, and the still frame is the whole
+   picture rather than a first frame of something. The media query is
    re-read live, so a reader who changes the setting with the gate open
    gets the change without a reload.
+
+   Nothing here is data. It is decoration on a waiting screen and it is
+   not badged as anything else: every figure on this platform declares
+   whether it was measured or modelled, and the honest declaration for
+   this one is "neither".
    ===================================================================== */
 
 (function () {
   'use strict';
 
   var KS = (window.KSAT = window.KSAT || {});
-  if (KS.stars) return;                       // never mount twice
+  if (KS.stars) { return; }                   // never mount twice
 
   /* Hosts this layer will decorate. #ksat-gate is the sign-in gate on
      the public site; #entry is the researcher workspace's splash, and
@@ -65,270 +109,372 @@
   try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)'); } catch (e) {}
   function still() { return !!(reduce && reduce.matches); }
 
-  /* -------------------------------------------------------------------
-     A field, bound to one host element
-     ------------------------------------------------------------------- */
+  /* ===================================================================
+     1 · THE PALETTE, AND THE SPRITES IT IS BAKED INTO
+
+     Read off the reference rather than invented: the population is
+     mostly blue-white, with a real minority of warm amber stars through
+     the arms. Take the warm ones out and it stops looking like a galaxy
+     and starts looking like a screensaver — they are 18% of the draw
+     and most of the character.
+
+     Each colour is pre-rendered once into a 64px sprite: a white core
+     at 12% of the radius, the colour at 34%, transparent at the edge.
+     Drawing a star is then one drawImage of that sprite, scaled. The
+     sprites are module level and shared by every host, because there is
+     never more than one gate on screen and building them per field
+     would be five canvases per open.
+     =================================================================== */
+  var PALETTE = [
+    { c: '#F4F8FF', w: 34 },   /* cool white                            */
+    { c: '#CCDEFF', w: 28 },   /* blue white                            */
+    { c: '#9DC2FF', w: 20 },   /* ice blue                              */
+    { c: '#FFD4AC', w: 12 },   /* warm                                  */
+    { c: '#FFB877', w: 6 }     /* amber                                 */
+  ];
+  var SPRITE = 64;
+  var sprites = null;
+
+  function buildSprites() {
+    if (sprites) { return sprites; }
+    sprites = PALETTE.map(function (p) {
+      var c = document.createElement('canvas');
+      c.width = c.height = SPRITE;
+      var g = c.getContext('2d');
+      var h = SPRITE / 2;
+      var grad = g.createRadialGradient(h, h, 0, h, h, h);
+      grad.addColorStop(0.00, '#FFFFFF');
+      grad.addColorStop(0.12, p.c);
+      grad.addColorStop(0.34, tint(p.c, 0.45));
+      grad.addColorStop(1.00, tint(p.c, 0));
+      g.fillStyle = grad;
+      g.fillRect(0, 0, SPRITE, SPRITE);
+      return c;
+    });
+    return sprites;
+  }
+
+  /* #RRGGBB to rgba() at a given alpha. Written out rather than reached
+     for from a library because it is four lines and this file has no
+     dependencies at all. */
+  function tint(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  function pick() {
+    var r = Math.random() * 100, acc = 0;
+    for (var i = 0; i < PALETTE.length; i++) {
+      acc += PALETTE[i].w;
+      if (r < acc) { return i; }
+    }
+    return 0;
+  }
+
+  /* A gaussian, by the cheap route: the sum of three uniforms is close
+     enough to normal for scatter that nobody will measure. */
+  function gauss() {
+    return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+  }
+
+  /* ===================================================================
+     2 · ONE GALAXY, BOUND TO ONE HOST
+     =================================================================== */
   function field(host) {
-    if (!host || host.querySelector('.ksat-stars')) return;
+    if (!host || host.dataset.ksatStars === 'on') { return; }
+    host.dataset.ksatStars = 'on';
 
     var cv = document.createElement('canvas');
     cv.className = 'ksat-stars';
-    cv.setAttribute('aria-hidden', 'true');    // decoration: never announced
+    cv.setAttribute('aria-hidden', 'true');
     host.insertBefore(cv, host.firstChild);
 
-    var ctx = cv.getContext('2d');
-    if (!ctx) { cv.remove(); return; }
+    var g = cv.getContext('2d', { alpha: false });
+    if (!g) { return; }
 
-    var W = 0, H = 0, dpr = 1;
-    var stars = [], meteors = [], t0 = 0, raf = 0;
+    var W = 0, Hh = 0, dpr = 1;
+    var stars = [];
+    var CX = 0, CY = 0, R = 1;
+    var spin = 0;
+    var raf = 0, t0 = 0;
 
-    /* Layer 0 is furthest and barely moves; layer 2 is nearest and
-       carries most of the rotation. Counts are weighted the other way
-       round so the distance reads as distance and not as noise. */
-    var LAYERS = [
-      { n: 0.52, r: [0.35, 0.85], a: [0.18, 0.46], spin: 0.10 },
-      { n: 0.33, r: [0.55, 1.25], a: [0.30, 0.68], spin: 0.26 },
-      { n: 0.15, r: [0.85, 1.90], a: [0.48, 0.95], spin: 0.52 }
-    ];
+    /* ---- geometry ------------------------------------------------- */
+    var ARMS = 2;
+    var TURNS = 1.26;          /* how far one arm wraps, in turns       */
+    var CORE = 0.17;           /* share of stars in the central bulge   */
+    var HALO = 200;            /* loose stars over the whole frame      */
 
-    /* A handful of stars are not white. Real fields are not, and two
-       tinted stars per hundred is the difference between "sky" and
-       "dots". The tints are the platform's own accents. */
-    var TINT = ['#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF',
-                '#FFFFFF', '#CFE6FF', '#CFE6FF', '#BFF3EF', '#FFE3C4'];
-
-    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function count() {
+      /* Density per area, capped. A phone gets a galaxy rather than a
+         thinned-out version of a desktop one, and a 4K panel does not
+         get 9,000 sprites a frame. */
+      var n = Math.round((W * Hh) / 1050);
+      return Math.max(520, Math.min(1450, n));
+    }
 
     function build() {
-      /* Density per area, so a phone and a 4K monitor look the same
-         rather than the phone looking like deep space and the monitor
-         looking empty. */
-      var target = Math.max(120, Math.min(620, Math.round((W * H) / 3400)));
       stars = [];
-      for (var li = 0; li < LAYERS.length; li++) {
-        var L = LAYERS[li];
-        var n = Math.round(target * L.n);
-        for (var i = 0; i < n; i++) {
-          stars.push({
-            x: Math.random() * W,
-            y: Math.random() * H,
-            r: rnd(L.r[0], L.r[1]),
-            a: rnd(L.a[0], L.a[1]),
-            c: TINT[(Math.random() * TINT.length) | 0],
-            spin: L.spin,
-            /* twinkle: each star has its own period and phase, so the
-               field never pulses in unison */
-            tw: rnd(2.6, 7.4),
-            ph: Math.random() * Math.PI * 2
-          });
-        }
+      var n = count();
+
+      /* THE CORE. A gaussian cloud, small and bright. It is what makes
+         the middle read as a nucleus rather than as the place the arms
+         happen to meet. */
+      var nCore = Math.round(n * CORE);
+      for (var i = 0; i < nCore; i++) {
+        var cr = Math.abs(gauss()) * R * 0.080;
+        var ca = Math.random() * Math.PI * 2;
+        stars.push({
+          x: Math.cos(ca) * cr,
+          y: Math.sin(ca) * cr,
+          /* Small and many, so the bulge reads as one glow rather
+             than as six white blobs sitting on top of each other. */
+          s: 0.34 + Math.random() * 0.62,
+          a: 0.7 + Math.random() * 0.3,
+          p: pick(),
+          ph: Math.random() * Math.PI * 2,
+          tw: 0.10 + Math.random() * 0.14
+        });
+      }
+
+      /* THE ARMS. t runs along the arm; r is a power of t so the stars
+         bunch toward the middle the way they do on the reference, and
+         the cross-arm scatter widens as it goes out. */
+      var nArm = n - nCore;
+      for (var j = 0; j < nArm; j++) {
+        var arm = j % ARMS;
+        var t = Math.pow(Math.random(), 0.82);
+        var r = R * (0.18 + 0.82 * Math.pow(t, 0.72));
+        var th = (arm / ARMS) * Math.PI * 2 + TURNS * Math.PI * 2 * t;
+
+        /* Scatter across the arm, plus a little along it, so the arm is
+           a band of stars and not a drawn line. */
+        var spread = R * (0.030 + 0.100 * t);
+        var ox = gauss() * spread;
+        var oy = gauss() * spread;
+        th += gauss() * 0.10;
+
+        var big = Math.random() < 0.05;       /* the few bright giants  */
+        stars.push({
+          x: Math.cos(th) * r + ox,
+          y: Math.sin(th) * r + oy,
+          s: (big ? 1.7 + Math.random() * 1.7 : 0.55 + Math.random() * 1.25) * (1 - 0.20 * t),
+          a: (big ? 1 : 0.6 + Math.random() * 0.4) * (1 - 0.26 * t),
+          p: pick(),
+          ph: Math.random() * Math.PI * 2,
+          tw: 0.08 + Math.random() * 0.16
+        });
+      }
+
+      /* THE HALO. Sparse, faint, and OUTSIDE the disc as often as in
+         it, so the galaxy sits in space rather than on a black card.
+         These rotate with everything else; at this brightness nobody
+         can tell, and exempting them costs a branch per star. */
+      for (var k = 0; k < HALO; k++) {
+        var hr = R * (0.35 + Math.random() * 1.5);
+        var ha = Math.random() * Math.PI * 2;
+        stars.push({
+          x: Math.cos(ha) * hr,
+          y: Math.sin(ha) * hr,
+          s: 0.4 + Math.random() * 0.7,
+          a: 0.16 + Math.random() * 0.34,
+          p: pick(),
+          ph: Math.random() * Math.PI * 2,
+          tw: 0.14 + Math.random() * 0.2
+        });
       }
     }
 
     function size() {
       var r = host.getBoundingClientRect();
-      var w = Math.max(1, Math.round(r.width || window.innerWidth));
-      var h = Math.max(1, Math.round(r.height || window.innerHeight));
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      if (w === W && h === H) return false;
-      W = w; H = h;
+      W = Math.max(1, Math.round(r.width || window.innerWidth));
+      Hh = Math.max(1, Math.round(r.height || window.innerHeight));
+      /* 1.5 rather than the full device ratio. These are soft blobs
+         with no edge to alias, so the third pixel buys nothing and
+         costs 78% more fill on a 2x panel. */
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       cv.width = Math.round(W * dpr);
-      cv.height = Math.round(H * dpr);
-      cv.style.width = W + 'px';
-      cv.style.height = H + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cv.height = Math.round(Hh * dpr);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      /* TWO COMPOSITIONS, AND THE BREAKPOINT IS WHERE THEY STOP
+         FIGHTING. The card is about 390px wide and centred. A galaxy
+         also centred, 500px across, is simply underneath it: measured
+         in the browser, the scrim over the middle of the card killed
+         every arm and what was left on screen was a form on black with
+         a few stray halo stars. The reference gets away with a centred
+         galaxy because its words are at the far left and far right of
+         the frame, and a sign-in card cannot be.
+
+         So on a wide screen the pair separates the way the reference
+         separates them: the card moves to the left gutter (that half is
+         css/ksat-stars.css) and the galaxy takes the right. Below
+         1000px there is no room for two things side by side, so it
+         centres and the scrim does the work. */
+      CX = (W >= 1000) ? W * 0.66 : W * 0.5;
+      /* A LITTLE ABOVE CENTRE. The card carrying the security notice and
+         the password field sits in the middle of this host, and it is a
+         soft scrim rather than a panel (see css/ksat-stars.css), so the
+         galaxy reads THROUGH it the way the reference reads behind its
+         own headline. 0.42 keeps the core just above the title instead
+         of directly behind it, which is the difference between a glow
+         under the words and a washed-out word. */
+      CY = Hh * 0.42;
+      R = Math.min(W, Hh) * 0.40;
       build();
-      return true;
     }
 
-    /* The two nebula washes. Painted every frame because they drift;
-       they are cheap because they are two radial gradients, not a
-       particle system. */
-    function wash(ms) {
-      var d = still() ? 0 : ms / 1000;
-      var cx1 = W * (0.26 + 0.05 * Math.sin(d * 0.045));
-      var cy1 = H * (0.30 + 0.04 * Math.cos(d * 0.037));
-      var g1 = ctx.createRadialGradient(cx1, cy1, 0, cx1, cy1, Math.max(W, H) * 0.62);
-      g1.addColorStop(0, 'rgba(24,104,124,0.30)');
-      g1.addColorStop(0.45, 'rgba(15,58,84,0.14)');
-      g1.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = g1;
-      ctx.fillRect(0, 0, W, H);
+    /* ---- paint ---------------------------------------------------- */
+    function ground() {
+      /* Black, with the faintest navy lift away from the core. The
+         reference is pure black at the edges and very slightly blue
+         where the galaxy's light falls, and that gradient is the
+         difference between "space" and "a black div". */
+      g.fillStyle = '#04070F';
+      g.fillRect(0, 0, W, Hh);
 
-      var cx2 = W * (0.78 - 0.05 * Math.cos(d * 0.031));
-      var cy2 = H * (0.72 - 0.04 * Math.sin(d * 0.041));
-      var g2 = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, Math.max(W, H) * 0.58);
-      g2.addColorStop(0, 'rgba(58,44,116,0.26)');
-      g2.addColorStop(0.5, 'rgba(26,22,64,0.12)');
-      g2.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = g2;
-      ctx.fillRect(0, 0, W, H);
+      var vg = g.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, Hh) * 0.75);
+      vg.addColorStop(0, 'rgba(24,44,86,.55)');
+      vg.addColorStop(0.45, 'rgba(12,22,46,.28)');
+      vg.addColorStop(1, 'rgba(4,7,15,0)');
+      g.fillStyle = vg;
+      g.fillRect(0, 0, W, Hh);
     }
 
-    /* Rotation centre sits below the frame, so the field turns like a
-       sky rather than like a wheel with a visible hub. */
-    function spinAbout() { return { x: W * 0.5, y: H * 1.35 }; }
+    function bloom() {
+      var bg = g.createRadialGradient(CX, CY, 0, CX, CY, R * 0.50);
+      bg.addColorStop(0, 'rgba(255,250,238,.50)');
+      bg.addColorStop(0.10, 'rgba(236,240,255,.30)');
+      bg.addColorStop(0.30, 'rgba(186,208,255,.13)');
+      bg.addColorStop(0.62, 'rgba(140,175,255,.045)');
+      bg.addColorStop(1, 'rgba(120,160,255,0)');
+      g.fillStyle = bg;
+      g.fillRect(CX - R, CY - R, R * 2, R * 2);
+    }
 
-    function paint(ms) {
-      var d = still() ? 0 : ms / 1000;
+    function draw(ms) {
+      ground();
 
-      ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#04070F';
-      ctx.fillRect(0, 0, W, H);
-      wash(ms);
+      var sp = buildSprites();
+      var cos = Math.cos(spin), sin = Math.sin(spin);
+      /* A hair of inclination. Face on reads as a target; 0.94 reads as
+         a disc seen from very slightly off the pole, which is what the
+         reference looks like. */
+      var SQ = 0.94;
+      var moving = !still();
 
-      var c = spinAbout();
-      var base = d * 0.0042;                   // radians/sec at spin = 1
-
+      g.globalCompositeOperation = 'lighter';
       for (var i = 0; i < stars.length; i++) {
-        var s = stars[i];
-        var ang = base * s.spin;
-        var dx = s.x - c.x, dy = s.y - c.y;
-        var ca = Math.cos(ang), sa = Math.sin(ang);
-        var x = c.x + dx * ca - dy * sa;
-        var y = c.y + dx * sa + dy * ca;
+        var st = stars[i];
+        var x = CX + (st.x * cos - st.y * sin);
+        var y = CY + (st.x * sin + st.y * cos) * SQ;
 
-        if (x < -8 || x > W + 8 || y < -8 || y > H + 8) continue;
+        var sz = st.s * 3.2;                         /* sprite is soft  */
+        if (x < -sz || x > W + sz || y < -sz || y > Hh + sz) { continue; }
 
-        var a = s.a;
-        if (!still()) {
-          a *= 0.62 + 0.38 * Math.sin(d * (Math.PI * 2 / s.tw) + s.ph);
-        }
+        var a = st.a;
+        if (moving) { a *= 1 + st.tw * Math.sin(ms * 0.0013 + st.ph); }
+        if (a <= 0.01) { continue; }
 
-        ctx.globalAlpha = Math.max(0, Math.min(1, a));
-        ctx.fillStyle = s.c;
-        ctx.beginPath();
-        ctx.arc(x, y, s.r, 0, Math.PI * 2);
-        ctx.fill();
-
-        /* The brightest few get a halo. Drawing one for every star
-           costs a lot and reads as fog. */
-        if (s.r > 1.45) {
-          ctx.globalAlpha = Math.max(0, Math.min(1, a * 0.22));
-          ctx.beginPath();
-          ctx.arc(x, y, s.r * 3.4, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        g.globalAlpha = a > 1 ? 1 : a;
+        g.drawImage(sp[st.p], x - sz, y - sz, sz * 2, sz * 2);
       }
-      ctx.globalAlpha = 1;
-
-      if (!still()) meteor(ms);
+      g.globalAlpha = 1;
+      bloom();
+      g.globalCompositeOperation = 'source-over';
     }
 
-    var nextMeteor = 0;
-    function meteor(ms) {
-      if (!nextMeteor) nextMeteor = ms + rnd(3000, 9000);
-      if (ms > nextMeteor) {
-        meteors.push({
-          x: rnd(W * 0.15, W * 1.05),
-          y: rnd(-40, H * 0.55),
-          len: rnd(70, 170),
-          sp: rnd(0.34, 0.62),
-          born: ms,
-          life: rnd(900, 1500)
-        });
-        nextMeteor = ms + rnd(5200, 15000);
-      }
-      for (var i = meteors.length - 1; i >= 0; i--) {
-        var m = meteors[i];
-        var age = (ms - m.born) / m.life;
-        if (age >= 1) { meteors.splice(i, 1); continue; }
-        var px = m.x - (ms - m.born) * m.sp * 0.6;
-        var py = m.y + (ms - m.born) * m.sp * 0.35;
-        /* fade in over the first fifth, out over the last third */
-        var a = age < 0.2 ? age / 0.2 : (age > 0.67 ? (1 - age) / 0.33 : 1);
-        var g = ctx.createLinearGradient(px, py, px + m.len * 0.6, py - m.len * 0.35);
-        g.addColorStop(0, 'rgba(255,255,255,' + (a * 0.85).toFixed(3) + ')');
-        g.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.strokeStyle = g;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(px + m.len * 0.6, py - m.len * 0.35);
-        ctx.stroke();
-      }
-    }
+    /* RIGID ROTATION, AND THIS IS NOT AN OVERSIGHT.
+
+       Real galaxies rotate differentially: the inside goes round in far
+       less time than the outside. Build a particle field that way and
+       the arms wind themselves into a featureless smear inside a
+       minute, because there is no density wave here to hold them — the
+       stars ARE the arms. The reference rotates as one piece and so
+       does this. One revolution in 300 seconds, which is slow enough to
+       be noticed rather than watched. */
+    var OMEGA = (Math.PI * 2) / 300000;
 
     function frame(ms) {
-      if (!t0) t0 = ms;
-      paint(ms - t0);
+      raf = 0;
+      if (still() || document.hidden || !document.contains(host)) { return; }
+      if (!t0) { t0 = ms; }
+      spin += OMEGA * (ms - (frame.last || ms));
+      frame.last = ms;
+      draw(ms);
       raf = requestAnimationFrame(frame);
     }
 
     function start() {
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-      if (still()) { paint(0); return; }        // one frame, no loop
+      if (raf) { return; }
+      frame.last = 0;
+      /* PAINT ONE FRAME NOW, before asking for the next. A background
+         tab never services requestAnimationFrame, so a gate opened in a
+         window that is not in front sat black until the reader came
+         back to it. The galaxy is a still picture that happens to turn;
+         there is no reason for the first one to wait on a frame
+         callback. */
+      draw(0);
+      if (still()) { return; }
       raf = requestAnimationFrame(frame);
     }
 
-    function onResize() { if (size()) { t0 = 0; } if (still()) paint(0); }
+    function stop() {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    }
 
+    /* ---- life ------------------------------------------------------ */
     size();
     start();
 
-    /* A window resize listener is not enough. The host is a fixed, full
-       viewport panel that can be mounted while it is still detached, and
-       in that state getBoundingClientRect() reports nothing — the canvas
-       ends up sized to whatever the window was at mount time and a strip
-       of the screen stays unpainted. ResizeObserver watches the element
-       itself, so it corrects on attach, on layout and on rotate alike.
-       The window listener stays as the fallback for engines without it. */
-    if (window.ResizeObserver) {
-      try { new ResizeObserver(onResize).observe(host); } catch (e) {}
-    }
-    window.addEventListener('resize', onResize);
+    /* THE HOST IS DETACHED AND RE-ATTACHED, AND THAT COST A BUG ONCE.
 
-    /* Re-read the setting live rather than at load. */
-    if (reduce) {
-      var onPref = function () { t0 = 0; start(); };
-      if (reduce.addEventListener) reduce.addEventListener('change', onPref);
-      else if (reduce.addListener) reduce.addListener(onPref);
-    }
-
-    /* -----------------------------------------------------------------
-       PAUSE WHEN DETACHED, RESUME WHEN RE-ATTACHED — not "stop for good".
-
-       js/ksat-shell.js does not leave #ksat-gate where the integration
-       layer puts it. captureGate() pulls it straight back out of the
-       document the moment it is built, keeps it in a variable, and
-       re-appends it every time openGate() runs. So the gate's life is
-       add, remove, add, remove, for as long as the page is open.
-
-       An observer that set alive=false on the first removal would kill
-       the field milliseconds after creating it and it would never come
-       back — the canvas would still be there, black, every time the
-       reader opened the gate. Detaching is a pause, and only a pause.
-
-       It still has to BE a pause: a canvas painting sixty frames a
-       second behind a gate nobody has opened is a battery cost nobody
-       can see.
-       ----------------------------------------------------------------- */
+       js/ksat-shell.js's captureGate() removes #ksat-gate from the
+       document the instant it is built and puts it back on every open.
+       A field that STOPPED on detach therefore drew one frame in its
+       entire life and then sat still for ever. So detach pauses and
+       attach resumes. */
     var attached = document.contains(host);
-    var watch = new MutationObserver(function () {
+    new MutationObserver(function () {
       var now = document.contains(host);
-      if (now === attached) return;
+      if (now === attached) { return; }
       attached = now;
       if (now) { size(); t0 = 0; start(); }
-      else if (raf) { cancelAnimationFrame(raf); raf = 0; }
-    });
-    watch.observe(document.body, { childList: true, subtree: true });
-    if (!attached && raf) { cancelAnimationFrame(raf); raf = 0; }
+      else { stop(); }
+    }).observe(document.body, { childList: true, subtree: true });
 
-    /* Nothing is painted while the tab is hidden. */
+    /* A window resize is not enough on its own: this host is often
+       mounted while detached, where it has no measurable box, and it
+       gets its real size the moment it is put back. */
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(function () {
+        if (!document.contains(host)) { return; }
+        size();
+        if (still()) { draw(0); } else { start(); }
+      }).observe(host);
+    } else {
+      window.addEventListener('resize', function () { size(); start(); });
+    }
+
+    if (reduce && reduce.addEventListener) {
+      reduce.addEventListener('change', function () {
+        stop();
+        if (still()) { draw(0); } else { t0 = 0; start(); }
+      });
+    }
+
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = 0; }
+      if (document.hidden) { stop(); }
       else if (attached) { t0 = 0; start(); }
     });
   }
 
-  /* -------------------------------------------------------------------
-     Attach to whichever host exists now, and to any that appears later
-     ------------------------------------------------------------------- */
+  /* ===================================================================
+     3 · ATTACH TO WHATEVER EXISTS NOW, AND TO WHATEVER APPEARS LATER
+     =================================================================== */
   function sweep() {
     for (var i = 0; i < HOSTS.length; i++) {
       var h = document.getElementById(HOSTS[i]);
-      if (h) field(h);
+      if (h) { field(h); }
     }
   }
 
@@ -342,7 +488,7 @@
         var add = recs[i].addedNodes;
         for (var j = 0; j < add.length; j++) {
           var n = add[j];
-          if (n.nodeType === 1 && HOSTS.indexOf(n.id) >= 0) field(n);
+          if (n.nodeType === 1 && HOSTS.indexOf(n.id) >= 0) { field(n); }
         }
       }
     }).observe(document.body, { childList: true });

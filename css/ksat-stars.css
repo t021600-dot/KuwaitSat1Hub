@@ -11,6 +11,18 @@
    an explicit layer here rather than relying on source order. */
 .ksat-stars{
   position:absolute; inset:0;
+  /* WIDTH AND HEIGHT ARE NOT REDUNDANT NEXT TO inset:0, AND LEAVING
+     THEM OUT BROKE THE GATE. A canvas is a REPLACED element: it has an
+     intrinsic size, which is its width and height attributes. For a
+     replaced element `width:auto` resolves to that intrinsic width, the
+     box is then over-constrained, and the browser drops `right` and
+     keeps the attribute width. This canvas is sized in DEVICE pixels —
+     1409 CSS px at devicePixelRatio 1.35 is a 1902px attribute — so it
+     laid out 1902px wide inside a 1409px gate and shoved the sign-in
+     card off the right of the screen. With an explicit 100% it fills
+     its host, and the attribute goes back to being what it is for: the
+     backing store. */
+  width:100%; height:100%;
   z-index:0;
   display:block;
   pointer-events:none;              /* the field is scenery, not a target */
@@ -31,22 +43,62 @@
   background:#04070F !important;
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
-  overflow:hidden;                  /* meteors leave the frame, not the page */
+  overflow:hidden;                  /* the field leaves the frame, not the page */
 }
 
-/* The card floats in the field rather than sitting on it: a little more
-   translucency, a rim of light, and a shadow deep enough to read as
-   distance. */
+/* THE WIDE COMPOSITION: CARD LEFT, GALAXY RIGHT.
+
+   js/ksat-stars.js puts the galaxy's centre at 66% of the width once
+   there is room for two things side by side, and this is the other half
+   of that. The gate centres its card with flex; at 1000px and up the
+   card moves to the left gutter instead, so the two stop standing on
+   each other and the screen reads the way the reference reads: a
+   subject on one side, words on the other.
+
+   Below 1000px both centre and the scrim on the card carries it, which
+   is the only arrangement that fits on a phone. */
+@media (min-width:1000px){
+  #ksat-gate{
+    justify-content:flex-start;
+    padding-inline-start:clamp(48px, 9vw, 190px);
+  }
+}
+
+/* --------------------------------------------------------------------
+   THE CARD IS A SCRIM, NOT A PANEL, AND THAT IS THE WHOLE COMPOSITION.
+
+   It was rgba(10,16,30,.72) with a border, a rim light and a 10px
+   backdrop blur — a proper panel, and a proper panel is opaque enough
+   to hide a galaxy. Measured in the browser: the card's box covered the
+   galaxy's centre completely, so what a researcher saw was a sign-in
+   form on a nearly black screen with a few stray stars around the edge.
+   Every bit of work in js/ksat-stars.js was behind it.
+
+   The reference page has no panel at all. Its words sit directly on the
+   galaxy. This cannot go quite that far — there is a mono paragraph
+   about password handling here, not two words at 90px — so the card
+   becomes a radial wash instead: darkest under the text, gone by the
+   edges. The galaxy shows through and the type stays legible, which is
+   what the blur and the border were being asked to do and were doing
+   badly.
+
+   No border and no blur. A hairline is a panel edge, and a blur of the
+   canvas behind it turns the stars into fog.
+   -------------------------------------------------------------------- */
 #ksat-gate .ksat-gate-card{
   position:relative;
   z-index:1;
-  background:rgba(10,16,30,.72);
-  border:1px solid rgba(160,200,235,.16);
-  box-shadow:0 30px 90px rgba(0,0,0,.72),
-             0 0 0 1px rgba(255,255,255,.03) inset,
-             0 0 70px rgba(30,110,130,.22);
-  backdrop-filter:blur(10px) saturate(115%);
-  -webkit-backdrop-filter:blur(10px) saturate(115%);
+  background:radial-gradient(125% 96% at 50% 42%,
+              rgba(4,7,15,.94) 0%,
+              rgba(4,7,15,.86) 46%,
+              rgba(4,7,15,.58) 74%,
+              rgba(4,7,15,0) 100%) !important;
+  border:0 !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  /* The wash needs room to fade out in, or it ends in a visible circle. */
+  padding:34px 36px 30px !important;
 }
 
 /* --------------------------------------------------------------------
@@ -62,11 +114,11 @@
 :root[data-theme="light"] #ksat-gate{
   background:#04070F !important;
 }
+/* The card's own background is now a scrim declared !important above,
+   which already wins in both themes, so the light-mode rule only has to
+   carry the ink. */
 :root[data-theme="light"] #ksat-gate .ksat-gate-card{
-  background:rgba(10,16,30,.72);
   color:#E8ECF8;
-  box-shadow:0 30px 90px rgba(0,0,0,.72),
-             0 0 70px rgba(30,110,130,.22);
 }
 :root[data-theme="light"] #ksat-gate .ksat-gate-card h2,
 :root[data-theme="light"] #ksat-gate .ksat-gate-sub,
@@ -91,4 +143,86 @@
    -------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce){
   #entry .line i{ animation:none; width:100%; opacity:.5; }
+}
+
+
+/* =====================================================================
+   THE ARRIVAL, IN THREE BEATS
+
+   The team described the order they want, and it is an order rather
+   than a layout: "the researcher clicks Researcher sign in, then the
+   astra effect waiting page, then the security messege on the page,
+   then the researcher enters the password, then the researcher page is
+   shown."
+
+   Everything needed is already in the card. What was missing is that it
+   all landed at once, so there was no waiting page — there was a form
+   with a galaxy behind it. These rules put the beats in order:
+
+       0.05s   the card arrives, on the galaxy
+       0.30s   KUWAITSAT-1 MISSION HUB
+       0.45s   Researcher sign in
+       0.70s   the security line: who this is for, what is private
+       1.00s   the credentials, one control at a time
+       1.45s   the note about how the password is handled
+
+   About 1.9 seconds end to end, which is long enough to read as an
+   arrival and short enough that nobody waiting to work is annoyed by
+   it. It replays on every open, because re-inserting an element
+   restarts its animations and js/ksat-shell.js re-inserts this one
+   every time the gate is asked for.
+
+   ---------------------------------------------------------------------
+   animation-fill-mode: backwards, AND NOT `both`
+   ---------------------------------------------------------------------
+   `backwards` holds the FROM state during the delay and then lets the
+   element go back to its own style. `both` would also hold the TO state
+   for ever, which means that if the animation never runs — an element
+   inserted while display:none, a browser that skips it, anything —
+   every control on the sign-in form would be stuck at opacity 0 and the
+   door would be sealed. With `backwards` the failure mode is that the
+   beats are skipped and the form is simply there, which is the right
+   way round for a control nobody can sign in without.
+
+   Under prefers-reduced-motion the whole block does not apply and the
+   card arrives complete.
+   ===================================================================== */
+@keyframes ksat-gate-rise {
+  from { opacity: 0; transform: translateY(9px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ksat-gate-settle {
+  from { opacity: 0; transform: scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #ksat-gate .ksat-gate-card {
+    animation: ksat-gate-settle .55s .05s backwards cubic-bezier(.22,.61,.36,1);
+  }
+  #ksat-gate .ksat-gate-eyebrow { animation: ksat-gate-rise .5s .30s backwards ease-out; }
+  #ksat-gate .ksat-gate-card h2 { animation: ksat-gate-rise .5s .45s backwards ease-out; }
+  #ksat-gate .ksat-gate-sub     { animation: ksat-gate-rise .5s .70s backwards ease-out; }
+
+  /* The credentials, in the order a person uses them. The selectors are
+     positional because js/ksat-integration.js builds these nodes and
+     only some of them carry a class; :nth-child would break the first
+     time a node is inserted between them, so each is named by what it
+     is instead. */
+  #ksat-gate .ksat-gate-card > input { animation: ksat-gate-rise .45s 1.00s backwards ease-out; }
+  #ksat-gate .ksat-gate-field        { animation: ksat-gate-rise .45s 1.12s backwards ease-out; }
+  #ksat-gate .ksat-gate-btn          { animation: ksat-gate-rise .45s 1.26s backwards ease-out; }
+  #ksat-gate .ksat-gate-note         { animation: ksat-gate-rise .5s  1.45s backwards ease-out; }
+}
+
+/* THE SECURITY LINE IS THE POINT OF THE SECOND BEAT, so it is allowed
+   to look like something rather than like a caption. A hairline above
+   it and a little more ink: this is the sentence that says who the
+   workspace is for and what is private to an account, and it is the
+   last thing a reader sees before they are asked for a password. */
+#ksat-gate .ksat-gate-sub {
+  position: relative;
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(160, 200, 235, .14);
 }
