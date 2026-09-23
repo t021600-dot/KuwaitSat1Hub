@@ -55,17 +55,30 @@
      one. If the two ever disagree the database wins and this line is
      the bug.
 
-     Widened from 46.5-48.8 E / 28.5-30.1 N on 2026-09-23 together with
-     03-security/db/14_widen_mission_envelope.sql. The old east edge
-     excluded 31 % of Kuwait's EEZ, 65 % of the contiguous zone and a
-     12 km2 strip of land north of 30.1 N. 49.6 E contains the EEZ,
-     which reaches 49.526 E.
+     >>> THESE TWO NUMBERS CHANGE AS A PAIR, OR NOT AT ALL. <<<
+
+     The widening to 46.5-49.6 E / 28.5-30.15 N is written and measured
+     (it excludes zero of the EEZ, territorial sea, contiguous zone,
+     land and islands, against 31 % / 6 % / 65 % / 12 km2 / 0 today) and
+     it is NOT APPLIED HERE, because the database half of it is not
+     applied either - see 03-security/db/14_widen_mission_envelope.sql,
+     which has to be run by hand in Supabase.
+
+     Widening only this file would be worse than leaving both alone: the
+     map would let a researcher drag east of 48.8 E, draw an area, press
+     Create, and get a constraint violation from the database with no
+     way to understand why. A narrower bound that AGREES with the
+     database is better than a wider one that does not.
+
+     TO FINISH IT: run 14_widen_mission_envelope.sql, then change the
+     line below to east 49.6 / north 30.15. One without the other is
+     the bug.
 
      IT IS A RECTANGLE, NOT A MAP OF KUWAIT. It includes sea, and parts
      of Iraq and Iran. For "is this on Kuwaiti land", ask
      KS.layers.onKuwaitiLand() in js/ksat-layers.js, which tests the
      actual coastline. */
-  var KUWAIT = { west: 46.5, east: 49.6, south: 28.5, north: 30.15 };
+  var KUWAIT = { west: 46.5, east: 48.8, south: 28.5, north: 30.1 };
 
   var FOOTPRINT_NOTE =
     'Footprints are computed from the frame centre, the 39 m ground sample ' +
