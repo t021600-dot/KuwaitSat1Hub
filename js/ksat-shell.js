@@ -1058,7 +1058,15 @@
        as a broken session and it was the first thing visible in the
        bar. The identity chip is the signed-in affordance; the sign-in
        button belongs only to the public tier. */
-    if (signInBtn) signInBtn.hidden = (tier === 'insider');
+    /* The tier no longer decides this — wireTier() keeps the page
+       public for everybody, so keying the button off it would leave
+       "Researcher sign in" showing beside a signed-in researcher's own
+       name. data-ksat-signed carries the session; this reads it so that
+       an applyTier() call cannot undo what signedIn() set. */
+    if (signInBtn) {
+      signInBtn.hidden = (tier === 'insider') ||
+                         root.getAttribute('data-ksat-signed') === 'yes';
+    }
 
     wrapRenderAll();
     if (tier === 'public') parkInsiderSections(); else restoreInsiderSections();
@@ -2231,17 +2239,69 @@
     wireTier();
   }
 
-  /* The tier comes from the session and from nothing else. */
+  /* ===================================================================
+     THE HUB IS THE PUBLIC PAGE. FOR EVERYONE. INCLUDING RESEARCHERS.
+     ===================================================================
+     This function used to read the Supabase session and hand a
+     signed-in reader the INSIDER tier of this page: the two-row
+     masthead, the chapter rail, and ten more sections unhidden —
+     dashboard, console, agents, the lot. The team saw that after
+     signing in and said it "should never appear on the researcher
+     page", and gave the reason:
+
+         "we would have over a hundred researchers ... each researcher
+          cant see another researchers pages"
+
+     They are right, and the fix is a rule rather than a patch. There
+     are two products here and they are not two tiers of one page:
+
+        index.html       the public record. One version, the same for a
+                         visitor and for a signed-in researcher.
+        researcher.html  the workspace. Per account, and every row in it
+                         arrives over an authenticated PostgREST call
+                         that row level security answers — scoped by
+                         auth.uid() in 03-security/db/04_policies.sql,
+                         so a researcher reads their own missions and
+                         nobody else's. That is where a researcher's
+                         work lives and it is the only place it lives.
+
+     So the tier is now PUBLIC unconditionally. The insider sections of
+     this page stay parked for everybody. js/ksat-integration.js sends a
+     signed-in researcher to researcher.html anyway; this makes the hub
+     safe for the cases where it does not — the ksat.stayOnHub flag,
+     ?hub=1, and a session that turns up after the page has already
+     booted.
+
+     WHAT IS LOST, STATED PLAINLY: the ten insider sections of this page
+     are now unreachable from the browser by anybody. They are
+     prototype instruments that render in-browser demo data, they are
+     still in the document, and nothing in them is a researcher's work.
+     If the team want them back for a demo, this is the one function to
+     change and the git history has the version that did it.
+
+     The SIGN-IN BUTTON still has to follow the session rather than the
+     tier, or a signed-in researcher gets "Researcher sign in" next to
+     their own name and a Sign out button — which is the exact bug the
+     note in applyTier() describes. So that moves onto its own
+     attribute, data-ksat-signed, which is written from the session and
+     from nothing else.
+     =================================================================== */
+  function signedIn(on) {
+    root.setAttribute('data-ksat-signed', on ? 'yes' : 'no');
+    if (signInBtn) { signInBtn.hidden = !!on; }
+  }
+
   function wireTier() {
-    if (!haveDb()) { applyTier('public'); return; }
+    applyTier('public');
+    if (!haveDb()) { signedIn(false); return; }
 
     window.sb.auth.getSession().then(function (r) {
-      applyTier(r && r.data && r.data.session ? 'insider' : 'public');
-    }).catch(function () { applyTier('public'); });
+      signedIn(!!(r && r.data && r.data.session));
+    }).catch(function () { signedIn(false); });
 
     try {
       window.sb.auth.onAuthStateChange(function (evt, session) {
-        applyTier(session ? 'insider' : 'public');
+        signedIn(!!session);
         if (session) closeGate();
       });
     } catch (e) {}

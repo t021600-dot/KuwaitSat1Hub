@@ -135,6 +135,50 @@
   var SPRITE = 64;
   var sprites = null;
 
+  /* ===================================================================
+     1b · THE EMBLEM AT THE CENTRE OF THE SPIRAL
+
+     "i want in the middle of the galaxy star is our logo."
+
+     assets/brand/ksat-emblem-256.png is the seal: a circular mark on a
+     cream ground with a navy ring, already cut to a transparent circle.
+     It goes where the nucleus is, and the nucleus glow stays behind it,
+     so the logo reads as lit by the galaxy rather than pasted on it.
+
+     Two things this has to get right.
+
+     It is ASYNCHRONOUS. The first frame is painted before any image has
+     loaded, and under prefers-reduced-motion there IS no second frame —
+     the field draws once and stops. So every field registers a repaint
+     callback here and the load fires all of them. Without that, a
+     reader with motion switched off gets a galaxy with a hole in it.
+
+     It is loaded ONCE for the whole module, not per host. There are
+     three possible hosts on two pages and never more than one of them
+     on screen, and a second decode of the same 256px PNG for the same
+     centre is work nobody asked for.
+     =================================================================== */
+  var MARK_SRC = 'assets/brand/ksat-emblem-256.png';
+  var mark = null;
+  var markWaiting = [];
+
+  function brand(onReady) {
+    if (mark === false) { return null; }          /* it failed; stop asking */
+    if (mark) { return mark.complete && mark.naturalWidth ? mark : null; }
+
+    mark = new Image();
+    mark.decoding = 'async';
+    mark.addEventListener('load', function () {
+      var q = markWaiting; markWaiting = [];
+      q.forEach(function (fn) { try { fn(); } catch (e) {} });
+    });
+    mark.addEventListener('error', function () { mark = false; markWaiting = []; });
+    mark.src = MARK_SRC;
+
+    if (onReady) { markWaiting.push(onReady); }
+    return null;
+  }
+
   function buildSprites() {
     if (sprites) { return sprites; }
     sprites = PALETTE.map(function (p) {
@@ -381,6 +425,31 @@
       g.globalAlpha = 1;
       bloom();
       g.globalCompositeOperation = 'source-over';
+
+      /* The emblem last, and in source-over rather than lighter: it has
+         its own cream ground and an additive blend would bleach it to
+         white against the nucleus it is sitting on.
+
+         0.36 of the galaxy radius, and that number is the arms' rather
+         than a matter of taste: the spiral starts at 0.18R (see the
+         header), so a seal of 0.36R DIAMETER has a radius of 0.18R and
+         meets the first arm exactly. At 0.44 it sat on top of the arm
+         and the gap that makes this read as a galaxy closed up. The
+         bulge stars are drawn and then covered, which is right — the
+         logo IS the nucleus now. */
+      var m = brand(repaint);
+      if (m) {
+        var d = R * 0.36;
+        g.drawImage(m, CX - d / 2, CY - d / 2, d, d);
+      }
+    }
+
+    /* Handed to brand() so a late-arriving image repaints a field that
+       has already stopped: under reduced motion there is no next frame
+       to pick it up. */
+    function repaint() {
+      if (!document.contains(host)) { return; }
+      draw(0);
     }
 
     /* RIGID ROTATION, AND THIS IS NOT AN OVERSIGHT.
