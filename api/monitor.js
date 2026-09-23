@@ -212,6 +212,15 @@ module.exports = async function monitor(req, res) {
   var key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   var secret = process.env.CRON_SECRET;
 
+  /* Absent, present-but-blank, or set. Three states that the dashboard
+     renders identically and that `if (!x)` collapses into one. */
+  function envState(name, withLength) {
+    var v = process.env[name];
+    if (v === undefined || v === null) { return 'not set on this deployment'; }
+    if (String(v).trim() === '') { return 'SET BUT EMPTY'; }
+    return withLength ? ('set, ' + String(v).length + ' characters') : 'set';
+  }
+
   /* Fail closed, and name the variable. A monitoring endpoint that
      quietly returns 200 when it is not configured is worse than no
      monitoring endpoint, because it manufactures the evidence that
@@ -231,7 +240,37 @@ module.exports = async function monitor(req, res) {
              (missing.length > 1 ? 's' : '') + ': ' + missing.join(', ') +
              '. Set ' + (missing.length > 1 ? 'them' : 'it') + ' in the Vercel ' +
              'dashboard, Settings -> Environment Variables, Production. ' +
-             'See api/README.md.'
+             'See api/README.md.',
+
+      /* WHY THIS DIAGNOSTIC IS HERE, AND WHY IT LEAKS NOTHING.
+
+         "Missing SUPABASE_URL" and a variable sitting plainly in the
+         dashboard is a contradiction with three possible causes, and
+         from outside you cannot tell them apart:
+
+           1. the variable was added AFTER this build, and Vercel
+              resolves them at BUILD time, so the running deployment
+              cannot see it
+           2. it exists with an empty value, which `if (!url)` treats
+              as missing and the dashboard shows as a row like any other
+           3. it is scoped to an environment this deployment is not
+
+         We burned a redeploy and several minutes of a demo eve guessing.
+         So the endpoint answers it instead: which commit is actually
+         running, which environment it thinks it is, and for each
+         variable whether it is absent, present-but-empty, or set.
+
+         NO VALUE IS EVER RETURNED. The two secrets report only their
+         state. SUPABASE_URL reports its length as well, because it is a
+         public project URL printed in js/config.js already - and a
+         length is how you catch a trailing space or a truncated paste. */
+      diagnostic: {
+        running_commit: (process.env.VERCEL_GIT_COMMIT_SHA || 'unknown').slice(0, 7),
+        vercel_env: process.env.VERCEL_ENV || 'unknown',
+        SUPABASE_URL: envState('SUPABASE_URL', true),
+        SUPABASE_SERVICE_ROLE_KEY: envState('SUPABASE_SERVICE_ROLE_KEY', false),
+        CRON_SECRET: envState('CRON_SECRET', false)
+      }
     });
   }
 
