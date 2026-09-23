@@ -300,8 +300,9 @@
   /* Basemaps. Every URL here has to exist in the img-src list in
      vercel.json or the tiles are blocked with no error the page can see
      - the requests simply never happen. Attribution is not decoration:
-     OSM is ODbL and Sentinel-2 cloudless is CC BY 4.0, and both licences
-     require it.
+     OSM is ODbL. EOxCloudless is CC BY-NC-SA 4.0 for non-commercial use,
+     which a student capstone is; commercial use needs a licence from EOX.
+     Both require attribution.
 
      >>> CARTO WAS HERE AND HAD TO COME OUT. <<<
      basemaps.cartocdn.com/dark_all was the first default. It still
@@ -315,8 +316,9 @@
 
      The two that replaced it need no key and no account:
 
-       Sentinel-2 cloudless   EOX, CC BY 4.0, modified Copernicus
-                              Sentinel data. Actual satellite imagery,
+       Sentinel-2 cloudless   EOX, CC BY-NC-SA 4.0 (non-commercial),
+                              modified Copernicus Sentinel data.
+                              Actual satellite imagery,
                               which is what this workspace is for, and
                               dark enough to sit in this UI unretouched.
                               Serves to z16 over Kuwait - checked.
@@ -333,8 +335,12 @@
       'Satellite (Sentinel-2)': L.tileLayer(
         'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2021_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg',
         { maxZoom: 16, maxNativeZoom: 16,
-          attribution: 'Sentinel-2 cloudless 2021 by <a href="https://s2maps.eu">EOX</a>, ' +
-                       'CC BY 4.0, modified Copernicus Sentinel data' }),
+          /* EOX's required credit, verbatim from their licence page:
+             "EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH
+             (Contains modified Copernicus Sentinel data 'year')". */
+          attribution: '<a href="https://cloudless.eox.at">EOxCloudless</a> by ' +
+                       'EOX IT Services GmbH (Contains modified Copernicus ' +
+                       'Sentinel data 2021), CC BY-NC-SA 4.0' }),
       'Street map, dark': L.tileLayer(
         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         { maxZoom: 19, className: 'ksat-tiles-dark', attribution: OSM_ATTR }),

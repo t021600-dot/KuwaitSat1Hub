@@ -1313,8 +1313,9 @@
       'deployed site.');
     p('- Every step of this run, including refused steps, is in public.agent_steps ' +
       'under run ' + state.run_id + ' and is readable in the Provenance / Audit view.');
-    p('- Basemap: Sentinel-2 cloudless 2021 by EOX (CC BY 4.0, modified Copernicus ' +
-      'Sentinel data), OpenStreetMap contributors (ODbL), CARTO.');
+    p('- Basemap: EOxCloudless https://cloudless.eox.at by EOX IT Services GmbH ' +
+      '(Contains modified Copernicus Sentinel data 2021), CC BY-NC-SA 4.0, ' +
+      'non-commercial use. OpenStreetMap contributors (ODbL).');
     p('');
     p('## Limitations');
     p('');

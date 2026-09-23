@@ -18,7 +18,7 @@
 
    WHAT IS IN HERE, AND WHERE IT COMES FROM
 
-     Sentinel-2 cloudless 2021        EOX, CC BY 4.0
+     Sentinel-2 cloudless 2021        EOX, CC BY-NC-SA 4.0, non-commercial
                                       modified Copernicus Sentinel data
                                       10 m, visible bands, cloud-free
                                       mosaic. Optical surface cover.
@@ -58,8 +58,9 @@
     optical: {
       id: 'optical',
       name: 'Sentinel-2 cloudless 2021',
-      attribution: 'Sentinel-2 cloudless 2021 by EOX, CC BY 4.0, ' +
-                   'modified Copernicus Sentinel data',
+      attribution: 'EOxCloudless https://cloudless.eox.at by EOX IT Services ' +
+                   'GmbH (Contains modified Copernicus Sentinel data 2021), ' +
+                   'CC BY-NC-SA 4.0, non-commercial use',
       resolution_m: 10,
       maxZoom: 16,
       url: function (z, x, y) {
