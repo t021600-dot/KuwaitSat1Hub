@@ -1959,9 +1959,40 @@
        than absent. */
     if (anchor !== target && !anchor.getClientRects().length) { anchor = target; }
 
+    var before = window.pageYOffset;
     try {
       anchor.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
     } catch (e) { anchor.scrollIntoView(); }
+
+    /* AND THEN CHECK THAT IT ACTUALLY MOVED, because on this page it
+       often does not.
+
+       Measured on the deployed site: window.scrollTo({top:1500,
+       behavior:'smooth'}) leaves pageYOffset at 0, while the same call
+       without `behavior` works. The cause is the same one that broke
+       position:sticky here and is written up in css/ksat-spacecraft.css
+       — body carries `overflow-x: hidden`, CSS computes the other axis
+       to `auto`, and body becomes a scroll container with no scroll
+       range of its own while html is the thing that actually scrolls.
+       The smooth path aims at that box and has nowhere to go; the
+       instant path falls through to the viewport.
+
+       So every in-page navigation could change the hash and move the
+       page not at all. Rather than give up the smooth scroll everywhere
+       it DOES work, this asks afterwards: if nothing moved and we are
+       not already there, snap. `auto` still honours the scroll-margin
+       each section sets, which is the whole reason this uses
+       scrollIntoView rather than scrollTo.
+
+       260ms because a smooth scroll of any distance has visibly started
+       by then, and a scroll that has started will not read as unmoved. */
+    setTimeout(function () {
+      if (Math.abs(window.pageYOffset - before) > 4) { return; }
+      var r = anchor.getBoundingClientRect();
+      if (Math.abs(r.top) < 8) { return; }
+      try { anchor.scrollIntoView({ behavior: 'auto', block: 'start' }); }
+      catch (e2) { try { anchor.scrollIntoView(); } catch (e3) {} }
+    }, 260);
   }
 
   function pushHash(id, replace) {
