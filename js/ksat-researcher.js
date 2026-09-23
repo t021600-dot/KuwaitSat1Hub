@@ -235,11 +235,19 @@
 
     var meta = user.user_metadata || {};
     var nameBox = doc.getElementById('whoName');
+    var shown = meta.display_name || user.email || 'Researcher';
     if (nameBox) {
-      nameBox.textContent = meta.display_name || user.email || 'Researcher';
+      nameBox.textContent = shown;
       var small = el('small', null, meta.org || 'Authorized researcher');
       small.id = 'whoOrg';
       nameBox.appendChild(small);
+    }
+    /* The disc beside the name. First letter of whatever is actually
+       being shown, so it can never disagree with the label next to it. */
+    var mark = doc.getElementById('whoInitial');
+    if (mark) {
+      var letter = String(shown).replace(/[^A-Za-z\u0600-\u06FF]/, '').charAt(0);
+      mark.textContent = letter || '\u2022';
     }
     log('session established for ' + (user.email || user.id));
 

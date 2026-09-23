@@ -84,7 +84,10 @@
 </div></div>
 
 <header class="top">
-  <div class="brand">KUWAITSAT-1<small>RESEARCH &amp; MISSION OPERATIONS</small></div>
+  <a class="brand" href="/" title="KuwaitSat-1 Mission Hub">
+    <img class="brandmark" src="assets/brand/ksat-emblem-192.png" alt="" width="34" height="34">
+    <span class="brandtext">KUWAITSAT-1<small>RESEARCH &amp; MISSION OPERATIONS</small></span>
+  </a>
   <nav class="nav">
     <button class="active" data-go="overview">Overview</button>
     <button data-go="missions">Missions</button>
@@ -96,7 +99,10 @@
     <button data-go="audit">Audit</button>
   </nav>
   <div class="who">
-    <div class="name" id="whoName">Signed in<small id="whoOrg">Researcher</small></div>
+    <div class="ident">
+      <span class="identmark" id="whoInitial" aria-hidden="true">•</span>
+      <span class="name" id="whoName">Signed in<small id="whoOrg">Researcher</small></span>
+    </div>
     <a class="btn" href="/">Mission hub</a>
     <button class="btn" id="signout">Sign out</button>
   </div>
@@ -170,7 +176,7 @@
         <div class="stage" data-stage="impact_prediction"><i>5</i><span>IMPACT</span></div>
         <div class="stage" data-stage="reporting"><i>6</i><span>REPORT</span></div>
       </div>
-      <div id="ovMap" class="ksat-map ksat-map--mini" style="margin-top:18px"></div>
+      <div id="ovMap" class="ksat-map ksat-map--wide" style="margin-top:18px"></div>
       <div class="ksat-keys" id="ovKeys"></div>
       <div class="bar" style="margin-top:9px">
         <span class="sub grow" id="ovObjective">No mission selected.</span>
@@ -186,16 +192,12 @@
         checkpoint is in the Research Console.</div>
     </div>
 
-    <div class="card s7">
+    <div class="card s12">
       <div class="ct"><h3>Your Missions</h3><button class="btn" data-go="missions">View archive</button></div>
       <table id="ovMissions"><tr><th>Mission</th><th>Objective</th><th>Created</th><th>Status</th></tr></table>
       <div class="said" id="ovMissionsMsg"></div>
     </div>
 
-    <div class="card s5">
-      <div class="ct"><h3>Session</h3><span class="sub">THIS BROWSER</span></div>
-      <div class="log" id="sessionLog"></div>
-    </div>
   </div>
 </section>
 
