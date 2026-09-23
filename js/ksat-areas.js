@@ -55,6 +55,7 @@
 
   var CACHE = null;       /* the flattened list, built once */
   var PICKED = null;      /* the chosen polygon, or null for map-drawn */
+  var PICKED_REC = null;  /* the layer record it came from, for its published area */
   var DRAWN = null;       /* its Leaflet layer on the modal map */
 
   /* ------------------------------------------------------------------
@@ -220,6 +221,7 @@
 
   function clearPick(quiet) {
     PICKED = null;
+    PICKED_REC = null;
     var map = modalMap();
     if (DRAWN && map) { try { map.removeLayer(DRAWN); } catch (e) {} }
     DRAWN = null;
@@ -234,6 +236,7 @@
       return;
     }
     PICKED = poly;
+    PICKED_REC = rec;
 
     var map = modalMap();
     if (map && typeof L !== 'undefined') {
@@ -264,9 +267,20 @@
     var ring = PICKED.coordinates[0];
     var strong = el('b', null, PICKED.name);
     CHOSEN.appendChild(strong);
+
+    /* THE PUBLISHED AREA, NOT THE BOUNDING BOX.
+
+       geo.polygonAreaKm2() measures the rectangle AROUND a polygon,
+       which is the right figure for a map-drawn mission area and the
+       wrong one here. Qasr is 4.3 km2 in the layer and its bounding box
+       is 8.53, so the search result and the confirmation line printed
+       two different numbers for the same place. area_km2 comes from the
+       package, computed on full-resolution geometry. */
+    var km2 = PICKED_REC && typeof PICKED_REC.km2 === 'number'
+      ? PICKED_REC.km2.toFixed(1) + ' km²' : null;
     CHOSEN.appendChild(doc.createTextNode(
-      '  ' + KS.geo.polygonAreaKm2(PICKED) + ' km² bounding the polygon, ' +
-      ring.length + ' points. Moving the map clears this.'));
+      '  ' + (km2 ? km2 + ', ' : '') + ring.length +
+      '-point boundary. Moving the map clears this.'));
     var drop = el('button', 'btn', 'Use the map instead');
     drop.type = 'button';
     drop.style.marginLeft = '10px';
