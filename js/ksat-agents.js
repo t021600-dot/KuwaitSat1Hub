@@ -529,6 +529,35 @@
           })
           .then(function () {
             if (state.stopped) return state;
+
+            /* THE REFERENCE PATH HAS ALREADY FINISHED THE RUN.
+
+               This guard is here because its absence cost a real run.
+               DECISION 1 hands an area with no KuwaitSat-1 coverage to
+               referenceRun(), which measured Jahra off Sentinel-2,
+               ranked five candidate blocks, wrote them to the map and
+               raised the human checkpoint. Then this chain carried on,
+               because referenceRun() resolves rather than stopping,
+               and DECISION 2 below counted bare tiles in
+               state.analyses - which the reference path never fills.
+               Zero analyses means zero bare tiles, so it logged
+               "No tile inside this area classified as bare ground, so
+               there is nothing to recommend. Measured: ." - an empty
+               list, because nothing had been classified at all - and
+               closed the run as stalled.
+
+               The researcher saw a FAILED badge above their own five
+               findings. Never let a count of an empty list stand in
+               for a measurement. */
+            if (state.viaReference) return state;
+
+            /* Same reasoning, one step wider: if nothing was measured,
+               "no tile classified as bare ground" is not a finding
+               about the area. The payload path stalls as no-pixels
+               before here, so this should be unreachable; it is a
+               backstop, not a branch. */
+            if (!state.analyses.length) return state;
+
             tick();
 
             /* ---- DECISION 2 - is there any bare ground to rank? ----
@@ -641,6 +670,15 @@
     var phase = opts.onPhase || function () {};
     var raw = opts.onStep || function () {};
     function tick() { raw(state); }
+
+    /* THIS PATH OWNS THE REST OF THE RUN.
+
+       referenceRun does its own measurement, its own ranking and its
+       own checkpoint. run()'s chain continues after DECISION 1 either
+       way, so without this flag it walked straight into DECISION 2 -
+       which counts bare tiles in state.analyses, a list only the
+       payload path ever fills. See the guard there. */
+    state.viaReference = true;
 
     var ref = KS.reference;
     var area = mission.area_geojson;
