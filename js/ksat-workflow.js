@@ -280,9 +280,10 @@
 
   /* The real governorate outline, closed into a ring. Verified against
      the CHECK: kuwait_area_ok() needs one ring of 4-200 points, every
-     point [number, number], every lng in 46.5..48.8 and lat in
-     28.5..30.1. All six regions pass, and the largest serialises to
-     216 bytes against an 8192 limit.
+     point [number, number], and every point inside the envelope in
+     geo.KUWAIT. All six regions pass on both the original bound and the
+     wider one 14_widen_mission_envelope.sql applied, and the largest
+     serialises to 216 bytes against an 8192 limit.
 
      ksat-integration.js's recordRun() falls back to a fixed default box
      because REGIONS carry `poly`, not `bounds` — so every mission got

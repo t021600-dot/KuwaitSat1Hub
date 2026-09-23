@@ -247,7 +247,7 @@
   /* IS THIS POINT ON KUWAITI LAND?
 
      The honest version of the rectangle test. geo.inEnvelope() asks
-     whether a coordinate is inside 46.5-48.8 E, 28.5-30.1 N, which is
+     whether a coordinate is inside the geo.KUWAIT rectangle, which is
      true of large parts of Iraq, Saudi Arabia and the Gulf. This asks
      the coastline.
 
