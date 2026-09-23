@@ -179,6 +179,53 @@
     return null;
   }
 
+  /* "i want the logo to be just little little more bogger and blended
+     not sharp."
+
+     Bigger is one number. BLENDED is not: the seal is a hard-edged
+     circle and dropping it on a nebula leaves a cut-out, however big it
+     is. Three things together fix that, and all three are needed:
+
+       1 · the rim is masked. The outer 8% of the disc fades to nothing,
+           so the edge dissolves instead of stopping. destination-in
+           against a radial gradient, baked once into an offscreen
+           canvas rather than done per frame.
+       2 · a halo is drawn behind it, additively, in the same blue the
+           nucleus glows. The seal then sits IN light rather than on
+           black, which is most of what "blended" means to an eye.
+       3 · it is drawn at 94% alpha, so the brightest bulge stars carry
+           very faintly through it.
+
+     Baked at 512 so the mask has resolution to fade across; the source
+     is 256 and upscaling it 2x costs nothing on a soft edge. */
+  var SOFT = 512;
+  var soft = null;
+
+  function markSoft(img) {
+    if (soft) { return soft; }
+    var c = document.createElement('canvas');
+    c.width = c.height = SOFT;
+    var q = c.getContext('2d');
+    var h = SOFT / 2;
+
+    /* 0.86 of the box, leaving a margin for the fade to happen in. */
+    var d = SOFT * 0.86;
+    q.drawImage(img, h - d / 2, h - d / 2, d, d);
+
+    q.globalCompositeOperation = 'destination-in';
+    var mask = q.createRadialGradient(h, h, 0, h, h, d / 2);
+    mask.addColorStop(0, 'rgba(0,0,0,1)');
+    mask.addColorStop(0.86, 'rgba(0,0,0,1)');
+    mask.addColorStop(0.97, 'rgba(0,0,0,.35)');
+    mask.addColorStop(1, 'rgba(0,0,0,0)');
+    q.fillStyle = mask;
+    q.fillRect(0, 0, SOFT, SOFT);
+    q.globalCompositeOperation = 'source-over';
+
+    soft = c;
+    return soft;
+  }
+
   function buildSprites() {
     if (sprites) { return sprites; }
     sprites = PALETTE.map(function (p) {
@@ -252,8 +299,14 @@
       /* Density per area, capped. A phone gets a galaxy rather than a
          thinned-out version of a desktop one, and a 4K panel does not
          get 9,000 sprites a frame. */
-      var n = Math.round((W * Hh) / 1050);
-      return Math.max(520, Math.min(1450, n));
+      /* "many". Was /1050 capped at 1450, which gave about 850 stars in
+         a 1409x630 gate and read as sparse next to the reference. /620
+         is about 1,430 in the same box and 2,600 on a large desktop.
+         Every one of them is a single scaled drawImage of a baked
+         sprite, so this is fill rate rather than geometry and it is
+         still well under a frame budget at 60fps. */
+      var n = Math.round((W * Hh) / 620);
+      return Math.max(700, Math.min(2600, n));
     }
 
     function build() {
@@ -276,7 +329,7 @@
           a: 0.7 + Math.random() * 0.3,
           p: pick(),
           ph: Math.random() * Math.PI * 2,
-          tw: 0.10 + Math.random() * 0.14
+          tw: 0.16 + Math.random() * 0.22
         });
       }
 
@@ -286,26 +339,40 @@
       var nArm = n - nCore;
       for (var j = 0; j < nArm; j++) {
         var arm = j % ARMS;
-        var t = Math.pow(Math.random(), 0.82);
-        var r = R * (0.18 + 0.82 * Math.pow(t, 0.72));
+        /* THE INNER TURN BLEW OUT ONCE THE COUNT WENT UP, and these two
+           numbers are the repair. At 1,430 stars the old distribution
+           put far too many of them where the circumference is smallest,
+           and with additive blending the first turn stopped being stars
+           and became a solid white ring around the logo.
+
+           0.62 rather than 0.82 skews t further toward the outside, and
+           the arms start at 0.22R rather than 0.18R. Both move stars to
+           where there is room for them. Surface density, not count, was
+           the problem: there are still 1,430. */
+        var t = Math.pow(Math.random(), 0.62);
+        var r = R * (0.22 + 0.78 * Math.pow(t, 0.72));
         var th = (arm / ARMS) * Math.PI * 2 + TURNS * Math.PI * 2 * t;
 
         /* Scatter across the arm, plus a little along it, so the arm is
            a band of stars and not a drawn line. */
-        var spread = R * (0.030 + 0.100 * t);
+        var spread = R * (0.038 + 0.105 * t);
         var ox = gauss() * spread;
         var oy = gauss() * spread;
         th += gauss() * 0.10;
 
-        var big = Math.random() < 0.05;       /* the few bright giants  */
+        var big = Math.random() < 0.09;       /* the bright giants      */
         stars.push({
           x: Math.cos(th) * r + ox,
           y: Math.sin(th) * r + oy,
-          s: (big ? 1.7 + Math.random() * 1.7 : 0.55 + Math.random() * 1.25) * (1 - 0.20 * t),
-          a: (big ? 1 : 0.6 + Math.random() * 0.4) * (1 - 0.26 * t),
+          s: (big ? 1.8 + Math.random() * 1.8 : 0.6 + Math.random() * 1.3) * (1 - 0.18 * t),
+          a: (big ? 0.95 : 0.6 + Math.random() * 0.38) * (1 - 0.15 * t),
           p: pick(),
+          big: big,
           ph: Math.random() * Math.PI * 2,
-          tw: 0.08 + Math.random() * 0.16
+          /* "shiny". Twinkle was +-8 to 24 percent, which is a shimmer
+             you have to look for. This is +-20 to 55, which is what the
+             reference does: individual stars visibly flaring. */
+          tw: 0.20 + Math.random() * 0.35
         });
       }
 
@@ -320,10 +387,10 @@
           x: Math.cos(ha) * hr,
           y: Math.sin(ha) * hr,
           s: 0.4 + Math.random() * 0.7,
-          a: 0.16 + Math.random() * 0.34,
+          a: 0.18 + Math.random() * 0.36,
           p: pick(),
           ph: Math.random() * Math.PI * 2,
-          tw: 0.14 + Math.random() * 0.2
+          tw: 0.22 + Math.random() * 0.3
         });
       }
     }
@@ -369,27 +436,37 @@
 
     /* ---- paint ---------------------------------------------------- */
     function ground() {
-      /* Black, with the faintest navy lift away from the core. The
-         reference is pure black at the edges and very slightly blue
-         where the galaxy's light falls, and that gradient is the
-         difference between "space" and "a black div". */
-      g.fillStyle = '#04070F';
+      /* "the background color is black like astra". It was #04070F with
+         a navy wash that reached 55% opacity at the centre, which put a
+         blue field across most of the frame. Measured on the reference:
+         its body is rgb(0,0,0), and the only colour anywhere is a faint
+         blue immediately around the galaxy, from the galaxy's own
+         light.
+
+         So: true black, and the wash is a third of the strength and
+         half the reach. It is not removed, because without any of it
+         the arms sit on nothing and the whole thing reads as a sticker
+         rather than as something with depth behind it. */
+      g.fillStyle = '#000000';
       g.fillRect(0, 0, W, Hh);
 
-      var vg = g.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, Hh) * 0.75);
-      vg.addColorStop(0, 'rgba(24,44,86,.55)');
-      vg.addColorStop(0.45, 'rgba(12,22,46,.28)');
-      vg.addColorStop(1, 'rgba(4,7,15,0)');
+      var vg = g.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, Hh) * 0.42);
+      vg.addColorStop(0, 'rgba(22,40,78,.30)');
+      vg.addColorStop(0.5, 'rgba(10,18,40,.12)');
+      vg.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = vg;
       g.fillRect(0, 0, W, Hh);
     }
 
     function bloom() {
-      var bg = g.createRadialGradient(CX, CY, 0, CX, CY, R * 0.50);
-      bg.addColorStop(0, 'rgba(255,250,238,.50)');
-      bg.addColorStop(0.10, 'rgba(236,240,255,.30)');
-      bg.addColorStop(0.30, 'rgba(186,208,255,.13)');
-      bg.addColorStop(0.62, 'rgba(140,175,255,.045)');
+      /* Dimmer and tighter than it was. The emblem and its own halo now
+         carry the middle of the frame, and stacking the nucleus bloom
+         on top of both was a third light source in the same 100px. */
+      var bg = g.createRadialGradient(CX, CY, 0, CX, CY, R * 0.42);
+      bg.addColorStop(0, 'rgba(255,250,238,.26)');
+      bg.addColorStop(0.10, 'rgba(236,240,255,.16)');
+      bg.addColorStop(0.30, 'rgba(186,208,255,.08)');
+      bg.addColorStop(0.62, 'rgba(140,175,255,.03)');
       bg.addColorStop(1, 'rgba(120,160,255,0)');
       g.fillStyle = bg;
       g.fillRect(CX - R, CY - R, R * 2, R * 2);
@@ -416,31 +493,55 @@
         if (x < -sz || x > W + sz || y < -sz || y > Hh + sz) { continue; }
 
         var a = st.a;
-        if (moving) { a *= 1 + st.tw * Math.sin(ms * 0.0013 + st.ph); }
+        if (moving) { a *= 1 + st.tw * Math.sin(ms * 0.0021 + st.ph); }
         if (a <= 0.01) { continue; }
 
         g.globalAlpha = a > 1 ? 1 : a;
         g.drawImage(sp[st.p], x - sz, y - sz, sz * 2, sz * 2);
+
+        /* THE SHINE. A giant is drawn a second time at 2.4x and a fifth
+           of the alpha, which is a bloom halo around it. One extra blit
+           on 9% of the stars, and it is the whole difference between a
+           field of dots and a field of stars — a point light in a
+           camera has a halo, and the eye knows it. */
+        if (st.big) {
+          var hz = sz * 2.4;
+          g.globalAlpha = (a > 1 ? 1 : a) * 0.14;
+          g.drawImage(sp[st.p], x - hz, y - hz, hz * 2, hz * 2);
+        }
       }
       g.globalAlpha = 1;
       bloom();
+
+      /* 0.42 of the galaxy radius. It was 0.36, which was the arms'
+         number — the spiral starts at 0.18R, so a 0.36R diameter meets
+         the first arm exactly. "little little more bogger" is worth
+         more than that geometry, and the softened rim and the halo mean
+         the overlap now reads as the seal sitting among the inner stars
+         rather than on top of them. */
+      var d = R * 0.42;
+      var m = brand(repaint);
+
+      /* The halo, while the context is still additive. */
+      if (m) {
+        var hg = g.createRadialGradient(CX, CY, d * 0.36, CX, CY, d * 0.95);
+        hg.addColorStop(0, 'rgba(198,220,255,.34)');
+        hg.addColorStop(0.55, 'rgba(150,190,255,.12)');
+        hg.addColorStop(1, 'rgba(120,165,255,0)');
+        g.fillStyle = hg;
+        g.fillRect(CX - d, CY - d, d * 2, d * 2);
+      }
+
       g.globalCompositeOperation = 'source-over';
 
-      /* The emblem last, and in source-over rather than lighter: it has
-         its own cream ground and an additive blend would bleach it to
-         white against the nucleus it is sitting on.
-
-         0.36 of the galaxy radius, and that number is the arms' rather
-         than a matter of taste: the spiral starts at 0.18R (see the
-         header), so a seal of 0.36R DIAMETER has a radius of 0.18R and
-         meets the first arm exactly. At 0.44 it sat on top of the arm
-         and the gap that makes this read as a galaxy closed up. The
-         bulge stars are drawn and then covered, which is right — the
-         logo IS the nucleus now. */
-      var m = brand(repaint);
+      /* The seal itself in source-over, not lighter: it has a cream
+         ground and an additive blend would bleach it white against the
+         nucleus it is sitting on. */
       if (m) {
-        var d = R * 0.36;
-        g.drawImage(m, CX - d / 2, CY - d / 2, d, d);
+        var sm = markSoft(m);
+        g.globalAlpha = 0.94;
+        g.drawImage(sm, CX - d / 2, CY - d / 2, d, d);
+        g.globalAlpha = 1;
       }
     }
 
@@ -460,8 +561,12 @@
        minute, because there is no density wave here to hold them — the
        stars ARE the arms. The reference rotates as one piece and so
        does this. One revolution in 300 seconds, which is slow enough to
-       be noticed rather than watched. */
-    var OMEGA = (Math.PI * 2) / 300000;
+       be noticed rather than watched.
+
+       160 seconds now, not 300. "motiony" was the word, and at 300 the
+       turn was real but below the threshold where anybody looking at a
+       sign-in form would see it happening. */
+    var OMEGA = (Math.PI * 2) / 160000;
 
     function frame(ms) {
       raf = 0;

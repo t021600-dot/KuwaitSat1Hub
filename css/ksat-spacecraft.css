@@ -17,10 +17,11 @@
    entries and the chain are also working reference for them and this
    layer has no business deciding that for a different audience.
 
-   The data itself is untouched in both tiers: js/ksat-spacecraft.js
-   READS #specTable and #conceptFlow and re-presents them. Hiding the
-   originals with `display:none` rather than removing them is what makes
-   that possible — a removed table has no rows to read.
+   Nothing is removed from the document, only hidden for this tier. The
+   block that replaced those two has been cut three times since and is
+   now a heading, two sentences, the flight unit photograph, four short
+   readings and the launch clip. js/ksat-spacecraft.js's header carries
+   the full ledger of what was taken out and where it went.
 
    ---------------------------------------------------------------------
    THE SHAPE, AND WHY IT IS THIS SHAPE
@@ -30,9 +31,9 @@
    boxes around them. Panels, cards, rounded corners and fills are what
    made the original read as a dashboard. So there is not one panel in
    this file: every division below is a hairline and a change of type
-   size. The only filled surface is the plate behind the photograph, and
-   that is a radial glow rather than a box, because the photograph is
-   cut out and would otherwise float on nothing.
+   size. Two filled surfaces only — the radial glow behind the cut-out
+   photograph, which would otherwise float on nothing, and the black
+   box the launch clip plays in, which is the video's own ground.
 
    ---------------------------------------------------------------------
    COLOUR IS ALL TOKENS HERE
@@ -66,10 +67,9 @@ html[data-ksat-tier="public"] #mission > .grid.g-53 { display: none; }
 
    js/ksat-home.js builds a row of four picture cards at the top of this
    section: Mission record, Concept chain, Ground segment, Captured From
-   Space. The first three now live in the rail below and the fourth
-   pointed at #imagery, which the rule under this one takes off the
-   public page. Four cards that all land in the same place is worse than
-   no cards. One line, and trivially reversible. */
+   Space. All four have since been folded away or taken off the public
+   page, so every card would scroll a reader to something that is not
+   there. One line, and trivially reversible. */
 html[data-ksat-tier="public"] #mission > .ksh-row { display: none; }
 
 /* =====================================================================
@@ -271,82 +271,74 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
   max-width: 70ch;
 }
 
-/* ---- 3a · THE RAIL: EVERY FACT AS A CHIP, ONE LINE AT A TIME ------
+/* ---- 3a · THE LAUNCH CLIP ------------------------------------------
 
-   This replaces a twelve-row definition grid AND a six-card pipeline,
-   on the brief "present it in a minimalist way less text more
-   interactive way". The trade it makes is the useful one: the LABELS
-   are two or three words and the VALUES are the sentences, so the
-   labels go on screen as chips and the values arrive one at a time in
-   the line underneath. Eighteen facts, two lines of standing text.
+   An aspect-ratio box with the iframe filling it. Not a padding-top
+   percentage hack: aspect-ratio has been in every engine since 2021 and
+   the hack has a failure mode this layout would hit, which is that it
+   collapses the moment anything gives the box a height.
 
-   It answers to hover, to click and to keyboard focus, all three, and
-   that is on purpose. Hover alone is a touch screen with nothing on it;
-   click alone makes a reader work for something a glance should give
-   them; focus alone is what a keyboard reader gets and is usually the
-   one that is forgotten.
+   16/9 because that is what the source is. A container that is not the
+   video's own ratio letterboxes inside the player and then the black
+   bars are OUR black bars, drawn on a page that is already dark, and
+   nobody can tell where the video stops.
    --------------------------------------------------------------------- */
-.kss-chips {
+.kss-film {
+  margin: clamp(18px, 2vw, 26px) 0 0;
+}
+
+.kss-film__box {
+  position: relative;
+  width: 100%;
+  /* 940px at a 1300px measure. The photograph above it is capped at
+     720; the clip is allowed more because a moving image at 720 on a
+     desktop reads as a thumbnail, and because this one is the last
+     thing on the page and can take the room. */
+  max-width: min(100%, 940px);
+  margin-inline: auto;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+}
+.kss-film__yt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* The blocked-media fallback. Hidden until js/ksat-spacecraft.js has
+   waited three seconds for a load event that never came. */
+.kss-film__fall {
+  max-width: min(100%, 940px);
+  margin: 14px auto 0;
+  padding: 16px 18px;
+  border: 1px dashed var(--line-3);
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: clamp(16px, 2vw, 22px);
+  align-items: center;
+  gap: 14px;
+  justify-content: space-between;
 }
-
-.kss-chip {
-  appearance: none;
-  font: inherit;
-  font-size: 12.5px;
-  line-height: 1.2;
-  color: var(--ink-2);
-  background: none;
-  border: 1px solid var(--line-2);
-  border-radius: 0;
-  padding: 7px 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color .14s ease, border-color .14s ease;
-}
-.kss-chip:hover { color: var(--ink); border-color: var(--line-3); }
-.kss-chip[aria-pressed="true"] {
-  color: var(--void);
-  background: var(--ink);
-  border-color: var(--ink);
-}
-.kss-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* The pipeline steps are the same control with a different job, so they
-   are the same chip with a marker rather than a second component. The
-   word before them says where the record stops and the process starts.*/
-.kss-chips__lab {
-  align-self: center;
-  margin-inline-start: 10px;
-  padding-inline-end: 4px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.kss-chip--step { border-style: dashed; }
-.kss-chip--step[aria-pressed="true"] { border-style: solid; }
-
-/* THE LINE. It is given a fixed minimum height so that changing chips
-   does not make the page below it jump, which is the one thing that
-   would make this control unpleasant to sweep across. Three lines at
-   this size covers the longest entry in the record (the ground station
-   one) at the narrowest width this layout allows. */
-.kss-out {
-  margin: 18px 0 0;
-  min-height: 4.6em;
-  font-size: clamp(15px, 1.2vw, 17.5px);
+.kss-film__fallp {
+  margin: 0;
+  font-size: 13px;
   line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 52ch;
+}
+.kss-film__open {
+  font-size: 12.5px;
+  text-decoration: none;
+  white-space: nowrap;
   color: var(--ink);
-  max-width: 62ch;
+  border: 1px solid var(--line-3);
+  padding: 8px 13px;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .kss-out { transition: opacity .12s ease; }
-}
+.kss-film__open:hover { border-color: var(--accent); color: var(--accent); }
+.kss-film__open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 
 /* =====================================================================
@@ -356,7 +348,8 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
    property above flips for free. One thing does not, because it is
    physical by nature.
    ===================================================================== */
-.kss[dir="rtl"] .kss-chips__lab {
+.kss[dir="rtl"] .kss-head__t,
+.kss[dir="rtl"] .kss-head__n {
   /* Tracking is a Latin idea. Letter-spacing an Arabic word pulls its
      joined letters apart, which is not emphasis, it is damage. */
   letter-spacing: 0;
@@ -377,6 +370,10 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
 @media print {
   .kss-shot { display: none; }
   .kss-read { grid-template-columns: 1fr 1fr; }
-  .kss-chips { display: none; }
+  /* An iframe prints as a grey rectangle. The caption under it says
+     what the clip is and the fallback carries the link, so on paper the
+     player goes and both of those stay. */
+  .kss-film__box { display: none; }
+  .kss-film__fall { display: flex !important; }
   .kss-part { break-inside: avoid; }
 }

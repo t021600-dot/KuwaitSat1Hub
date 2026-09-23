@@ -16,14 +16,9 @@
    camera in orbit and which now has a photograph of the actual flight
    unit sitting in assets/.
 
-   NOTHING IS THROWN AWAY. The twelve entries are the page's own SPECS
-   array and they are still the page's own SPECS array — this file reads
-   them back out of #specTable rather than retyping them, so there is
-   exactly one copy of that data in the project and a correction to it
-   lands here automatically. The concept chain is read out of
-   #conceptFlow the same way. css/ksat-spacecraft.css folds the two
-   original blocks away on the public tier; a signed-in researcher on
-   the hub still gets them as they were.
+   css/ksat-spacecraft.css folds both of the original blocks away on the
+   public tier. A signed-in researcher on the hub still has them as they
+   were, and nothing is removed from the document.
 
    ---------------------------------------------------------------------
    WHY THIS IS A CHILD OF #mission AND NOT A NEW SECTION
@@ -40,29 +35,43 @@
    which is where this was asked for.
 
    ---------------------------------------------------------------------
-   THE THIRD PASS: LESS TEXT, AND ONE CONTROL INSTEAD OF THREE LISTS
+   IT HAS BEEN CUT THREE TIMES, AND HERE IS THE WHOLE LEDGER
    ---------------------------------------------------------------------
-   The first build of this block had four long readings, four derived
-   figures with their arithmetic printed beside them, a twelve-row
-   record grid and a six-step pipeline. All of it was true and most of
-   it was text, and the team's answer was "super super summarize this",
-   "delete this" over the figures, and "remove this ... present it in a
-   minimalist way less text more interactive way" over the other two.
+   The first build had four long readings, four derived figures with
+   their arithmetic printed beside them, a twelve-row record grid and a
+   six-step pipeline. Every pass since has been subtraction, asked for
+   in these words:
 
-   So: the readings are about a third of their old length. The derived
-   figures are gone, along with the orbital arithmetic they carried.
+     "super super summarize this"        the readings, now a third as
+                                         long as they were
+     "delete this"                       the derived figures
+     "remove this ... present it in a
+      minimalist way less text more
+      interactive way"                   the grid and the pipeline, which
+                                         became one row of chips
+     "remove this and instead of it
+      put this video"                    and then the chips too
 
-   And the record and the pipeline are now ONE control. Every entry is a
-   chip; the chip carries the label and a single line underneath carries
-   the value of whichever chip you point at. Eighteen facts, two lines
-   of text on screen at rest, and nothing hidden behind a fold that a
-   reader has to know to open.
+   What stands now is: a heading, two sentences, the photograph, four
+   short readings, and the launch clip.
 
-   That is a real trade, so it is worth writing down what was given up:
-   the four derived figures were the one place on this page that showed
-   its own working — the inclination sun-synchrony needs at 525 km came
-   out at 97.5 degrees against a published 97.6, in public, to a tenth
-   of a degree. It is in the git history if it is ever wanted back.
+   THE LEDGER, because two of those were real losses and a reader of
+   this file should not have to dig for them.
+
+   The derived figures were the one place on this page that showed its
+   own working: the inclination sun-synchrony needs at 525 km came out
+   at 97.5 degrees against a published 97.6, in public, to a tenth of a
+   degree.
+
+   The twelve record entries were the page's provenance made visible —
+   operator, form factor, mass, payload, GSD, swath, vehicle, launch,
+   COSPAR id, ground station, objective, first imagery, each with its
+   source mark. They are still in the document as #specTable, still on
+   the researcher side, and the numbered register in #sources is
+   untouched. They are simply no longer on screen for a visitor.
+
+   Both are in the git history and both are about twenty lines to bring
+   back.
 
    ---------------------------------------------------------------------
    THE ONE CLAIM THAT IS A LIMITATION RATHER THAN A FEATURE
@@ -88,6 +97,9 @@
   KS.spacecraft = true;
 
   var SHOT = 'assets/cards/ksat1-flight-unit.png';
+  /* The same clip index.html embeds in its opening sequence. One id,
+     one place, so the two cannot drift. */
+  var FILM = 'XGuaRj3C4bM';
 
   /* ===================================================================
      1 · COPY
@@ -140,18 +152,38 @@
              ar: 'حجم الإطار نحو ١٢ ميغابايت، والمحطة الأرضية واحدة في جامعة الكويت. خمس عشرة مروراً يومياً، القليل منها مرتفع بما يكفي ليستحق إنزالاً، ودقائق لكل منها. فهي تعيد إطارات مختارة لا تدفقاً متصلاً.' } }
     ],
 
-    /* ONE CONTROL INSTEAD OF TWO LISTS. The twelve record entries were
-       a twelve-row grid and the pipeline was six numbered cards, and
-       together they were most of the text on this page. They are chips
-       now: point at one, read one line. Same facts, same sources, about
-       two lines of text on screen at rest. */
-    railH: { en: 'The record', ar: 'السجل' },
-    railB: { en: '🛰 Measured', ar: '🛰 مقيس' },
-    railN: { en: 'Every figure published about this mission, and the pipeline they feed. Choose one.',
-             ar: 'كل رقم منشور عن هذه المهمة، والمسار الذي تغذّيه. اختر واحداً.' },
-    railP: { en: 'Pipeline', ar: 'المسار' },
-    railHint: { en: 'Choose an entry to read it.',
-                ar: 'اختر مدخلة لقراءتها.' },
+    /* THE LAUNCH CLIP, WHERE THE RECORD RAIL WAS.
+
+       The rail was eighteen chips and one line, and it replaced a
+       twelve-row grid before that. The team's answer to both was the
+       same shape of answer, and this time it was "remove this and
+       instead of it put this video". So the twelve published entries no
+       longer appear on the public home page at all. They are still in
+       the document (#specTable, hidden for this tier), still on the
+       researcher side, and the numbered provenance register in #sources
+       is untouched — but a visitor now reads the spacecraft, sees it,
+       and watches it leave, which is a fair trade for a home page.
+
+       The clip is the one index.html already embeds in its opening
+       sequence, XGuaRj3C4bM. Same video, same source, and vercel.json's
+       Content-Security-Policy already carries the frame-src for it. */
+    filmH: { en: 'The launch', ar: 'الإطلاق' },
+    filmB: { en: '🛰 Archive clip', ar: '🛰 مقطع أرشيفي' },
+    filmN: { en: 'Embedded from YouTube in privacy-enhanced mode. Nothing is copied onto this platform, and the player sets no tracking cookie unless you press play.',
+             ar: 'مضمَّن من يوتيوب في الوضع المعزّز للخصوصية. لا يُنسخ شيء إلى هذه المنصة، ولا يضع المشغّل أي ملف تتبّع ما لم تشغّل المقطع.' },
+    /* WRITTEN AFTER PLAYING IT. The first draft of this line called it
+       launch footage, because index.html's own label for the same id
+       says "launch clip". It is a news report published by Al-Jarida,
+       «كويت سات 1».. بصمة كويتية في الفضاء, and it carries an interview
+       as well as the launch. A platform that badges the provenance of
+       every figure cannot caption a video from its file name. */
+    filmCap: { en: 'A report published by Al-Jarida. KuwaitSat-1 reached orbit on a Falcon 9 rideshare, Transporter-6, on 3 January 2023.',
+               ar: 'تقرير منشور في جريدة الجريدة. بلغت كويت سات-١ المدار على متن رحلة مشتركة لصاروخ فالكون ٩، مهمة Transporter-6، في ٣ يناير ٢٠٢٣.' },
+    filmTitle: { en: 'KuwaitSat-1, reported by Al-Jarida',
+                 ar: 'كويت سات-١، تقرير جريدة الجريدة' },
+    filmBlocked: { en: 'This viewer blocks external media, so the clip cannot play here.',
+                   ar: 'هذا المتصفّح يمنع الوسائط الخارجية، فلا يمكن تشغيل المقطع هنا.' },
+    filmOpen: { en: 'Open the clip on YouTube', ar: 'افتح المقطع على يوتيوب' },
 
     alt: { en: 'The KuwaitSat-1 flight unit: a black anodised CubeSat frame with four deep blue solar panel faces, a populated circuit board on the top deck, and four thin whip antennas deployed from that deck.',
            ar: 'وحدة الطيران لكويت سات-١: هيكل مكعّب أسود مؤكسد بأربعة أوجه من الألواح الشمسية الزرقاء الداكنة، ولوحة إلكترونية على السطح العلوي، وأربعة هوائيات رفيعة منتشرة منه.' }
@@ -186,55 +218,6 @@
      3 · THE TWO BLOCKS THAT ARE READ RATHER THAN RETYPED
      =================================================================== */
 
-  /* index.html builds #specTable from its own SPECS array. Reading it
-     back means there is still exactly one copy of those twelve facts in
-     the project: correct one and this follows, with no second list to
-     forget. It also means the source marks — [1], [4], [5] — arrive
-     already in place, because they are part of the cell text.
-
-     Returns null, not [], when the table has not been built yet, so
-     paint() can tell "not ready" from "empty". */
-  function record() {
-    var rows = document.querySelectorAll('#specTable tr');
-    if (!rows.length) { return null; }
-    var out = [];
-    Array.prototype.forEach.call(rows, function (tr) {
-      var c = tr.children;
-      if (c.length < 2) { return; }
-      out.push({ k: c[0].textContent.trim(), v: c[1].textContent.trim() });
-    });
-    return out.length ? out : null;
-  }
-
-  /* #conceptFlow is built by index.html too. Its children alternate
-     .fnode and .farrow — six steps and the five connectors drawn
-     between them — and each .fnode holds an icon, a .ft name and a .fs
-     line.
-
-     THE FIRST VERSION OF THIS GUESSED AT THE MARKUP, with a list of
-     likely selectors (b, strong, .k, h4) and a fallback that split the
-     node's whole textContent on a newline. There are no newlines in
-     that markup, so every step came out as one run reading
-     "SatelliteKuwaitSat-1 acquires an RGB frame" — the name and its
-     line concatenated with nothing between them. Guessing at a
-     structure three files away and not looking at the result is how
-     that happens. This reads .fnode / .ft / .fs, which is what is
-     actually there, and returns null rather than rubbish if index.html
-     ever changes them. */
-  function pathSteps() {
-    var nodes = document.querySelectorAll('#conceptFlow .fnode');
-    if (!nodes.length) { return null; }
-    var out = [];
-    Array.prototype.forEach.call(nodes, function (node) {
-      var t = node.querySelector('.ft');
-      var d = node.querySelector('.fs');
-      var name = (t ? t.textContent : '').trim();
-      if (!name) { return; }
-      out.push({ n: name, d: (d ? d.textContent : '').trim() });
-    });
-    return out.length ? out : null;
-  }
-
   /* ===================================================================
      4 · PAINT
      =================================================================== */
@@ -244,16 +227,13 @@
     var sec = document.getElementById('mission');
     if (!sec) { return false; }
 
-    var recs = record();
-    var steps = pathSteps();
-    /* The record is the one part worth waiting for. The rest of the
-       block is this file's own copy and can be painted immediately, but
-       painting a block whose centre is an empty list and then filling
-       it a beat later is a visible flicker on a page that has no other
-       one. Wait for the table; give up on the path quietly if it never
-       arrives, because four steps missing is a smaller loss than the
-       whole block. */
-    if (!recs) { return false; }
+    /* NOTHING HERE WAITS ON THE PAGE ANY MORE. This function used to
+       hold off until index.html had filled #specTable, because the
+       twelve record entries were read out of it. They are not part of
+       this block now — the launch clip took their place — so every
+       string, the photograph and the iframe are all this file's own and
+       it can paint on the first call. boot()'s poll is left in place
+       for the one thing still outside our control: #mission existing.*/
 
     if (!host) {
       host = el('div', 'kss');
@@ -297,55 +277,98 @@
     host.appendChild(top);
     host.appendChild(read);
 
-    /* ---- the record and the pipeline, as one rail ------------------
-       Twelve entries and however many pipeline steps the page has, all
-       as chips, with one line underneath showing whichever is chosen.
-       The chips carry the LABEL and the line carries the VALUE, which
-       is the right way round: the labels are two or three words and the
-       values are the sentences. */
-    var rec = el('div', 'kss-part');
-    rec.id = 'ksat-spacecraft-record';
-    rec.appendChild(head(COPY.railH, COPY.railN, COPY.railB, 'real'));
+    /* ---- the launch, where the record rail was ---------------------
 
-    var chips = el('div', 'kss-chips');
-    var out = el('p', 'kss-out', L(COPY.railHint));
-    /* polite, not assertive: this updates on hover as well as on click,
-       and an assertive region would interrupt a screen reader on every
-       pointer move across the row. */
-    out.setAttribute('role', 'status');
-    out.setAttribute('aria-live', 'polite');
+       AN IFRAME IS THE ONE PLACE THIS FILE GIVES UP CONTROL, so the
+       parameters are chosen rather than defaulted:
 
-    var chosen = null;
-    function chip(label, value, cls) {
-      var b = el('button', 'kss-chip' + (cls ? ' ' + cls : ''), label);
-      b.type = 'button';
-      b.setAttribute('aria-pressed', 'false');
-      function show() {
-        if (chosen && chosen !== b) { chosen.setAttribute('aria-pressed', 'false'); }
-        chosen = b;
-        b.setAttribute('aria-pressed', 'true');
-        out.textContent = value || label;
-      }
-      b.addEventListener('click', show);
-      b.addEventListener('mouseenter', show);
-      b.addEventListener('focus', show);
-      chips.appendChild(b);
-      return b;
+         youtube-nocookie.com   privacy-enhanced host. No tracking
+                                cookie is set until the clip is played.
+         no autoplay            this is the foot of a long page, not an
+                                opening sequence. A video that starts
+                                talking at a reader who scrolled into it
+                                is the reason people install blockers.
+         rel=0, modestbranding  no grid of unrelated videos at the end.
+         loading=lazy           it is below every other thing here.
+         referrerpolicy         strict-origin-when-cross-origin, the
+                                same value vercel.json sends for the
+                                whole site.
+
+       Built with createElement and setAttribute rather than a string of
+       HTML, which is this file's rule everywhere and matters more here
+       than anywhere else in it. */
+    var film = el('div', 'kss-part');
+    film.id = 'ksat-spacecraft-film';
+    film.appendChild(head(COPY.filmH, COPY.filmN, COPY.filmB, 'real'));
+
+    var fig = el('figure', 'kss-film');
+    var frame = el('div', 'kss-film__box');
+
+    var yt = document.createElement('iframe');
+    yt.className = 'kss-film__yt';
+    yt.title = L(COPY.filmTitle);
+    yt.src = 'https://www.youtube-nocookie.com/embed/' + FILM +
+             '?rel=0&modestbranding=1&playsinline=1';
+    yt.setAttribute('allow', 'encrypted-media; picture-in-picture; fullscreen');
+    yt.setAttribute('allowfullscreen', '');
+    yt.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    yt.setAttribute('loading', 'lazy');
+    frame.appendChild(yt);
+
+    /* THE SAME FALLBACK THE OPENING SEQUENCE USES, and for the same
+       reason: a reader whose browser blocks third-party frames gets an
+       empty black rectangle and no idea why. index.html does this at
+       line 995; this is that pattern, scoped to this block.
+
+       THE FIRST VERSION SHOWED IT EVERY TIME, and the cause is worth
+       keeping. index.html's copy starts its three-second timer at the
+       moment it inserts the frame, which is right there — its frame
+       loads immediately. Ours is loading="lazy" at the foot of a
+       30,000px page, so three seconds after insertion the browser has
+       not fetched anything yet and never intended to. The fallback fired
+       under a player that was working.
+
+       So the countdown starts when the frame comes INTO VIEW, which is
+       also when the lazy fetch starts, and a load that arrives after
+       the timer clears the panel again. Both halves are needed: the
+       observer for the common case and the late load for a slow
+       connection. */
+    var fall = el('div', 'kss-film__fall');
+    fall.hidden = true;
+    fall.appendChild(el('p', 'kss-film__fallp', L(COPY.filmBlocked)));
+    var open = document.createElement('a');
+    open.className = 'kss-film__open';
+    open.href = 'https://youtu.be/' + FILM;
+    open.target = '_blank';
+    open.rel = 'noopener';
+    open.textContent = L(COPY.filmOpen);
+    fall.appendChild(open);
+
+    var loaded = false;
+    yt.addEventListener('load', function () {
+      loaded = true;
+      fall.hidden = true;
+    });
+
+    function watchLoad() {
+      setTimeout(function () { if (!loaded) { fall.hidden = false; } }, 3000);
+    }
+    if (typeof IntersectionObserver === 'undefined') {
+      watchLoad();                       /* no observer: the old behaviour */
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].isIntersecting) { io.disconnect(); watchLoad(); return; }
+        }
+      }, { rootMargin: '200px 0px' });
+      io.observe(frame);
     }
 
-    recs.forEach(function (r) { chip(r.k, r.v); });
-
-    if (steps) {
-      var lab = el('span', 'kss-chips__lab', L(COPY.railP));
-      chips.appendChild(lab);
-      steps.forEach(function (st, i) {
-        chip(String(i + 1) + ' \u00b7 ' + st.n, st.d, 'kss-chip--step');
-      });
-    }
-
-    rec.appendChild(chips);
-    rec.appendChild(out);
-    host.appendChild(rec);
+    fig.appendChild(frame);
+    fig.appendChild(fall);
+    fig.appendChild(el('figcaption', 'kss-cap', L(COPY.filmCap)));
+    film.appendChild(fig);
+    host.appendChild(film);
 
     return true;
   }
