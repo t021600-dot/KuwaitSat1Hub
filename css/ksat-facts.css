@@ -227,92 +227,20 @@ h2.ksf-h2 {
   font-size: 12.5px; line-height: 1.5; color: var(--ink-2, #9AA7B8);
 }
 
-/* ---------------------------------------------------------------------
-   5 - THE RECORD
+/* -------------------------------------------------------------------
+   5 and 6 - THE RECORD AND THE NATIONAL PICTURE, BOTH REMOVED
 
-   A dated rail. The date column is fixed and monospaced so five dates
-   line up as a column of dates rather than as five sentences that happen
-   to begin with numbers.
-   --------------------------------------------------------------------- */
-.ksf-rec { list-style: none; margin: 14px 0 0; padding: 0; }
-.ksf-rec li {
-  display: grid;
-  grid-template-columns: 116px minmax(0, 1fr);
-  gap: 0 18px;
-  padding: 13px 0;
-  border-top: 1px solid var(--line, #1B2230);
-  align-items: baseline;
-}
-.ksf-rec li:first-child { border-top: 0; }
-.ksf-rec .d {
-  font-family: var(--mono, monospace);
-  font-size: 11.5px; letter-spacing: .06em;
-  color: var(--accent, #3FD0C9);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.ksf-rec .t {
-  font-size: 14px; line-height: 1.6; color: var(--ink-2, #9AA7B8);
-  min-width: 0;
-}
-/* Arabic month names are long enough that a nowrap date column at 116px
-   pushes the body text off a narrow screen. In Arabic the column is
-   allowed to wrap instead of forcing a horizontal scroll. */
-html[lang="ar"] .ksf-rec .d { white-space: normal; }
+   About eighty-five lines here styled .ksf-rec, .ksf-rec li,
+   .ksf-elapsed, .ksf-pillars and .ksf-pill. js/ksat-facts.js stopped
+   emitting every one of those classes when the dated record and the
+   Kuwait Vision 2035 pillars were taken off the page, so the rules
+   matched nothing at all. The mobile override in section 9 went with
+   them.
 
-/* The elapsed figure sitting under the record. One derived number, said
-   on screen to be derived. */
-.ksf-elapsed {
-  margin-top: 16px; padding-top: 14px;
-  border-top: 1px solid var(--line-2, #232C3C);
-  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
-}
-/* GREEN TYPE USES --green-text, NEVER --green OR --green-lt.
-
-   MEASURED IN LIGHT MODE, and this was wrong on the first pass. The
-   ramp colours are deliberately identical in both themes, because they
-   encode data: css/ksat-nasa.css says so and leaves --green #40AD60 and
-   --green-lt #8FD8A3 untouched when the page goes light. That is right
-   for a fill and wrong for a letter. #40AD60 on the light ground
-   #F7F7F4 measures about 2.6:1, under the 3:1 floor even at this size,
-   and --green-lt is paler still.
-
-   --green-text exists for exactly this: #1C6B3B in light mode, and
-   UNDEFINED in dark, which is why index.html always writes it as
-   var(--green-text, #9FE0B5). The fallback IS the dark value. Same
-   idiom here, so the number is legible on paper and on the void. */
-.ksf-elapsed .v {
-  font-family: var(--disp, sans-serif);
-  font-size: 26px; font-weight: 700; letter-spacing: -.02em;
-  color: var(--green-text, #9FE0B5); font-variant-numeric: tabular-nums;
-}
-.ksf-elapsed .t {
-  font-size: 13px; line-height: 1.55; color: var(--ink-2, #9AA7B8);
-  max-width: 54ch;
-}
-
-/* ---------------------------------------------------------------------
-   6 - THE NATIONAL PICTURE
-   --------------------------------------------------------------------- */
-.ksf-pillars { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
-.ksf-pill {
-  font-size: 12.5px; line-height: 1.4;
-  padding: 5px 11px; border-radius: 20px;
-  border: 1px solid var(--line-2, #232C3C);
-  color: var(--ink-2, #9AA7B8);
-  background: var(--surf-2, transparent);
-}
-/* The one environmental pillar, which is the only reason this list is on
-   the page at all. PILLARS in index.html flags it with key:true. */
-.ksf-pill.key {
-  border-color: var(--green-deep, #0B5D2F);
-  /* --green-text, not --green-lt. Same measurement as .ksf-elapsed .v
-     above: #8FD8A3 is a vegetation ramp colour and is near invisible as
-     type on the light ground. */
-  color: var(--green-text, #9FE0B5);
-  background: rgba(64, 173, 96, .13);
-  font-weight: 600;
-}
+   Left as a note rather than as silence: if either block is ever put
+   back, the styling is one `git show` away and does not have to be
+   reinvented.
+   ------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------
    7 - CITATIONS
@@ -396,7 +324,6 @@ html[lang="ar"] .ksf-rec .d { white-space: normal; }
   .ksf-fig:nth-child(n + 3) { border-top: 1px solid var(--line, #1B2230); }
 }
 @media (max-width: 560px) {
-  .ksf-rec li { grid-template-columns: minmax(0, 1fr); gap: 5px; }
   .ksf-fig { padding: 14px 12px; }
   .ksf-fig:nth-child(odd) { padding-inline-start: 0; }
 }

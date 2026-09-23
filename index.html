@@ -1944,7 +1944,7 @@ const SOURCES = [
     note:"Transporter-6 rideshare, 3 January 2023, sun-synchronous deployment orbit." },
   { id:6, name:"Kuwait Times / KUNA, KuwaitSat-1: nucleus of Kuwait's space ambition",
     url:"https://kuwaittimes.com/kuwaitsat-1-nucleus-of-kuwaits-space-ambition/",
-    note:"Project led by Dr Hala Al-Jassar; student cohort and 2019 project start, as reported." },
+    note:"Project led by Dr Hala Al-Jassar." },
   { id:7, name:"The National, Striking images of Kuwait captured by country's own satellite",
     url:"https://www.thenationalnews.com/gulf-news/2023/04/09/striking-images-of-kuwait-captured-by-countrys-own-satellite/",
     note:"Press publication of the April 2023 KuwaitSat-1 imagery." }
@@ -4436,8 +4436,19 @@ const CLAIMS=[
      ar:"الأهداف المعلنة للمهمة كانت بناء القدرات وتقييم الكاميرا لتحديد الاتجاه."}, s:[0,4]},
  {c:{en:"The project is directed by Dr Hala AlJassar, with academic and operational directors named on the official site.",
      ar:"يدير المشروع الدكتورة هالة الجسار، ويُسمّى المدير الأكاديمي والتشغيلي على الموقع الرسمي."}, s:[0,6]},
- {c:{en:"Kuwaiti press reported a student cohort selected from a larger applicant pool, with work beginning in 2019. Reported figure, attributed to that coverage.",
-     ar:"أوردت الصحافة الكويتية اختيار كادر طلابي من عدد أكبر من المتقدمين وبدء العمل في ٢٠١٩. رقم منقول ومنسوب إلى تلك التغطية."}, s:[6]}
+ /* THE COHORT CLAIM IS GONE FROM THIS REGISTER TOO.
+
+    js/ksat-facts.js no longer says "a student cohort selected from a
+    larger applicant pool, with work beginning in 2019". The team
+    replaced it with "Built by four Kuwaiti students", which is their
+    own statement about their own project and carries no source.
+
+    This row had to go with it rather than be rewritten. The register's
+    job is to say what a CITED SOURCE reported, and source [6] reported
+    a cohort, not a number; putting "four" here under s:[6] would credit
+    that coverage with a figure it never gave, which is the one error
+    this table exists to prevent. The page now makes no sourced claim
+    about who built it, which is the truth of it. */
 ];
 const NOT_CLAIMED=[
  {en:"That KuwaitSat-1 performs operational environmental monitoring today. Its published objectives were capacity building and camera evaluation.",

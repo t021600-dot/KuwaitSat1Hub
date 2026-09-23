@@ -760,7 +760,9 @@ html[dir="rtl"] .ksh-card:focus-visible .ksh-card__arrow { transform: translateX
    everywhere else, so nothing changes for a band this file did not
    move. */
 .ksh-row > .ksf-band { margin-top: clamp(18px, 2vw, 26px); }
-.ksh-feature__copy > .ksf-band { margin-top: 0; }
+/* .ksh-feature__copy > .ksf-band is gone: the only code path that put
+   a band inside a feature copy was the record treatment, removed from
+   js/ksat-home.js together with the dated record itself. */
 
 /* Panels this layer scrolls to. A <section> has scroll-margin-top from
    index.html and a .panel inside one has none, so a smooth scroll to a

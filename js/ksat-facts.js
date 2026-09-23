@@ -48,7 +48,9 @@
        been one sentence and would have been indistinguishable from the
        true ones.
 
-     - "92 days" is arithmetic on two sourced dates, 3 January 2023 and
+     - a derived figure, when this file carried one, was arithmetic on
+       two sourced dates and said so. The one it had was "92 days",
+       between 3 January 2023 and
        5 April 2023, and the line under it says so. It is not presented
        as a published figure because it is not one.
 
@@ -105,7 +107,7 @@
   /* =================================================================
      1 - REACHING THE PAGE'S OWN DATA
 
-     SOURCES, SPECS and PILLARS are top level `const` bindings in
+     SOURCES and SPECS are top level `const` bindings in
      CLASSIC scripts inside index.html. Classic scripts share one global
      lexical environment, so they are reachable here BY NAME, but they
      are NOT properties of window, so `window.SOURCES` is undefined and
@@ -130,12 +132,6 @@
     try { s = SOURCES; } catch (e) { s = null; }      /* eslint-disable-line no-undef */
     return (s && s.length) ? s : null;
   }
-  function pillars() {
-    var p = null;
-    try { p = PILLARS; } catch (e) { p = null; }      /* eslint-disable-line no-undef */
-    return (p && p.length) ? p : null;
-  }
-
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -294,9 +290,7 @@
       en: 'Built by four Kuwaiti students.',
       ar: 'بناها أربعة طلبة كويتيين.'
     },
-    whoP2src: null,
-
-    /* --- block: the national picture    /* --- the pointer to the relocated key --------------------------- */
+    /* --- the pointer to the relocated key --------------------------- */
     note: {
       en: 'The vocabulary that labels every panel on this page as measured, public data, reference dataset, modelled or model output has moved to the sources section, beside the register that uses it.',
       ar: 'انتقلت مفردات التصنيف التي تصف كل لوحة في هذه الصفحة بأنها مقيسة أو بيانات عامة أو مجموعة مرجعية أو مُنمذَجة أو مخرجات نموذج إلى قسم المصادر، بجانب السجل الذي يستخدمها.'

@@ -52,8 +52,9 @@
      "remove this and instead of it
       put this video"                    and then the chips too
 
-   What stands now is: a heading, two sentences, the photograph, four
-   short readings, and the launch clip.
+   Then the lede, the video's badge, its provenance note and its
+   caption, all by name. What stands now is a heading, the photograph,
+   four short readings, and the launch clip.
 
    THE LEDGER, because two of those were real losses and a reader of
    this file should not have to dig for them.
@@ -206,11 +207,15 @@
   }
 
   /* ===================================================================
-     3 · THE TWO BLOCKS THAT ARE READ RATHER THAN RETYPED
-     =================================================================== */
+     3 · PAINT
 
-  /* ===================================================================
-     4 · PAINT
+     Section 3 used to be "the two blocks that are read rather than
+     retyped": one function that pulled the twelve record entries out of
+     #specTable and one that pulled the pipeline out of #conceptFlow. It
+     is an empty header now, and the reason is the whole story of this
+     file — both of those blocks were re-presented, then cut down, then
+     replaced by the launch clip, and the readers went with them. Every
+     string this file paints is now its own.
      =================================================================== */
   var host = null;
 
@@ -384,11 +389,11 @@
   /* ===================================================================
      6 · BOOT
 
-     index.html fills #specTable from its own script, which runs after
-     this one. So this polls — briefly, and then stops. It does NOT use
-     a MutationObserver on the table: the table is built once and an
-     observer left watching it for the life of the page is a cost with
-     no second event to justify it.
+     Nothing in this block is read off the page any more, so the only
+     thing left to wait for is #mission itself. The poll is brief and
+     then stops. It does NOT use a MutationObserver: that section is in
+     the initial markup, and an observer left watching document.body for
+     the life of the page is a cost with no event to justify it.
      =================================================================== */
   function boot() {
     if (paint()) { return; }
@@ -399,9 +404,9 @@
   }
 
   /* Language is the one thing that repaints the whole block, and
-     js/ksat-i18n.js announces it. The record and the chain are read
-     fresh on every repaint, so they arrive already translated by that
-     file rather than needing a second dictionary here. */
+     js/ksat-i18n.js announces it. Every string in a repaint now comes
+     from this file's own COPY, so a repaint is all that has to
+     happen. */
   document.addEventListener('ksat:lang', function () { if (host) { paint(); } });
 
   if (document.readyState === 'loading') {

@@ -462,10 +462,10 @@
       en: 'The Gulf and the Arabian Peninsula seen from orbit, with the curve of the planet across the top of the frame.',
       ar: 'الخليج وشبه الجزيرة العربية من المدار، وانحناء الكوكب عبر أعلى الإطار.'
     },
-    capGulf: {
-      en: 'The Gulf at the centre of frame, the water KuwaitSat-1 passes over.',
-      ar: 'الخليج في وسط الإطار، وهو الماء الذي يمرّ فوقه KuwaitSat-1.'
-    }
+    /* capGulf lived here and was asked for by name. It captioned the
+       photograph that stood beside the dated record, and both went
+       together. Its key is removed rather than orphaned so that
+       restoring the record does not quietly restore the caption. */
   };
 
   /* Section headings, QUOTED. The English is the literal text of the
@@ -1073,11 +1073,14 @@
       }
     }
 
-    /* ---- TREATMENT 3 AGAIN: the record beside a picture ------------ */
-    /* Found by CONTENT, not by index. The three block bands are the
-       objective pair, the record and the national picture, and reading
-       them off a nodeList position would break the first time one is
-       added or reordered in js/ksat-facts.js. */
+    /* ---- the band lookups, and what is left of them ----------------
+       Found by CONTENT, not by index, which is still the right way to
+       do it. But there is one band left now, the objective-and-people
+       pair, and by the time this runs TREATMENT 2 has already moved it
+       into a .ksh-row — so this list is normally empty and both
+       variables stay null. They are kept because they cost nothing and
+       because the fallback at TREATMENT 4 is only legible next to the
+       lookup it falls back from. */
     var recBand = null, natBand = null;
     var bands = ksf.querySelectorAll(':scope > .ksf-band');
     for (var b = 0; b < bands.length; b++) {
@@ -1085,14 +1088,14 @@
       if (bands[b].querySelector('.ksf-pillars')) natBand = bands[b];
     }
 
-    if (recBand) {
-      var f2 = el('div', 'ksh-feature');
-      ksf.insertBefore(f2, recBand);
-      var c2 = el('div', 'ksh-feature__copy');
-      f2.appendChild(c2);
-      c2.appendChild(recBand);                 /* appendChild moves it */
-      f2.appendChild(figureFor('gulf', COPY.capGulf, code));
-    }
+    /* THE RECORD TREATMENT IS GONE, AND SO IS ITS FIGURE.
+
+       This used to wrap the dated record band in a feature layout with
+       a Gulf photograph beside it. js/ksat-facts.js no longer emits
+       that band, so the branch was already unreachable — but leaving it
+       meant the Gulf caption the team asked to delete would come
+       straight back the day anybody restored a .ksf-rec. A deletion
+       that depends on another file not changing is not a deletion. */
 
     /* ---- TREATMENT 4: the topic grid at the foot -------------------
 

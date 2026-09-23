@@ -19,8 +19,8 @@
 
    Nothing is removed from the document, only hidden for this tier. The
    block that replaced those two has been cut three times since and is
-   now a heading, two sentences, the flight unit photograph, four short
-   readings and the launch clip. js/ksat-spacecraft.js's header carries
+   now a heading, the flight unit photograph, four short readings and
+   the launch clip. js/ksat-spacecraft.js's header carries
    the full ledger of what was taken out and where it went.
 
    ---------------------------------------------------------------------
@@ -129,17 +129,6 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
      phone, which is the only place it has to. */
   max-width: none;
 }
-.kss-lede {
-  margin: 14px 0 0;
-  font-size: clamp(15px, 1.15vw, 17px);
-  line-height: 1.62;
-  color: var(--ink-2);
-  /* 62ch, not the page's 56ch: this paragraph sits above a two column
-     split and a shorter measure would leave it looking like a caption
-     for the picture underneath. */
-  max-width: 62ch;
-}
-
 /* ---- 2b · the photograph, then the four readings --------------------
 
    THIS WAS A TWO COLUMN SPLIT FOR ONE BUILD AND THE SPLIT DID NOT WORK.
@@ -239,10 +228,11 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
 /* =====================================================================
    3 · THE THREE DECLARED PARTS BELOW IT
 
-   Each one opens with the same head: a title, the mark that says what
-   kind of number is under it, and one line saying where it came from.
-   The page's whole argument is that those three things travel together,
-   so they are one component here rather than three decisions.
+   There is one part left and its head is a title alone. It used to
+   carry a provenance mark and a line saying where the numbers came
+   from; both were asked for by name and taken out, and head() now takes
+   nulls for them. The function keeps those two branches because it is
+   the generic head for this block, not because anything uses them.
    ===================================================================== */
 .kss-part {
   margin-top: clamp(30px, 3.6vw, 52px);
@@ -267,13 +257,6 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
   font-weight: 600;
   letter-spacing: .01em;
   color: var(--ink);
-}
-.kss-head__n {
-  margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--ink-3);
-  max-width: 70ch;
 }
 
 /* ---- 3a · THE LAUNCH CLIP ------------------------------------------
@@ -353,8 +336,7 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
    property above flips for free. One thing does not, because it is
    physical by nature.
    ===================================================================== */
-.kss[dir="rtl"] .kss-head__t,
-.kss[dir="rtl"] .kss-head__n {
+.kss[dir="rtl"] .kss-head__t {
   /* Tracking is a Latin idea. Letter-spacing an Arabic word pulls its
      joined letters apart, which is not emphasis, it is damage. */
   letter-spacing: 0;
@@ -364,21 +346,39 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
 /* =====================================================================
    5 · PRINT
 
-   The photograph is 130KB of dark pixels and a page of it is a page of
-   toner. The rail is the part worth carrying out of the room — but a
-   control that reveals one entry at a time prints as one entry, so on
-   paper the chips go and the line stays. There is a real limitation
-   here and it is better named than hidden: a printed copy of this page
-   carries the readings and the picture caption, not the record. The
-   record is a table on the researcher side and in the repository.
+   THIS BLOCK PRINTED A SENTENCE THAT WAS NOT TRUE, and it is worth
+   writing down how, because it is the failure mode of every print
+   stylesheet: nobody looks at one.
+
+   It hid the player and FORCED THE BLOCKED-MEDIA PANEL VISIBLE, on the
+   reasoning that the panel carries the link and the caption underneath
+   says what the clip is. Then the caption was deleted in a later pass,
+   and what a printed page carried under the heading "The launch" was
+   one sentence, "This viewer blocks external media, so the clip cannot
+   play here" — which is false on paper, and by then the only prose in
+   the block. It also hid .kss-shot, and the photograph's caption is a
+   figcaption INSIDE that figure, so the caption this comment claimed to
+   be keeping went with the picture.
+
+   So: the clip does not print at all, heading included, because there
+   is nothing honest to say about a video on paper. The photograph's
+   IMAGE goes and its CAPTION stays, which is what was meant the first
+   time. What comes out is the heading, the four readings and a line
+   saying what the spacecraft in the picture is.
    ===================================================================== */
 @media print {
-  .kss-shot { display: none; }
+  /* The image is 130KB of dark pixels and a page of it is a page of
+     toner. Its caption is the part worth carrying out of the room, and
+     it only survives if the FIGURE stays and the IMG goes. */
+  .kss-shot { background: none; padding: 0; }
+  .kss-shot img { display: none; }
+  .kss-cap { text-align: start; }
+
   .kss-read { grid-template-columns: 1fr 1fr; }
-  /* An iframe prints as a grey rectangle. The caption under it says
-     what the clip is and the fallback carries the link, so on paper the
-     player goes and both of those stay. */
-  .kss-film__box { display: none; }
-  .kss-film__fall { display: flex !important; }
+
+  /* Heading and all. An iframe prints as a grey rectangle and the
+     fallback panel says something untrue on paper. */
+  #ksat-spacecraft-film { display: none; }
+
   .kss-part { break-inside: avoid; }
 }
