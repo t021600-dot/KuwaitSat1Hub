@@ -1819,12 +1819,19 @@
       var d = el('div', 'finding');
       d.appendChild(el('h4', null, 'Candidate ' + (i + 1) + ' · frame ' +
         pad2(c.a.frame_no) + ' tile ' + c.t.gx + ',' + c.t.gy));
+      /* EACH CANDIDATE'S OWN SIZE, and the direction of its own
+         criterion. This panel used to quote state.tileM for every zone
+         and call it "square" - but the tiles are not square, the last
+         row and column are larger, and candidates can come from frames
+         of different pixel sizes. rank() stamps c.km2 for exactly this,
+         and the findings and the report already use it. */
+      var dry = (state.rankMode === 'driest');
       d.appendChild(el('p', null,
-        'ExG ' + c.t.exg.toFixed(3) + ', which is ' + (Math.round(c.t.z * 10) / 10) +
-        ' standard deviations from this frame median of ' +
+        'ExG ' + c.t.exg.toFixed(3) + ', which is ' +
+        (Math.round(Math.abs(c.t.z) * 10) / 10) + ' standard deviations ' +
+        (dry ? 'below' : 'above') + ' this frame median of ' +
         (Math.round(c.a.exg.median * 1000) / 1000) + '\n' +
-        'Luminance ' + c.t.lum + ' · about ' + state.tileM + ' m square, ' +
-        state.tileKm2 + ' km²'));
+        'Luminance ' + c.t.lum + ' · about ' + (c.km2 || 0) + ' km² on the ground'));
       box.appendChild(d);
     });
     card.scrollIntoView({ block: 'nearest' });
