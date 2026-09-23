@@ -1171,3 +1171,28 @@ html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: scaleX(-1)
   .ksh-band__copy { max-width: none; padding-inline: 0; color: #000; }
   .ksh-band__copy > h2.st, .ksh-band__copy .ksh-dek { color: #000; text-shadow: none; }
 }
+
+
+/* =====================================================================
+   THE TEAM BAND IS A PHOTOGRAPH, NOT A STRIP
+
+   .ksh-band is built full bleed at 24/10 because that is the exact
+   ratio of band-kuwait-*.jpg, so object-fit crops nothing. The team
+   photograph is 770 x 513, which is 1.5. Dropped into a 2.4 box and
+   covered, it loses 36% of its height from the middle out: the back row
+   of heads off the top and the front row's feet off the bottom. A group
+   photograph is the one kind of picture where that crop is not a
+   stylistic choice, it is cutting people out of it.
+
+   So when the band carries the team it stops being full bleed and
+   becomes a contained photograph at its own ratio. #mission holds
+   nothing else now, so there is no strip for it to be the top of.
+   ===================================================================== */
+html[data-ksat-tier="public"] #mission .ksh-band {
+  aspect-ratio: 770 / 513;
+  min-height: 0;
+  width: 100%;
+  max-width: min(100%, 1040px);
+  margin-inline: auto;
+  margin-block: clamp(20px, 3vw, 44px);
+}

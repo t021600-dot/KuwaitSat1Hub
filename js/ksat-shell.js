@@ -1210,11 +1210,12 @@
       x.addEventListener('click', function () { closeGate(); });
       card.appendChild(x);
 
-      var back = el('button', 'ksat-gate-back',
-        'Continue without signing in, the public record stays open');
-      back.type = 'button';
-      back.addEventListener('click', function () { closeGate(); });
-      card.appendChild(back);
+      /* THE SECOND WAY OUT IS GONE. There used to be a button here
+         reading "Continue without signing in, the public record stays
+         open". The instruction was: "only when clicking on the x it
+         should go back to the public page". So the close control is the
+         close control, and everything else on this card is about
+         signing in. */
     }
 
     g.addEventListener('keydown', function (e) {
@@ -1227,10 +1228,16 @@
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
 
-    /* Clicking the backdrop (not the card) closes it. */
-    g.addEventListener('mousedown', function (e) {
-      if (e.target === g) closeGate();
-    });
+    /* THE BACKDROP NO LONGER CLOSES IT EITHER, same instruction. A
+       click on the galaxy is a click on the galaxy.
+
+       ESCAPE STAYS, and that is a considered exception rather than an
+       oversight. Escape is not a second exit, it is the keyboard's name
+       for the × button, and a modal that traps focus — see the Tab
+       handling above, which this one does — and cannot be dismissed
+       from the keyboard is a modal a keyboard-only reader cannot leave
+       at all. Two controls exist here: the ×, and its keyboard
+       equivalent. */
   }
 
   function openGate(trigger) {

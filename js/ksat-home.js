@@ -278,6 +278,13 @@
     sat3:   { day: 'assets/cards/sat-from-below.png',    night: 'assets/cards/sat-from-below.png',     alt: 'craft' },
     sat4:   { day: 'assets/cards/sat-edge.png',          night: 'assets/cards/sat-edge.png',           alt: 'craft' },
     mark:   { day: 'assets/brand/ksat-emblem-256.png',   night: 'assets/brand/ksat-emblem-256.png',    alt: 'mark' },
+
+    /* TWO PHOTOGRAPHS OF REAL THINGS, WHICH IS WHY THEY HAVE NO DAY AND
+       NO NIGHT. Everything above this line is a view of the Earth and
+       comes in two lightings because the page does. A room full of
+       people and a spacecraft on a bench do not. */
+    team:   { day: 'assets/cards/ksat1-team.webp',        night: 'assets/cards/ksat1-team.webp',        alt: 'team' },
+    unit:   { day: 'assets/cards/ksat1-flight-unit.png',  night: 'assets/cards/ksat1-flight-unit.png',  alt: 'unit' },
     /* Added after the grid was measured: four of the eight tiles were
        the Arabian Peninsula at night at four camera distances, which are
        four different files that read as one picture at 290px wide. These
@@ -347,6 +354,18 @@
        MODELLED sticker from the hero: "KuwaitSat-1 is a 2U and the
        surface detail in that model is drawn". Saying it in the alt text
        is how the claim survives the sticker coming off. */
+    team: {
+      day:   { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch and the KFAS and Kuwait University marks above them.',
+               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة وشعارا مؤسسة الكويت للتقدم العلمي وجامعة الكويت.' },
+      night: { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch and the KFAS and Kuwait University marks above them.',
+               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة وشعارا مؤسسة الكويت للتقدم العلمي وجامعة الكويت.' }
+    },
+    unit: {
+      day:   { en: 'The KuwaitSat-1 flight unit: a black anodised CubeSat frame with four deep blue solar faces, a circuit board on the top deck and four thin whip antennas deployed from it.',
+               ar: 'وحدة الطيران لكويت سات-١: هيكل مكعّب أسود مؤكسد بأربعة أوجه شمسية زرقاء داكنة، ولوحة إلكترونية على السطح العلوي، وأربعة هوائيات رفيعة منتشرة منه.' },
+      night: { en: 'The KuwaitSat-1 flight unit: a black anodised CubeSat frame with four deep blue solar faces, a circuit board on the top deck and four thin whip antennas deployed from it.',
+               ar: 'وحدة الطيران لكويت سات-١: هيكل مكعّب أسود مؤكسد بأربعة أوجه شمسية زرقاء داكنة، ولوحة إلكترونية على السطح العلوي، وأربعة هوائيات رفيعة منتشرة منه.' }
+    },
     craft: {
       day:   { en: 'The KuwaitSat-1 2U CubeSat as this page’s own 3D model. The form factor is from the published record and the surface detail is modelled.',
                ar: 'نموذج ثلاثي الأبعاد في هذه الصفحة للقمر المكعّب KuwaitSat-1 من فئة 2U. الشكل مأخوذ من السجل المنشور، وتفاصيل السطح مُنمذَجة.' },
@@ -458,6 +477,10 @@
        KuwaitSat-1 once, and what it says about it, that the spacecraft
        passes over the Gulf, is a statement about the orbit and not
        about the photograph. */
+    capUnit: {
+      en: 'KuwaitSat-1, photographed by the project before launch.',
+      ar: 'كويت سات-١، مصوَّرة من المشروع قبل الإطلاق.'
+    },
     capLimb: {
       en: 'The Gulf and the Arabian Peninsula seen from orbit, with the curve of the planet across the top of the frame.',
       ar: 'الخليج وشبه الجزيرة العربية من المدار، وانحناء الكوكب عبر أعلى الإطار.'
@@ -476,7 +499,11 @@
      and its destination can never drift apart. */
   var H = {
     top:     { en: 'From Space to a Greener Kuwait',                  ar: 'من الفضاء إلى كويت أكثر اخضراراً' },       /* hero.h1a + hero.h1b */
-    mission: { en: 'KuwaitSat-1 on the record',                       ar: 'كويت سات-١ في السجل' },                    /* mis.h  */
+    /* NOT mis.h ANY MORE. #mission's own heading is hidden for the
+       public tier and the section is now one photograph: the team who
+       built the satellite. A tile labelled "KuwaitSat-1 on the record"
+       that lands on a group portrait is a tile that lied. */
+    mission: { en: 'The team who built it',                           ar: 'الفريق الذي بناه' },
     imagery: { en: 'Captured From Space',                             ar: 'مُلتقَط من الفضاء' },                       /* img.h  */
     orbit:   { en: 'Where Is KuwaitSat?',                             ar: 'أين كويت سات؟' },                          /* orb.h  */
     system:  { en: 'An AI-powered environmental planning system',     ar: 'نظام تخطيط بيئي مدعوم بالذكاء الاصطناعي' }, /* sys.h  */
@@ -560,7 +587,7 @@
      tiles carry the same subject. */
   var DESTS = [
     { id: 'top',     art: 'lowlimb' },
-    { id: 'mission', art: 'sat1'    },
+    { id: 'mission', art: 'team'    },
     { id: 'imagery', art: 'kuwait'  },
     { id: 'orbit',   art: 'globe'   },
     { id: 'system',  art: 'term'    },
@@ -898,7 +925,11 @@
     link.hidden = !document.getElementById('imagery');
 
     /* The plate itself. */
-    var bandArt = narrow() ? 'kuwait' : 'band';
+    /* THE BAND IS THE TEAM NOW, at every width. It was a satellite
+       view of Kuwait, wide on a desktop and a tighter crop on a phone;
+       the team asked for "the kuwait sat team" in its place. One
+       photograph, so there is nothing to choose between. */
+    var bandArt = 'team';
     var bImg = band.querySelector('.ksh-band__img');
     var wantSrc = artSrc(bandArt);
     /* Compared against the resolved absolute URL the property returns,
@@ -1051,7 +1082,10 @@
     }
     move.forEach(function (node) { fcopy.appendChild(node); });
 
-    feature.appendChild(figureFor('limb', COPY.capLimb, code));
+    /* The spacecraft, not the Earth. This figure carried a limb view
+       next to the paragraph describing what Kuwait put in orbit, which
+       illustrated the orbit rather than the thing in it. */
+    feature.appendChild(figureFor('unit', COPY.capUnit, code));
 
     /* ---- TREATMENT 2: the two prose blocks under it ---------------- */
     var two = ksf.querySelector(':scope > .ksf-band.two');
@@ -1135,7 +1169,17 @@
          shell has parked would be a button that does nothing, and on a
          page whose whole argument is that a link can be trusted that is
          worse than one tile fewer. */
-      if (!document.getElementById(d.id)) return;
+      var dest = document.getElementById(d.id);
+      if (!dest) return;
+      /* AND IT HAS TO BE ON THE SCREEN, not merely in the document.
+         css/ksat-spacecraft.css takes #imagery off the public tier with
+         display:none and leaves the node in place for the shell and for
+         a signed-in researcher. Existence was the right test while the
+         only way out of the public page was being parked out of the
+         DOM; it stopped being the right test then. Same check, same
+         reason, as reachable() in js/ksat-explore.js. */
+      try { if (getComputedStyle(dest).display === 'none') return; }
+      catch (e) { /* no layout yet: let the tile through */ }
 
       /* A PHOTOGRAPH GETS A FLAT GROUND AND A CUT OUT GETS THE
          HIGHLIGHT, AND MIXING THE TWO UP IS WHAT THE SECOND CLASS

@@ -3,7 +3,8 @@
    Owner: 01 Front End.  Companion to css/ksat-hero-orbit.css.
 
    "i want our satlight in here to be little zoomed out and moves around
-   earth just like that".
+   earth just like that", and then "i want it to fly far away
+   circulating the earth".
 
    The travel is the stylesheet's, for the reasons written at the top of
    it. This file does one thing: it asks the renderer for a wider shot,
@@ -23,7 +24,7 @@
    a different job. The API is the seam; use the seam.
 
    ---------------------------------------------------------------------
-   0.62, AND HOW IT WAS ARRIVED AT
+   0.38, AND HOW IT WAS ARRIVED AT
    ---------------------------------------------------------------------
    Measured at a 1424x630 viewport, tier public. At V.zoom = 1 the model
    stood 330px tall inside a 391px stage — 84% of the frame, with the
@@ -31,10 +32,12 @@
    and the brief asks for a spacecraft in orbit, which is a smaller thing
    in a bigger sky.
 
-   0.62 brings it to roughly 205px, just over half the stage, which
-   leaves the antennas inside the frame at every point of the pass and
-   leaves sky above the limb for the pass to happen in. It is a shot,
-   not a diagram.
+   0.62 brought it to roughly 205px, just over half the stage. The team
+   looked at that and asked for it to "fly far away circulating the
+   earth", so it is 0.38 now: about 125px, which is a spacecraft at
+   distance rather than a spacecraft being shown to you. The pass it
+   travels got correspondingly wider; css/ksat-hero-orbit.css carries
+   that half and the arithmetic for it.
 
    ---------------------------------------------------------------------
    THE ONE THING THAT HAS TO BE WAITED FOR
@@ -53,7 +56,7 @@
   if (KS.heroOrbit) { return; }
   KS.heroOrbit = true;
 
-  var ZOOM = 0.62;
+  var ZOOM = 0.38;
   var TRIES = 60;            /* ~9s at 150ms — mount is normally <1s */
   var EVERY = 150;
 

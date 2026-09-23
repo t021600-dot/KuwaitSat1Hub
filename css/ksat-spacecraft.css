@@ -24,6 +24,19 @@
    the full ledger of what was taken out and where it went.
 
    ---------------------------------------------------------------------
+   WHAT IS LEFT OF THIS FILE
+
+   Everything below section 1 used to dress a block js/ksat-spacecraft.js
+   built at the foot of #mission: a heading, the flight unit photograph,
+   four short readings and the launch clip. That block was cut down four
+   times and then asked for in full, so the script is deleted and this
+   file is now only the list of what the public tier does not show.
+
+   The photograph did not go with it. It moved into #legend, beside the
+   paragraph describing what Kuwait put in orbit, where js/ksat-home.js
+   now draws it — the one thing in that section that is the spacecraft
+   rather than the Earth it looks at.
+   ---------------------------------------------------------------------
    THE SHAPE, AND WHY IT IS THIS SHAPE
    ---------------------------------------------------------------------
    nasa.gov's long pages alternate one full-width picture against one
@@ -102,283 +115,30 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
 
 
 /* =====================================================================
-   2 · THE BLOCK
+   3 · AND THEN #mission ITSELF
+
+   The band's copy, and the six-figure strip under it. Quoted back and
+   marked for deletion: the MEASURED mark, "KuwaitSat-1 on the record",
+   the two-sentence dek, the "Captured From Space" link, and then
+   Launch / Form factor / Payload / Resolution / Swath / COSPAR ID with
+   their source chips.
+
+   With the specification grid, the card row, the acquisition record and
+   the whole spacecraft block already gone, #mission now holds exactly
+   one thing: the photograph of the team who built it. That is a
+   deliberate end state rather than what is left over, and it is the
+   reason the band stops being a full-bleed strip — see the note in
+   css/ksat-home.css.
+
+   THE NODES ALL STAY IN THE DOCUMENT. #ksat-ex-facts is built by
+   js/ksat-explore.js from index.html's own SPECS array and that file
+   repaints it on every language change; hiding it here leaves that
+   alone. A signed-in researcher on the hub is unaffected, as with every
+   other rule in this file.
    ===================================================================== */
-.kss {
-  margin-top: clamp(26px, 3.4vw, 46px);
-  padding-top: clamp(26px, 3.4vw, 46px);
-  border-top: 1px solid var(--line);
-}
+html[data-ksat-tier="public"] #mission .ksh-band__copy { display: none; }
+html[data-ksat-tier="public"] #mission #ksat-ex-facts { display: none; }
 
-/* ---- 2a · the opening ---------------------------------------------- */
-.kss-h {
-  font-family: var(--disp);
-  /* Deliberately below the section's own h2. This is a part of "KuwaitSat-1
-     on the record", not a rival to it, and the team have already said
-     once that the titles on this page are too large. */
-  font-size: clamp(22px, 2.5vw, 31px);
-  font-weight: 600;
-  line-height: 1.16;
-  letter-spacing: -.01em;
-  margin: 0;
-  color: var(--ink);
-  /* NO MEASURE CAP. 22ch broke "The spacecraft, and what one frame can
-     tell you" across two lines at every width, and the team asked for
-     it on one. It is 46 characters, so at the top of the clamp it wants
-     about 710px and the block gives it 1,300. It still wraps on a
-     phone, which is the only place it has to. */
-  max-width: none;
-}
-/* ---- 2b · the photograph, then the four readings --------------------
-
-   THIS WAS A TWO COLUMN SPLIT FOR ONE BUILD AND THE SPLIT DID NOT WORK.
-   The picture is 454px tall and the four readings run to about 2,000px,
-   so the left column was a photograph followed by two screens of
-   nothing. The obvious repair is position:sticky on the figure, and it
-   is the wrong repair HERE for a reason worth writing down:
-
-       body carries `overflow-x: hidden`. When one axis of overflow is
-       not `visible`, CSS computes the other axis to `auto` — so body's
-       computed overflow is `hidden auto` and body is a scroll
-       container. It is not the one that scrolls, though; html is. A
-       sticky element's range is its NEAREST scrolling ancestor, which
-       is therefore body, and body's clientHeight equals its
-       scrollHeight. Zero range. The element is `position: sticky` in
-       the computed style and never moves, which is the most confusing
-       way for this to fail.
-
-   So the block takes nasa.gov's actual pattern instead, which is also
-   the simpler one: one picture across the measure, then the reading
-   under it in two columns. No empty column, no dependence on anybody
-   else’s overflow declaration.
-   --------------------------------------------------------------------- */
-.kss-top {
-  margin-top: clamp(24px, 3vw, 40px);
-}
-
-.kss-shot {
-  margin: 0 auto;
-  /* 720px at a 1300px measure is a little over half the page, which is
-     the size a single object photograph wants: large enough to read the
-     hinges and the antenna mounts, not so large that a 752px source is
-     being enlarged past its own resolution. */
-  max-width: min(100%, 720px);
-  /* THE GLOW, AND THE ONE LITERAL IN THIS FILE.
-     assets/cards/ksat1-flight-unit.png is cut out — the spacecraft is a
-     black anodised frame with no ground behind it, and on --void it
-     loses its own silhouette. A radial wash lifts the ground just
-     enough for the edges to read. It is the accent at 15%, written as
-     an rgba() because a colour-mix() of a token is not supported far
-     enough back and the value is a lighting effect rather than a
-     semantic colour. Both themes are served: on the light theme --void
-     is near-white and the same wash reads as a soft shadow. */
-  background:
-    radial-gradient(58% 58% at 50% 46%, rgba(61, 139, 255, .15), rgba(61, 139, 255, 0) 72%);
-  padding: clamp(10px, 2vw, 26px);
-}
-.kss-shot img {
-  display: block;
-  width: 100%;
-  height: auto;
-  /* The source is 752x454 with a transparent ground, so there is no box
-     to round and no border to draw. */
-}
-.kss-cap {
-  margin: 14px auto 0;
-  font-size: 12.5px;
-  line-height: 1.6;
-  color: var(--ink-3);
-  max-width: 62ch;
-  text-align: center;
-}
-
-/* TWO COLUMNS, AND THE MEASURE IS CAPPED INSIDE THEM.
-   Two tracks across a 1300px block give each paragraph about 70
-   characters before the cap and 62 after it, which is inside the 45-75
-   every typographic authority agrees on. The earlier arrangement — two
-   tracks inside the 54% half of the page — gave 30, and "dont keep text
-   squezed like that" is already written on this project once. */
-.kss-read {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(24px, 3vw, 40px) clamp(28px, 3.6vw, 60px);
-  margin-top: clamp(30px, 3.6vw, 48px);
-}
-@media (max-width: 900px) {
-  .kss-read { grid-template-columns: minmax(0, 1fr); }
-}
-.kss-block { margin: 0; }
-.kss-block__t {
-  margin: 0 0 8px;
-  font-family: var(--disp);
-  font-size: 15.5px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--ink);
-}
-.kss-block__p {
-  margin: 0;
-  font-size: 14.5px;
-  line-height: 1.68;
-  color: var(--ink-2);
-  max-width: 62ch;
-}
-
-
-/* =====================================================================
-   3 · THE THREE DECLARED PARTS BELOW IT
-
-   There is one part left and its head is a title alone. It used to
-   carry a provenance mark and a line saying where the numbers came
-   from; both were asked for by name and taken out, and head() now takes
-   nulls for them. The function keeps those two branches because it is
-   the generic head for this block, not because anything uses them.
-   ===================================================================== */
-.kss-part {
-  margin-top: clamp(30px, 3.6vw, 52px);
-  padding-top: clamp(20px, 2.4vw, 30px);
-  border-top: 1px solid var(--line);
-}
-/* The block lands here from the card row above it. Without this the
-   heading stops under a 76px masthead. */
-.kss-part:focus { outline: none; }
-.kss-part { scroll-margin-top: calc(var(--bar-h, 76px) + 22px); }
-
-.kss-head__row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.kss-head__t {
-  margin: 0;
-  font-family: var(--disp);
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: .01em;
-  color: var(--ink);
-}
-
-/* ---- 3a · THE LAUNCH CLIP ------------------------------------------
-
-   An aspect-ratio box with the iframe filling it. Not a padding-top
-   percentage hack: aspect-ratio has been in every engine since 2021 and
-   the hack has a failure mode this layout would hit, which is that it
-   collapses the moment anything gives the box a height.
-
-   16/9 because that is what the source is. A container that is not the
-   video's own ratio letterboxes inside the player and then the black
-   bars are OUR black bars, drawn on a page that is already dark, and
-   nobody can tell where the video stops.
-   --------------------------------------------------------------------- */
-.kss-film {
-  margin: clamp(18px, 2vw, 26px) 0 0;
-}
-
-.kss-film__box {
-  position: relative;
-  width: 100%;
-  /* 940px at a 1300px measure. The photograph above it is capped at
-     720; the clip is allowed more because a moving image at 720 on a
-     desktop reads as a thumbnail, and because this one is the last
-     thing on the page and can take the room. */
-  max-width: min(100%, 940px);
-  margin-inline: auto;
-  aspect-ratio: 16 / 9;
-  background: #000;
-  overflow: hidden;
-}
-.kss-film__yt {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  display: block;
-}
-
-/* The blocked-media fallback. Hidden until js/ksat-spacecraft.js has
-   waited three seconds for a load event that never came. */
-.kss-film__fall {
-  max-width: min(100%, 940px);
-  margin: 14px auto 0;
-  padding: 16px 18px;
-  border: 1px dashed var(--line-3);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-  justify-content: space-between;
-}
-.kss-film__fallp {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  max-width: 52ch;
-}
-.kss-film__open {
-  font-size: 12.5px;
-  text-decoration: none;
-  white-space: nowrap;
-  color: var(--ink);
-  border: 1px solid var(--line-3);
-  padding: 8px 13px;
-}
-.kss-film__open:hover { border-color: var(--accent); color: var(--accent); }
-.kss-film__open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-
-/* =====================================================================
-   4 · RIGHT TO LEFT
-
-   js/ksat-spacecraft.js sets dir on the block itself, so every logical
-   property above flips for free. One thing does not, because it is
-   physical by nature.
-   ===================================================================== */
-.kss[dir="rtl"] .kss-head__t {
-  /* Tracking is a Latin idea. Letter-spacing an Arabic word pulls its
-     joined letters apart, which is not emphasis, it is damage. */
-  letter-spacing: 0;
-}
-
-
-/* =====================================================================
-   5 · PRINT
-
-   THIS BLOCK PRINTED A SENTENCE THAT WAS NOT TRUE, and it is worth
-   writing down how, because it is the failure mode of every print
-   stylesheet: nobody looks at one.
-
-   It hid the player and FORCED THE BLOCKED-MEDIA PANEL VISIBLE, on the
-   reasoning that the panel carries the link and the caption underneath
-   says what the clip is. Then the caption was deleted in a later pass,
-   and what a printed page carried under the heading "The launch" was
-   one sentence, "This viewer blocks external media, so the clip cannot
-   play here" — which is false on paper, and by then the only prose in
-   the block. It also hid .kss-shot, and the photograph's caption is a
-   figcaption INSIDE that figure, so the caption this comment claimed to
-   be keeping went with the picture.
-
-   So: the clip does not print at all, heading included, because there
-   is nothing honest to say about a video on paper. The photograph's
-   IMAGE goes and its CAPTION stays, which is what was meant the first
-   time. What comes out is the heading, the four readings and a line
-   saying what the spacecraft in the picture is.
-   ===================================================================== */
-@media print {
-  /* The image is 130KB of dark pixels and a page of it is a page of
-     toner. Its caption is the part worth carrying out of the room, and
-     it only survives if the FIGURE stays and the IMG goes. */
-  .kss-shot { background: none; padding: 0; }
-  .kss-shot img { display: none; }
-  .kss-cap { text-align: start; }
-
-  .kss-read { grid-template-columns: 1fr 1fr; }
-
-  /* Heading and all. An iframe prints as a grey rectangle and the
-     fallback panel says something untrue on paper. */
-  #ksat-spacecraft-film { display: none; }
-
-  .kss-part { break-inside: avoid; }
-}
+/* The scrim over the photograph existed to keep the copy readable. With
+   no copy on it, it is a wash over a group portrait. */
+html[data-ksat-tier="public"] #mission .ksh-band__scrim { display: none; }

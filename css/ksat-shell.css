@@ -226,20 +226,10 @@ html[data-ksat-highlight="locked"] .ksat-invite {
 }
 .ksat-gate-x:hover { color: var(--ink, #E8ECF2); background: rgba(255, 255, 255, 0.06); }
 
-.ksat-gate-back {
-  display: block;
-  width: 100%;
-  margin-top: 12px;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 12.5px;
-  color: var(--ink-3, #6B7A8D);
-  cursor: pointer;
-  text-align: center;
-  padding: 6px 0;
-}
-.ksat-gate-back:hover { color: var(--ink-2, #9AA7B8); }
+/* .ksat-gate-back is gone. enhanceGate() used to add a "Continue
+   without signing in, the public record stays open" button under the
+   card; the instruction was that only the close control returns to the
+   public page, so the button went and this styled nothing. */
 
 /* The gate card must be a positioning context for the close button. */
 #ksat-gate .ksat-gate-card { position: relative; }

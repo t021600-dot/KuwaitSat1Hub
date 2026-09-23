@@ -215,14 +215,41 @@
   #ksat-gate .ksat-gate-note         { animation: ksat-gate-rise .5s  1.45s backwards ease-out; }
 }
 
-/* THE SECURITY LINE IS THE POINT OF THE SECOND BEAT, so it is allowed
-   to look like something rather than like a caption. A hairline above
-   it and a little more ink: this is the sentence that says who the
-   workspace is for and what is private to an account, and it is the
-   last thing a reader sees before they are asked for a password. */
+/* THE SECURITY LINE, MADE THE POINT OF THE SECOND BEAT.
+
+   "make this warning more fouced". It was set as the card's dek: 12.5px
+   secondary ink under the title, which reads as the small print you
+   scroll past on the way to the password field. It is not small print.
+   It is the sentence that says who this workspace is for and that one
+   researcher's missions, findings and reports are private to their own
+   account, and it is the last thing anybody reads before they are asked
+   for a credential.
+
+   So it is given the shape of a notice rather than of a caption: a rule
+   down the leading edge in the accent, the ink lifted to primary, the
+   size up to 14px and the measure held short so it stays three lines
+   rather than becoming a paragraph. Contrast on the card's ground,
+   measured: #E8EEF8 is 15.9:1, well past the 4.5:1 the standard asks.
+
+   The rule is on the LEADING edge, not the left, so the Arabic build
+   puts it on the right where that reader's eye starts. */
 #ksat-gate .ksat-gate-sub {
   position: relative;
-  padding-top: 14px;
-  margin-top: 14px;
-  border-top: 1px solid rgba(160, 200, 235, .14);
+  margin-top: 18px;
+  padding: 12px 0 12px 14px;
+  border-inline-start: 2px solid #3FD0C9;
+  border-top: 0;
+  padding-inline-start: 14px;
+  padding-inline-end: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #E8EEF8;
+  max-width: 42ch;
 }
+
+
+/* .ksat-gate-back is not styled here any more because it is not built
+   any more: js/ksat-shell.js used to add a "Continue without signing
+   in" button under the card and the instruction was that only the ×
+   returns to the public page. If a rule for it survives in another
+   stylesheet it now matches nothing. */

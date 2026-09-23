@@ -38,15 +38,24 @@
    the eye reads as distance:
 
        translateY   low at both ends, high in the middle
-       scale        .80 at the ends, 1 at the middle — a real pass
+       scale        .55 at the ends, 1 at the middle — a real pass
                     brings the spacecraft nearer as well as higher
        opacity      fades at both ends, where it is over the horizon
 
-   THE PASS STAYS IN THE RIGHT HALF OF THE HERO. Measured at a 1424px
-   viewport: the headline's line box ends at x=562 and the stage's left
-   edge is at x=799, so a -30% travel puts the spacecraft's box at 631 —
-   69px of clearance. Any further and the antennas reach the word
-   "Greener".
+   HOW FAR IT TRAVELS, AND THE ONE THING THAT BOUNDS IT.
+
+   "fly far away circulating the earth", so the pass is now ±70% of the
+   stage rather than ±30%, and the scale runs from .55 at the ends
+   rather than .80. It leaves the frame on the right, which is what a
+   pass does.
+
+   The bound is the headline, measured at a 1424px viewport: its line
+   box ends at x=562. The stage is 560px wide with its left edge at 799,
+   and the spacecraft inside it is about 125px across at the zoom
+   js/ksat-hero-orbit.js sets, so it sits around x=1017 at rest. At -70%
+   that is 1017 minus 392, which is 625, and the spacecraft's own left
+   edge is at 562. It arrives at the headline exactly as it fades out,
+   and the fade is well under way by then.
 
    ---------------------------------------------------------------------
    THE STILL FRAME IS THE MIDDLE OF THE PASS
@@ -62,26 +71,27 @@
 
 html[data-ksat-tier="public"] .hero-sat .ksat-cs {
   /* The 50% keyframe, as a still. See the note above. */
-  transform: translate3d(0, -4%, 0);
+  transform: translate3d(0, -12%, 0);
   will-change: transform;
 }
 
 @keyframes ksat-hero-orbit {
-  0%   { transform: translate3d(30%, 13%, 0) scale(.80); opacity: 0; }
-  9%   { opacity: 1; }
-  50%  { transform: translate3d(0, -4%, 0) scale(1); opacity: 1; }
-  91%  { opacity: 1; }
-  100% { transform: translate3d(-30%, 13%, 0) scale(.80); opacity: 0; }
+  0%   { transform: translate3d(70%, 24%, 0) scale(.55); opacity: 0; }
+  8%   { opacity: 1; }
+  50%  { transform: translate3d(0, -12%, 0) scale(1); opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translate3d(-70%, 24%, 0) scale(.55); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   html[data-ksat-tier="public"] .hero-sat .ksat-cs {
-    /* 54 seconds for one pass. KuwaitSat-1's real period is about 93
-       minutes, so this is not a clock and does not pretend to be; it is
-       slow enough that the movement is noticed rather than watched,
-       which is the speed a masthead animation wants. `linear` because
-       an orbit has no ease-out. */
-    animation: ksat-hero-orbit 54s linear infinite;
+    /* 66 seconds, up from 54, because the path is more than twice as
+       long and the apparent speed should not change with it.
+       KuwaitSat-1's real period is about 93 minutes, so this is not a
+       clock and does not pretend to be; it is slow enough that the
+       movement is noticed rather than watched. `linear` because an
+       orbit has no ease-out. */
+    animation: ksat-hero-orbit 66s linear infinite;
   }
   /* Dragging the model is a direct manipulation and the pass would
      fight it. js/ksat-hero-orbit.js sets this while a pointer is down

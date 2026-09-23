@@ -920,9 +920,10 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
      along the arc of its pass over the limb. After ksat-minimal.css,
      which is where .hero-sat is sized and placed. -->
 <link rel="stylesheet" href="css/ksat-hero-orbit.css">
-<!-- ksat-spacecraft.css dresses the block js/ksat-spacecraft.js adds at
-     the foot of #mission, and folds the specification fold and the
-     concept chain away for the public tier only. -->
+<!-- ksat-spacecraft.css is the list of what the public tier does not show
+     inside #mission: the specification grid, the card row, the acquisition
+     record, the band's copy and the six-figure strip. The script that went
+     with it is gone; see the note where it used to be loaded. -->
 <link rel="stylesheet" href="css/ksat-spacecraft.css">
 
 <!-- ============ THE THREE NEW LAYERS =============================
@@ -6252,10 +6253,12 @@ addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcD
      the view() handle that file publishes, and pauses the pass while the
      model is being dragged. Must come after ksat-cubesat.js. -->
 <script src="js/ksat-hero-orbit.js"></script>
-<!-- ksat-spacecraft.js reads #specTable and #conceptFlow and re-presents
-     them at the foot of #mission beside the flight-unit photograph. After
-     ksat-home.js, whose card row it repoints. -->
-<script src="js/ksat-spacecraft.js"></script>
+<!-- js/ksat-spacecraft.js used to sit here. It built a block at the foot
+     of #mission: a heading, the flight unit photograph, four readings and
+     the launch clip. The block was cut down four times and then asked for
+     in full, so the script is deleted. css/ksat-spacecraft.css outlived
+     it and is now the list of what the public tier does not show inside
+     that section; the photograph moved into #legend. -->
 
 <!-- ============ THE THREE NEW LAYERS =============================
      All three are CLASSIC scripts, and that is load-bearing rather
