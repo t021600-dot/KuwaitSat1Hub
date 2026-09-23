@@ -1,0 +1,128 @@
+/* =====================================================================
+   ksat-narrate.css - THE RUN, NARRATED FOR A ROOM
+   Owner: 01 Front end
+
+   Dresses js/ksat-narrate.js. Every selector is prefixed .ksat-nr so
+   nothing here can reach the trace it sits above.
+
+   The workspace runs at 10px for secondary text, which is right for a
+   dense instrument panel read at arm's length and wrong for the one
+   surface an audience reads from the back of a room. This panel is
+   15px, and 21px with "Bigger" pressed.
+
+   Nothing transitions. Reduced motion is on for this machine and the
+   automated tab runs hidden, where requestAnimationFrame never fires.
+   ===================================================================== */
+
+.ksat-nr {
+  border: 1px solid #2d3a44;
+  background: #0b1116;
+  margin-bottom: 14px;
+}
+
+.ksat-nr-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  border-bottom: 1px solid #1d262e;
+  background: #0d141a;
+}
+
+.ksat-nr-bar h4 {
+  margin: 0;
+  flex: 1;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  color: #cbd6dd;
+}
+
+.ksat-nr-bar .run {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #66737e;
+}
+
+/* The clock is tabular so the digits do not shuffle sideways ten times
+   a second while it counts. */
+.ksat-nr-bar .clock {
+  font-family: ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: #9fc5dc;
+  min-width: 54px;
+  text-align: right;
+}
+
+.ksat-nr-bar .btn { padding: 6px 10px; font-size: 10px }
+
+.ksat-nr-log {
+  max-height: 268px;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.ksat-nr-line {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 7px 14px;
+  border-left: 2px solid transparent;
+}
+
+.ksat-nr-line .t {
+  font-family: ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: #5d6b76;
+  min-width: 48px;
+}
+
+.ksat-nr-line .b { flex: 1 }
+
+.ksat-nr-line .who {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8ea3b2;
+  margin-bottom: 3px;
+}
+
+.ksat-nr-line .what {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #b9c5cd;
+}
+
+/* The step happening now. The ones above keep their text and only lose
+   the highlight: somebody who looks away for two seconds has to be able
+   to find their place again. */
+.ksat-nr-line.now {
+  border-left-color: #9fc5dc;
+  background: #101922;
+}
+.ksat-nr-line.now .what { color: #f2f6f8 }
+.ksat-nr-line.now .who { color: #9fc5dc }
+
+.ksat-nr-foot {
+  padding: 9px 14px;
+  border-top: 1px solid #1d262e;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #66737e;
+}
+
+/* PROJECTOR SIZE. */
+.ksat-nr.big .ksat-nr-log { max-height: 390px }
+.ksat-nr.big .ksat-nr-line { padding: 11px 16px }
+.ksat-nr.big .ksat-nr-line .what { font-size: 21px; line-height: 1.45 }
+.ksat-nr.big .ksat-nr-line .who { font-size: 12px }
+.ksat-nr.big .ksat-nr-line .t { font-size: 14px; min-width: 62px }
+.ksat-nr.big .ksat-nr-bar .clock { font-size: 17px; min-width: 68px }
+
+@media (max-width: 900px) {
+  .ksat-nr-line .what { font-size: 13.5px }
+  .ksat-nr.big .ksat-nr-line .what { font-size: 17px }
+}
