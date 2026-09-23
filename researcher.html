@@ -482,6 +482,21 @@
     </div>
 
     <div class="card s12">
+      <div class="ct"><h3>Platform health</h3>
+        <span class="sub">public.monitor_health, last 7 nights</span></div>
+      <p class="sub" style="margin-bottom:12px">The nightly sweep closes runs that were
+        left open by a browser that went away. It runs at 02:00 Kuwait time as a scheduled
+        job, not from anybody's laptop, and it writes a row whether it finds anything or
+        not - so a missing night is visible rather than silent. The table it writes to
+        carries counts only: no mission, no run and no researcher id may ever be added
+        to it.</p>
+      <div class="scrolly">
+        <table id="healthTable"><tr><th>Night</th><th>Events</th><th>Sweeps OK</th><th>Runs swept</th><th>Anomalies</th><th>Last event</th></tr></table>
+      </div>
+      <div class="said" id="healthMsg"></div>
+    </div>
+
+    <div class="card s12">
       <div class="ct"><h3>What the record is for</h3></div>
       <div class="notice">
         Row level security scopes every table on this page to the signed-in account.

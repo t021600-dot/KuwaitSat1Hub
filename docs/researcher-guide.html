@@ -433,6 +433,7 @@ that were refused and the ones you abandoned. Nothing is deleted.</p>
   <tr><td>Agent steps</td><td>Every step of every run. Use the dropdown to narrow to one run. The Arguments column carries the refusal reason where there is one.</td></tr>
   <tr><td>Steps refused</td><td>A count. A healthy number here is not zero: each refusal is evidence that a boundary held.</td></tr>
   <tr><td>Access test</td><td>Four requests your account is not supposed to be able to make, sent for real against the live database, with the answers printed verbatim.</td></tr>
+  <tr><td>Platform health</td><td>The last seven nights of the automated sweep that closes runs left open by a browser that went away. It runs at 02:00 Kuwait time as a scheduled job and writes a row whether it finds anything or not, so a missing night is visible rather than silent. Counts only: no mission, run or researcher id is ever written to it.</td></tr>
 </table>
 <h4>The access test</h4>
 <p>Press <strong>Run the access test</strong> and the workspace attempts to modify the
@@ -466,10 +467,12 @@ of anyone who asks how the platform is secured.</p>
   <li><strong>Watch the trace.</strong> The Satellite Data Agent reports how many frames were
       released, how many are geolocated and how many fall inside your area, then attempts the
       forbidden write and records the refusal. The Environmental Analysis Agent measures each
-      frame inside the area. The Recommendation Agent ranks the bare ground.</li>
-  <li><strong>Decide.</strong> The run stops. Read the candidate zones in the Human checkpoint
-      panel: each carries its greenness index, its luminance, how much of the ground around it
-      already carries vegetation, and roughly how many square kilometres it covers.</li>
+      frame inside the area and records the greenness range it found. The Recommendation
+      Agent ranks the land tiles, or refuses if nothing separates from the background.</li>
+  <li><strong>Decide.</strong> The run stops. Read the panel from the top: the first sentence
+      says whether any vegetation was detected at all, and on this archive it will say none
+      was. Each zone then carries its greenness index, how many standard deviations it sits
+      from its own frame median, its luminance and its size on the ground.</li>
   <li><strong>Approve, re-rank or abandon.</strong> See section 5.</li>
   <li><strong>After approval</strong>, the Impact Prediction, Visualization and Reporting
       agents run and the mission moves to <span class="mono">REVIEW</span>. A draft report
@@ -496,11 +499,16 @@ it. Three of its branches end the run early, and those are the interesting ones.
           Allowed to search and retrieve. Not allowed to modify anything, and it proves that
           on every run.</td></tr>
   <tr><td>Environmental Analysis Agent</td>
-      <td>Measures each frame inside the area. It divides the frame into an 8 by 8 grid and
-          computes the mean colour of every tile, classifying each as water, vegetation or
-          bare ground against two written thresholds.</td></tr>
+      <td>Measures each frame inside the area. It divides the frame into a 16 by 16 grid,
+          giving tiles about 1.24 km on the ground, and computes the mean colour of every
+          tile. Tiles that read as water are set aside; every remaining tile is tested
+          against the Excess Green vegetation threshold, and the range, median and spread
+          of the whole frame go into the audit trail with the answer.</td></tr>
   <tr><td>Recommendation Agent</td>
-      <td>Ranks the bare tiles and returns the best five. It proposes. It does not decide.</td></tr>
+      <td>Ranks the land tiles by <em>relative</em> greenness within their own frame and
+          returns the best five. A zone has to stand at least two standard deviations
+          clear of that frame median or the agent returns nothing at all. It proposes.
+          It does not decide.</td></tr>
   <tr><td>Impact Prediction Agent</td>
       <td>Runs only after you approve. It reports a range or states plainly that no estimate
           can be made. See below.</td></tr>
@@ -559,6 +567,15 @@ an injection flag and the refusal is written to the trail.</p>
 substitute a frame from somewhere else and label it with your area. Open Geospatial Layers,
 see where the frames actually are, and create a mission over one of them.</p>
 
+<h3>No candidate zone separates from the background</h3>
+<p>Bare ground varies. Sand is not one colour, and a ranking that puts five squares of
+ordinary desert at the top of a list, with numbers beside them to three decimal places, is
+presenting noise as a finding.</p>
+<p>So the Recommendation Agent measures how far the most extreme tile stands from the
+middle of its own frame, in standard deviations, and if that is under two it returns
+nothing and says why. The run closes and the reasoning is written into the findings. That
+is a result about the area, not a failure of the platform.</p>
+
 <h3>No impact estimate is produced</h3>
 <p>This is the most important one to understand, because it will happen on every mission you
 run against the archive as it stands today, and it is the correct result.</p>
@@ -585,6 +602,38 @@ platform uses Excess Green on the visible bands instead, which is a published vi
 proxy. The frames are JPEG, raw decoded, with no radiometric or atmospheric correction and no
 illumination normalisation between passes. Values are comparable <em>within</em> one frame and
 not <em>between</em> frames. Do not read a vegetation percentage off them.</p>
+
+<div class="note stop">
+  <strong>No vegetation has been detected anywhere in this archive, and you should know
+  that before you run anything.</strong>
+  <p style="margin:6pt 0 0">Frame 07, Al-Khiran and the Wafra plain, is the most
+  agricultural ground KuwaitSat-1 has photographed. It was measured at four resolutions,
+  from 2.47 km tiles down to 309 m tiles:</p>
+  <table style="margin:6pt 0 4pt">
+    <tr><th>Tile size</th><th>ExG lowest</th><th>median</th><th>highest</th><th>Tiles above zero</th></tr>
+    <tr><td>2472 m</td><td>-0.050</td><td>-0.033</td><td>-0.021</td><td>0 of 64</td></tr>
+    <tr><td>1236 m</td><td>-0.056</td><td>-0.033</td><td>-0.012</td><td>0 of 256</td></tr>
+    <tr><td>618 m</td><td>-0.058</td><td>-0.033</td><td>-0.009</td><td>0 of 1024</td></tr>
+    <tr><td>309 m</td><td>-0.054</td><td>-0.033</td><td>-0.001</td><td>0 of 4096</td></tr>
+  </table>
+  <p style="margin:0">Excess Green of zero is neutral grey; negative means the ground is
+  redder than neutral, which is what sand is. Not one tile reaches zero, let alone the 0.05
+  the literature uses for vegetation, and the median does not move from -0.033 at any
+  scale: that is the desert. Lowering the threshold until something counted as vegetation
+  would be choosing the answer first.</p>
+</div>
+
+<h4>So what is a candidate zone, exactly</h4>
+<p>It is the <strong>least red ground in its frame</strong>, and nothing more. The
+Recommendation Agent ranks land tiles by how far each sits from its own frame median, in
+standard deviations, and returns the top five when they stand clear enough to be worth
+naming.</p>
+<p>That gradient is real and it is measurable: the greenest tile moves from 2.4 to 5.7
+standard deviations above the median as the tiles get smaller, which means something
+locally greener is being averaged away at coarse scales. It may be an irrigated plot. On an
+uncalibrated visible band frame it may equally be damp ground, a different soil, a road or
+a building. <strong>This platform cannot tell those apart and does not claim to.</strong> A
+candidate zone is a place to go and look, and that is the only claim attached to it.</p>
 
 <h4>Footprints are an indication of extent, not a survey boundary</h4>
 <p>A footprint is computed from the frame centre, the 39 metre ground sample distance and the
@@ -653,7 +702,8 @@ classification in this platform is an inference from colour.</p>
   <tr><td>Frame</td><td>One picture KuwaitSat-1 returned, with its acquisition record.</td></tr>
   <tr><td>Footprint</td><td>The ground a frame covers, computed rather than recorded.</td></tr>
   <tr><td>GSD</td><td>Ground sample distance. 39 metres per pixel on this payload: one pixel is 39 metres on the ground.</td></tr>
-  <tr><td>ExG</td><td>Excess Green. A visible band greenness proxy, used because there is no near infrared band.</td></tr>
+  <tr><td>ExG</td><td>Excess Green. A visible band greenness proxy, used because there is no near infrared band. Zero is neutral grey; negative is redder than neutral, which is what sand is.</td></tr>
+  <tr><td>Standard deviations from the median</td><td>How far one tile sits from the middle of its own frame. It is how candidate zones are ranked, and it is why a ranking from one frame cannot be compared with a ranking from another.</td></tr>
   <tr><td>Area of interest</td><td>The polygon on a mission. Always inside Kuwait, always four corners, always checked by the database.</td></tr>
   <tr><td>Human checkpoint</td><td>The point where the pipeline stops and a person decides.</td></tr>
   <tr><td>Row level security</td><td>The database rule that scopes every table to your account. It is why your work is private.</td></tr>

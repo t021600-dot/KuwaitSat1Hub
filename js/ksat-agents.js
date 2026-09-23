@@ -241,6 +241,21 @@
   }
 
   function fmtPct(n) { return (Math.round(n * 10) / 10) + '%'; }
+  function r3(n) { return Math.round(n * 1000) / 1000; }
+  function r1(n) { return Math.round(n * 10) / 10; }
+
+  /* THE SEPARATION A CANDIDATE HAS TO REACH BEFORE IT IS WORTH NAMING.
+
+     Every land tile in a frame has a greenness z-score: how far it sits
+     from that frame's own median in standard deviations. A z of 2 is the
+     top ~2% of a normal distribution.
+
+     Below this, the "greenest" tile is not distinguishable from the
+     ordinary variation of sand, and ranking it would be presenting noise
+     as a finding. Measured on frame 07 the top tile reaches z = 4.0 at
+     the default grid, so real frames do clear this bar - it is a guard,
+     not a gate that closes on everything. */
+  var MIN_CANDIDATE_Z = 2.0;
 
   /* -------------------------------------------------------------------
      THE RUN
@@ -385,17 +400,25 @@
                     'Frame ' + f.frame_no + ' has an acquisition record but no picture ' +
                     'in the archive yet, so it cannot be measured.').then(tick);
                 }
-                return geo.analyseFrame(f, 8).then(function (a) {
+                return geo.analyseFrame(f).then(function (a) {
                   a.frame = f;
                   state.analyses.push(a);
+                  /* The DISTRIBUTION goes into the trail, not just the
+                     class counts. "0% vegetation" on its own is not a
+                     measurement anybody can check; the range, the median
+                     and the threshold it was tested against are. */
                   return logStep(state.run_id, 'environmental_analysis', 'frame.analyse',
                     { frame_no: f.frame_no,
                       grid: a.grid + 'x' + a.grid,
+                      tile_m: a.tileM,
                       index: 'ExG on chromatic coordinates',
-                      threshold: geo.VEG_EXG,
-                      vegetation_pct: a.vegPct,
-                      water_pct: a.waterPct,
-                      bare_pct: a.barePct })
+                      vegetation_threshold: geo.VEG_EXG,
+                      vegetation_detected: a.vegetationDetected,
+                      exg_min: r3(a.exg.min),
+                      exg_median: r3(a.exg.median),
+                      exg_max: r3(a.exg.max),
+                      top_tile_z: r1(a.exg.topZ),
+                      water_pct: a.waterPct })
                     .then(tick);
                 });
               });
@@ -417,11 +440,22 @@
               state.analyses.forEach(function (a) {
                 w = w.then(function () {
                   return writeResult(state.run_id, 'metric',
-                    'Frame ' + String(a.frame_no).padStart(2, '0') + ' surface classes',
+                    'Frame ' + String(a.frame_no).padStart(2, '0') + ' surface measurement',
                     'Grid ' + a.grid + ' x ' + a.grid + ' over ' + a.width + ' x ' + a.height +
-                    ' px, ' + a.total + ' tiles.\n' +
-                    'Vegetation ' + fmtPct(a.vegPct) + ' of tiles, water ' +
-                    fmtPct(a.waterPct) + ', bare ' + fmtPct(a.barePct) + '.\n\n' +
+                    ' px: ' + a.total + ' tiles of about ' + a.tileM + ' m on the ground.\n' +
+                    'Water ' + fmtPct(a.waterPct) + ' of tiles, land ' +
+                    fmtPct(100 - a.waterPct) + '.\n\n' +
+                    'Greenness over the land tiles: ExG ranges ' + r3(a.exg.min) +
+                    ' to ' + r3(a.exg.max) + ', median ' + r3(a.exg.median) +
+                    '. The vegetation threshold is ' + geo.VEG_EXG + '.\n' +
+                    (a.vegetationDetected
+                      ? (a.counts.veg + ' tile(s) reach it.')
+                      : 'NO TILE REACHES IT, so no vegetation was detected in this frame. ' +
+                        'ExG = 0 is neutral grey and negative means redder than neutral, ' +
+                        'which is what bare sand is. The greenest tile stands ' +
+                        r1(a.exg.topZ) + ' standard deviations above the median, so there ' +
+                        'is a real gradient in the ground here - but it is a gradient ' +
+                        'within bare ground, not vegetation.') + '\n\n' +
                     geo.INDEX_NOTE,
                     geo.frameBounds(a.frame) ? geo.rectPolygon(
                       geo.frameBounds(a.frame)[0][0], geo.frameBounds(a.frame)[0][1],
@@ -469,7 +503,22 @@
             }
 
             /* ---- 3 - RECOMMENDATION ------------------------------- */
-            return rank(state, 'balanced').then(function () {
+            return rank(state, 'greenest').then(function () {
+              /* DECISION 3. rank() refuses when nothing separates from
+                 the background, and a checkpoint with an empty candidate
+                 list is not a decision anybody can take. Close the run
+                 and say why. */
+              if (!state.candidates.length) {
+                return finish(state.run_id, 'stalled',
+                    'no zone separated from the background')
+                  .then(function () {
+                    state.stopped = 'no-separation';
+                    tick();
+                    phase('Mission Orchestrator - nothing in this area separates from ' +
+                          'the background. Run closed.');
+                    return state;
+                  });
+              }
               phase('Mission Orchestrator - evidence sufficient, human checkpoint required');
               if (opts.onCheckpoint) opts.onCheckpoint(state);
               return state;
@@ -480,44 +529,108 @@
 
   /* -------------------------------------------------------------------
      RANKING, AND RE-RANKING
+     -------------------------------------------------------------------
+     THE RANKING IS RELATIVE, AND THE FIRST VERSION OF IT WAS WRONG.
 
-     mode 'balanced' : bare tiles next to existing vegetation first. The
-                       argument is that something already grows there, so
-                       the water and the soil are evidently not the
-                       blocker.
-     mode 'driest'   : lowest greenness first, ignoring the neighbours.
-                       This is what Reject asks for - the candidate set is
-                       REBUILT from the same evidence under a different
-                       criterion, never edited in place.
-     ------------------------------------------------------------------- */
+     It scored every bare tile as
+         0.65 * (fraction of neighbours carrying vegetation)
+       + 0.35 * (how dry it is)
+     and returned the top five.
+
+     Measured on the real archive, nothing anywhere classifies as
+     vegetation, so the first term is ZERO for every tile on every frame
+     and the whole score collapsed to the second. The second was then
+     separating tiles by thousandths of an ExG unit inside a range of
+     0.029 - which is the ordinary variation of sand. The page would have
+     presented five "candidate zones for planting" that were, in fact,
+     five arbitrary squares of desert, with numbers beside them to three
+     decimal places. That is exactly the false precision the brief
+     forbids, dressed up as a measurement.
+
+     What it does now:
+
+       'greenest' (default) - rank land tiles by z, the tile's distance
+           from ITS OWN FRAME's median greenness in standard deviations.
+           These are the least red ground in the frame. That is a real,
+           measurable property and it is reported as what it is: a place
+           to look, not detected vegetation.
+
+       'driest' - the same distribution, the other end. This is what
+           Reject asks for: the candidate set is rebuilt from the same
+           evidence under the opposite criterion, never edited in place.
+
+     And it REFUSES rather than returning anything when the best tile is
+     less than MIN_CANDIDATE_Z from the median, because below that the
+     ranking is noise and a refusal is the honest output. */
   function rank(state, mode) {
+    mode = (mode === 'driest') ? 'driest' : 'greenest';
     var all = [];
     state.analyses.forEach(function (a) {
       a.tiles.forEach(function (t) {
-        if (t.kind !== 'bare') return;
-        var score = (mode === 'driest')
-          ? (1 - t.exg)
-          : (0.65 * t.nbVeg) + (0.35 * (1 - Math.min(1, Math.max(0, t.exg + 0.5))));
-        all.push({ a: a, t: t, score: score });
+        if (t.kind === 'water') return;
+        all.push({ a: a, t: t, z: t.z });
       });
     });
-    all.sort(function (x, y) { return y.score - x.score; });
-    var top = all.slice(0, 5);
-    state.candidates = top;
-    state.rankMode = mode;
+    all.sort(function (x, y) {
+      return (mode === 'driest') ? (x.z - y.z) : (y.z - x.z);
+    });
 
-    var tileKm2 = 0;
+    state.rankMode = mode;
+    state.landTiles = all.length;
+
+    var tileKm2 = 0, tileM = 0;
     if (state.analyses.length) {
       var a0 = state.analyses[0];
-      var gsd = Number(a0.frame.gsd_m) || 39;
-      tileKm2 = Math.round(((a0.width / a0.grid) * gsd) * ((a0.height / a0.grid) * gsd) / 1e6 * 10) / 10;
+      tileM = a0.tileM;
+      tileKm2 = Math.round((a0.tileM * a0.tileM) / 1e6 * 100) / 100;
     }
     state.tileKm2 = tileKm2;
+    state.tileM = tileM;
+
+    var vegAnywhere = state.analyses.some(function (a) { return a.vegetationDetected; });
+    state.vegetationDetected = vegAnywhere;
+
+    /* THE GUARD. Separation is measured on the criterion actually used:
+       'greenest' needs a high top z, 'driest' needs a low bottom one. */
+    var best = all.length ? all[0].z : 0;
+    var separation = (mode === 'driest') ? -best : best;
+
+    if (!all.length || separation < MIN_CANDIDATE_Z) {
+      state.candidates = [];
+      return logStep(state.run_id, 'recommendation', 'rank.candidates',
+          { criterion: mode,
+            land_tiles_considered: all.length,
+            best_separation_sd: r1(separation),
+            required_separation_sd: MIN_CANDIDATE_Z,
+            candidates_returned: 0 },
+          false,
+          'The most extreme tile in this area stands only ' + r1(separation) +
+          ' standard deviations from the median, and ' + MIN_CANDIDATE_Z +
+          ' is required. Below that the ranking cannot be told apart from the ' +
+          'ordinary variation of bare ground, so no candidate zones are returned.')
+        .then(function () {
+          return writeResult(state.run_id, 'narrative',
+            'No zone in this area separates from the background',
+            'The Recommendation Agent measured ' + all.length + ' land tiles and ' +
+            'returned none.\n\n' +
+            'Ranking them would have meant presenting the ordinary variation of ' +
+            'bare ground as a finding. The best tile was ' + r1(separation) +
+            ' standard deviations from the median where ' + MIN_CANDIDATE_Z +
+            ' is required.\n\n' + geo.EVIDENCE_NOTE);
+        });
+    }
+
+    var top = all.slice(0, 5);
+    state.candidates = top;
 
     return logStep(state.run_id, 'recommendation', 'rank.candidates',
         { criterion: mode,
-          bare_tiles_considered: all.length,
+          basis: 'relative greenness within each frame, in standard deviations',
+          vegetation_detected_anywhere: vegAnywhere,
+          land_tiles_considered: all.length,
+          best_separation_sd: r1(separation),
           candidates_returned: top.length,
+          tile_m: tileM,
           tile_area_km2: tileKm2 })
       .then(function () {
         var w = Promise.resolve();
@@ -528,12 +641,18 @@
             return writeResult(state.run_id, 'site',
               'Candidate ' + (i + 1) + ' - frame ' + String(c.a.frame_no).padStart(2, '0') +
                 ' tile ' + c.t.gx + ',' + c.t.gy,
-              'Ranked ' + (i + 1) + ' of ' + top.length + ' by the ' + mode + ' criterion.\n' +
-              'Greenness index ExG ' + c.t.exg.toFixed(3) + ', luminance ' + c.t.lum +
-              ', classified bare.\n' +
-              'Neighbouring tiles carrying vegetation: ' + Math.round(c.t.nbVeg * 100) + '%.\n' +
-              'Approximately ' + tileKm2 + ' km2 on the ground.\n\n' +
-              geo.FOOTPRINT_NOTE,
+              'Ranked ' + (i + 1) + ' of ' + top.length + ' by the ' + mode +
+              ' criterion, which is relative greenness within frame ' +
+              String(c.a.frame_no).padStart(2, '0') + '.\n' +
+              'ExG ' + c.t.exg.toFixed(3) + ', which is ' + r1(c.t.z) +
+              ' standard deviations from that frame median of ' + r3(c.a.exg.median) +
+              '. Luminance ' + c.t.lum + '.\n' +
+              'About ' + tileM + ' m square, ' + tileKm2 + ' km2 on the ground.\n\n' +
+              (c.a.vegetationDetected
+                ? 'This frame does contain tiles above the vegetation threshold.'
+                : 'NO VEGETATION WAS DETECTED IN THIS FRAME. This tile is the least ' +
+                  'red ground in it, not a vegetated one.') + '\n\n' +
+              geo.EVIDENCE_NOTE + '\n\n' + geo.FOOTPRINT_NOTE,
               poly);
           });
         });
@@ -666,9 +785,17 @@
     p(state.candidates.length + ' candidate zones were identified inside the mission ' +
       'area from ' + state.analyses.length + ' KuwaitSat-1 frame' +
       (state.analyses.length === 1 ? '' : 's') + ', totalling approximately ' +
-      x.totalKm2 + ' km2. No impact figure is given: the archive holds ' +
-      x.pairs.length + ' repeat visit pairs over this ground, which is not enough to ' +
-      'measure change.');
+      x.totalKm2 + ' km2.');
+    p('');
+    p(state.vegetationDetected
+      ? ('Vegetation was detected above the Excess Green threshold in at least one frame.')
+      : ('NO VEGETATION WAS DETECTED. Not one tile in any frame used here reaches the ' +
+         'Excess Green threshold of ' + geo.VEG_EXG + '. The zones below are the least ' +
+         'red ground in their frames, which is a place to look and not a vegetated ' +
+         'area. Anyone reading only the list should read this paragraph first.'));
+    p('');
+    p('No impact figure is given: the archive holds ' + x.pairs.length +
+      ' repeat visit pairs over this ground, which is not enough to measure change.');
     p('');
     p('## Research objective');
     p('');
@@ -690,22 +817,32 @@
     p('');
     p('## Methodology');
     p('');
-    p('Each frame was divided into an 8 x 8 grid and the mean colour of every tile ' +
-      'measured in the browser. Tiles were classified as water, vegetation or bare ' +
-      'against two written thresholds: Excess Green at or above ' + geo.VEG_EXG +
-      ' is vegetation; a tile whose blue channel leads both others at a luminance ' +
-      'below 70 is water. Bare tiles were ranked by the ' + (state.rankMode || 'balanced') +
-      ' criterion and the top ' + state.candidates.length + ' returned.');
+    p('Each frame was divided into a ' + (state.analyses[0] ? state.analyses[0].grid : 16) +
+      ' x ' + (state.analyses[0] ? state.analyses[0].grid : 16) + ' grid, giving tiles of ' +
+      'about ' + state.tileM + ' m on the ground, and the mean colour of every tile was ' +
+      'measured in the browser. A tile whose blue channel leads both others at a ' +
+      'luminance below 70 is classified as water and left out of the land statistics. ' +
+      'Every remaining tile is tested against the Excess Green vegetation threshold of ' +
+      geo.VEG_EXG + '.');
+    p('');
+    p('Land tiles were then ranked by the ' + state.rankMode + ' criterion, which is ' +
+      'RELATIVE greenness within each frame: a tile score is its distance from that ' +
+      'frame own median in standard deviations. A candidate must stand at least ' +
+      '2 standard deviations out, or the agent returns nothing rather than ranking ' +
+      'the ordinary variation of bare ground.');
     p('');
     p(geo.INDEX_NOTE);
+    p('');
+    p(geo.EVIDENCE_NOTE);
     p('');
     p('## Findings');
     p('');
     state.candidates.forEach(function (c, i) {
       p('- Candidate ' + (i + 1) + ', frame ' + String(c.a.frame_no).padStart(2, '0') +
-        ' tile ' + c.t.gx + ',' + c.t.gy + ': ExG ' + c.t.exg.toFixed(3) +
-        ', luminance ' + c.t.lum + ', ' + Math.round(c.t.nbVeg * 100) +
-        '% of neighbouring tiles vegetated, approximately ' + state.tileKm2 + ' km2.');
+        ' tile ' + c.t.gx + ',' + c.t.gy + ': ExG ' + c.t.exg.toFixed(3) + ', which is ' +
+        r1(c.t.z) + ' standard deviations from that frame median of ' +
+        r3(c.a.exg.median) + '. Luminance ' + c.t.lum + '. About ' + state.tileM +
+        ' m square, ' + state.tileKm2 + ' km2.');
     });
     p('');
     p('## Researcher-approved recommendations');

@@ -64,6 +64,51 @@
     'correction and no illumination normalisation between passes, so values ' +
     'are comparable within one frame and not between frames.';
 
+  /* >>> MEASURED ON THE REAL ARCHIVE, 23 Sep 2026. READ THIS BEFORE
+         CHANGING VEG_EXG OR THE RANKING. <<<
+
+     Frame 07, Al-Khiran and the Wafra plain - the most agricultural
+     ground KuwaitSat-1 has photographed - was measured at four grid
+     resolutions, from 2.47 km tiles down to 309 m tiles:
+
+         tile     ExG min    median    max     tiles with ExG > 0
+         2472 m   -0.050     -0.033    -0.021  0 of 64
+         1236 m   -0.056     -0.033    -0.012  0 of 256
+          618 m   -0.058     -0.033    -0.009  0 of 1024
+          309 m   -0.054     -0.033    -0.001  0 of 4096
+
+     NOT ONE TILE REACHES ZERO, let alone the 0.05 that the Excess Green
+     literature uses for vegetation. ExG = 0 is neutral grey; negative
+     means the ground is redder than neutral, which is what sand is. The
+     median sits at -0.033 at every resolution: that is the desert, and
+     it does not move.
+
+     So the honest reading of this archive is: THERE IS NO VEGETATION IN
+     IT THAT A VISIBLE-BAND INDEX CAN DETECT. That is not a bug in this
+     file and it is not a threshold that needs loosening. Lowering
+     VEG_EXG until something "counts as vegetation" would be choosing the
+     answer first, and the number it produced would mean nothing.
+
+     What IS in the data is a real gradient: the brightest tile climbs
+     from -0.021 to -0.001 as the tiles get smaller, and its distance
+     from the median rises from 2.6 to 5.7 standard deviations. Something
+     locally greener is being averaged away at coarse scales. It may be
+     an irrigated plot; it may equally be damp ground, a road, or a
+     building. This platform cannot tell the difference and does not
+     claim to.
+
+     That is why the pipeline ranks by RELATIVE greenness within one
+     frame, reports it as "the least red ground in this frame", and says
+     in the same breath that no vegetation was detected. See rank() in
+     js/ksat-agents.js. */
+  var EVIDENCE_NOTE =
+    'No tile in this archive reaches the Excess Green threshold for vegetation, ' +
+    'at any grid resolution tested down to 309 m. Candidate zones are therefore ' +
+    'ranked by relative greenness WITHIN a frame - they are the least red ground ' +
+    'in it - and that is a place to look, not detected vegetation. On an ' +
+    'uncalibrated visible-band frame the difference is equally consistent with ' +
+    'soil colour, soil moisture or a built surface.';
+
   /* Metres per degree. The lat figure is the WGS84 mean; the lon figure
      is the equatorial value scaled by the cosine of the latitude, which
      is accurate to better than a metre per kilometre at this latitude
@@ -476,8 +521,21 @@
   var VEG_EXG = 0.05;
   var WATER_LUM = 70;
 
+  /* 16, not 8, and the measurements above are the reason. At 8 the tiles
+     are 2.47 km across and the greenest tile stands 2.6 standard
+     deviations from the desert median; at 16 they are 1.24 km and it
+     stands 4.0. Kuwait's irrigated ground is in blocks far smaller than
+     a kilometre, so a coarse tile averages it into the sand around it.
+
+     16 rather than 32 or 64 because a candidate zone has to be a unit
+     somebody could actually act on. 1.24 km square is about 1.5 km2,
+     which is a planting block. 309 m tiles separate the signal better
+     still and give 4096 of them, which is a heat map, not a
+     recommendation. */
+  var DEFAULT_GRID = 16;
+
   function analyseFrame(f, grid) {
-    grid = grid || 8;
+    grid = grid || DEFAULT_GRID;
     return loadImage('data:' + (f.image_mime || 'image/jpeg') + ';base64,' + f.image_b64)
       .then(function (img) {
         var w = img.naturalWidth || img.width;
@@ -528,12 +586,12 @@
           }
         }
 
-        /* Neighbour vegetation fraction. A bare tile beside greenery is
-           a better planting candidate than a bare tile in the middle of
-           open desert, because something already grows there - the water
-           and the soil are evidently not the blocker. This is the only
-           ranking signal in the whole pipeline and it is arithmetic on
-           the tile grid, not a judgement. */
+        /* Neighbour vegetation fraction. Kept, and on this archive it is
+           always zero, because nothing classifies as vegetation. It is
+           left in because it is the right signal the day a frame DOES
+           contain some: bare ground beside greenery is a better planting
+           candidate than bare ground in open desert, since whatever is
+           growing proves the water and the soil are not the blocker. */
         var at = {};
         tiles.forEach(function (t) { at[t.gx + ',' + t.gy] = t; });
         tiles.forEach(function (t) {
@@ -550,16 +608,59 @@
           t.nbVeg = tot ? v / tot : 0;
         });
 
+        /* THE DISTRIBUTION, OVER LAND ONLY.
+
+           Water sits far from the land values and would drag both the
+           median and the spread, so every tile classified as water is
+           left out of these statistics. What is left describes the
+           ground: where its middle is, how much it varies, and how far
+           the greenest tile stands from the rest.
+
+           z is what the Recommendation Agent ranks on. A z of 0 is
+           ordinary ground for this frame; a high z is the least red tile
+           in it. Because z is computed per frame it is not comparable
+           between frames, which is the same limitation INDEX_NOTE states
+           about ExG itself - and the reason the agent never mixes
+           candidates from two frames into one ranking without saying so. */
+        var land = tiles.filter(function (t) { return t.kind !== 'water'; });
+        var vals = land.map(function (t) { return t.exg; }).sort(function (a, b) { return a - b; });
+        var median = vals.length ? vals[Math.floor(vals.length / 2)] : 0;
+        var sd = 0;
+        if (vals.length) {
+          sd = Math.sqrt(vals.reduce(function (s, v) {
+            return s + (v - median) * (v - median);
+          }, 0) / vals.length);
+        }
+        tiles.forEach(function (t) {
+          t.z = (sd > 0 && t.kind !== 'water') ? (t.exg - median) / sd : 0;
+        });
+
+        var topZ = land.length ? Math.max.apply(null, land.map(function (t) { return t.z; })) : 0;
+
         return {
           frame_no: f.frame_no,
           grid: grid,
           width: w, height: h,
+          tileM: Math.round((w / grid) * (Number(f.gsd_m) || 39)),
           tiles: tiles,
           counts: counts,
           total: tiles.length,
           vegPct: Math.round(1000 * counts.veg / tiles.length) / 10,
           waterPct: Math.round(1000 * counts.water / tiles.length) / 10,
-          barePct: Math.round(1000 * counts.bare / tiles.length) / 10
+          barePct: Math.round(1000 * counts.bare / tiles.length) / 10,
+
+          /* The honest headline. On this archive it is false every time,
+             and the agents are required to say so rather than quietly
+             ranking as if it were true. */
+          vegetationDetected: counts.veg > 0,
+          exg: {
+            min: vals.length ? vals[0] : 0,
+            median: median,
+            max: vals.length ? vals[vals.length - 1] : 0,
+            sd: sd,
+            topZ: topZ,
+            landTiles: land.length
+          }
         };
       });
   }
@@ -572,7 +673,9 @@
     presetPolygon: presetPolygon,
     FOOTPRINT_NOTE: FOOTPRINT_NOTE,
     INDEX_NOTE: INDEX_NOTE,
+    EVIDENCE_NOTE: EVIDENCE_NOTE,
     VEG_EXG: VEG_EXG,
+    DEFAULT_GRID: DEFAULT_GRID,
 
     rectPolygon: rectPolygon,
     polygonBounds: polygonBounds,

@@ -1,3 +1,11 @@
+-- >>> APPLIED TO THE LIVE DATABASE ON 23 Sep 2026. <<<
+-- Every check in section 6 was run against it afterwards and every one
+-- matched: RLS on, zero table grants, zero column grants, monitor_health
+-- authenticated-only, monitor_record service_role-only, both SECURITY
+-- DEFINER with search_path pinned, reports_one_per_mission UNIQUE.
+-- The generate_report() wording change section 5 recommends went in at
+-- the same time and is written into 05_views_rpc.sql.
+
 -- =====================================================================
 -- KuwaitSat-1 Mission Hub
 -- 11 · MONITORING — somewhere for the nightly sweep to leave a record

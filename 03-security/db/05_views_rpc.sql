@@ -188,6 +188,22 @@ begin
     raise exception 'A report needs at least 50 characters.' using errcode = 'P0001';
   end if;
 
+  -- ONE APPROVAL, ONE REPORT.  ADDED 23 Sep 2026, applied with
+  -- 11_monitoring.sql section 5.
+  --
+  -- The real control is the unique index reports_one_per_mission, not
+  -- this block: a guard inside a function is a check the next function
+  -- somebody writes can skip, and a unique index is the database
+  -- refusing whoever asks. But the index refuses in the words
+  -- "duplicate key value violates unique constraint", and a researcher
+  -- who double-clicked Approve cannot do anything with that sentence.
+  -- launch_mission() already says the right thing about exactly this
+  -- situation; this says it in the same words, before the index has to.
+  if exists (select 1 from public.reports r where r.mission_id = p_mission_id) then
+    raise exception 'This mission has an approved report. Start a new mission.'
+      using errcode = 'P0001';
+  end if;
+
   insert into public.reports (mission_id, body_md, approved_by)
   values (p_mission_id, p_body_md, (select auth.uid()))
   returning id into v_id;

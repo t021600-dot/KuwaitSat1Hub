@@ -1596,6 +1596,11 @@
           ? 'The run stopped honestly: no archive frame has a geolocation inside this ' +
             'mission area. Open Geospatial Layers to see where the frames actually are, ' +
             'then create a mission over one of them.'
+          : state.stopped === 'no-separation'
+          ? 'The run measured the area and returned no candidate zones, on purpose. ' +
+            'Nothing in it stands far enough from the ordinary variation of bare ground ' +
+            'to be worth naming, and ranking it anyway would have presented noise as a ' +
+            'finding. The reasoning is written into the findings on the mission.'
           : state.stopped === 'no-candidates'
           ? 'The run measured the area and found no bare ground in it: every tile ' +
             'classified as water or as already vegetated. That is a result about this ' +
@@ -1618,12 +1623,24 @@
     card.hidden = false;
     doc.getElementById('cpTitle').textContent =
       state.candidates.length + ' candidate zones are ready for your decision';
+
+    /* THE HEADLINE HAS TO CARRY THE LIMITATION, not a footnote under it.
+       On this archive nothing reaches the vegetation threshold, so a
+       panel that says "candidate zones for planting" and nothing else
+       would be the page telling a researcher something the measurement
+       does not support. The sentence that matters comes first. */
     doc.getElementById('cpBody').textContent =
-      'The Recommendation Agent ranked every bare tile inside this mission area by the ' +
-      state.rankMode + ' criterion and returned the top ' + state.candidates.length + '. ' +
-      'Nothing downstream of this point has run. Impact prediction, the map layer and ' +
-      'the report are written only after you approve, and the approval is recorded ' +
-      'against your account.';
+      (state.vegetationDetected
+        ? 'Vegetation was detected above the threshold in at least one frame. '
+        : 'No vegetation was detected. Not one tile in any frame here reaches the ' +
+          'Excess Green threshold, so these are the least red ground in their frames, ' +
+          'not vegetated areas. They are a place to look. ') +
+      'The Recommendation Agent ranked ' + (state.landTiles || 0) + ' land tiles by ' +
+      'relative greenness within each frame, and every zone below stands clear of its ' +
+      'own frame median. Nothing downstream of this point has run: impact prediction, ' +
+      'the map layer and the report are written only after you approve, and the ' +
+      'approval is recorded against your account.';
+
     var box = doc.getElementById('cpFindings');
     clear(box);
     state.candidates.forEach(function (c, i) {
@@ -1631,8 +1648,10 @@
       d.appendChild(el('h4', null, 'Candidate ' + (i + 1) + ' · frame ' +
         pad2(c.a.frame_no) + ' tile ' + c.t.gx + ',' + c.t.gy));
       d.appendChild(el('p', null,
-        'ExG ' + c.t.exg.toFixed(3) + ' · luminance ' + c.t.lum + ' · ' +
-        Math.round(c.t.nbVeg * 100) + '% of neighbours vegetated · about ' +
+        'ExG ' + c.t.exg.toFixed(3) + ', which is ' + (Math.round(c.t.z * 10) / 10) +
+        ' standard deviations from this frame median of ' +
+        (Math.round(c.a.exg.median * 1000) / 1000) + '\n' +
+        'Luminance ' + c.t.lum + ' · about ' + state.tileM + ' m square, ' +
         state.tileKm2 + ' km²'));
       box.appendChild(d);
     });
@@ -1665,8 +1684,9 @@
     if (!RUN_STATE || !RUN_STATE.run_id) { say('decisionMsg', 'There is no open run.'); return; }
     btn.disabled = true;
     say('decisionMsg', 'Rejected. The candidate set is being rebuilt from the same ' +
-                       'evidence under the driest-first criterion — it is not edited in place.');
-    agents.rank(RUN_STATE, RUN_STATE.rankMode === 'driest' ? 'balanced' : 'driest')
+                       'evidence under the opposite criterion. It is not edited in ' +
+                       'place: both sets stay in the findings.');
+    agents.rank(RUN_STATE, RUN_STATE.rankMode === 'driest' ? 'greenest' : 'driest')
       .then(function () {
         btn.disabled = false;
         refreshTrace(RUN_STATE.run_id);
@@ -1798,6 +1818,53 @@
     window.sb.from('results').select('id', { count: 'exact', head: true }).then(function (r) {
       var n = doc.getElementById('aResults');
       if (n) n.textContent = r.error ? '—' : pad2(r.count || 0);
+    });
+
+    loadHealth();
+  }
+
+  /* PLATFORM HEALTH.
+
+     monitor_health() is the ONLY way into public.monitoring_events from
+     a browser: the table itself carries no grant for any role and has no
+     policy, so it cannot be read directly under any key. The function is
+     SECURITY DEFINER, returns counts only, and is granted to
+     `authenticated` - see 03-security/db/11_monitoring.sql section 4 for
+     the argument about why counts are safe to show every researcher and
+     why a single identifying column would end that argument. */
+  function loadHealth() {
+    var t = doc.getElementById('healthTable');
+    if (!t || !haveDb()) return;
+    $$('tr:not(:first-child)', t).forEach(function (n) { n.remove(); });
+    say('healthMsg', 'Reading the sweep log…');
+
+    window.sb.rpc('monitor_health', { p_days: 7 }).then(function (r) {
+      if (r.error) {
+        say('healthMsg', 'Could not read platform health: ' + r.error.message);
+        return;
+      }
+      var rows = r.data || [];
+      if (!rows.length) {
+        say('healthMsg', 'No sweep has been recorded in the last seven nights. ' +
+          'That is expected until the nightly job has run once after the monitoring ' +
+          'tables were created. If it is still empty in two days, the scheduled job ' +
+          'is not firing and somebody should look.');
+        return;
+      }
+      say('healthMsg', '');
+      rows.forEach(function (h) {
+        var tr = el('tr');
+        tr.appendChild(el('td', 'nowrap', h.day));
+        tr.appendChild(el('td', null, String(h.events)));
+        tr.appendChild(el('td', null, String(h.sweeps_ok)));
+        tr.appendChild(el('td', null, String(h.runs_swept)));
+        var td = el('td');
+        td.appendChild(el('span', 'tag' + (Number(h.anomalies) ? ' amber' : ' green'),
+                          String(h.anomalies)));
+        tr.appendChild(td);
+        tr.appendChild(el('td', 'nowrap', when(h.last_event)));
+        t.appendChild(tr);
+      });
     });
   }
 

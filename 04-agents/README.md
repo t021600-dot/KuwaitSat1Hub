@@ -1,5 +1,37 @@
 # 🤖 Job 04 · Automation and agents
 
+> ## ⚠ WHICH IMPLEMENTATION IS THE LIVE ONE
+> **Read this before anything else in this folder.**
+> 
+> There are **two** agent implementations in this repository and they are not
+> rivals. Anybody reading the code, or asking about it, needs to know which one
+> actually runs:
+> 
+> | | `js/ksat-agents.js` | `04-agents/` (this folder) |
+> |---|---|---|
+> | **Runs today** | **Yes.** Every run on the researcher workspace. | No. Nothing loads it. |
+> | Where it runs | In the browser, inside the signed-in session | Designed for n8n plus `04-agents/worker/` |
+> | How it writes | The four SECURITY DEFINER functions in `03-security/db/09_researcher_write_path.sql` | `agent_log_step` / `agent_write_result` / `agent_finish_run` in file 05, which are **service_role only** |
+> | Deployed | Yes, via `.vercelignore` | No. `04-agents/` is denied in `.vercelignore` |
+> | Tests | Exercised end to end against the live database | `04-agents/tests/*.test.js`, 110 checks, all passing |
+> 
+> **Why both exist.** The design in this folder is the production shape: an
+> external worker claims a run and writes the trail, so the pipeline survives a
+> closed laptop. `mission_runs.n8n_execution_id` and the claim-and-lease in
+> `08_agent_claim.sql` are still there for it. What was missing was an n8n
+> instance, and a demo cannot depend on one. So the same six agents, the same
+> six step names and the same guardrails were implemented in the page, writing
+> through a browser-safe path that re-checks ownership on every single call.
+> 
+> **The audit trail is the interface.** Both implementations write the same rows
+> to `mission_runs`, `agent_steps` and `results`. Swapping n8n in later means
+> pointing `run()` at a webhook; nothing downstream of the trail changes. That
+> is why the trail was made the contract rather than the code.
+> 
+> **GUARDRAILS.md applies to both.** The sixteen rules are grants and
+> constraints in the database, not prompt text, so they hold whichever side
+> makes the call.
+
 **Owner:** Dana · **GitHub:** *to fill in*
 *What acts on its own. The single entry point for this role.*
 

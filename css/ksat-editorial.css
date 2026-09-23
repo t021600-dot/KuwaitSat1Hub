@@ -266,8 +266,41 @@ footer .brand i{ color:var(--ink-3) !important; }
 }
 
 /* No horizontal overflow, ever — the full-bleed hero ground is the one
-   element that could cause it. */
-html, body{ overflow-x:hidden; }
+   element that could cause it.
+
+   >>> clip, NOT hidden, AND THE DIFFERENCE IS THE WHOLE SMOOTH-SCROLL
+       BUG THIS SITE HAS HAD SINCE THIS LINE WAS WRITTEN. <<<
+
+   `overflow-x: hidden` on html or body makes that element a SCROLL
+   CONTAINER. It clips the one axis and quietly turns the other into a
+   scrollable overflow region with no range to scroll in, and the browser
+   then treats the document as already-scrolled-to-the-end. The visible
+   symptom: every in-page jump - the chapter rail, the Explore cards, any
+   #anchor - lands instantly with no animation, because
+   scrollIntoView({behavior:'smooth'}) is being asked to animate a
+   container that cannot move. js/ksat-shell.js carries a verify-and-snap
+   fallback written for exactly this, and the fallback is why navigation
+   worked at all.
+
+   `overflow-x: clip` clips the same axis and creates NO scroll container,
+   so the document stays the scrolling element and smooth behaviour
+   survives. It is the rule this line always meant.
+
+   The `hidden` declaration stays first as the fallback for a browser
+   that does not know `clip` (Chrome before 90, Safari before 16); such a
+   browser gets today's behaviour, which is the behaviour it has had all
+   along. Everything current gets the fix. */
+html, body{ overflow-x:hidden; overflow-x:clip; }
+
+/* Smooth in-page movement, declared once, in CSS.
+   js/ksat-shell.js also passes behavior:'smooth' per call and checks the
+   reduced-motion setting itself; this is the declarative half, and the
+   media query below is what honours a reader who has asked for less
+   movement at the operating-system level. */
+html{ scroll-behavior:smooth; }
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+}
 
 /* =====================================================================
    6 · THE CINEMATIC HERO                        added 21 September 2026
