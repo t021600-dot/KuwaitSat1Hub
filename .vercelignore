@@ -157,6 +157,15 @@ db/
 # Root-level loose files and every markdown file anywhere. The app does
 # not load a single .md, so this cannot take anything the site needs.
 *.md
+
+# ONE EXCEPTION, AND IT IS A LICENCE CONDITION.
+# assets/geo/ holds OpenStreetMap-derived layers under ODbL. The site
+# SERVES those .geojson files, so it is distributing the data itself, not
+# merely a picture of it - and whoever receives them has to be able to
+# reach the terms. The map attribution covers the produced work; this
+# covers the database. Last match wins, so this line must stay BELOW the
+# *.md above.
+!assets/geo/LICENSE-DATA.md
 CREDITS-AND-SOURCES.txt
 kuwaitsat1-team-photo.webp
 .env

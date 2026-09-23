@@ -1286,8 +1286,33 @@
     var pub = geo.overlayLayers ? geo.overlayLayers() : {};
     Object.keys(pub).forEach(function (k) { overlays[k] = pub[k]; });
 
-    L.control.layers(GEO_MAP._ksatBases, overlays,
+    var ctl = L.control.layers(GEO_MAP._ksatBases, overlays,
                      { collapsed: false, position: 'topright' }).addTo(GEO_MAP);
+
+    /* THE REAL KUWAIT, from assets/geo/. Added to the switcher as each
+       file arrives rather than all at once: areas_land is 244 kB and the
+       map should be usable before it lands.
+
+       All off by default. A researcher opens this view to see THEIR
+       frames and THEIR missions; eight reference layers drawn on top of
+       that would bury the thing they came for. The coastline is the one
+       worth turning on first, which is why it is listed first.
+
+       js/ksat-layers.js adds the ODbL / CC BY attribution the moment any
+       of them loads, and it cannot be switched off separately. */
+    if (KS.layers) {
+      ['land', 'islands', 'governorates', 'governorates2023', 'borders',
+       'areas', 'water', 'settlements', 'reserves',
+       'territorialSea', 'contiguousZone', 'eez', 'maritimeBoundaries'
+      ].forEach(function (key) {
+        KS.layers.load(GEO_MAP, key).then(function (gj) {
+          ctl.addOverlay(gj, KS.layers.LAYERS[key].label);
+        }).catch(function (e) {
+          log('reference layer ' + key + ' did not load: ' +
+              (e && e.message ? e.message : e));
+        });
+      });
+    }
 
     keys('geoKeys', [
       ['#79bd96', 'Frame footprint'],
