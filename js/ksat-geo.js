@@ -153,13 +153,28 @@
            lon >= KUWAIT.west && lon <= KUWAIT.east;
   }
 
+  /* THE ENVELOPE, IN WORDS, FROM ONE PLACE.
+
+     Four user-facing strings used to spell these numbers out by hand.
+     When 14_widen_mission_envelope.sql moved the bound to 49.6 E the
+     database changed and all four kept telling researchers the old
+     limit, which is worse than saying nothing: it sends somebody whose
+     area is perfectly legal off to redraw it. Read the numbers from
+     KUWAIT or do not print them. */
+  function envelopeText() {
+    return KUWAIT.west.toFixed(1) + '-' + KUWAIT.east.toFixed(1) + ' degrees east, ' +
+           KUWAIT.south.toFixed(1) + '-' + KUWAIT.north.toFixed(2) + ' north';
+  }
+
   /* -------------------------------------------------------------------
      A RECTANGLE, AS THE DATABASE WANTS IT
 
      public.missions.area_geojson is checked by kuwait_area_ok(), which
      wants exactly this: type Polygon, ONE ring, between 4 and 200
-     points, every point a two-number array, every longitude inside
-     46.5..48.8 and every latitude inside 28.5..30.1.
+     points, every point a two-number array, and every point inside the
+     envelope in KUWAIT above (46.5..49.6 E, 28.5..30.15 N since
+     14_widen_mission_envelope.sql). Print it with envelopeText(),
+     never by hand.
 
      GeoJSON order is [longitude, latitude] - RFC 7946 section 3.1.1 -
      and getting that backwards is the single most common way to write a
@@ -783,6 +798,7 @@
     polygonAreaKm2: polygonAreaKm2,
     pointInPolygon: pointInPolygon,
     inEnvelope: inEnvelope,
+    envelopeText: envelopeText,
     clampLat: clampLat,
     clampLon: clampLon,
     fmtCoord: fmtCoord,

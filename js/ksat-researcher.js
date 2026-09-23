@@ -1462,10 +1462,12 @@
     return geo.rectPolygon(b.getSouth(), b.getWest(), b.getNorth(), b.getEast(), name);
   }
 
-  var OUTSIDE = 'This view is entirely outside Kuwait, so there is no area of ' +
-                'interest to take from it. Move the map back over the country: ' +
-                'the database only accepts a polygon inside 46.5-48.8 degrees ' +
-                'east and 28.5-30.1 north.';
+  function outsideText() {
+    return 'This view is entirely outside Kuwait, so there is no area of ' +
+           'interest to take from it. Move the map back over the country: ' +
+           'the database only accepts a polygon inside ' +
+           geo.envelopeText() + '.';
+  }
 
   function describeAoi(poly) {
     if (!poly) { return OUTSIDE; }
@@ -1485,13 +1487,13 @@
     var vp = viewPolygon(GEO_MAP);
     clear(n);
     n.className = vp ? 'aoi' : 'aoi bad';
-    if (!vp) { n.appendChild(doc.createTextNode(OUTSIDE)); return; }
+    if (!vp) { n.appendChild(doc.createTextNode(outsideText())); return; }
     n.appendChild(doc.createTextNode(
       'Current view, clipped to Kuwait: ' + describeAoi(vp)));
     if (outside) {
       n.appendChild(el('div', null,
         'Part of this view is outside Kuwait and has been clipped. The database ' +
-        'refuses any polygon outside 46.5–48.8°E, 28.5–30.1°N.'));
+        'refuses any polygon outside ' + geo.envelopeText() + '.'));
     }
   }
 
@@ -2603,25 +2605,29 @@
 
              Either the researcher really is outside Kuwait, or the
              browser's envelope and the database's have drifted apart.
-             The second happens when 14_widen_mission_envelope.sql has
-             not been run: the map happily lets an area be drawn out to
-             49.6 E and the database still stops at 48.8 E.
+             The second happens when the browser and the database hold
+             different envelopes, which is what 14_widen_mission_envelope.sql
+             fixes. Telling somebody "move the map back over Kuwait" when
+             their area IS over Kuwait would send them hunting for a
+             mistake they did not make.
 
-             Telling somebody "move the map back over Kuwait" when their
-             area IS over Kuwait would send them hunting for a mistake
-             they did not make, so the two are separated by testing the
-             area against the OLD bound. */
+             So the test is: does the BROWSER think this area is inside?
+             If it does and the database still refused, the two have
+             drifted and it is the deployment that is wrong, not the
+             researcher. No number is written out here. geo.KUWAIT is
+             the only copy, and it moves when the SQL moves. */
           var b = geo.polygonBounds(area);
-          var insideOld = b && b[0][1] >= 46.5 && b[1][1] <= 48.8 &&
-                               b[0][0] >= 28.5 && b[1][0] <= 30.1;
-          extra = insideOld
-            ? ' — the area has to be a polygon inside Kuwait. Move the map ' +
+          var browserSaysInside = !!b &&
+            geo.inEnvelope(b[0][0], b[0][1]) && geo.inEnvelope(b[1][0], b[1][1]);
+          extra = !browserSaysInside
+            ? '. The area has to be a polygon inside Kuwait. Move the map ' +
               'back over the country and try again.'
-            : ' — this area is east or north of the envelope the DATABASE ' +
-              'still enforces, even though the map allowed it. That means ' +
+            : '. This area is inside the envelope the MAP enforces (' +
+              geo.envelopeText() + ') but outside the one the DATABASE ' +
+              'enforces, so the two have drifted. That means ' +
               '03-security/db/14_widen_mission_envelope.sql has not been run ' +
-              'against this project yet. Draw inside 46.5-48.8 E, 28.5-30.1 N ' +
-              'for now, and tell the team.';
+              'against this project. Tell the team: it is a deployment ' +
+              'problem, not a mistake you made.';
         }
         say('modalMsg', 'The database refused this insert: ' + msg + extra);
         return;
