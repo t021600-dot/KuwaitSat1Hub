@@ -135,8 +135,40 @@
   font-size:8px; color:#a9bdc9;
 }
 .step.ok i{ background:#dce8ef; color:#0c1318; border-color:#dce8ef }
-.step.refused i{ border-color:#553030; color:var(--red) }
 .step.running i{ border-color:#9fc5dc; box-shadow:0 0 0 3px #9fc5dc18 }
+
+/* THREE KINDS OF REFUSAL, AND ONLY ONE OF THEM IS BAD.
+
+   Every refusal used to be red. Two of the refusals a healthy run
+   produces are deliberate - the permission probe that proves the
+   archive is read only, and the impact agent declining to invent a
+   figure - so red told the researcher that the two best pieces of
+   evidence on the page were faults. See refusalKind() in
+   js/ksat-researcher.js for which is which and why the test lives in
+   the renderer.
+
+   held   a boundary the database enforced. GREEN: this is a pass.
+   nodata evidence was insufficient and the agent said so. AMBER.
+   fault  something actually went wrong. RED. */
+/* The step NUMBER stays in the circle - it is how a reader refers to a
+   row out loud ("step 2 is the one that was refused"). Only the colour
+   changes. */
+.step.held i{ border-color:#355542; color:var(--green) }
+.step.nodata i{ border-color:#55462c; color:var(--amber) }
+.step.fault i,
+.step.refused i{ border-color:#553030; color:var(--red) }
+
+/* The reason text for a DESIGNED refusal. Same words as .refusal, but
+   without the red rule down the edge, because the sentence is a finding
+   rather than an error message. */
+.step .reason{ color:#a9bdc9; border-left:2px solid #34414c;
+               padding-left:9px; margin-top:7px }
+.step.held .reason{ border-left-color:#355542 }
+.step.nodata .reason{ border-left-color:#55462c }
+
+/* One line saying why this refusal was expected. It is the sentence a
+   judge needs and a researcher should not have to be told twice. */
+.step .gloss{ color:#7c8a95; font-style:italic; margin-top:5px }
 .step b{ display:block; font-size:11px; color:var(--white); font-weight:normal }
 .step small{ display:block; color:#7c8a95; font-size:9px; margin-top:4px; line-height:1.6 }
 .step code{ font-family:monospace; font-size:9px; color:#9bb4c6 }

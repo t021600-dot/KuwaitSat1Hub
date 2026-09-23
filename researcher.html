@@ -399,6 +399,24 @@
       <div class="said" id="decisionMsg"></div>
     </div>
 
+    <!-- SHOWN AFTER APPROVE, so a run ENDS somewhere.
+         Before this, the console's last word was a sentence telling the
+         researcher to go to another view, find their mission and press a
+         button. A pipeline that finishes by giving directions has not
+         finished. The draft the Reporting Agent wrote appears here, with
+         the one control that turns it into a signed report. -->
+    <div class="card s12" id="runResultCard" hidden>
+      <div class="ct"><h3>Run complete</h3><span class="tag amber" id="rrTag">DRAFT</span></div>
+      <div class="notice" id="rrNote"></div>
+      <div class="ct" style="margin-top:16px"><h3 id="rrReportTitle">Draft report</h3>
+        <span class="bar">
+          <button class="btn primary" data-act="sign-report">Sign and publish this report</button>
+          <button class="btn" data-act="close-result">Close</button>
+        </span></div>
+      <div class="said" id="rrMsg"></div>
+      <div class="md" id="rrReport"></div>
+    </div>
+
     <div class="card s12">
       <div class="ct"><h3>Agent Execution Trace</h3>
         <span class="sub" id="traceSrc">DECISION-BASED WORKFLOW</span></div>

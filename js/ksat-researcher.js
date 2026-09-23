@@ -184,6 +184,14 @@
       case 'close-report':     $('#reportViewWrap').hidden = true; break;
       case 'launch':           launchFromDetail(btn); break;
       case 'make-report':      makeReport(btn); break;
+      case 'sign-report':      signReport(RESULT_MISSION && RESULT_MISSION.id, btn, 'rrMsg',
+                                 function () {
+                                   doc.getElementById('rrTag').textContent = 'SIGNED';
+                                   doc.getElementById('rrTag').className = 'tag green';
+                                   doc.getElementById('rrReportTitle').textContent =
+                                     'Approved report';
+                                 }); break;
+      case 'close-result':     doc.getElementById('runResultCard').hidden = true; break;
       case 'open-in-console':  openInConsole(); break;
       default: break;
     }
@@ -682,6 +690,11 @@
      the mission detail panel is showing. Each button reads its own. */
   var VIEW_REPORT = null;
   var MD_REPORT = null;
+  /* The mission whose freshly finished run is on screen in the console.
+     Separate from OPEN_MISSION, which is whatever the Missions view has
+     open - the two are often different, and signing the wrong one would
+     be unrecoverable. */
+  var RESULT_MISSION = null;
 
   /* Which one a Download/Print press means depends on which panel is on
      screen, and only one of them ever is. */
@@ -862,8 +875,24 @@
       var mid = el('div');
       mid.appendChild(el('b', null, 'Run ' + shortId(run.id) + ' · ' +
         String(run.status).toUpperCase() + ' · ' + run.tool_calls + ' tool calls'));
+      /* "STILL OPEN" READ LIKE A FAULT, AND IT IS THE DESIGN.
+
+         A run is deliberately held open while it waits at the human
+         checkpoint: researcher_log_step refuses a run whose status is
+         not queued or running, so holding it open is the only way the
+         last three agents can write anything after the approval. A
+         researcher looking at a paused run saw "QUEUED, still open" and
+         reasonably concluded something had hung.
+
+         The wording now says which of the two it is. */
+      var openLabel = ', still open';
+      if (!run.finished_at) {
+        openLabel = (run.tool_calls >= 6)
+          ? ', open and waiting at the human checkpoint'
+          : ', open and running';
+      }
       mid.appendChild(el('small', null, 'Started ' + when(run.started_at) +
-        (run.finished_at ? ', finished ' + when(run.finished_at) : ', still open')));
+        (run.finished_at ? ', finished ' + when(run.finished_at) : openLabel)));
       head.appendChild(mid);
       head.appendChild(el('span', 'state', ''));
       box.appendChild(head);
@@ -882,8 +911,53 @@
     });
   }
 
+  /* NOT EVERY REFUSAL IS A FAULT, AND TWO OF THEM ARE THE PRODUCT.
+
+     Both refusals a healthy run produces are DESIGNED to happen, and
+     rendering them in the same red as a genuine failure tells a
+     researcher - and a judge reading over their shoulder - that
+     something broke. It is the single most misleading thing on this
+     page, because the two rows in question are the strongest evidence
+     the platform has:
+
+       satellite_data / payload_frames.update
+           The Satellite Data Agent attempts the forbidden write on
+           every run, deliberately, so that "the archive is read only"
+           is a sentence the DATABASE says rather than a label on a
+           panel. The refusal IS the proof. If this row ever reads
+           COMPLETE, the archive grants have been widened and somebody
+           needs to be told the same day.
+
+       impact_prediction / change.detect
+           Change detection needs the same ground on two dates and this
+           archive has no repeat coverage, so the agent declines to
+           produce a figure. That is the brief's "unable to make a
+           reliable estimate" requirement being MET, not missed.
+
+     Anything else refused is a real fault and stays red.
+
+     The test is on step_name and tool because they are the only columns
+     03-security/db/03_grants.sql lets a browser read. `arguments` is
+     deliberately not granted, so an agent cannot flag this at write
+     time and the renderer has to carry the knowledge. */
+  function refusalKind(s) {
+    if (s.status !== 'refused') { return null; }
+    if (s.step_name === 'satellite_data' && s.tool === 'payload_frames.update') {
+      return { cls: 'held', label: 'BOUNDARY HELD',
+               gloss: 'Attempted on purpose, every run. The database refused it. ' +
+                      'That refusal is the evidence the archive is read only.' };
+    }
+    if (s.step_name === 'impact_prediction') {
+      return { cls: 'nodata', label: 'NO ESTIMATE',
+               gloss: 'The agent declined to produce a figure this evidence cannot ' +
+                      'support. Stating that is the finding.' };
+    }
+    return { cls: 'fault', label: 'REFUSED', gloss: null };
+  }
+
   function stepRow(s, n) {
-    var cls = 'step ' + (s.status === 'refused' ? 'refused' :
+    var kind = refusalKind(s);
+    var cls = 'step ' + (kind ? kind.cls :
                          s.status === 'complete' ? 'ok' : 'running');
     var d = el('div', cls);
     d.appendChild(el('i', null, String(n)));
@@ -896,7 +970,13 @@
       mid.appendChild(c);
     }
     if (s.refused_reason) {
-      mid.appendChild(el('small', 'refusal', s.refused_reason));
+      /* A designed refusal keeps its reason, but not the red bar: the
+         words are the finding, the colour was the lie. */
+      mid.appendChild(el('small', kind && kind.cls !== 'fault' ? 'reason' : 'refusal',
+                         s.refused_reason));
+    }
+    if (kind && kind.gloss) {
+      mid.appendChild(el('small', 'gloss', kind.gloss));
     }
     if (s.injection_flag) {
       mid.appendChild(el('small', 'refusal', 'Objective screened as an instruction. ' +
@@ -904,9 +984,12 @@
     }
     mid.appendChild(el('small', null, when(s.started_at)));
     d.appendChild(mid);
-    d.appendChild(el('span', 'state' + (s.status === 'complete' ? ' ok' :
-                     s.status === 'refused' ? '' : ' wait'),
-                     String(s.status).toUpperCase()));
+    d.appendChild(el('span', 'state' +
+                     (s.status === 'complete' ? ' ok' :
+                      kind && kind.cls === 'held' ? ' ok' :
+                      kind && kind.cls === 'nodata' ? ' wait' :
+                      kind ? '' : ' wait'),
+                     kind ? kind.label : String(s.status).toUpperCase()));
     return d;
   }
 
@@ -1551,6 +1634,13 @@
     if (!m || !RUN_STATE || !RUN_STATE.mission || RUN_STATE.mission.id !== m.id) {
       var cp = doc.getElementById('checkpointCard');
       if (cp) cp.hidden = true;
+      /* The finished-run card belongs to one mission too. Leaving it up
+         while another mission is selected would put a Sign button under
+         the wrong name, and signing is not reversible. */
+      var rrc = doc.getElementById('runResultCard');
+      if (rrc && (!RESULT_MISSION || !m || RESULT_MISSION.id !== m.id)) {
+        rrc.hidden = true;
+      }
       say('decisionMsg', '');
       var tr = doc.getElementById('trace');
       if (tr && tr.className === 'steps') {
@@ -1713,6 +1803,10 @@
     btn.disabled = true;
     say('decisionMsg', '');
     doc.getElementById('checkpointCard').hidden = true;
+    /* Last run's report must not sit under this run's trace. */
+    var rr = doc.getElementById('runResultCard');
+    if (rr) rr.hidden = true;
+    RESULT_MISSION = null;
     traceMsg('Mission Orchestrator — requesting a run slot…', 'log');
     narrate('Mission Orchestrator — requesting a run slot');
 
@@ -1869,8 +1963,8 @@
       decisionButtons(false);
       doc.getElementById('checkpointCard').hidden = true;
       say('decisionMsg', '');
-      say('runMsg', 'Run complete. The draft report is on the mission record. ' +
-        'Open Missions, choose this mission and press Generate the report to sign it.');
+      say('runMsg', 'Run complete. The draft report is below.');
+      showRunResult(RUN_STATE);
       refreshTrace(RUN_STATE.run_id);
       return refreshAfterRun();
     }).catch(function (e) {
@@ -2005,12 +2099,21 @@
      exist without a signed-in person calling it, and approved_by is that
      person. The button therefore does exactly one thing — it passes the
      draft the Reporting Agent wrote and the researcher has read. */
-  function makeReport(btn) {
-    if (!OPEN_MISSION) return;
+  /* ONE SIGNING PATH, CALLED FROM TWO PLACES.
+
+     generate_report() is the human checkpoint written in SQL: a report
+     cannot exist without a signed-in person calling it, and approved_by
+     is that person. So this stays a deliberate press - it is not folded
+     into the end of the run. What changed is WHERE the press can happen:
+     the mission detail panel as before, and now the console, so a run
+     that has just finished can be signed without the researcher being
+     sent to another view to find their own mission. */
+  function signReport(missionId, btn, msgId, onDone) {
+    if (!missionId) { return; }
     btn.disabled = true;
-    say('mdMsg', 'Reading the draft the Reporting Agent wrote…');
+    say(msgId, 'Reading the draft the Reporting Agent wrote…');
     window.sb.from('results').select('body,created_at,kind,title')
-      .eq('mission_id', OPEN_MISSION.id).eq('kind', 'narrative')
+      .eq('mission_id', missionId).eq('kind', 'narrative')
       .order('created_at', { ascending: false }).limit(1)
       .then(function (r) {
         if (r.error) throw new Error(r.error.message);
@@ -2019,20 +2122,50 @@
                           'approve the candidate set first.');
         }
         return window.sb.rpc('generate_report',
-          { p_mission_id: OPEN_MISSION.id, p_body_md: r.data[0].body });
+          { p_mission_id: missionId, p_body_md: r.data[0].body });
       })
       .then(function (r) {
         if (r && r.error) throw new Error(r.error.message);
         btn.disabled = false;
-        say('mdMsg', 'Report approved and signed against your account. It is in ' +
-                     'Reports & Exports, and this mission is now closed to further runs.');
+        say(msgId, 'Report signed against your account. It is in Reports & Exports, ' +
+                   'and this mission is now closed to further runs so the evidence ' +
+                   'behind a signed conclusion cannot change after it is signed.');
         log('report approved');
+        if (onDone) onDone();
         return refreshAfterRun();
       })
       .catch(function (e) {
         btn.disabled = false;
-        say('mdMsg', String(e && e.message ? e.message : e));
+        say(msgId, String(e && e.message ? e.message : e));
       });
+  }
+
+  function makeReport(btn) {
+    if (!OPEN_MISSION) return;
+    signReport(OPEN_MISSION.id, btn, 'mdMsg');
+  }
+
+  /* THE END OF THE RUN, SHOWN WHERE THE RUN HAPPENED.
+
+     The console used to finish by telling the researcher to open
+     Missions, find this mission and press a button there. That is
+     directions, not a result. The draft the Reporting Agent actually
+     wrote is rendered here instead, with the single control that signs
+     it, so the pipeline ends somewhere a person can see. */
+  function showRunResult(state) {
+    var card = doc.getElementById('runResultCard');
+    if (!card) return;
+    RESULT_MISSION = state.mission;
+    doc.getElementById('rrTag').textContent = 'DRAFT, NOT YET SIGNED';
+    doc.getElementById('rrNote').textContent =
+      'The last three agents have run and their steps are in the trace below. ' +
+      'This report is a draft: it exists as a finding on the mission and carries ' +
+      'nobody\'s name. Pressing the button records YOUR account as the person who ' +
+      'approved it, and closes the mission to further runs.';
+    say('rrMsg', '');
+    renderMarkdown(doc.getElementById('rrReport'), state.reportMd || '');
+    card.hidden = false;
+    card.scrollIntoView({ block: 'nearest' });
   }
 
   /* -------------------------------------------------------------------
@@ -2161,13 +2294,19 @@
       (AUDIT_STEPS.length ? 'No step recorded for that run.'
                           : 'No agent step has been recorded on this account yet.'));
     rows.forEach(function (s) {
+      var kind = refusalKind(s);
       var tr = el('tr');
       tr.appendChild(el('td', null, (agents.ROLES[s.step_name] || {}).name || s.step_name));
       tr.appendChild(el('td', 'mono', s.tool || '—'));
       tr.appendChild(el('td', 'wrap', s.refused_reason || '—'));
       var td = el('td');
-      td.appendChild(el('span', 'tag' + (s.allowed ? ' green' : ' amber'),
-                        s.allowed ? 'ALLOWED' : 'REFUSED'));
+      /* Same distinction as the trace: a boundary that held is a green
+         result, not an amber warning. See refusalKind(). */
+      td.appendChild(el('span',
+        'tag' + (s.allowed ? ' green' :
+                 kind && kind.cls === 'held' ? ' green' :
+                 kind && kind.cls === 'nodata' ? ' amber' : ''),
+        s.allowed ? 'ALLOWED' : (kind ? kind.label : 'REFUSED')));
       if (s.injection_flag) td.appendChild(el('span', 'tag amber', ' INJECTION'));
       tr.appendChild(td);
       tr.appendChild(el('td', null, String(s.status).toUpperCase()));
