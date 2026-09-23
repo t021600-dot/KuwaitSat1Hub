@@ -919,14 +919,51 @@
           best_separation_sd: heat ? best : null,
           candidates_returned: top.length })
       .then(function () {
+        return namedAreasIn(state.opticalArea.bounds);
+      })
+      .then(function (areas) {
+        /* Attach the place each candidate stands in BEFORE anything is
+           written, so the name reaches the result row, the map popup
+           and the report from a single lookup. */
+        state.candidates.forEach(function (c) {
+          var pt = tileCentre(state.opticalArea, m, c.t);
+          c.place = areas.length ? areaAt(pt.lat, pt.lon, areas) : null;
+        });
+        state.namedAreas = areas.length;
+
+        var named = state.candidates.filter(function (c) {
+          return c.place && c.place.name;
+        });
+        return logStep(state.run_id, 'recommendation', 'rank.name_areas',
+            { areas_overlapping_scene: areas.length,
+              candidates: state.candidates.length,
+              candidates_named: named.length,
+              named: named.map(function (c) { return c.place.name; }).join(', ') || null,
+              source: 'OpenStreetMap areas, ODbL, assets/geo/areas_land.min.geojson' })
+          .then(function () { return areas; });
+      })
+      .then(function () {
         var w = Promise.resolve();
         state.candidates.forEach(function (c, i) {
+          var where = c.place && c.place.name ? c.place.name : null;
+          var poly = refPolygon(state.opticalArea, m, c.t,
+                                where ? ('Candidate ' + (i + 1) + ' - ' + where)
+                                      : ('Candidate ' + (i + 1)));
           w = w.then(function () {
-            var poly = refPolygon(state.opticalArea, m, c.t, 'Candidate ' + (i + 1));
             return writeResult(state.run_id, 'site',
-              'Candidate ' + (i + 1) + ' - tile ' + c.t.gx + ',' + c.t.gy,
+              'Candidate ' + (i + 1) + ' - ' +
+                (where ? where : 'tile ' + c.t.gx + ',' + c.t.gy),
               'NOT A KUWAITSAT-1 MEASUREMENT. Measured from ' +
               state.opticalArea.source.name + '.\n\n' +
+              (c.place && c.place.name
+                ? ('Place: ' + c.place.name +
+                   (c.place.nameAr ? ' (' + c.place.nameAr + ')' : '') +
+                   (c.place.gov ? ', ' + c.place.gov + ' governorate' : '') +
+                   '. Boundary from OpenStreetMap under ODbL.\n')
+                : 'This candidate does not fall inside any named area in the '  +
+                  'OpenStreetMap layer, so it is given by its grid reference '  +
+                  'only.\n') +
+              'Grid reference: tile ' + c.t.gx + ',' + c.t.gy + '.\n' +
               'Surface: ' + c.t.kind + '. Excess Green ' + c.t.exg.toFixed(3) +
               ', luminance ' + c.t.lum + '.\n' +
               (state.heatRankable && c.heat
@@ -951,6 +988,98 @@
      tiles, so its extent is opticalArea.bounds rather than the mission
      area, and a grid cell maps linearly onto that. Image y runs down and
      latitude runs up, which is why y0 gives the NORTH edge. */
+  /* -------------------------------------------------------------------
+     NAMING THE GROUND
+
+     KuwaitSat-1 has photographed five places and all five are on the
+     coast, between 48.1 and 48.5 E. Al-Jahra is at 47.65 E, about 43 km
+     west of the westernmost frame, so the archive cannot answer a
+     question about it and the run falls back to public imagery. That
+     part already worked.
+
+     What did not work is what the answer was CALLED. The mission asks
+     for "the hottest residential BLOCKS in Jahra" and the run replied
+     "Candidate 1 - tile 8,8". A grid cell is an artefact of the
+     analysis, not a place, and nobody can act on it.
+
+     assets/geo/areas_land.min.geojson holds 204 real areas with their
+     real names, 60 of them in Jahra governorate. Every candidate tile
+     stands inside one of them. These functions do the lookup, so the
+     run answers with Qasr, Taima and Naeem instead of grid references.
+
+     The grid reference stays in the body text. The name is the answer;
+     the grid reference is how to check it.
+     ------------------------------------------------------------------- */
+
+  /* Areas whose bounding box overlaps the scene. Loaded once per run
+     and passed down: the file is 244 kB and the lookup runs once per
+     candidate. Resolves to [] when the layer cannot be read, which
+     downgrades the naming rather than failing the run. */
+  function namedAreasIn(bounds) {
+    var layers = KS.layers;
+    if (!layers || !bounds) { return Promise.resolve([]); }
+    return layers.fetchLayer('areas').then(function (fc) {
+      var s = bounds[0][0], w = bounds[0][1], n = bounds[1][0], e = bounds[1][1];
+      return (fc.features || []).filter(function (f) {
+        var g = f.geometry;
+        if (!g) { return false; }
+        var rings = g.type === 'Polygon' ? [g.coordinates[0]]
+                  : g.type === 'MultiPolygon'
+                    ? g.coordinates.map(function (poly) { return poly[0]; })
+                    : [];
+        return rings.some(function (r) {
+          var minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+          for (var i = 0; i < r.length; i++) {
+            if (r[i][0] < minx) { minx = r[i][0]; }
+            if (r[i][0] > maxx) { maxx = r[i][0]; }
+            if (r[i][1] < miny) { miny = r[i][1]; }
+            if (r[i][1] > maxy) { maxy = r[i][1]; }
+          }
+          return !(maxx < w || minx > e || maxy < s || miny > n);
+        });
+      });
+    }).catch(function () { return []; });
+  }
+
+  /* The area containing a point, holes respected. Returns null rather
+     than a guess: a candidate in open desert between two named areas
+     belongs to neither, and saying so is the honest answer. */
+  function areaAt(lat, lon, areas) {
+    for (var i = 0; i < areas.length; i++) {
+      var g = areas[i].geometry;
+      var polys = g.type === 'Polygon' ? [g.coordinates]
+                : g.type === 'MultiPolygon' ? g.coordinates : [];
+      for (var j = 0; j < polys.length; j++) {
+        var rings = polys[j];
+        if (!geo.pointInPolygon(lon, lat,
+              { type: 'Polygon', coordinates: [rings[0]] })) { continue; }
+        var inHole = false;
+        for (var k = 1; k < rings.length; k++) {
+          if (geo.pointInPolygon(lon, lat,
+                { type: 'Polygon', coordinates: [rings[k]] })) { inHole = true; break; }
+        }
+        if (!inHole) {
+          var pr = areas[i].properties || {};
+          return { name: pr.name_en || pr.name || pr.name_ar || null,
+                   nameAr: pr.name_ar || '',
+                   gov: (pr.parent_governorate_name_en || '').replace(/ Governorate$/, ''),
+                   km2: pr.area_km2 };
+        }
+      }
+    }
+    return null;
+  }
+
+  /* The centre of a tile, in degrees. */
+  function tileCentre(areaCanvas, m, t) {
+    var b = areaCanvas.bounds;
+    var south = b[0][0], west = b[0][1], north = b[1][0], east = b[1][1];
+    return {
+      lon: west + (east - west) * ((t.x0 + t.x1) / 2 / m.width),
+      lat: north - (north - south) * ((t.y0 + t.y1) / 2 / m.height)
+    };
+  }
+
   function refPolygon(areaCanvas, m, t, name) {
     var b = areaCanvas.bounds;
     var south = b[0][0], west = b[0][1], north = b[1][0], east = b[1][1];
