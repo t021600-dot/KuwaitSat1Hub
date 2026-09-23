@@ -547,16 +547,33 @@
      somebody can be sent.
      ------------------------------------------------------------------ */
   function mount() {
-    var right = doc.querySelector('.top .right') || doc.querySelector('.right');
-    if (!right || doc.getElementById('ksatTourOpen')) return;
+    if (doc.getElementById('ksatTourOpen')) return;
+
+    /* ANCHOR ON THE BUTTON, NOT ON A CLASS.
+
+       The first version looked for '.top .right', because
+       css/ksat-researcher.css styles a .right in the top bar. The
+       MARKUP does not use it: researcher.html:98 is div.who. The
+       selector matched nothing, mount() returned early, and the tour
+       shipped to production with no way to start it. Caught on the
+       deployed site rather than before it, which is the whole argument
+       for reading the markup instead of the stylesheet.
+
+       #signout is an id the page actually has. */
+    var anchor = doc.getElementById('signout');
+    var bar = anchor ? anchor.parentNode
+            : (doc.querySelector('.top .who') || doc.querySelector('.who') ||
+               doc.querySelector('.top .right') || doc.querySelector('.right'));
+    if (!bar) return;
 
     var b = el('button', 'ksat-tour-open', 'Guided tour');
     b.type = 'button';
     b.id = 'ksatTourOpen';
     b.addEventListener('click', function () { start(0); });
 
-    var hub = right.querySelector('a[href="/"]');
-    if (hub) { right.insertBefore(b, hub); } else { right.appendChild(b); }
+    var hub = bar.querySelector('a[href="/"]') || anchor;
+    if (hub && hub.parentNode === bar) { bar.insertBefore(b, hub); }
+    else { bar.appendChild(b); }
 
     if (location.hash === '#tour') {
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
