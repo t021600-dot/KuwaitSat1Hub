@@ -511,3 +511,69 @@ aside h5{ font-size:11px }
    otherwise stay at 10px while everything around them moved. */
 .ksat-ap .ct .btn,
 .ksat-area-chosen .btn{ font-size:11px }
+
+/* =====================================================================
+   8 . THE MASTHEAD, THE PERSON, AND A MAP WORTH LOOKING AT
+   Owner: 01 Front end
+
+   Three things the workspace was missing.
+
+   THE EMBLEM. assets/brand/ksat-emblem-192.png already existed and no
+   page in the workspace used it. The wordmark alone reads as a heading;
+   a mark beside it reads as an institution. It is a link to the hub,
+   because a logo in a masthead that does not go home is a small lie.
+
+   THE PERSON. #whoName was 10px, clipped at 220px, with the role in an
+   8px line under it - smaller than the table headers. This is the one
+   element on the page that says WHOSE account this is and WHAT they are
+   allowed to do, and every refusal on this platform is scoped to it. It
+   gets a disc with an initial, a 14px name and a readable role.
+
+   THE OVERVIEW MAP. 230px is a thumbnail. The overview is where a
+   researcher sees the whole country and their own missions on it, so it
+   gets 400px and the full width of the row that the Session card used
+   to share.
+   ===================================================================== */
+
+.brand{
+  display:flex; align-items:center; gap:11px;
+  text-decoration:none; color:inherit;
+}
+.brandmark{
+  width:34px; height:34px; display:block; border-radius:5px;
+  /* The emblem is a dark-ground PNG; on the near-black bar it needs a
+     hairline to stop it dissolving into the background. */
+  box-shadow:0 0 0 1px #2b3740;
+}
+.brandtext{ display:block }
+.brand:hover .brandtext{ color:var(--white, #f5f7f8) }
+
+/* THE SIGNED-IN RESEARCHER */
+.ident{ display:flex; align-items:center; gap:10px; margin-right:4px }
+
+.identmark{
+  width:34px; height:34px; flex:0 0 34px;
+  border:1px solid #47555f; border-radius:50%;
+  display:grid; place-items:center;
+  font-size:14px; color:#cfdae2; background:#141c23;
+  text-transform:uppercase;
+}
+
+.who .name{
+  font-size:14px; color:#e3eaef;
+  max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  line-height:1.25;
+}
+.who .name small{
+  display:block; font-size:11px; color:#8ea3b2;
+  letter-spacing:.06em; text-transform:none; margin-top:2px;
+}
+
+@media(max-width:900px){
+  .ident .name{ display:none }
+  .brandtext{ display:none }
+}
+
+/* THE OVERVIEW MAP */
+.ksat-map--wide{ height:400px }
+@media(max-width:900px){ .ksat-map--wide{ height:300px } }
