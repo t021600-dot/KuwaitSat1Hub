@@ -37,9 +37,6 @@
 
   var KS = window.KSAT = window.KSAT || {};
 
-  /* The Leaflet pane the conceptual "after" vectors are drawn into, so
-     the wipe can clip them without clipping the measurement. */
-  var AFTER_PANE = 'ksatReportAfter';
   var doc = document;
 
   function el(tag, cls, text) {
@@ -105,48 +102,56 @@
       });
   }
 
-  function buildMap(host, area, rows) {
+  /* THE EXTENT IS COMPUTED ONCE, FOR BOTH FIGURES.
+
+     This is the line between a comparison and two pictures. If each map
+     fitted its own contents the AFTER map would frame only the approved
+     zones and the BEFORE map the whole mission area, and the two would
+     be at different scales over different ground. A reader would be
+     invited to compare them and would be comparing nothing. */
+  function zoneBounds(area, rows) {
+    var geo = KS.geo;
+    var b = L.latLngBounds([]);
+    if (area) {
+      var ab = geo.polygonBounds(area);
+      if (ab) { b.extend(ab); }
+    }
+    rows.forEach(function (x) {
+      if (x.kind !== 'site') { return; }
+      var r = geo.polygonBounds(x.geometry);
+      if (r) { b.extend(r); }
+    });
+    return b;
+  }
+
+  /* ONE BUILDER, CALLED TWICE.
+
+     mode 'before'  the ground as KuwaitSat-1 and the reference imagery
+                    measured it. Candidate zones OUTLINED, never filled:
+                    they are ground, not a plan.
+     mode 'after'   the same ground with the approved zones drawn as the
+                    change. Filled green, which is the only difference.
+
+     There used to be one map with a draggable wipe over it. It was
+     replaced because a wipe asks a reader to hold half a picture in
+     their head while they drag, and because the thing being compared
+     here is not a before/after photograph of the same instant: the
+     green is a CONCEPTUAL simulation of a decision. Two figures, both
+     labelled, let a reader look from one to the other and back. */
+  function buildFigure(host, area, rows, mode) {
     var geo = KS.geo;
     if (!geo || typeof L === 'undefined') { return null; }
     var map = geo.make(host, { view: [29.35, 47.75, 9], minimal: true });
     if (!map) { return null; }
     geo.resize(host);
 
-    if (map._reportLayers) {
-      map.removeLayer(map._reportLayers.before);
-      map.removeLayer(map._reportLayers.after);
-    }
-
-    /* THE AFTER LAYER NEEDS ITS OWN PANE, OR THE WIPE WIPES EVERYTHING.
-
-       Leaflet draws every vector into overlayPane unless it is told
-       otherwise. before and after being separate layer groups does not
-       separate them on screen: they share one pane, so clipping that
-       pane clipped the mission-area rectangle and the measured
-       candidate outlines along with the green. Dragging the handle
-       wiped between "the whole map" and "a bare basemap" rather than
-       between measured and conceptual, which is the one comparison the
-       control exists to make.
-
-       AFTER_PANE sits at 450: above overlayPane's 400, below the
-       shadow, marker, tooltip and popup panes, so nothing else moves.
-       createPane() builds a fresh div every call, hence the guard. */
-    if (!map.getPane(AFTER_PANE)) {
-      map.createPane(AFTER_PANE).style.zIndex = 450;
-    }
-
-    var before = L.layerGroup().addTo(map);
-    var after = L.layerGroup();
-    map._reportLayers = { before: before, after: after };
-
-    var bounds = L.latLngBounds([]);
-
+    /* The mission area is identical on both figures. It is the frame of
+       reference, so it must not move or change between them. */
     if (area) {
       var ab = geo.polygonBounds(area);
       if (ab) {
         L.rectangle(ab, { color: '#dce9f1', weight: 1, dashArray: '4 3',
-                          fill: false }).addTo(before);
-        bounds.extend(ab);
+                          fill: false }).addTo(map);
       }
     }
 
@@ -154,69 +159,27 @@
       var b = geo.polygonBounds(x.geometry);
       if (!b) { return; }
       var isSite = x.kind === 'site';
-      /* BEFORE: the zone outlined as measured, unfilled - it is ground,
-         not a plan. AFTER: the same rectangle filled green, which is the
-         only difference between the two halves of the wipe. */
-      L.rectangle(b, { color: isSite ? '#d2ad68' : '#8eb9d8',
-                       weight: isSite ? 2 : 1,
-                       fill: false }).addTo(before);
+
+      if (mode === 'before') {
+        L.rectangle(b, { color: isSite ? '#d2ad68' : '#8eb9d8',
+                         weight: isSite ? 2 : 1,
+                         fill: false }).addTo(map);
+        return;
+      }
+
       if (isSite) {
-        L.rectangle(b, { color: '#79bd96', weight: 2,
-                         fill: true, fillColor: '#79bd96',
-                         fillOpacity: 0.55,
-                         pane: AFTER_PANE }).addTo(after);
-        bounds.extend(b);
+        L.rectangle(b, { color: '#79bd96', weight: 2, fill: true,
+                         fillColor: '#79bd96', fillOpacity: 0.55 }).addTo(map);
+      } else {
+        /* A non-site finding stays on the AFTER map, dimmed. Dropping it
+           would make the two figures differ in a second way and the
+           reader could not tell which difference was the decision. */
+        L.rectangle(b, { color: '#8eb9d8', weight: 1, opacity: 0.3,
+                         fill: false }).addTo(map);
       }
     });
 
-    if (bounds.isValid()) { geo.fit(map, bounds, [26, 26]); }
     return map;
-  }
-
-  /* -------------------------------------------------------------------
-     THE WIPE
-
-     One map, with the "after" overlay clipped to a draggable edge. Two
-     maps side by side at this column width would be two postage stamps.
-
-     The handle is a range input rather than a div with a mousedown
-     listener, so it is reachable from the keyboard and announced by a
-     screen reader without any extra work.
-     ------------------------------------------------------------------- */
-  function wipe(host, map, layers) {
-    /* Clip the after pane alone. Falling back to overlayPane would put
-       the old behaviour back - everything clipped - so if the pane is
-       missing the wipe does nothing rather than something wrong. */
-    var pane = map.getPane(AFTER_PANE);
-    var box = el('div', 'wipe');
-    box.style.height = '330px';
-
-    var seam = el('div', 'seam');
-    var range = doc.createElement('input');
-    range.type = 'range';
-    range.min = '0'; range.max = '100'; range.value = '50';
-    range.setAttribute('aria-label',
-      'Wipe between the area as measured and the conceptual planted simulation');
-
-    var lTag = el('span', 'tag l', 'AS MEASURED');
-    var rTag = el('span', 'tag r green', 'CONCEPTUAL');
-
-    function apply() {
-      var pct = Number(range.value);
-      /* The after layer is clipped from the left edge inward, so
-         dragging left reveals more of the simulation. */
-      if (pane) { pane.style.clipPath = 'inset(0 0 0 ' + pct + '%)'; }
-      seam.style.left = pct + '%';
-    }
-
-    host.appendChild(box);
-    box.appendChild(seam);
-    box.appendChild(lTag);
-    box.appendChild(rTag);
-    box.appendChild(range);
-    range.addEventListener('input', apply);
-
-    return { box: box, apply: apply, layers: layers };
   }
 
   /* -------------------------------------------------------------------
@@ -274,70 +237,100 @@
     });
     bar.appendChild(dl);
 
-    var pr = el('button', 'btn', 'Print / save as PDF');
+    var pr = el('button', 'btn', 'Save as PDF');
     pr.type = 'button';
     pr.addEventListener('click', function () {
+      /* MARK WHAT TO PRINT, DO NOT NAME WHERE IT LIVES.
+
+         The print stylesheet used to hide `.view:not(#reports)`, which
+         meant this button produced a BLANK PAGE from the mission detail
+         panel and from the Research Console, because the report renders
+         into #mdReport and #rrReport in those two views and both were
+         hidden by that selector. Three surfaces render a report and
+         only one of them could print it.
+
+         Stamping the host instead means the stylesheet never has to
+         know which of the three it is. */
+      host.classList.add('ksat-print-this');
       doc.documentElement.classList.add('ksat-printing');
       window.print();
       setTimeout(function () {
         doc.documentElement.classList.remove('ksat-printing');
+        host.classList.remove('ksat-print-this');
       }, 800);
     });
     bar.appendChild(pr);
     left.appendChild(bar);
 
-    /* ---- the right column ---- */
-    var mapId = 'rpt-map-' + Math.abs(String(opts.missionId || 'x')
-      .split('').reduce(function (a, c) { return a + c.charCodeAt(0); }, 0));
-
+    /* ---- the right column: two figures, one extent ---- */
     right.appendChild(el('h4', null, 'The ground this report is about'));
-    var wrap = el('div');
-    right.appendChild(wrap);
-
-    var mapHost = el('div', 'ksat-map');
-    mapHost.id = mapId;
 
     var note = el('div', 'sub');
+    note.textContent = 'Loading the findings from the database\u2026';
     right.appendChild(note);
-    note.textContent = 'Loading the findings from the database…';
+
+    var figWrap = el('div', 'figs');
+    right.appendChild(figWrap);
+
+    function figure(nLabel, caption) {
+      var f = el('figure', 'fig');
+      var cap = el('figcaption');
+      cap.appendChild(el('b', null, nLabel));
+      cap.appendChild(doc.createTextNode(' ' + caption));
+      f.appendChild(cap);
+      var host = el('div', 'ksat-map');
+      f.appendChild(host);
+      figWrap.appendChild(f);
+      return host;
+    }
 
     loadGeometry(opts.missionId).then(function (rows) {
+      var area = opts.mission && opts.mission.area_geojson;
       var sites = rows.filter(function (x) { return x.kind === 'site'; });
-      wrap.appendChild(mapHost);
-      var map = buildMap(mapHost, opts.mission && opts.mission.area_geojson, rows);
-      if (!map) {
-        note.textContent = 'The map could not be drawn in this browser. Every ' +
+
+      var hostA = figure('Figure 1. As measured.',
+        'The mission area, and every finding this run produced, outlined ' +
+        'where the measurement put it.');
+      var hostB = figure('Figure 2. With the approved zones.',
+        sites.length
+          ? ('The same ground and the same extent, with the ' + sites.length +
+             ' zone' + (sites.length === 1 ? '' : 's') + ' the researcher approved ' +
+             'drawn as the change.')
+          : 'This run produced no candidate zones, so nothing is drawn as changed.');
+
+      var mBefore = buildFigure(hostA, area, rows, 'before');
+      var mAfter = buildFigure(hostB, area, rows, 'after');
+
+      if (!mBefore || !mAfter) {
+        note.textContent = 'The maps could not be drawn in this browser. Every ' +
           'coordinate in the report is still in the findings on the mission.';
         return;
       }
 
-      if (sites.length) {
-        var w = wipe(wrap, map, map._reportLayers);
-        /* the map moves inside the wipe box, so it has to be re-measured */
-        w.box.insertBefore(mapHost, w.box.firstChild);
-        mapHost.style.height = '330px';
-        map._reportLayers.after.addTo(map);
-        KS.geo.resize(mapHost);
-        w.apply();
-
-        note.textContent = 'Drag the handle. Left of it is the area as KuwaitSat-1 ' +
-          'measured it; right of it, the ' + sites.length + ' approved candidate ' +
-          'zones drawn as planted. The green is a CONCEPTUAL SIMULATION of the ' +
-          'decision in this report, not a prediction and not an observation.';
-      } else {
-        note.textContent = 'This run produced no candidate zones, so there is ' +
-          'nothing to draw as planted. The mission area is outlined.';
+      /* BOTH FITTED TO THE SAME BOUNDS. See zoneBounds. */
+      var b = zoneBounds(area, rows);
+      if (b.isValid()) {
+        KS.geo.fit(mBefore, b, [26, 26]);
+        KS.geo.fit(mAfter, b, [26, 26]);
       }
+      KS.geo.resize(hostA);
+      KS.geo.resize(hostB);
+
+      note.textContent = sites.length
+        ? ('Two figures of the same ground at the same extent. The green on ' +
+           'Figure 2 is a CONCEPTUAL SIMULATION of the decision in this report: ' +
+           'it is not a prediction and not an observation.')
+        : 'The mission area is outlined on both figures.';
 
       var keys = el('div', 'ksat-keys');
       [['#dce9f1', 'Mission area'], ['#d2ad68', 'Candidate zone, as measured'],
-       ['#79bd96', 'Conceptual planting']].forEach(function (p) {
-        var s = el('span');
-        var i = el('i');
-        i.style.background = p[0];
-        s.appendChild(i);
-        s.appendChild(doc.createTextNode(p[1]));
-        keys.appendChild(s);
+       ['#79bd96', 'Approved zone, drawn as the change']].forEach(function (p) {
+        var sp = el('span');
+        var ic = el('i');
+        ic.style.background = p[0];
+        sp.appendChild(ic);
+        sp.appendChild(doc.createTextNode(p[1]));
+        keys.appendChild(sp);
       });
       right.appendChild(keys);
     });

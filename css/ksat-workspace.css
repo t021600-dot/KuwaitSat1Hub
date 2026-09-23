@@ -310,31 +310,31 @@ aside h5{ font-size:11px }
 .reportaside .ksat-map{ height:330px }
 .reportaside .sub{ margin-top:8px }
 
-/* BEFORE / AFTER, AS A WIPE.
+/* TWO FIGURES, NOT A WIPE.
 
-   Two maps side by side at this width would be two postage stamps. One
-   map with the "after" layer clipped to a draggable edge keeps both at
-   full size and makes the comparison a gesture rather than a
-   back-and-forth. The handle is keyboard reachable: it is a range input,
-   not a div with a mousedown listener. */
-.wipe{ position:relative; overflow:hidden; border:1px solid var(--line) }
-.wipe .after{ position:absolute; inset:0; overflow:hidden; pointer-events:none }
-.wipe .after > *{ position:absolute; inset:0 }
-.wipe .seam{ position:absolute; top:0; bottom:0; width:2px; background:#dce9f1;
-             pointer-events:none; box-shadow:0 0 0 1px #0008 }
-.wipe input[type=range]{
-  position:absolute; left:0; right:0; bottom:10px; width:calc(100% - 24px);
-  margin:0 12px; z-index:5; -webkit-appearance:none; appearance:none;
-  background:transparent; height:26px;
+   There was one map here with a draggable handle that clipped a
+   "conceptual planting" pane over the measurement. It is gone.
+
+   A wipe asks a reader to hold half a picture in their head while they
+   drag, and it only works when the two states are the same KIND of
+   thing - two photographs of the same ground at two times. That is not
+   what this is. Figure 1 is a measurement and Figure 2 is a simulation
+   of a decision, and a control that dissolves one into the other
+   invites exactly the confusion the report spends a section warning
+   about. Two labelled figures let a reader look from one to the other
+   and back, and a printed page can carry both.
+
+   Both maps are fitted to the same bounds in js/ksat-report.js. That is
+   what makes them a comparison rather than two pictures. */
+.figs{ display:flex; flex-direction:column; gap:16px; margin-top:4px }
+
+.fig{ margin:0 }
+.fig figcaption{
+  font-size:11.5px; line-height:1.6; color:#8b96a0;
+  margin:0 0 7px;
 }
-.wipe input[type=range]::-webkit-slider-runnable-track{
-  height:4px; background:#0009; border:1px solid #dce9f14d; border-radius:2px }
-.wipe input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none; width:20px; height:20px; margin-top:-9px;
-  border-radius:50%; background:#dce9f1; border:2px solid #0b1116; cursor:ew-resize }
-.wipe input[type=range]:focus-visible{ outline:2px solid #9fc5dc; outline-offset:2px }
-.wipe .tag{ position:absolute; top:9px; z-index:4; background:#0b1116e0 }
-.wipe .tag.l{ left:9px } .wipe .tag.r{ right:9px }
+.fig figcaption b{ color:#cbd6dd; font-weight:normal }
+.fig .ksat-map{ height:300px }
 
 /* ---------------------------------------------------------------------
    3 . THE AREA PICKER IN THE NEW MISSION MODAL
@@ -421,26 +421,72 @@ aside h5{ font-size:11px }
    and it leaves it on paper or as a PDF.
    --------------------------------------------------------------------- */
 @media print{
+  /* PRINT WHAT IS ON SCREEN, FROM WHEREVER IT IS ON SCREEN.
+
+     The old rule hid `.view:not(#reports)`, which meant printing from
+     the Missions detail panel or the Research Console produced a BLANK
+     PAGE - the report is rendered into #mdReport and #rrReport in those
+     two views, and both were hidden by that selector. Three places
+     render a report and only one of them could print it.
+
+     This inverts it: everything is made invisible and only the marked
+     report is made visible again. js/ksat-report.js stamps
+     .ksat-print-this on the host it is about to print, so it works from
+     any of the three without naming any of them.
+
+     visibility rather than display, deliberately. display:none on an
+     ancestor would collapse the Leaflet map inside it to 0x0 and the
+     tiles would never paint; visibility is inherited and can be turned
+     back on for a subtree whose ancestors stay laid out. */
   html.ksat-printing body{ background:#fff; color:#000 }
-  html.ksat-printing .top,
-  html.ksat-printing .statusbar,
-  html.ksat-printing aside,
-  html.ksat-printing #entry,
-  html.ksat-printing #denied,
-  html.ksat-printing .modal,
-  html.ksat-printing #reports > .head,
-  html.ksat-printing #reports > .card:not(#reportViewWrap),
-  html.ksat-printing #reports > .grid,
-  html.ksat-printing #reportViewWrap .ct,
-  html.ksat-printing .view:not(#reports){ display:none !important }
-  html.ksat-printing .layout{ display:block }
-  html.ksat-printing main{ padding:0; max-width:none }
-  html.ksat-printing .card{ background:#fff; border:0; padding:0 }
-  html.ksat-printing .md,
-  html.ksat-printing .md h1,
-  html.ksat-printing .md h2,
-  html.ksat-printing .md strong{ color:#000; max-width:none }
-  html.ksat-printing .md h2{ color:#333 }
+  html.ksat-printing body *{ visibility:hidden }
+
+  html.ksat-printing .ksat-print-this,
+  html.ksat-printing .ksat-print-this *{ visibility:visible }
+
+  html.ksat-printing .ksat-print-this{
+    position:absolute; left:0; top:0; width:100%;
+    max-width:none; padding:0; margin:0;
+  }
+
+  /* Ink on white. A report is the one artefact on this platform that
+     leaves the building, and it leaves it on paper or as a PDF. */
+  html.ksat-printing .ksat-print-this,
+  html.ksat-printing .ksat-print-this .md,
+  html.ksat-printing .ksat-print-this h1,
+  html.ksat-printing .ksat-print-this h2,
+  html.ksat-printing .ksat-print-this p,
+  html.ksat-printing .ksat-print-this li,
+  html.ksat-printing .ksat-print-this strong{ color:#000; max-width:none }
+  html.ksat-printing .ksat-print-this h2{ color:#333 }
+  html.ksat-printing .ksat-print-this .sub,
+  html.ksat-printing .ksat-print-this figcaption{ color:#444 }
+  html.ksat-printing .ksat-print-this figcaption b{ color:#000 }
+
+  /* The caveat panel keeps its rule but loses the dark ground. */
+  html.ksat-printing .ksat-print-this p.caveat{
+    background:#f4efe6; border-left:3px solid #8a6d3b; color:#000;
+  }
+
+  /* One column on paper. The 460px aside is a screen affordance; on a
+     page the figures belong under the prose they are about. */
+  html.ksat-printing .reportgrid{ display:block }
+  html.ksat-printing .reportaside{ position:static; margin-top:18px }
+  html.ksat-printing .figs{ gap:14px }
+  html.ksat-printing .fig{ break-inside:avoid; page-break-inside:avoid }
+  html.ksat-printing .fig .ksat-map{ height:250px }
+
+  /* Satellite tiles are the evidence. Without this most browsers drop
+     background and image colour to save ink and the figures print as
+     empty grey boxes. */
+  html.ksat-printing .ksat-print-this *{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+
+  /* The toolbar is a screen control and must not appear on the page. */
+  html.ksat-printing .ksat-print-this .bar{ display:none !important }
+
+  @page{ margin:14mm }
 }
 
 /* =====================================================================

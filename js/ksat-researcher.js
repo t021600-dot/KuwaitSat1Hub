@@ -1157,11 +1157,37 @@
     log('report exported');
   }
 
+  /* THE ELEMENT, NOT THE MARKDOWN.
+
+     reportInView() returns the report's TEXT, which is what the
+     download needs. Printing needs the DOM node the report was rendered
+     into, and there are three of them in three different views. This
+     returns whichever one is actually on screen. */
+  function printHost() {
+    var pairs = [['reportViewWrap', 'reportView'],
+                 ['mdReportWrap', 'mdReport'],
+                 ['runResultCard', 'rrReport']];
+    for (var i = 0; i < pairs.length; i++) {
+      var wrap = doc.getElementById(pairs[i][0]);
+      var host = doc.getElementById(pairs[i][1]);
+      if (wrap && !wrap.hidden && host && host.firstChild) { return host; }
+    }
+    return null;
+  }
+
   function printReport() {
-    if (!reportInView()) return;
+    var host = printHost();
+    if (!host) { return; }
+    /* Same contract as the button inside the report: mark the host, so
+       the print stylesheet does not have to know which view it is in.
+       See the @media print block in css/ksat-workspace.css. */
+    host.classList.add('ksat-print-this');
     root.classList.add('ksat-printing');
     window.print();
-    setTimeout(function () { root.classList.remove('ksat-printing'); }, 800);
+    setTimeout(function () {
+      root.classList.remove('ksat-printing');
+      host.classList.remove('ksat-print-this');
+    }, 800);
   }
 
   function exportFindings() {
