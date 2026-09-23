@@ -1094,13 +1094,34 @@
       f2.appendChild(figureFor('gulf', COPY.capGulf, code));
     }
 
-    /* ---- TREATMENT 4: the topic grid at the foot ------------------- */
+    /* ---- TREATMENT 4: the topic grid at the foot -------------------
+
+       THE ANCHOR MOVED BECAUSE THE BAND IT USED IS GONE. This grid was
+       inserted after the national picture band, and js/ksat-facts.js no
+       longer emits that band: the team asked for the Vision 2035
+       pillars and the dated record taken off the page. Anchored to that
+       band and nothing else, the whole topic grid would have vanished
+       with it, silently, which is the kind of collateral nobody asks
+       for.
+
+       The first repair was "fall back to the last band", and it did not
+       work: by the time this runs, the treatments above have MOVED the
+       only remaining band inside a .ksh-feature wrapper, so a
+       `:scope > .ksf-band` list is empty. Measured in the browser, and
+       the grid still did not appear.
+
+       So the fallback is a position rather than a sibling. The grid
+       goes at the foot of the section, immediately before the closing
+       provenance note, which is where "at the foot" meant all along. */
+    var gridRow = el('div', 'ksh-row');
     if (natBand) {
-      var gridRow = el('div', 'ksh-row');
       natBand.insertAdjacentElement('afterend', gridRow);
-      gridRow.appendChild(rowHead(COPY.gridRow, null, code));
-      gridRow.appendChild(buildGrid(code));
+    } else {
+      var tail = ksf.querySelector(':scope > .ksf-note');
+      if (tail) { ksf.insertBefore(gridRow, tail); } else { ksf.appendChild(gridRow); }
     }
+    gridRow.appendChild(rowHead(COPY.gridRow, null, code));
+    gridRow.appendChild(buildGrid(code));
   }
 
   function buildGrid(code) {

@@ -122,7 +122,12 @@ html[data-ksat-tier="public"] #imagery { display: none !important; }
   letter-spacing: -.01em;
   margin: 0;
   color: var(--ink);
-  max-width: 22ch;
+  /* NO MEASURE CAP. 22ch broke "The spacecraft, and what one frame can
+     tell you" across two lines at every width, and the team asked for
+     it on one. It is 46 characters, so at the top of the clamp it wants
+     about 710px and the block gives it 1,300. It still wraps on a
+     phone, which is the only place it has to. */
+  max-width: none;
 }
 .kss-lede {
   margin: 14px 0 0;

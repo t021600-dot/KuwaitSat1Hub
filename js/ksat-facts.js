@@ -280,56 +280,23 @@
         r: { en: 'Academic and operational directors, as named on the project’s own site. The published record here does not say which of the two holds which post.',
              ar: 'المدير الأكاديمي والمدير التشغيلي، كما وردت أسماؤهما في موقع المشروع. والسجل المنشور هنا لا يحدد أيّهما يشغل أي منصب.' } }
     ],
+    /* "just say four kuwaiti student".
+
+       THE SOURCE CHIP CAME OFF WITH THE OLD SENTENCE, ON PURPOSE. The
+       line it replaced was attributed to [6], Kuwaiti press coverage,
+       and what that coverage reported was a cohort selected from a
+       larger applicant pool — not a number. Leaving [6] beside "four"
+       would be citing a source for something it does not say, which on
+       a page whose whole argument is attribution is worse than carrying
+       no chip at all. This is the project team stating a fact about
+       their own project, and it reads as one. */
     whoP2: {
-      en: 'Kuwaiti press reported a student cohort selected from a larger applicant pool, with work beginning in 2019. That is a reported figure, attributed to that coverage rather than to the project.',
-      ar: 'أوردت الصحافة الكويتية اختيار كادر طلابي من عدد أكبر من المتقدمين، وبدء العمل في 2019. وهو رقم منقول منسوب إلى تلك التغطية لا إلى المشروع.'
+      en: 'Built by four Kuwaiti students.',
+      ar: 'بناها أربعة طلبة كويتيين.'
     },
-    whoP2src: [6],
+    whoP2src: null,
 
-    /* --- block: the record ------------------------------------------ */
-    recH: { en: 'The record', ar: 'السجل' },
-    /* The five dates are TIMELINE in index.html, with their source
-       indices unchanged. TIMELINE's own text keys (tl.a .. tl.e) have no
-       string anywhere in the repo, so each line below is written from
-       the note on the source it cites and from CLAIMS, which is where
-       those meanings actually live. */
-    rec: [
-      { d: { en: 'Oct 2019', ar: 'أكتوبر 2019' },
-        t: { en: 'Project work began, as reported by Kuwaiti press.',
-             ar: 'بدء العمل في المشروع، وفق ما أوردته الصحافة الكويتية.' },
-        s: [6] },
-      { d: { en: 'Oct 2022', ar: 'أكتوبر 2022' },
-        t: { en: 'The ground station at Kuwait University’s College of Science became operational, with UHF for telemetry, tracking and command, and S-band for image downlink.',
-             ar: 'دخول المحطة الأرضية في كلية العلوم بجامعة الكويت الخدمة، بهوائي UHF للقياس عن بُعد والتتبّع والتحكم، وهوائي S-band لتنزيل الصور.' },
-        s: [3] },
-      { d: { en: '3 Jan 2023', ar: '3 يناير 2023' },
-        t: { en: 'Launch from Cape Canaveral on a Falcon 9 Block 5, on the Transporter-6 rideshare. International designator COSPAR 2023-001CY.',
-             ar: 'الإطلاق من كيب كانافيرال على فالكون 9 بلوك 5 ضمن رحلة ترانسبورتر-6 المشتركة. المعرّف الدولي COSPAR 2023-001CY.' },
-        s: [1, 4, 5] },
-      { d: { en: '5 Apr 2023', ar: '5 أبريل 2023' },
-        t: { en: 'First image series captured: five consecutive frames, stitched into a mosaic.',
-             ar: 'التقاط أول سلسلة صور: خمسة إطارات متتالية دُمجت في فسيفساء.' },
-        s: [2, 3] },
-      { d: { en: 'Apr 2023', ar: 'أبريل 2023' },
-        t: { en: 'The mosaic of eastern Kuwait published, from Warba and Bubiyan through Kuwait City and Failaka to the Burgan field and the southern coast.',
-             ar: 'نشر فسيفساء شرق الكويت، من وربة وبوبيان مروراً بمدينة الكويت وفيلكا إلى حقل برقان والساحل الجنوبي.' },
-        s: [2, 7] }
-    ],
-    elapsedV: { en: '92 days', ar: '92 يوماً' },
-    elapsedT: {
-      en: 'From launch to the first image series. That is arithmetic on the two dated entries above, not a published figure.',
-      ar: 'من الإطلاق إلى أول سلسلة صور. وهو حساب على التاريخين المدرجين أعلاه، لا رقم منشور.'
-    },
-
-    /* --- block: the national picture -------------------------------- */
-    natH: { en: 'Where this sits nationally', ar: 'أين يقع هذا وطنياً' },
-    natP: {
-      en: 'Kuwait Vision 2035 sets out seven official pillars, as published by the Ministry of Foreign Affairs of the State of Kuwait. One of them is directly environmental, and it is the pillar this platform is written against. No endorsement is claimed or implied.',
-      ar: 'تضع رؤية الكويت 2035 سبع ركائز رسمية، كما نشرتها وزارة الخارجية في دولة الكويت. وواحدة منها بيئية مباشرة، وهي الركيزة التي تستند إليها هذه المنصة. ولا يُدّعى أي تأييد ولا يُفهم ضمناً.'
-    },
-    natPsrc: [8],
-
-    /* --- the pointer to the relocated key --------------------------- */
+    /* --- block: the national picture    /* --- the pointer to the relocated key --------------------------- */
     note: {
       en: 'The vocabulary that labels every panel on this page as measured, public data, reference dataset, modelled or model output has moved to the sources section, beside the register that uses it.',
       ar: 'انتقلت مفردات التصنيف التي تصف كل لوحة في هذه الصفحة بأنها مقيسة أو بيانات عامة أو مجموعة مرجعية أو مُنمذَجة أو مخرجات نموذج إلى قسم المصادر، بجانب السجل الذي يستخدمها.'
@@ -497,46 +464,10 @@
            '<h3>' + esc(L(COPY.whoH, code)) + '</h3>' +
            '<p>' + esc(L(COPY.whoP, code)) + ' ' + cite(COPY.whoPsrc) + '</p>' +
            '<ul class="ksf-people">' + peeps + '</ul>' +
-           '<p>' + esc(L(COPY.whoP2, code)) + ' ' + cite(COPY.whoP2src) + '</p>' +
+           '<p>' + esc(L(COPY.whoP2, code)) + '</p>' +
          '</div>';
 
     h += '</div>';
-
-    /* the record, full width */
-    var rows = '';
-    for (var r = 0; r < COPY.rec.length; r++) {
-      rows += '<li>' +
-                '<span class="d">' + esc(L(COPY.rec[r].d, code)) + '</span>' +
-                '<span class="t">' + esc(L(COPY.rec[r].t, code)) + ' ' + cite(COPY.rec[r].s) + '</span>' +
-              '</li>';
-    }
-    h += '<div class="ksf-band">' +
-           '<div class="ksf-block">' +
-             '<h3>' + esc(L(COPY.recH, code)) + '</h3>' +
-             '<ul class="ksf-rec">' + rows + '</ul>' +
-             '<div class="ksf-elapsed">' +
-               '<span class="v">' + esc(L(COPY.elapsedV, code)) + '</span>' +
-               '<span class="t">' + esc(L(COPY.elapsedT, code)) + '</span>' +
-             '</div>' +
-           '</div>' +
-         '</div>';
-
-    /* the national picture */
-    var PIL = pillars();
-    var chips = '';
-    if (PIL) {
-      for (var q = 0; q < PIL.length; q++) {
-        var label = code === 'ar' ? (PIL[q].ar || '') : (PIL[q].en || '');
-        chips += '<span class="ksf-pill' + (PIL[q].key ? ' key' : '') + '">' + esc(label) + '</span>';
-      }
-    }
-    h += '<div class="ksf-band">' +
-           '<div class="ksf-block">' +
-             '<h3>' + esc(L(COPY.natH, code)) + '</h3>' +
-             '<p>' + esc(L(COPY.natP, code)) + ' ' + cite(COPY.natPsrc) + '</p>' +
-             (chips ? '<div class="ksf-pillars">' + chips + '</div>' : '') +
-           '</div>' +
-         '</div>';
 
     /* the pointer to the relocated key */
     h += '<p class="ksf-note">' + esc(L(COPY.note, code)) +

@@ -114,11 +114,6 @@
     h: { en: 'The spacecraft, and what one frame can tell you',
          ar: 'المركبة، وما الذي تستطيع صورة واحدة أن تخبرك به' },
 
-    lede: {
-      en: 'Everything here begins as a frame from a box the size of two milk cartons. What it can see follows from its orbit, its lens and its three colours.',
-      ar: 'كل ما هنا يبدأ من صورة تلتقطها عُلبة بحجم عبوتَي حليب. وما تستطيع رؤيته ينتج عن مدارها وعدستها وألوانها الثلاثة.'
-    },
-
     cap: {
       en: 'KuwaitSat-1. Photograph supplied by the project. The dark blue faces are its only source of power; the four antennas travel coiled against the body and spring out on release.',
       ar: 'كويت سات-١. الصورة مقدَّمة من المشروع. الأوجه الزرقاء الداكنة مصدر طاقتها الوحيد، والهوائيات الأربعة تُلفّ على الجسم ثم تنتشر بعد الانفصال.'
@@ -168,17 +163,13 @@
        sequence, XGuaRj3C4bM. Same video, same source, and vercel.json's
        Content-Security-Policy already carries the frame-src for it. */
     filmH: { en: 'The launch', ar: 'الإطلاق' },
-    filmB: { en: '🛰 Archive clip', ar: '🛰 مقطع أرشيفي' },
-    filmN: { en: 'Embedded from YouTube in privacy-enhanced mode. Nothing is copied onto this platform, and the player sets no tracking cookie unless you press play.',
-             ar: 'مضمَّن من يوتيوب في الوضع المعزّز للخصوصية. لا يُنسخ شيء إلى هذه المنصة، ولا يضع المشغّل أي ملف تتبّع ما لم تشغّل المقطع.' },
-    /* WRITTEN AFTER PLAYING IT. The first draft of this line called it
-       launch footage, because index.html's own label for the same id
-       says "launch clip". It is a news report published by Al-Jarida,
-       «كويت سات 1».. بصمة كويتية في الفضاء, and it carries an interview
-       as well as the launch. A platform that badges the provenance of
-       every figure cannot caption a video from its file name. */
-    filmCap: { en: 'A report published by Al-Jarida. KuwaitSat-1 reached orbit on a Falcon 9 rideshare, Transporter-6, on 3 January 2023.',
-               ar: 'تقرير منشور في جريدة الجريدة. بلغت كويت سات-١ المدار على متن رحلة مشتركة لصاروخ فالكون ٩، مهمة Transporter-6، في ٣ يناير ٢٠٢٣.' },
+    /* THE CREDIT LINE IS GONE FROM THE SCREEN, NOT FROM THE PAGE, and
+       that distinction is the reason this comment stays. The clip is a
+       report published by Al-Jarida, «كويت سات 1».. بصمة كويتية في
+       الفضاء. The team asked for the caption removed; the player itself
+       shows the publisher's name and channel across the top of the
+       frame before it is played, which is where a viewer will see it,
+       and filmTitle below still names them for a screen reader. */
     filmTitle: { en: 'KuwaitSat-1, reported by Al-Jarida',
                  ar: 'كويت سات-١، تقرير جريدة الجريدة' },
     filmBlocked: { en: 'This viewer blocks external media, so the clip cannot play here.',
@@ -249,7 +240,6 @@
     /* ---- the opening ---------------------------------------------- */
     var open = el('div', 'kss-open');
     open.appendChild(el('h3', 'kss-h', L(COPY.h)));
-    open.appendChild(el('p', 'kss-lede', L(COPY.lede)));
     host.appendChild(open);
 
     /* ---- the photograph, then the four readings under it ----------- */
@@ -299,7 +289,9 @@
        than anywhere else in it. */
     var film = el('div', 'kss-part');
     film.id = 'ksat-spacecraft-film';
-    film.appendChild(head(COPY.filmH, COPY.filmN, COPY.filmB, 'real'));
+    /* Title only. The badge and the provenance note were asked for
+       by name and taken out; head() takes nulls for both. */
+    film.appendChild(head(COPY.filmH, null, null, null));
 
     var fig = el('figure', 'kss-film');
     var frame = el('div', 'kss-film__box');
@@ -366,7 +358,6 @@
 
     fig.appendChild(frame);
     fig.appendChild(fall);
-    fig.appendChild(el('figcaption', 'kss-cap', L(COPY.filmCap)));
     film.appendChild(fig);
     host.appendChild(film);
 
