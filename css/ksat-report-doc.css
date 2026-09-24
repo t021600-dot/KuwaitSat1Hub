@@ -1,0 +1,174 @@
+/* =====================================================================
+   ksat-report-doc.css — the downloaded report, as a document
+   Owner: 01 Front End
+
+   EVERYTHING HERE IS SCOPED TO html.ksat-printing.
+
+   That is not tidiness, it is the whole safety property: the cover and
+   footer that js/ksat-report-doc.js inserts are display:none on screen,
+   and every rule below only applies while the browser is producing a
+   print. The workspace renders byte-for-byte as it did before.
+
+   This file must load AFTER css/ksat-workspace.css. That file sets
+   `html.ksat-printing .ksat-print-this h1{ color:#000; max-width:none }`
+   at 1-0-2, and the print type scale below has to win at equal
+   specificity on source order.
+   ===================================================================== */
+
+/* ---------- hidden on screen, always ---------- */
+.ksat-doc-cover,
+.ksat-doc-foot{ display:none }
+
+@media print{
+
+  /* A4 with a proper measure. The old sheet set only `margin:14mm`. */
+  @page{ size:A4; margin:20mm 18mm 22mm }
+
+  /* ---------- the document type scale ----------
+     Screen type is px, tuned for a dark panel. Print is a different
+     medium: points, black on white, and a measure that suits a page
+     rather than a column beside a map. */
+  html.ksat-printing .ksat-print-this .reportmain{
+    font-size:10.5pt;
+    line-height:1.5;
+    max-width:none;
+  }
+  html.ksat-printing .ksat-print-this .reportmain p,
+  html.ksat-printing .ksat-print-this .reportmain li{
+    orphans:3;
+    widows:3;
+  }
+
+  /* Headings never stranded at the foot of a page. */
+  html.ksat-printing .ksat-print-this h1,
+  html.ksat-printing .ksat-print-this h2,
+  html.ksat-printing .ksat-print-this h3{
+    break-after:avoid-page;
+    page-break-after:avoid;
+  }
+  html.ksat-printing .ksat-print-this .reportmain h2{
+    font-size:12pt;
+    margin:16pt 0 6pt;
+    padding-bottom:3pt;
+    border-bottom:.5pt solid #b9c2c9;
+  }
+
+  /* ---------- SECTION NUMBERING ----------
+     By counter, so not one word of agent-written text is edited. No
+     figure counter: js/ksat-report.js already writes the literal
+     "Figure 1." into the caption, and a counter would render
+     "1. Figure 1." */
+  html.ksat-printing .ksat-print-this .reportmain{ counter-reset:sec }
+  html.ksat-printing .ksat-print-this .reportmain h2::before{
+    counter-increment:sec;
+    content:counter(sec) ".\00a0\00a0";
+    color:#5c6b76;
+  }
+
+  /* ---------- THE COVER ---------- */
+  html.ksat-printing .ksat-print-this .ksat-doc-cover{
+    display:block;
+    break-after:page;
+    page-break-after:always;
+    padding-top:26mm;
+  }
+  html.ksat-printing .ksat-doc-org{
+    font-size:9pt;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:#5c6b76;
+  }
+  html.ksat-printing .ksat-doc-kind{
+    margin-top:2pt;
+    font-size:9pt;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:#8b969e;
+  }
+  html.ksat-printing .ksat-doc-title{
+    margin:14pt 0 0;
+    font-size:26pt;
+    line-height:1.14;
+    font-weight:700;
+    color:#0d1418;
+    max-width:24em;
+  }
+  html.ksat-printing .ksat-doc-status{
+    display:inline-block;
+    margin-top:14pt;
+    padding:3pt 9pt;
+    font-size:8.5pt;
+    letter-spacing:.14em;
+    border:.75pt solid currentColor;
+    border-radius:2pt;
+  }
+  html.ksat-printing .ksat-doc-status.is-draft{ color:#8a4a12 }
+  html.ksat-printing .ksat-doc-status.is-approved{ color:#1d6b4f }
+
+  /* The document-control block. Every field is one that already exists
+     somewhere in the report; nothing on this table is derived. */
+  html.ksat-printing .ksat-doc-table{
+    margin-top:22pt;
+    border-collapse:collapse;
+    width:100%;
+    max-width:110mm;
+    font-size:9.5pt;
+  }
+  html.ksat-printing .ksat-doc-table th,
+  html.ksat-printing .ksat-doc-table td{
+    text-align:left;
+    vertical-align:top;
+    padding:5pt 8pt 5pt 0;
+    border-bottom:.5pt solid #d7dde1;
+  }
+  html.ksat-printing .ksat-doc-table th{
+    width:34%;
+    font-weight:600;
+    color:#5c6b76;
+    letter-spacing:.04em;
+  }
+  html.ksat-printing .ksat-doc-table td{ color:#162026 }
+
+  html.ksat-printing .ksat-doc-note{
+    margin-top:20pt;
+    max-width:110mm;
+    padding-left:8pt;
+    border-left:1.5pt solid #c6a45e;
+    font-size:9pt;
+    line-height:1.55;
+    color:#4a555d;
+  }
+
+  /* ---------- THE RUNNING FOOTER ----------
+     Inside the host, because html.ksat-printing body *{visibility:hidden}
+     in ksat-workspace.css would otherwise hide it. Chromium and WebKit
+     repeat a fixed element on every page; Firefox prints it on the
+     first page only. No page number - see the header of
+     js/ksat-report-doc.js for why that is not possible here. */
+  html.ksat-printing .ksat-print-this .ksat-doc-foot{
+    display:flex;
+    justify-content:space-between;
+    gap:10mm;
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding-top:3pt;
+    border-top:.5pt solid #ccd4d9;
+    font-size:8pt;
+    color:#6a757d;
+  }
+  html.ksat-printing .ksat-doc-foot-t{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:60%;
+  }
+  html.ksat-printing .ksat-doc-foot-r{ white-space:nowrap }
+
+  /* Figures: caption tight to its map, never split across a page. */
+  html.ksat-printing .ksat-print-this .fig{ break-inside:avoid }
+  html.ksat-printing .ksat-print-this figcaption{
+    font-size:8.5pt;
+    line-height:1.45;
+    color:#4a555d;
+  }
+}
