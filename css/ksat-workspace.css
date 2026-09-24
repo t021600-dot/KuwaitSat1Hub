@@ -623,3 +623,39 @@ aside h5{ font-size:11px }
 /* THE OVERVIEW MAP */
 .ksat-map--wide{ height:400px }
 @media(max-width:900px){ .ksat-map--wide{ height:300px } }
+
+/* =====================================================================
+   9 . RENAME AND DELETE A MISSION
+   Owner: 02 Back End and data
+
+   Dresses js/ksat-mission-edit.js. The destructive control is the only
+   red button in this workspace, and it is red because it is the only
+   action here that removes a row instead of adding one.
+   ===================================================================== */
+
+.editbox{
+  margin-top:14px; padding:14px;
+  border:1px solid #34414b; background:#0c1218;
+}
+.editbox.danger{ border-color:#5a3434; background:#160f0f }
+
+.editbox > b{ display:block; font-size:14px; color:var(--white); font-weight:normal }
+.editbox .label{ margin:12px 0 6px }
+.editbox .label:first-of-type{ margin-top:4px }
+.editbox .sub{ margin-top:9px; line-height:1.7 }
+.editbox .actions{ margin-top:14px }
+
+/* The withheld Delete button's replacement. It sits in the action bar
+   where the button would have been, so the absence is explained in the
+   place the researcher is looking. */
+.nodel{
+  flex:1 1 260px; min-width:220px;
+  margin:0; line-height:1.65; align-self:center;
+}
+
+.btn.danger{
+  background:#2a1515; color:#e9b4b4; border-color:#6b3a3a;
+}
+.btn.danger:hover{ background:#3a1b1b; color:#f4d2d2 }
+
+.said.bad{ color:#e0a5a5 }
