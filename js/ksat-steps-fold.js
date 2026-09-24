@@ -231,7 +231,9 @@
       node.classList.remove('done', 'active');
 
       if (c.k === 'request') {
-        if (rows.length) { node.classList.add('done'); }
+        /* active while a run is being set up, done once it has produced
+           its first recorded step */
+        node.classList.add(rows.length ? 'done' : 'active');
         return;
       }
       if (c.k === 'checkpoint') {
@@ -256,11 +258,26 @@
     var box = doc.getElementById(TRACE_ID);
     if (!box) { return; }
     var rows = box.querySelectorAll('.step');
-    if (!rows.length) { return; }
+    var card = box.closest ? box.closest('.card') : null;
+
+    /* AN EMPTY TRACE IS A STATE, NOT A NO-OP.
+
+       This used to return early when there were no rows, and the strip
+       kept whatever it was showing. Starting a second run clears #trace
+       before the first new row lands, so for a few seconds the page
+       went on claiming DATA and ANALYSIS were done - for a run that had
+       just been closed. Seen live. An empty trace means a run is being
+       set up, so the strip resets to REQUEST and nothing else. */
+    if (!rows.length) {
+      if (card && card.querySelector('.ksat-sf-chain')) {
+        paintStrip(card, []);
+      }
+      return;
+    }
+
     var key = runKey();
     var i;
     for (i = 0; i < rows.length; i++) { foldRow(rows[i], key); }
-    var card = box.closest ? box.closest('.card') : null;
     if (card) { paintStrip(card, rows); }
   }
 
