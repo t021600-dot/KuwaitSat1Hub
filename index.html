@@ -2272,9 +2272,12 @@ const Intro = (()=>{
   function drawPad(p){
     // ground + horizon glow before liftoff
     const g=ctx.createLinearGradient(0,H*0.55,0,H);
-    g.addColorStop(0,"rgba(10,22,36,0)"); g.addColorStop(1,"rgba(14,26,40.95)");
+    /* Was rgba(14,26,40,.95), a navy floor over the bottom 45% of the
+       screen, with a teal horizon line. That navy is the blue in the
+       intro: #intro itself is already #000 and opaque. */
+    g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(8,8,8,.95)");
     ctx.fillStyle=g; ctx.fillRect(0,H*0.55,W,H*0.45);
-    ctx.strokeStyle="rgba(63,208,201.22)"; ctx.lineWidth=1;
+    ctx.strokeStyle="rgba(150,150,150,.20)"; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(0,H*0.86); ctx.lineTo(W,H*0.86); ctx.stroke();
   }
   function drawRocket(cx, by, s, thrust){
@@ -2310,9 +2313,28 @@ const Intro = (()=>{
     ctx.restore();
   }
   function drawEarth(prog, zoom){
-    // prog 0..1 : approach; zoom: extra scale toward Kuwait
+    /* THE GLOBE IS NOT DRAWN ANY MORE, AND THIS STILL RETURNS ITS
+       GEOMETRY ON PURPOSE.
+
+       drawSat(e, ...) reads e.R on its first line and is called from
+       four places. Delete this function, or let it return undefined,
+       and that is a TypeError thrown inside loop() BEFORE the line that
+       re-arms requestAnimationFrame. The animation then dies in
+       silence: canvas frozen, progress bar stuck at about 78%, phase
+       never advances, #intro never calls finish(), and body.locked
+       leaves the page unscrollable behind it. Skip and Escape still
+       work, because they are DOM listeners, so the only visitor who
+       gets stuck is the one who waits.
+
+       So the picture goes and the frame of reference stays. Everything
+       below the return was the globe: the atmosphere halo, the ocean,
+       the land polygons, the desert wash, the terminator, the Kuwait
+       ring and its label, and the rim stroke. The LAND coastline table
+       above is now unused by anything. */
     const cx=W/2, cy=H*0.56+H*0.3*(1-prog);
     const R=Math.min(W,H)*(0.28+0.55*prog)*zoom;
+    return {cx,cy,R};
+    /* eslint-disable no-unreachable */
     const lightDir=[-0.55,-0.4,0.73];
     // atmosphere
     const ag=ctx.createRadialGradient(cx,cy,R*0.92,cx,cy,R*1.28);
@@ -2459,7 +2481,15 @@ const Intro = (()=>{
       drawSat(e, p, -0.9+p*1.1);
       statEl.innerHTML="<b>"+esc(stat(13))+"</b>";
       bar.style.width=(78+p*8)+"%";
-      if(t>=D.sat){ KSAudio.cue("deploy"); startVideo(now); }
+      /* THE ARCHIVE CLIP IS GONE FROM THE INTRO. This used to call
+         startVideo(), which injected a youtube-nocookie iframe over the
+         sequence for 8.4 seconds. The phase machine never waited on it
+         - every transition here is wall-clock - so going straight to
+         the title card costs the sequence nothing but the 8.4s.
+         startVideo/killVideo and #vidStage stay in the file: killVideo
+         is still called from showTitle, finish and skip, and it is
+         null-guarded, so they are harmless no-ops. */
+      if(t>=D.sat){ KSAudio.cue("deploy"); showTitle(); }
     }
     else if(phase==="video"){
       drawSpace(1); const e=drawEarth(0.44,1); drawSat(e,1,0.2+t*0.12);
