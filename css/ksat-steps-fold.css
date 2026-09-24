@@ -1,0 +1,80 @@
+/* =====================================================================
+   ksat-steps-fold.css — the lid on the agent trace, and the chain strip
+   Owner: 01 Front End
+
+   Every selector is prefixed .ksat-sf so nothing here can reach .step,
+   .steps or .state and disturb the evidence colouring those already
+   carry. The one exception is .ksat-sf-chain, which deliberately ALSO
+   carries .timeline/.stage so it inherits the existing chain styling
+   from css/ksat-workspace.css rather than inventing a second look.
+
+   No colour token is introduced. Everything below borrows variables the
+   page already defines.
+   ===================================================================== */
+
+/* ---------- the toggle ---------- */
+.ksat-sf-more{
+  display:inline-block;
+  margin-top:8px;
+  padding:4px 11px;
+  font:inherit;
+  font-size:11.5px;
+  letter-spacing:.04em;
+  color:var(--dim, #8d9aa5);
+  background:transparent;
+  border:1px solid var(--line, #263038);
+  border-radius:3px;
+  cursor:pointer;
+}
+.ksat-sf-more:hover{
+  color:var(--white, #e8eef2);
+  border-color:var(--dim, #8d9aa5);
+}
+.ksat-sf-more:focus-visible{
+  outline:2px solid var(--acc, #3fd0c9);
+  outline-offset:2px;
+}
+
+/* ---------- the detail, once opened ----------
+   Padded off the left so an opened row reads as nested under its own
+   heading rather than as another row in the list. */
+.ksat-sf-detail{
+  margin-top:9px;
+  padding-left:11px;
+  border-left:1px solid var(--line, #263038);
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.ksat-sf-detail > small{ margin:0 }
+
+/* The word the database actually recorded, kept one click away. */
+.ksat-sf-orig{
+  font-size:10.5px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--dim, #8d9aa5);
+}
+
+/* ---------- the chain strip ----------
+   Only the spacing is set here. Colour, size and the done/active states
+   all come from .timeline/.stage in css/ksat-workspace.css, which is the
+   point of reusing that markup. */
+.ksat-sf-chain{
+  margin:14px 0 4px;
+}
+
+/* ---------- breathing room in the trace itself (spec item 1) ----------
+   The rows were 1px apart. That is what made six steps read as a wall
+   rather than as six things. Nothing else about .step is touched. */
+#trace.steps{ gap:7px }
+
+@media (max-width: 720px){
+  .ksat-sf-chain{ margin:12px 0 2px }
+  .ksat-sf-detail{ padding-left:9px }
+}
+
+/* Motion: there is none here, deliberately. The only animated thing on
+   this page is .spin, which already ships a reduced-motion fallback.
+   A fold that animates open is a fold that is still animating when the
+   presenter is talking over it. */

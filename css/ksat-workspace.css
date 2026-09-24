@@ -76,6 +76,50 @@ aside h5{ font-size:11px }
 .mono{ font-size:11px }
 
 /* ---------------------------------------------------------------------
+   0b . SPACING
+
+   The workspace was legible but crowded: cards 16px from their own
+   content, a 12px gutter between them, and table cells at 8px. Read
+   individually each is defensible; stacked down a long page they make
+   a dense instrument panel, and the feedback was that it reads as
+   crowded rather than as serious.
+
+   Every declaration here is ONE property on a selector that already
+   exists. No colour is touched, no element is added, and nothing is
+   moved. The two lines that do most of the work are .card padding and
+   .grid gap - together they are roughly 70% of the perceived crowding,
+   so if this ever needs to shrink, shrink it to those two.
+
+   max-width comes DOWN, from 1500px to 1360px. That is deliberate and
+   it is not a typo: on a wide screen the constraint is not how much
+   room the content has, it is how far the eye has to travel across a
+   table row. A narrower measure with more air inside it reads as more
+   spacious than a wider one packed tight.
+   --------------------------------------------------------------------- */
+main{ padding:36px 40px; max-width:1360px }
+.grid{ gap:20px }
+.card{ padding:22px }
+.head{ margin-bottom:32px }
+.ct{ margin-bottom:18px }
+aside{ padding:26px 16px }
+aside button{ padding:11px 12px }
+aside h5{ margin:26px 9px 10px }
+td,th{ padding:13px 10px }
+.agent{ padding:14px 0 }
+.actions{ gap:12px; margin-top:26px }
+.form{ gap:18px }
+
+/* Small screens keep the old density on purpose. Air is a luxury of
+   width; on a phone the same padding just pushes content below the
+   fold, which is the opposite of easier to navigate. */
+@media (max-width: 720px){
+  main{ padding:20px 16px }
+  .card{ padding:16px }
+  .grid{ gap:14px }
+  aside{ padding:18px 12px }
+}
+
+/* ---------------------------------------------------------------------
    1 . THE MAP
    --------------------------------------------------------------------- */
 
@@ -693,6 +737,27 @@ table.zones td.mono{ font-family:monospace; font-size:12.5px; white-space:nowrap
 table.zones td.num{ text-align:right }
 table.zones th:nth-child(n+4){ text-align:right }
 
-/* The table can outgrow the card on a narrow screen. It scrolls; the
-   page does not. */
-#cpFindings{ overflow-x:auto }
+/* THE HUMAN CHECKPOINT MUST NOT BE A GRID.
+
+   This element carries class="findings", and .findings is a grid of
+   auto-fill minmax(272px,1fr) tracks. But checkpoint() puts a zones
+   TABLE and a prose note into it, and a table cannot paint below its
+   min-content width - every identifying column here is nowrap, which
+   puts min-content at 565-700px. In a 272px track the table spilled
+   280-420px across the next column and painted on top of the note.
+   Neither has a background, so the two runs of text interleaved and the
+   labels became unreadable.
+
+   display:block takes the table out of grid placement: it gets the full
+   card width, the note falls to its own line beneath it, and the
+   overflow-x below finally has something to scroll.
+
+   The old comment here said the table outgrows the card "on a narrow
+   screen". It was the other way round. Below ~554px auto-fill collapses
+   to one column and the layout was already fine; it was DESKTOP that
+   broke. overflow-x alone could never fix it, because the table
+   overflowed its TRACK and not this container, and a container with
+   room to spare has nothing to scroll.
+
+   #cpFindings is 1-0-0 and beats .findings at 0-1-0 wherever it sits. */
+#cpFindings{ display:block; overflow-x:auto }

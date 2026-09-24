@@ -155,8 +155,8 @@
       ar: 'تُكتب الآن خطوة التقرير وصفّ المسودة، ثم التقرير نفسه.'
     },
     'wf.declined.p': {
-      en: 'You declined. Nothing was written for the report: no reporting step, no draft row, no report, and the run row was left open rather than marked complete. The findings and the agent log from the passes above are kept. Launch the mission again for a new draft.',
-      ar: 'رفضت التقرير. لم يُكتب أي شيء يخصّه: لا خطوة تقرير، ولا صفّ مسودة، ولا تقرير، وتُرك صفّ التشغيل مفتوحاً بدل وسمه مكتملاً. وتبقى النتائج وسجل الوكيل من المراحل أعلاه محفوظة. أعد إطلاق المهمة للحصول على مسودة جديدة.'
+      en: 'You declined. Nothing was written for the report: no reporting step, no draft row, no report, and the run row was left open rather than marked complete. The findings and the agent log from the passes above are kept. Run the mission again for a new draft.',
+      ar: 'رفضت التقرير. لم يُكتب أي شيء يخصّه: لا خطوة تقرير، ولا صفّ مسودة، ولا تقرير، وتُرك صفّ التشغيل مفتوحاً بدل وسمه مكتملاً. وتبقى النتائج وسجل الوكيل من المراحل أعلاه محفوظة. أعد تشغيل المهمة للحصول على مسودة جديدة.'
     }
   };
 
@@ -412,7 +412,7 @@
     head.appendChild(ui.state);
     box.appendChild(head);
 
-    box.appendChild(el('h3', 'ksat-wf-h', 'Launch a mission, and watch the agent refuse a zone'));
+    box.appendChild(el('h3', 'ksat-wf-h', 'Run a research mission, and watch the agent refuse a zone'));
     box.appendChild(el('p', 'ksat-wf-p',
       'This is the persisted workflow: it writes a real mission, a real run and a real agent step for every pass, including every refusal. The Run agent control above is the in-page pipeline demonstration and is unchanged.'));
 
@@ -427,7 +427,7 @@
     ui.aoi.id = 'ksat-wf-aoi';
     ctl.appendChild(ui.aoi);
 
-    ui.launch = el('button', 'btn pri ksat-wf-launch', 'Launch Mission');
+    ui.launch = el('button', 'btn pri ksat-wf-launch', 'Run Research');
     ui.launch.type = 'button';
     ui.launch.addEventListener('click', function () { start(); });
     ctl.appendChild(ui.launch);
@@ -513,7 +513,7 @@
       return;
     }
     if (!signedIn()) {
-      ui.gateNote.textContent = 'Sign in to launch a mission. A mission belongs to one account: the run, its steps, its results and its report are visible to you and to nobody else.';
+      ui.gateNote.textContent = 'Sign in to run a mission. A mission belongs to one account: the run, its steps, its results and its report are visible to you and to nobody else.';
       ui.launch.disabled = true;
       return;
     }
@@ -549,7 +549,7 @@
     if (running) return;
     if (!signedIn()) { refreshGate(); return; }
     if (typeof window.zonesFor !== 'function' || typeof window.predictImpact !== 'function') {
-      row('bad', 'UNAVAILABLE', 'The page’s zone and impact engines were not reachable. Nothing was launched.');
+      row('bad', 'UNAVAILABLE', 'The page’s zone and impact engines were not reachable. Nothing was run.');
       return;
     }
 
@@ -568,7 +568,10 @@
       setState('FAILED');
     }).then(function () {
       running = false;
-      ui.launch.textContent = 'Launch Mission';
+      /* Must match the label built at ksat-wf-launch above. This
+         line restores it after every run, so the two drift apart
+         silently if only one is edited. */
+      ui.launch.textContent = 'Run Research';
       ui.launch.disabled = !signedIn();
       paintBudget();
     });
@@ -594,7 +597,7 @@
        geometry of its own; a single governorate gives a true outline. */
     var geom = region ? regionRing(region) : null;
 
-    row('step', 'STEP 1 · LAUNCH',
+    row('step', 'STEP 1 · REQUEST',
       'Creating the mission and requesting a run from the database.');
 
     return window.sb.from('missions').insert({

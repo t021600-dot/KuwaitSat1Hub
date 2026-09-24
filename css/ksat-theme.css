@@ -276,7 +276,7 @@ h2.st{
 /* 24 sections at the old spacing read as a stack. Widening the block
    padding is what turns "content stacked" into "evidence presented". */
 section.sec{
-  padding-block:clamp(72px,9vw,136px);
+  padding-block:clamp(88px,10vw,152px);
   border-top:1px solid var(--line);
 }
 
@@ -287,7 +287,7 @@ section.sec{
 .lede + .panel,
 .sub + .grid,
 .lede + .mt,
-.sub + .panel{ margin-top:clamp(36px,4.5vw,56px); }
+.sub + .panel{ margin-top:clamp(44px,5.5vw,68px); }
 
 /* ---- The eyebrow, restyled to the ESA pattern ----------------------
    Was: a rounded pill with a tinted background.
@@ -342,7 +342,7 @@ section.sec{
   background:var(--surf);
   border:1px solid var(--line);
   border-radius:var(--r);
-  padding:clamp(20px,2.4vw,32px);
+  padding:clamp(24px,2.8vw,40px);
   box-shadow:none;
   backdrop-filter:none;
   -webkit-backdrop-filter:none;
@@ -358,7 +358,7 @@ section.sec{
   border-bottom:1px solid var(--line);
 }
 
-.grid{ gap:24px; }
+.grid{ gap:28px; }
 
 /* KPI tiles: flat, not gradient-filled. The number is the content, so
    it keeps its size; everything around it gets quieter. */

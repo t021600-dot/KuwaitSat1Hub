@@ -978,6 +978,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <link rel="stylesheet" href="css/ksat-nav.css">
 <link rel="stylesheet" href="css/ksat-export.css">
 <link rel="stylesheet" href="css/ksat-session.css">
+<link rel="stylesheet" href="css/ksat-access.css">
 
 <!-- ============ THEME, BEFORE THE FIRST PAINT =====================
      The only script on this page that is NOT at the foot of <body>,
@@ -2028,7 +2029,16 @@ const SPECS = [
   { k:"spec.cos",  v:"COSPAR 2023-001CY", src:[4] },
   { k:"spec.gs",   v:"Kuwait University, College of Science, UHF TT&C + S-band downlink (operational October 2022)", src:[3] },
   { k:"spec.obj",  v:"Capacity building; evaluate camera use for attitude determination", src:[0,4] },
-  { k:"spec.first",v:"First image series captured 5 April 2023", src:[3] }
+  { k:"spec.first",v:"First image series captured 5 April 2023", src:[3] },
+  /* SUPPLIED BY THE TEAM, AND SO CARRYING NO SOURCE CHIP.
+
+     Every row above cites a numbered source. These two do not, because
+     they did not come from the published record this page cites - they
+     came from the team. srcChips([]) renders an empty string, so the
+     cell simply ends after the value instead of showing a citation that
+     would not survive being clicked. */
+  { k:"spec.shots",v:"1,091", src:[] },
+  { k:"spec.alt",  v:"440 km", src:[] }
 ];
 
 const TIMELINE = [
@@ -2039,10 +2049,13 @@ const TIMELINE = [
   { d:"Apr 2023",  k:"tl.e", src:[2,7] }
 ];
 
+/* Only two individuals are named anywhere in this interface, by the
+   team's instruction. The third entry that used to sit here came out
+   with the same name in js/ksat-facts.js, which is the array that is
+   actually rendered - this one is declared and never read. */
 const LEADS = [
   { n:"Dr Hala AlJassar",    r:"lead.a" },
-  { n:"Dr Yaser Abdulraheem",r:"lead.b" },
-  { n:"Dr Ahmad AlKandari",  r:"lead.c" }
+  { n:"Dr Yaser Abdulraheem",r:"lead.b" }
 ];
 </script>
 
@@ -2455,66 +2468,111 @@ const Intro = (()=>{
 
     ctx.restore();
   }
+  /* THE GLOBE.
+
+     Restored after being removed, and RELIT rather than merely
+     un-hidden. Its atmosphere, terminator and rim were all written as
+     rgba() with a missing comma, so each painted fully opaque: a 34%
+     halo rendered as solid blue, a 72% terminator as a hard black disc.
+     That is why it looked like a sticker.
+
+     Composition is unchanged - same centre, same radius, same
+     orthographic projection centred on Kuwait, same LAND table, same
+     marker and the same fade-in timing. Only the light is different.
+
+     drawSat(e,...) reads e.R on its first line and is called from four
+     places, so this must return {cx,cy,R} whatever else it does. */
   function drawEarth(prog, zoom){
-    /* THE GLOBE IS NOT DRAWN ANY MORE, AND THIS STILL RETURNS ITS
-       GEOMETRY ON PURPOSE.
-
-       drawSat(e, ...) reads e.R on its first line and is called from
-       four places. Delete this function, or let it return undefined,
-       and that is a TypeError thrown inside loop() BEFORE the line that
-       re-arms requestAnimationFrame. The animation then dies in
-       silence: canvas frozen, progress bar stuck at about 78%, phase
-       never advances, #intro never calls finish(), and body.locked
-       leaves the page unscrollable behind it. Skip and Escape still
-       work, because they are DOM listeners, so the only visitor who
-       gets stuck is the one who waits.
-
-       So the picture goes and the frame of reference stays. Everything
-       below the return was the globe: the atmosphere halo, the ocean,
-       the land polygons, the desert wash, the terminator, the Kuwait
-       ring and its label, and the rim stroke. The LAND coastline table
-       above is now unused by anything. */
     const cx=W/2, cy=H*0.56+H*0.3*(1-prog);
     const R=Math.min(W,H)*(0.28+0.55*prog)*zoom;
-    return {cx,cy,R};
-    /* eslint-disable no-unreachable */
-    const lightDir=[-0.55,-0.4,0.73];
-    // atmosphere
-    const ag=ctx.createRadialGradient(cx,cy,R*0.92,cx,cy,R*1.28);
-    ag.addColorStop(0,"rgba(90,170,255.34)"); ag.addColorStop(1,"rgba(90,170,255,0)");
-    ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(cx,cy,R*1.28,0,6.283); ctx.fill();
-    // ocean
-    const og=ctx.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.1,cx,cy,R);
-    og.addColorStop(0,"#1F6FA8"); og.addColorStop(.6,"#0E3F66"); og.addColorStop(1,"#061C2E");
+
+    /* Sub-solar direction, upper left. Everything below agrees with it. */
+    const lx=-0.48, ly=-0.42;
+    const sx=cx+R*lx, sy=cy+R*ly;
+
+    /* ATMOSPHERE OUTSIDE THE DISC. Wide, soft, and genuinely
+       translucent this time, falling to zero so there is no visible
+       edge where the halo stops. */
+    const ag=ctx.createRadialGradient(cx,cy,R*0.96,cx,cy,R*1.30);
+    ag.addColorStop(0,"rgba(96,164,232,.30)");
+    ag.addColorStop(.45,"rgba(72,132,206,.13)");
+    ag.addColorStop(1,"rgba(60,120,200,0)");
+    ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(cx,cy,R*1.30,0,6.283); ctx.fill();
+
     ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.clip();
+
+    /* OCEAN. Brightest at the sub-solar point and falling off toward
+       the limb, which is how a lit sphere behaves. The old one was a
+       wash centred on the middle of the disc, which is how a coin
+       behaves. */
+    const og=ctx.createRadialGradient(sx,sy,R*0.06,cx,cy,R*1.06);
+    og.addColorStop(0,"#2E86C4");
+    og.addColorStop(.35,"#175C90");
+    og.addColorStop(.72,"#0B3457");
+    og.addColorStop(1,"#05192B");
     ctx.fillStyle=og; ctx.fillRect(cx-R,cy-R,R*2,R*2);
-    // land, orthographic projection centred on Kuwait
+
+    /* LAND, orthographic on Kuwait. */
     const lam0=47.9*Math.PI/180, phi0=29.4*Math.PI/180;
     const pt=(lon,lat)=>{
       const lam=lon*Math.PI/180, phi=lat*Math.PI/180;
       const cosc=Math.sin(phi0)*Math.sin(phi)+Math.cos(phi0)*Math.cos(phi)*Math.cos(lam-lam0);
       if(cosc<0) return null;
-      return [cx+R*Math.cos(phi)*Math.sin(lam-lam0), cy-R*(Math.cos(phi0)*Math.sin(phi)-Math.sin(phi0)*Math.cos(phi)*Math.cos(lam-lam0))];
+      return [cx+R*Math.cos(phi)*Math.sin(lam-lam0),
+              cy-R*(Math.cos(phi0)*Math.sin(phi)-Math.sin(phi0)*Math.cos(phi)*Math.cos(lam-lam0))];
     };
-    ctx.fillStyle="#3E4F35";
-    LAND.forEach(poly=>{
+    function ring(list){
       ctx.beginPath(); let started=false;
-      poly.forEach(c=>{ const p=pt(c[0],c[1]); if(!p){started=false;return;}
-        if(!started){ctx.moveTo(p[0],p[1]);started=true;} else ctx.lineTo(p[0],p[1]); });
-      ctx.closePath(); ctx.fill();
-    });
-    // desert wash over Arabia
-    ctx.globalAlpha=.55; ctx.fillStyle="#7A6A48";
-    ctx.beginPath(); let st=false;
-    [[35,30],[41,31],[48,30],[57,25],[60,22],[52,13],[43,12],[36,24]].forEach(c=>{const p=pt(c[0],c[1]);
-      if(!p){st=false;return;} if(!st){ctx.moveTo(p[0],p[1]);st=true;}else ctx.lineTo(p[0],p[1]);});
-    ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
-    // terminator shading
-    const sg=ctx.createRadialGradient(cx+R*lightDir[0],cy+R*lightDir[1],R*0.15,cx,cy,R*1.05);
-    sg.addColorStop(0,"rgba(255,255,255.12)"); sg.addColorStop(.55,"rgba(0,0,0,0)");
-    sg.addColorStop(1,"rgba(0,0,0.72)");
-    ctx.fillStyle=sg; ctx.fillRect(cx-R,cy-R,R*2,R*2);
-    // Kuwait marker
+      list.forEach(c=>{ const q=pt(c[0],c[1]); if(!q){started=false;return;}
+        if(!started){ctx.moveTo(q[0],q[1]);started=true;} else ctx.lineTo(q[0],q[1]); });
+      ctx.closePath();
+    }
+    /* Desaturated on purpose. A coastline this coarse looks drawn
+       the moment it has strong local contrast against the ocean. */
+    ctx.fillStyle="#3A4536";
+    LAND.forEach(pl=>{ ring(pl); ctx.fill(); });
+
+    /* The arid belt across Arabia. Softer than before, so it reads as
+       terrain rather than as a painted shape. */
+    ctx.globalAlpha=.26; ctx.fillStyle="#7E6C4E";
+    ring([[35,30],[41,31],[48,30],[57,25],[60,22],[52,13],[43,12],[36,24]]);
+    ctx.fill(); ctx.globalAlpha=1;
+
+    /* ATMOSPHERIC HAZE, AND WHY IT SCALES WITH prog.
+
+       This is what stops the close approach looking like a diagram. The
+       LAND table is a dozen points per continent; at the end of the
+       earth phase the disc is about 0.83 of the viewport, so those
+       points are metres apart on screen and the coastline reads as a
+       flat graphic shape.
+
+       From low orbit you are looking through a lot of air: the surface
+       is hazed, desaturated and blue-shifted, and strongly so toward
+       the limb. Painting that is both the fix and the more accurate
+       picture. It is weighted by prog so the far view, where the
+       polygons are small enough to look fine, stays crisp. */
+    const haze=0.16+0.30*prog;
+    const hz=ctx.createRadialGradient(sx,sy,R*0.12,cx,cy,R*1.02);
+    hz.addColorStop(0,"rgba(150,196,236,"+(haze*0.55).toFixed(3)+")");
+    hz.addColorStop(.55,"rgba(120,172,220,"+(haze*0.75).toFixed(3)+")");
+    hz.addColorStop(1,"rgba(96,150,206,"+haze.toFixed(3)+")");
+    ctx.fillStyle=hz; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+
+    /* TERMINATOR. The recognisable thing about a photographed Earth is
+       that the day/night line is soft and WARM, because that light has
+       come a long way through atmosphere. A hard black edge is the
+       giveaway of a drawing, and a hard black edge is exactly what the
+       missing comma produced. */
+    const tg=ctx.createRadialGradient(sx,sy,R*0.10,cx,cy,R*1.12);
+    tg.addColorStop(0,"rgba(255,255,255,.16)");
+    tg.addColorStop(.34,"rgba(255,255,255,0)");
+    tg.addColorStop(.60,"rgba(120,60,20,.22)");
+    tg.addColorStop(.78,"rgba(6,10,20,.62)");
+    tg.addColorStop(1,"rgba(2,4,9,.88)");
+    ctx.fillStyle=tg; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+
+    /* KUWAIT. Unchanged, and still fading in only once the approach is
+       far enough along to be worth pointing at. */
     const kp=pt(47.9,29.4);
     if(kp && prog>0.35){
       const a=clamp((prog-0.35)/0.4,0,1);
@@ -2531,9 +2589,22 @@ const Intro = (()=>{
       ctx.globalAlpha=1;
     }
     ctx.restore();
-    // rim
-    ctx.strokeStyle="rgba(150,210,255.4)"; ctx.lineWidth=1.2;
-    ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
+
+    /* THE LIMB, and why it is an ARC and not a RING.
+
+       The old code stroked a uniform circle all the way round. A real
+       limb is bright only where the atmosphere is lit, so a full even
+       ring is the clearest tell that a planet was drawn rather than
+       photographed. This arc spans the lit side and fades out at both
+       ends. */
+    const ang=Math.atan2(ly,lx);
+    const lg=ctx.createLinearGradient(cx+R*lx*1.1,cy+R*ly*1.1,cx-R*lx*1.1,cy-R*ly*1.1);
+    lg.addColorStop(0,"rgba(186,226,255,.72)");
+    lg.addColorStop(.55,"rgba(140,196,240,.22)");
+    lg.addColorStop(1,"rgba(120,180,230,0)");
+    ctx.strokeStyle=lg; ctx.lineWidth=Math.max(1,R*0.012);
+    ctx.beginPath(); ctx.arc(cx,cy,R*0.995,ang-1.75,ang+1.75); ctx.stroke();
+
     return {cx,cy,R};
   }
   function drawSat(e, a, ang){
@@ -3177,7 +3248,9 @@ const SPEC_LAB={
  "spec.cos":{en:"COSPAR ID",ar:"المعرّف الدولي"},
  "spec.gs":{en:"Ground station",ar:"المحطة الأرضية"},
  "spec.obj":{en:"Stated objective",ar:"الهدف المعلن"},
- "spec.first":{en:"First imagery",ar:"أول صور"}
+ "spec.first":{en:"First imagery",ar:"أول صور"},
+ "spec.shots":{en:"Pictures taken",ar:"الصور الملتقطة"},
+ "spec.alt":{en:"Current altitude",ar:"الارتفاع الحالي"}
 };
 const SPEC_VAL_AR={
  "spec.op":"جامعة الكويت","spec.form":"مكعب ساتلي 2U","spec.mass":"نحو ٢ كجم",
@@ -3186,7 +3259,8 @@ const SPEC_VAL_AR={
  "spec.date":"٣ يناير ٢٠٢٣ · كيب كانافيرال","spec.cos":"COSPAR 2023-001CY",
  "spec.gs":"جامعة الكويت، كلية العلوم, التردد فوق العالي للتحكم و نطاق إس لتنزيل الصور (تشغيلية منذ أكتوبر ٢٠٢٢)",
  "spec.obj":"بناء القدرات؛ وتقييم استخدام الكاميرا في تحديد الاتجاه",
- "spec.first":"أول سلسلة صور في ٥ أبريل ٢٠٢٣"
+ "spec.first":"أول سلسلة صور في ٥ أبريل ٢٠٢٣",
+ "spec.shots":"١٬٠٩١","spec.alt":"٤٤٠ كم"
 };
 function srcChips(list){
   return list.map(i=>'<a class="tag" href="'+SOURCES[i].url+'" target="_blank" rel="noopener" title="'+
@@ -6519,5 +6593,10 @@ addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcD
 <script src="js/ksat-nav.js"></script>
 <script src="js/ksat-session.js"></script>
 <script src="js/ksat-export.js"></script>
+<!-- Last, because it appends into the sign-in card that
+     js/ksat-integration.js builds and js/ksat-shell.js then captures,
+     detaches and re-appends. It observes rather than assuming the
+     gate is in the document at load. -->
+<script src="js/ksat-access.js"></script>
 </body>
 </html>
