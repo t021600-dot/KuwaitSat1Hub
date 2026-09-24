@@ -28,10 +28,22 @@ Or in VS Code: **Ctrl+Shift+P → Git: Clone**, then paste the repo URL.
 git pull                       # get everybody else's work first
 git checkout -b front-end/sign-in-screen   # one branch per piece of work: <job>/<what>
 # ...work...
-git add .
+git add index.html js/ksat-signin.js       # BY NAME. Never `git add .` - see below
 git commit -m "sign in screen shows an error when the email is empty"
 git push -u origin front-end/sign-in-screen
 ```
+
+> **Stage files by name. Never `git add .` or `git add -A`.**
+>
+> This line used to say `git add .`, and that was wrong in a way that is
+> expensive rather than annoying. The geospatial data package that sits
+> near this project is mostly OpenStreetMap, which is ODbL. This repository
+> is not. `git add .` sweeps whatever is reachable into a commit, and once
+> ODbL data is in the history, taking it out means rewriting history on a
+> repo four people have already pulled.
+>
+> Naming the files costs you three seconds. `git status` tells you what to
+> name.
 
 Then open a **Pull Request** on GitHub and ask one teammate to look at it before merging.
 Small pull requests, merged the same evening, beat one giant one on Wednesday.
