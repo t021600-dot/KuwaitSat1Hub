@@ -2280,36 +2280,151 @@ const Intro = (()=>{
     ctx.strokeStyle="rgba(150,150,150,.20)"; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(0,H*0.86); ctx.lineTo(W,H*0.86); ctx.stroke();
   }
+  /* THE VEHICLE THAT ACTUALLY CARRIED KUWAITSAT-1.
+
+     This was a generic pencil: a 1:12 white tube with a teal and green
+     stripe that exists on no real launcher. KuwaitSat-1 went up on a
+     FALCON 9 BLOCK 5, Transporter-6, 3 January 2023, from Cape
+     Canaveral - already sourced on this page to Gunter's Space Page
+     (SOURCES id 4) and Spaceflight Now (id 5). So it is drawn as that
+     vehicle now, from its published dimensions:
+
+         total height with fairing   70 m
+         core diameter               3.7 m    -> 1:18.9, not 1:12
+         fairing                     13.1 m long, 5.2 m across
+         first stage to interstage   42.6 m
+         interstage                  4.9 m, black
+         engines                     9 Merlin 1D in an octaweb
+
+     Proportions below are those figures divided by 70, so the silhouette
+     is the real one rather than an impression of one.
+
+     WHAT IS DELIBERATELY NOT DRAWN: any wordmark, flag or logo. The
+     shape of a launch vehicle is not a trademark; the marks painted on
+     it are. The previous code carried the same rule in a one-line
+     comment and it still holds.
+
+     It is still a DRAWING. Making it a photograph needs a licensed
+     image committed under assets/, because vercel.json sets
+     img-src 'self' and media-src 'self' and a hotlinked photo is
+     blocked at the browser. */
   function drawRocket(cx, by, s, thrust){
-    const bw=11*s, bh=132*s;
+    /* every dimension as a fraction of the 70 m total height */
+    const H70  = 150*s;          // the whole stack on screen
+    const bw   = H70*0.0529;     // 3.7 m core
+    const fw   = H70*0.0743;     // 5.2 m fairing
+    const h1   = H70*0.609;      // 42.6 m first stage
+    const hIS  = H70*0.070;      // 4.9 m interstage
+    const h2   = H70*0.134;      // 9.4 m second stage
+    const hFR  = H70*0.187;      // 13.1 m fairing
+
     ctx.save(); ctx.translate(cx,by);
-    // plume
+
+    /* NINE MERLINS. Drawn first, under the vehicle.
+
+       This was one pale cream cone, which read as a spotlight shining
+       down rather than as combustion. A sea-level Merlin runs
+       over-expanded and fuel-rich: the column is orange, widest well
+       below the nozzles, and the only near-white part is the few metres
+       right at the engine bells. So it is built from three pieces -
+       a wide translucent outer cone, a saturated inner cone, and the
+       incandescent throat - instead of one gradient doing all three
+       jobs at once. */
     if(thrust>0){
-      const pl=(60+Math.random()*46)*s*thrust;
-      const g=ctx.createLinearGradient(0,0,0,pl);
-      g.addColorStop(0,"rgba(255,244,214.95)"); g.addColorStop(.28,"rgba(255,176,78.85)");
-      g.addColorStop(.7,"rgba(217,116,63.35)"); g.addColorStop(1,"rgba(217,116,63,0)");
+      const pl=(96+Math.random()*60)*s*thrust;
+
+      /* outer: the part that fills with ambient-lit exhaust and smoke */
+      let g=ctx.createLinearGradient(0,0,0,pl);
+      g.addColorStop(0,"rgba(255,198,116,.55)"); g.addColorStop(.35,"rgba(233,132,58,.40)");
+      g.addColorStop(.75,"rgba(176,84,44,.18)"); g.addColorStop(1,"rgba(150,74,42,0)");
       ctx.fillStyle=g; ctx.beginPath();
-      ctx.moveTo(-bw*0.46,0); ctx.quadraticCurveTo(-bw*1.5,pl*0.5,0,pl);
-      ctx.quadraticCurveTo(bw*1.5,pl*0.5,bw*0.46,0); ctx.closePath(); ctx.fill();
-      ctx.globalAlpha=.55; ctx.fillStyle="#FFF6DC";
-      ctx.beginPath(); ctx.ellipse(0,pl*0.14,bw*0.38,pl*0.2,0,0,6.283); ctx.fill(); ctx.globalAlpha=1;
+      ctx.moveTo(-bw*1.05,0); ctx.quadraticCurveTo(-bw*2.6,pl*0.60,0,pl);
+      ctx.quadraticCurveTo(bw*2.6,pl*0.60,bw*1.05,0); ctx.closePath(); ctx.fill();
+
+      /* inner: the burning column itself, narrower and far more saturated */
+      g=ctx.createLinearGradient(0,0,0,pl*0.78);
+      g.addColorStop(0,"rgba(255,236,186,.98)"); g.addColorStop(.14,"rgba(255,186,74,.95)");
+      g.addColorStop(.48,"rgba(243,124,38,.72)"); g.addColorStop(1,"rgba(206,86,32,0)");
+      ctx.fillStyle=g; ctx.beginPath();
+      ctx.moveTo(-bw*0.62,0); ctx.quadraticCurveTo(-bw*1.35,pl*0.45,0,pl*0.78);
+      ctx.quadraticCurveTo(bw*1.35,pl*0.45,bw*0.62,0); ctx.closePath(); ctx.fill();
+
+      /* the throat: white-hot, only a couple of metres deep */
+      g=ctx.createRadialGradient(0,pl*0.03,0,0,pl*0.03,bw*0.85);
+      g.addColorStop(0,"rgba(255,253,244,.95)"); g.addColorStop(.55,"rgba(255,226,160,.55)");
+      g.addColorStop(1,"rgba(255,196,110,0)");
+      ctx.fillStyle=g; ctx.beginPath();
+      ctx.ellipse(0,pl*0.03,bw*0.85,pl*0.10,0,0,6.283); ctx.fill();
     }
-    // body
-    ctx.fillStyle="#E7ECF2"; ctx.fillRect(-bw/2,-bh,bw,bh);
-    ctx.fillStyle="#C3CCD6"; ctx.fillRect(bw*0.18,-bh,bw*0.32,bh);
-    ctx.fillStyle="#0E141C"; ctx.fillRect(-bw/2,-bh*0.42,bw,bh*0.055); // interstage
-    ctx.fillStyle="#0E141C"; ctx.fillRect(-bw/2,-bh*0.055,bw,bh*0.055); // octaweb
-    // fairing
-    ctx.fillStyle="#EEF3F8"; ctx.beginPath();
-    ctx.moveTo(-bw/2,-bh); ctx.quadraticCurveTo(0,-bh-bh*0.2,bw/2,-bh); ctx.closePath(); ctx.fill();
-    // fins
-    ctx.fillStyle="#AAB6C2";
-    ctx.beginPath(); ctx.moveTo(-bw/2,0); ctx.lineTo(-bw*1.05,-bh*0.055); ctx.lineTo(-bw/2,-bh*0.13); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(bw/2,0); ctx.lineTo(bw*1.05,-bh*0.055); ctx.lineTo(bw/2,-bh*0.13); ctx.closePath(); ctx.fill();
-    // livery stripe (generic, no third-party marks)
-    ctx.fillStyle="#3FD0C9"; ctx.fillRect(-bw/2,-bh*0.62,bw,1.6*s);
-    ctx.fillStyle="#40AD60"; ctx.fillRect(-bw/2,-bh*0.585,bw,1.6*s);
+
+    /* LANDING LEGS, stowed. Four of them; two are in silhouette from
+       side on. A Block 5 always flies with them and they are the reason
+       the booster has a flared base rather than a flat one.
+
+       These were two straight slivers 6% of a core diameter wide,
+       pressed flat against the body, so at intro scale they merged into
+       the hull and the base read as a plain tube. Stowed legs taper -
+       widest at the bottom, where the hinge and its fairing stand off
+       the tank, and tapering to nothing going up toward the upper
+       attach point - so they are drawn as tapered panels with a seam
+       line, and they stand proud of the body far enough to see. Getting
+       that taper backwards makes the booster look like it is standing
+       on a spike instead of a tripod. Drawn BEFORE the first stage so
+       the hull overlaps their inboard edge. */
+    const lgH=H70*0.128, lgTop=-lgH;
+    [-1,1].forEach(function(sx){
+      ctx.beginPath();
+      ctx.moveTo(sx*bw*0.46, lgTop);           // inboard, under the hull
+      ctx.lineTo(sx*bw*0.56, lgTop);           // narrow at the top attach
+      ctx.lineTo(sx*bw*0.88, -lgH*0.06);       // widest just above the hinge
+      ctx.lineTo(sx*bw*0.84, 0);               // hinge, down at the octaweb
+      ctx.lineTo(sx*bw*0.46, 0);
+      ctx.closePath();
+      ctx.fillStyle="#AFB9C4"; ctx.fill();
+      ctx.strokeStyle="rgba(28,36,46,.75)"; ctx.lineWidth=Math.max(0.5,0.6*s);
+      ctx.stroke();
+    });
+
+    /* FIRST STAGE */
+    ctx.fillStyle="#E9EEF3"; ctx.fillRect(-bw/2,-h1,bw,h1);
+    /* the shaded side, so it reads as a cylinder and not a strip */
+    ctx.fillStyle="#C4CDD7"; ctx.fillRect(bw*0.16,-h1,bw*0.34,h1);
+    /* soot band above the engines: every flown booster carries one */
+    ctx.fillStyle="#6E747B"; ctx.globalAlpha=.55;
+    ctx.fillRect(-bw/2,-H70*0.075,bw,H70*0.075); ctx.globalAlpha=1;
+    /* octaweb */
+    ctx.fillStyle="#12181F"; ctx.fillRect(-bw*0.56,-H70*0.022,bw*1.12,H70*0.022);
+
+    /* GRID FINS, stowed, near the top of the first stage */
+    ctx.fillStyle="#AEB8C3";
+    ctx.fillRect(-bw*0.78,-h1+H70*0.012,bw*0.28,H70*0.026);
+    ctx.fillRect( bw*0.50,-h1+H70*0.012,bw*0.28,H70*0.026);
+
+    /* INTERSTAGE, black. The one unmistakable Falcon 9 marking. */
+    ctx.fillStyle="#14191F"; ctx.fillRect(-bw/2,-(h1+hIS),bw,hIS);
+
+    /* SECOND STAGE */
+    ctx.fillStyle="#E9EEF3"; ctx.fillRect(-bw/2,-(h1+hIS+h2),bw,h2);
+    ctx.fillStyle="#C4CDD7"; ctx.fillRect(bw*0.16,-(h1+hIS+h2),bw*0.34,h2);
+
+    /* FAIRING: wider than the core, with the ogive nose. */
+    const fy=-(h1+hIS+h2);
+    ctx.fillStyle="#F2F6FA";
+    ctx.beginPath();
+    ctx.moveTo(-bw/2, fy);
+    ctx.lineTo(-fw/2, fy-hFR*0.16);          // shoulder out to 5.2 m
+    ctx.lineTo(-fw/2, fy-hFR*0.62);
+    ctx.quadraticCurveTo(-fw/2, fy-hFR*0.95, 0, fy-hFR);   // ogive
+    ctx.quadraticCurveTo( fw/2, fy-hFR*0.95,  fw/2, fy-hFR*0.62);
+    ctx.lineTo( fw/2, fy-hFR*0.16);
+    ctx.lineTo( bw/2, fy);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle="#CBD5DF";
+    ctx.fillRect(fw*0.10, fy-hFR*0.62, fw*0.26, hFR*0.46);
+    /* the fairing split line */
+    ctx.strokeStyle="rgba(120,132,146,.55)"; ctx.lineWidth=Math.max(0.6,0.7*s);
+    ctx.beginPath(); ctx.moveTo(0,fy-hFR*0.02); ctx.lineTo(0,fy-hFR*0.9); ctx.stroke();
+
     ctx.restore();
   }
   function drawEarth(prog, zoom){
