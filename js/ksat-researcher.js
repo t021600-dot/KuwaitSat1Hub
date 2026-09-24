@@ -763,7 +763,8 @@
     row('Objective', m.objective);
     row('Area', areaLabel(m) + ' · about ' + geo.polygonTrueAreaKm2(m.area_geojson) + ' km²');
     row('Created', when(m.created_at));
-    row('Launched', m.launched_at ? when(m.launched_at) : 'not yet');
+    /* Display label only. The column is still launched_at. */
+    row('Run started', m.launched_at ? when(m.launched_at) : 'not yet');
     if (m.injection_flag) {
       row('Flag', 'The objective on this mission was screened as an instruction rather ' +
                   'than a question. No data was read for it.');

@@ -37,16 +37,19 @@
    Where the record genuinely does not say something, this file says so
    on screen rather than filling the gap. Two places do that:
 
-     - LEADS in index.html carries three names and three role KEYS
-       (r:"lead.a", "lead.b", "lead.c"). Grep the whole repo: those keys
-       have NO English and NO Arabic anywhere. The names are published;
-       the mapping of name to post is not, in anything this repo holds.
-       CLAIMS says only "academic and operational directors named on the
-       official site", so the two names are shown as a pair under that
-       exact wording, and the panel states outright that the record here
-       does not say which of them holds which post. Guessing would have
-       been one sentence and would have been indistinguishable from the
-       true ones.
+     - LEADS in index.html carries names and role KEYS (r:"lead.a",
+       "lead.b"). Grep the whole repo: those keys have NO English and NO
+       Arabic anywhere. The names are published; the mapping of name to
+       post is not, in anything this repo holds. CLAIMS says only
+       "academic and operational directors named on the official site",
+       so the panel states outright that the record here does not say
+       which post is held. Guessing would have been one sentence and
+       would have been indistinguishable from the true ones.
+
+       (This block used to describe THREE names shown as a pair. The
+       team has since limited the interface to two named individuals,
+       so the third came out of both this file and LEADS. The reason the
+       caveat survives the edit is written at the people[] entry.)
 
      - a derived figure, when this file carried one, was arithmetic on
        two sourced dates and said so. The one it had was "92 days",
@@ -268,13 +271,23 @@
     people: [
       { n: { en: 'Dr Hala AlJassar', ar: 'الدكتورة هالة الجسار' },
         r: { en: 'Project director', ar: 'مديرة المشروع' } },
-      /* THE PAIR IS SHOWN AS A PAIR ON PURPOSE. See the file header:
-         the repo publishes both names and the two posts, and does not
-         publish which name holds which post. */
-      { n: { en: 'Dr Yaser Abdulraheem and Dr Ahmad AlKandari',
-             ar: 'الدكتور ياسر عبدالرحيم والدكتور أحمد الكندري' },
-        r: { en: 'Academic and operational directors, as named on the project’s own site. The published record here does not say which of the two holds which post.',
-             ar: 'المدير الأكاديمي والمدير التشغيلي، كما وردت أسماؤهما في موقع المشروع. والسجل المنشور هنا لا يحدد أيّهما يشغل أي منصب.' } }
+      /* ONE NAME, AND THE UNCERTAINTY KEPT.
+
+         This was a pair, shown as a pair because the published record
+         names two people and two posts without saying which holds
+         which. The team has since asked that only two individuals be
+         named anywhere in the interface, so the second name came out.
+
+         The role line had to be rewritten rather than trimmed: it said
+         "which of the two holds which post", and with one name that
+         phrase describes nothing. What is still TRUE of one person is
+         that he is named among the directors and that the record does
+         not say which post is his. That is what it says now. Deleting
+         the caveat along with the name would have turned an honest
+         "we do not know" into a silent claim. */
+      { n: { en: 'Dr Yaser Abdulraheem', ar: 'الدكتور ياسر عبدالرحيم' },
+        r: { en: 'Named on the project’s own site among its academic and operational directors. The published record here does not say which of those posts he holds.',
+             ar: 'اسمه وارد في موقع المشروع ضمن المديرَين الأكاديمي والتشغيلي. والسجل المنشور هنا لا يحدد أيّ المنصبين يشغل.' } }
     ],
     /* "just say four kuwaiti student".
 

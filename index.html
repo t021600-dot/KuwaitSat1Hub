@@ -2028,7 +2028,16 @@ const SPECS = [
   { k:"spec.cos",  v:"COSPAR 2023-001CY", src:[4] },
   { k:"spec.gs",   v:"Kuwait University, College of Science, UHF TT&C + S-band downlink (operational October 2022)", src:[3] },
   { k:"spec.obj",  v:"Capacity building; evaluate camera use for attitude determination", src:[0,4] },
-  { k:"spec.first",v:"First image series captured 5 April 2023", src:[3] }
+  { k:"spec.first",v:"First image series captured 5 April 2023", src:[3] },
+  /* SUPPLIED BY THE TEAM, AND SO CARRYING NO SOURCE CHIP.
+
+     Every row above cites a numbered source. These two do not, because
+     they did not come from the published record this page cites - they
+     came from the team. srcChips([]) renders an empty string, so the
+     cell simply ends after the value instead of showing a citation that
+     would not survive being clicked. */
+  { k:"spec.shots",v:"1,091", src:[] },
+  { k:"spec.alt",  v:"440 km", src:[] }
 ];
 
 const TIMELINE = [
@@ -2039,10 +2048,13 @@ const TIMELINE = [
   { d:"Apr 2023",  k:"tl.e", src:[2,7] }
 ];
 
+/* Only two individuals are named anywhere in this interface, by the
+   team's instruction. The third entry that used to sit here came out
+   with the same name in js/ksat-facts.js, which is the array that is
+   actually rendered - this one is declared and never read. */
 const LEADS = [
   { n:"Dr Hala AlJassar",    r:"lead.a" },
-  { n:"Dr Yaser Abdulraheem",r:"lead.b" },
-  { n:"Dr Ahmad AlKandari",  r:"lead.c" }
+  { n:"Dr Yaser Abdulraheem",r:"lead.b" }
 ];
 </script>
 
@@ -3177,7 +3189,9 @@ const SPEC_LAB={
  "spec.cos":{en:"COSPAR ID",ar:"المعرّف الدولي"},
  "spec.gs":{en:"Ground station",ar:"المحطة الأرضية"},
  "spec.obj":{en:"Stated objective",ar:"الهدف المعلن"},
- "spec.first":{en:"First imagery",ar:"أول صور"}
+ "spec.first":{en:"First imagery",ar:"أول صور"},
+ "spec.shots":{en:"Pictures taken",ar:"الصور الملتقطة"},
+ "spec.alt":{en:"Current altitude",ar:"الارتفاع الحالي"}
 };
 const SPEC_VAL_AR={
  "spec.op":"جامعة الكويت","spec.form":"مكعب ساتلي 2U","spec.mass":"نحو ٢ كجم",
@@ -3186,7 +3200,8 @@ const SPEC_VAL_AR={
  "spec.date":"٣ يناير ٢٠٢٣ · كيب كانافيرال","spec.cos":"COSPAR 2023-001CY",
  "spec.gs":"جامعة الكويت، كلية العلوم, التردد فوق العالي للتحكم و نطاق إس لتنزيل الصور (تشغيلية منذ أكتوبر ٢٠٢٢)",
  "spec.obj":"بناء القدرات؛ وتقييم استخدام الكاميرا في تحديد الاتجاه",
- "spec.first":"أول سلسلة صور في ٥ أبريل ٢٠٢٣"
+ "spec.first":"أول سلسلة صور في ٥ أبريل ٢٠٢٣",
+ "spec.shots":"١٬٠٩١","spec.alt":"٤٤٠ كم"
 };
 function srcChips(list){
   return list.map(i=>'<a class="tag" href="'+SOURCES[i].url+'" target="_blank" rel="noopener" title="'+
