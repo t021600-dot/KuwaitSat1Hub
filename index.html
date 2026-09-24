@@ -85,8 +85,21 @@ img{max-width:100%}
 ::selection{background:rgba(63,208,201.28)}
 
 /* ---------- backdrop ---------- */
+/* THE BACKDROP IS BLACK, AND THE STARS ARE GONE.
+
+   This was a blue radial wash (#0A1524 -> #05080F -> #03050A) with an
+   animated star field drawn over it. Both were scenery, and on a page
+   whose subject is a photograph of the Earth from orbit, painted stars
+   beside a real image of the night side invite the reader to take one
+   for the other. The Earth is the picture; the page is the wall it
+   hangs on, and a wall should be quiet.
+
+   The canvas element stays in the markup: it is referenced by the
+   intro sequence and removing the node would be a wider change than
+   this. It simply paints nothing now. See starfield() below, which
+   returns before it builds. */
 #stars{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;
-  background:radial-gradient(130% 90% at 50% 0%,#0A1524 0%,#05080F 46%,#03050A 100%)}
+  background:#000}
 #veil{position:fixed; inset:0; z-index:1; pointer-events:none;
   background:
     radial-gradient(60% 40% at 8% 6%, rgba(63,208,201.075), transparent 62%),
@@ -312,6 +325,9 @@ tbody tr:hover td{background:rgba(255,255,255.025)}
 .tcard.in .crewplate{opacity:1; transform:none}
 .crewlab{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.34em; color:#6FE3DC;
   text-transform:uppercase; margin-bottom:11px}
+.crewvid{position:relative; width:100%; aspect-ratio:16/9; margin:10px 0 0;
+  border:1px solid #223247; background:#000; overflow:hidden; border-radius:4px}
+.crewvid iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 .crewimg{position:relative; width:min(660px,86vw); margin:0 auto; border-radius:12px; overflow:hidden;
   border:1px solid rgba(95,214,138.38); box-shadow:0 24px 70px rgba(0,0,0.72), 0 0 0 1px rgba(63,208,201.12)}
 .crewimg img{display:block; width:100%; height:auto}
@@ -1038,8 +1054,29 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
       <h1 data-i18n="intro.title">From Space to a Greener Kuwait</h1>
       <div class="crewplate" id="crewPlate">
         <div class="crewlab" data-i18n="intro.crew">The people behind the mission</div>
-        <div class="crewimg"><img id="crewImg" alt="The KuwaitSat-1 project team"></div>
-        <div class="crewcap">The KuwaitSat-1 project team · Kuwait University · with the Kuwait Foundation for the Advancement of Sciences</div>
+        <!-- THE LAUNCH, RATHER THAN A PHOTOGRAPH OF THE TEAM.
+
+             This was a group portrait. It is the mission footage now.
+
+             youtube-nocookie, and vercel.json already allows exactly
+             this origin in frame-src. No cookie is set until the viewer
+             presses play, which is the whole reason for the nocookie
+             host over the ordinary one.
+
+             No autoplay and no mute: this is a deliberate watch, not a
+             background loop, and a video that starts talking over a
+             presenter is worse than no video at all. loading=lazy so a
+             third-party frame cannot hold up the intro sequence. -->
+        <div class="crewvid">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/V5_ufwAb0Ww?rel=0&amp;modestbranding=1&amp;playsinline=1"
+            title="KuwaitSat-1"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="crewcap">KuwaitSat-1 · Kuwait University · with the Kuwait Foundation for the Advancement of Sciences</div>
         <div class="crewline">They built it. We can only look because they did.</div>
       </div>
       <div style="margin-top:22px"><button class="btn pri" id="enterBtn" data-i18n="intro.enter">Enter the platform</button></div>
@@ -2157,6 +2194,14 @@ function fit(cv, h){
 
 /* ===================== ambient starfield ===================== */
 (function starfield(){
+  /* DISABLED ON PURPOSE. See the #stars rule in the stylesheet above.
+
+     Returning here rather than deleting the function keeps the resize
+     listener, the rng seed and the reduceMotion branch in one piece for
+     whoever turns it back on, and keeps the diff to one line. Nothing
+     downstream reads `stars`. */
+  return;
+  /* eslint-disable no-unreachable */
   const cv=$("#stars"); const ctx=cv.getContext("2d"); let stars=[], w=0,h=0,dpr=1;
   function build(){
     dpr=Math.min(window.devicePixelRatio||1,2);

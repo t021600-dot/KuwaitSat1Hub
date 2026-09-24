@@ -31,10 +31,11 @@
    ===================================================================== */
 
 :root{
-  /* NASA's ground is essentially black. The previous #06090F read as
-     blue-grey, which is the strongest dashboard signal a dark palette
-     can carry. */
-  --void:#020305;
+  /* NASA's ground is essentially black. #06090F read as blue-grey,
+     which is the strongest dashboard signal a dark palette can carry,
+     and #020305 still carried a blue cast next to the black bars of a
+     browser in full screen. The page is black. */
+  --void:#000000;
   --deep:#050608;
   --surf:#0A0C10;                  /* canvas-bearing surfaces only */
   --surf-2:#101319;
