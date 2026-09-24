@@ -2468,135 +2468,258 @@ const Intro = (()=>{
 
     ctx.restore();
   }
-  /* THE GLOBE.
+  /* =================================================================
+     THE EARTH, TEXTURED WITH REAL NASA IMAGERY
+     =================================================================
 
-     Restored after being removed, and RELIT rather than merely
-     un-hidden. Its atmosphere, terminator and rim were all written as
-     rgba() with a missing comma, so each painted fully opaque: a 34%
-     halo rendered as solid blue, a 72% terminator as a hard black disc.
-     That is why it looked like a sticker.
+     The old globe filled a dozen hand-typed coastline polygons with
+     flat green. However well it was lit, it read as drawn, because it
+     WAS drawn. This samples NASA Blue Marble instead, so the coastlines
+     are the real coastlines.
 
-     Composition is unchanged - same centre, same radius, same
-     orthographic projection centred on Kuwait, same LAND table, same
-     marker and the same fade-in timing. Only the light is different.
+     Source: EOX s2cloudless, Web Mercator, zoom 2 - a 4x4 grid of
+     256px tiles, so a 1024x1024 texture of the whole planet.
 
-     drawSat(e,...) reads e.R on its first line and is called from four
-     places, so this must return {cx,cy,R} whatever else it does. */
+     WHY EOX AND NOT NASA GIBS, which was tried first. GIBS's EPSG:4326
+     matrix does not lay out the way the WMTS convention implies:
+     probing it, level 0 tile (0,0) holds the entire world, tile (0,1)
+     is blank, and the content occupies 512x320 of a 512x512 tile - an
+     aspect of 1.6:1 where equirectangular needs 2:1. Sampling against
+     that put Kuwait in the right place and the Sahara in the Atlantic,
+     which is the signature of a projection that is nearly, but not
+     actually, what you assumed. EOX is ordinary XYZ Web Mercator, so
+     the sampling below is exact arithmetic with nothing to guess.
+
+     NO NEW ASSET AND NO DOWNLOAD. tiles.maps.eox.at is already in this
+     site's img-src allow-list, is already the basemap under both
+     report figures, and is already attributed on this site - one
+     imagery source for the whole platform rather than two. The tiles
+     return access-control-allow-origin:*, so with
+     crossOrigin='anonymous' the scratch canvas is NOT tainted and
+     getImageData works. That is the only reason per-pixel sampling is
+     possible here at all.
+
+     RENDERED ONCE, THEN BLITTED. A 600px-radius disc is about 1.1
+     million samples; doing that every frame would turn the intro into
+     a slideshow. The light does not move during the 3.2s earth phase,
+     so there is nothing to recompute.
+
+     AND IT MUST NEVER BLOCK. If the imagery is slow, blocked, offline
+     or refused, this falls through to the procedural globe below. The
+     phase machine is wall-clock driven and never waits on a network. */
+  const EARTH_TEX = { img:null, px:null, w:0, h:0, tried:false, failed:false };
+  const EARTH_CACHE = { canvas:null, r:0 };
+
+  /* Web Mercator, zoom 2: a 4x4 grid of 256px tiles, so a 1024x1024
+     texture of the whole planet. The projection is the ordinary XYZ
+     scheme every slippy map uses, which means the sampling below is
+     exact arithmetic rather than a guess about somebody's tile matrix. */
+  const TEX_Z = 2;
+
+  function loadEarthTexture(){
+    if(EARTH_TEX.tried) return;
+    EARTH_TEX.tried = true;
+
+    const N = 1 << TEX_Z, SIZE = 256;
+    const c = document.createElement('canvas');
+    c.width = N*SIZE; c.height = N*SIZE;
+    const g = c.getContext('2d', { willReadFrequently:true });
+
+    let done = 0, bad = false;
+    for(let ty=0; ty<N; ty++){
+      for(let tx=0; tx<N; tx++){
+        const im = new Image();
+        im.crossOrigin = 'anonymous';
+        (function(X,Y){
+          im.onload = function(){
+            g.drawImage(im, X*SIZE, Y*SIZE, SIZE, SIZE);
+            if(++done === N*N && !bad) finish();
+          };
+          im.onerror = function(){
+            /* One missing tile is a hole, not a failure. Count it and
+               carry on: a planet with one blank square is still better
+               than dropping to the drawn fallback. */
+            if(++done === N*N && !bad) finish();
+          };
+        }(tx,ty));
+        im.src = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2021_3857/' +
+                 'default/GoogleMapsCompatible/' + TEX_Z + '/' + ty + '/' + tx + '.jpg';
+      }
+    }
+
+    function finish(){
+      try{
+        EARTH_TEX.px = g.getImageData(0,0,c.width,c.height).data;
+        EARTH_TEX.w = c.width; EARTH_TEX.h = c.height; EARTH_TEX.img = c;
+        EARTH_CACHE.canvas = null;     /* re-render at the real quality */
+      }catch(err){
+        /* getImageData throws on a tainted canvas. EOX sends
+           access-control-allow-origin:*, so this should not happen -
+           but a proxy that strips the header would do it, and a black
+           planet is worse than a drawn one. */
+        EARTH_TEX.failed = true;
+      }
+    }
+  }
+
+  /* Render the lit sphere once, at `size` pixels across, into an
+     offscreen canvas. Orthographic, centred on Kuwait, Lambert shaded
+     from the same sun direction the rest of the scene uses. */
+  function renderEarthSphere(size){
+    const R=size/2;
+    const c=document.createElement('canvas'); c.width=size; c.height=size;
+    const g=c.getContext('2d');
+    const out=g.createImageData(size,size);
+    const o=out.data, tex=EARTH_TEX.px, TW=EARTH_TEX.w, TH=EARTH_TEX.h;
+
+    /* Centre of the visible disc, in radians. */
+    const lam0=47.9*Math.PI/180, phi0=29.4*Math.PI/180;
+    const sp0=Math.sin(phi0), cp0=Math.cos(phi0);
+    /* Sun direction, matching the limb and terminator drawn later. */
+    const LX=-0.48, LY=-0.42, LZ=0.77;
+
+    for(let py=0; py<size; py++){
+      const ny=(py-R+0.5)/R;
+      for(let px=0; px<size; px++){
+        const nx=(px-R+0.5)/R;
+        const d2=nx*nx+ny*ny;
+        const i=(py*size+px)*4;
+        if(d2>1){ o[i+3]=0; continue; }
+        const nz=Math.sqrt(1-d2);
+
+        /* Inverse orthographic: screen point -> lat/lon on the sphere. */
+        const lat=Math.asin(nz*sp0 + (-ny)*cp0);
+        const lon=lam0 + Math.atan2(nx, nz*cp0 - (-ny)*sp0);
+
+        /* WEB MERCATOR LOOKUP, the inverse of what every slippy map
+           does going the other way:
+
+             u = (lon + 180) / 360
+             v = (1 - ln(tan(lat) + sec(lat)) / PI) / 2
+
+           Mercator stops near 85 degrees, so the last sliver at each
+           pole is clamped to the nearest row. The view is centred on
+           Kuwait at 29N, which puts both poles at the very edge of the
+           disc under heavy foreshortening - so that clamp is a few
+           smeared pixels at the rim, not something a viewer reads. */
+        let u=((lon*180/Math.PI + 180) % 360 + 360) % 360 / 360;
+        const latC = lat > 1.4844 ? 1.4844 : (lat < -1.4844 ? -1.4844 : lat);
+        let v=(1 - Math.log(Math.tan(latC) + 1/Math.cos(latC))/Math.PI) / 2;
+        let tx=(u*TW)|0, ty=(v*TH)|0;
+        if(tx<0) tx=0; if(tx>=TW) tx=TW-1;
+        if(ty<0) ty=0; if(ty>=TH) ty=TH-1;
+        const t=(ty*TW+tx)*4;
+
+        /* Lambert term, floored so the night side is dark but not a
+           hole. A real night side is not pure black. */
+        /* Lambert, but SOFTENED ACROSS THE TERMINATOR. A hard
+           clamp at zero draws a razor edge down the planet, which is
+           the thing that reads as a diagram. Real Earth has a wide
+           soft boundary because the atmosphere scatters light round
+           the limb, so the term is smoothed over a band either side of
+           zero before the curve is applied. */
+        let lam=nx*LX + ny*LY + nz*LZ;
+        const soft=0.34;
+        lam = lam > soft ? lam
+            : lam < -soft ? 0
+            : (lam + soft) * (lam + soft) / (4 * soft);
+        const sh=0.12 + 0.92*Math.pow(lam,0.72);
+
+        /* A cool cast toward the night side, warm near the terminator:
+           the same physics the gradient version approximated. */
+        const warm = lam>0.02 && lam<0.30 ? (0.30-lam)/0.28 : 0;
+        o[i]   = Math.min(255, tex[t]  *sh + warm*38);
+        o[i+1] = Math.min(255, tex[t+1]*sh + warm*14);
+        o[i+2] = Math.min(255, tex[t+2]*sh*(1+0.16*(1-lam)));
+        o[i+3] = 255;
+      }
+    }
+    g.putImageData(out,0,0);
+    return c;
+  }
+
   function drawEarth(prog, zoom){
     const cx=W/2, cy=H*0.56+H*0.3*(1-prog);
     const R=Math.min(W,H)*(0.28+0.55*prog)*zoom;
 
-    /* Sub-solar direction, upper left. Everything below agrees with it. */
+    loadEarthTexture();
+
     const lx=-0.48, ly=-0.42;
     const sx=cx+R*lx, sy=cy+R*ly;
 
-    /* ATMOSPHERE OUTSIDE THE DISC. Wide, soft, and genuinely
-       translucent this time, falling to zero so there is no visible
-       edge where the halo stops. */
+    /* ATMOSPHERE OUTSIDE THE DISC. */
     const ag=ctx.createRadialGradient(cx,cy,R*0.96,cx,cy,R*1.30);
     ag.addColorStop(0,"rgba(96,164,232,.30)");
     ag.addColorStop(.45,"rgba(72,132,206,.13)");
     ag.addColorStop(1,"rgba(60,120,200,0)");
     ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(cx,cy,R*1.30,0,6.283); ctx.fill();
 
-    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.clip();
-
-    /* OCEAN. Brightest at the sub-solar point and falling off toward
-       the limb, which is how a lit sphere behaves. The old one was a
-       wash centred on the middle of the disc, which is how a coin
-       behaves. */
-    const og=ctx.createRadialGradient(sx,sy,R*0.06,cx,cy,R*1.06);
-    og.addColorStop(0,"#2E86C4");
-    og.addColorStop(.35,"#175C90");
-    og.addColorStop(.72,"#0B3457");
-    og.addColorStop(1,"#05192B");
-    ctx.fillStyle=og; ctx.fillRect(cx-R,cy-R,R*2,R*2);
-
-    /* LAND, orthographic on Kuwait. */
-    const lam0=47.9*Math.PI/180, phi0=29.4*Math.PI/180;
-    const pt=(lon,lat)=>{
-      const lam=lon*Math.PI/180, phi=lat*Math.PI/180;
-      const cosc=Math.sin(phi0)*Math.sin(phi)+Math.cos(phi0)*Math.cos(phi)*Math.cos(lam-lam0);
-      if(cosc<0) return null;
-      return [cx+R*Math.cos(phi)*Math.sin(lam-lam0),
-              cy-R*(Math.cos(phi0)*Math.sin(phi)-Math.sin(phi0)*Math.cos(phi)*Math.cos(lam-lam0))];
-    };
-    function ring(list){
-      ctx.beginPath(); let started=false;
-      list.forEach(c=>{ const q=pt(c[0],c[1]); if(!q){started=false;return;}
-        if(!started){ctx.moveTo(q[0],q[1]);started=true;} else ctx.lineTo(q[0],q[1]); });
-      ctx.closePath();
+    if(EARTH_TEX.px){
+      /* ---- the real thing ----
+         Re-rendered only when the radius has moved enough to matter.
+         The sphere is built at a capped resolution and scaled, which is
+         invisible at intro sizes and keeps the cost bounded. */
+      const want=Math.min(720, Math.max(96, Math.round(R*2)));
+      if(!EARTH_CACHE.canvas || Math.abs(EARTH_CACHE.r-want)>want*0.12){
+        EARTH_CACHE.canvas=renderEarthSphere(want);
+        EARTH_CACHE.r=want;
+      }
+      ctx.drawImage(EARTH_CACHE.canvas, cx-R, cy-R, R*2, R*2);
+    } else {
+      /* ---- fallback: the procedural globe ----
+         Reached while the imagery is still in flight, and permanently
+         if it never arrives. Deliberately simple: an unlit ball here
+         would look like a fault, and the sequence must not stall. */
+      ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.clip();
+      const og=ctx.createRadialGradient(sx,sy,R*0.06,cx,cy,R*1.06);
+      og.addColorStop(0,"#2E86C4"); og.addColorStop(.35,"#175C90");
+      og.addColorStop(.72,"#0B3457"); og.addColorStop(1,"#05192B");
+      ctx.fillStyle=og; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+      const lam0=47.9*Math.PI/180, phi0=29.4*Math.PI/180;
+      const pt=(lon,lat)=>{
+        const lam=lon*Math.PI/180, phi=lat*Math.PI/180;
+        const cosc=Math.sin(phi0)*Math.sin(phi)+Math.cos(phi0)*Math.cos(phi)*Math.cos(lam-lam0);
+        if(cosc<0) return null;
+        return [cx+R*Math.cos(phi)*Math.sin(lam-lam0),
+                cy-R*(Math.cos(phi0)*Math.sin(phi)-Math.sin(phi0)*Math.cos(phi)*Math.cos(lam-lam0))];
+      };
+      ctx.fillStyle="#3A4536";
+      LAND.forEach(function(pl){
+        ctx.beginPath(); let st=false;
+        pl.forEach(function(cpt){ const q=pt(cpt[0],cpt[1]); if(!q){st=false;return;}
+          if(!st){ctx.moveTo(q[0],q[1]);st=true;} else ctx.lineTo(q[0],q[1]); });
+        ctx.closePath(); ctx.fill();
+      });
+      const tg=ctx.createRadialGradient(sx,sy,R*0.10,cx,cy,R*1.12);
+      tg.addColorStop(0,"rgba(255,255,255,.16)");
+      tg.addColorStop(.34,"rgba(255,255,255,0)");
+      tg.addColorStop(.60,"rgba(120,60,20,.22)");
+      tg.addColorStop(.78,"rgba(6,10,20,.62)");
+      tg.addColorStop(1,"rgba(2,4,9,.88)");
+      ctx.fillStyle=tg; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+      ctx.restore();
     }
-    /* Desaturated on purpose. A coastline this coarse looks drawn
-       the moment it has strong local contrast against the ocean. */
-    ctx.fillStyle="#3A4536";
-    LAND.forEach(pl=>{ ring(pl); ctx.fill(); });
 
-    /* The arid belt across Arabia. Softer than before, so it reads as
-       terrain rather than as a painted shape. */
-    ctx.globalAlpha=.26; ctx.fillStyle="#7E6C4E";
-    ring([[35,30],[41,31],[48,30],[57,25],[60,22],[52,13],[43,12],[36,24]]);
-    ctx.fill(); ctx.globalAlpha=1;
-
-    /* ATMOSPHERIC HAZE, AND WHY IT SCALES WITH prog.
-
-       This is what stops the close approach looking like a diagram. The
-       LAND table is a dozen points per continent; at the end of the
-       earth phase the disc is about 0.83 of the viewport, so those
-       points are metres apart on screen and the coastline reads as a
-       flat graphic shape.
-
-       From low orbit you are looking through a lot of air: the surface
-       is hazed, desaturated and blue-shifted, and strongly so toward
-       the limb. Painting that is both the fix and the more accurate
-       picture. It is weighted by prog so the far view, where the
-       polygons are small enough to look fine, stays crisp. */
-    const haze=0.16+0.30*prog;
-    const hz=ctx.createRadialGradient(sx,sy,R*0.12,cx,cy,R*1.02);
-    hz.addColorStop(0,"rgba(150,196,236,"+(haze*0.55).toFixed(3)+")");
-    hz.addColorStop(.55,"rgba(120,172,220,"+(haze*0.75).toFixed(3)+")");
-    hz.addColorStop(1,"rgba(96,150,206,"+haze.toFixed(3)+")");
-    ctx.fillStyle=hz; ctx.fillRect(cx-R,cy-R,R*2,R*2);
-
-    /* TERMINATOR. The recognisable thing about a photographed Earth is
-       that the day/night line is soft and WARM, because that light has
-       come a long way through atmosphere. A hard black edge is the
-       giveaway of a drawing, and a hard black edge is exactly what the
-       missing comma produced. */
-    const tg=ctx.createRadialGradient(sx,sy,R*0.10,cx,cy,R*1.12);
-    tg.addColorStop(0,"rgba(255,255,255,.16)");
-    tg.addColorStop(.34,"rgba(255,255,255,0)");
-    tg.addColorStop(.60,"rgba(120,60,20,.22)");
-    tg.addColorStop(.78,"rgba(6,10,20,.62)");
-    tg.addColorStop(1,"rgba(2,4,9,.88)");
-    ctx.fillStyle=tg; ctx.fillRect(cx-R,cy-R,R*2,R*2);
-
-    /* KUWAIT. Unchanged, and still fading in only once the approach is
-       far enough along to be worth pointing at. */
-    const kp=pt(47.9,29.4);
-    if(kp && prog>0.35){
+    /* KUWAIT, once the approach is close enough to be worth pointing at. */
+    if(prog>0.35){
+      const lam0=47.9*Math.PI/180, phi0=29.4*Math.PI/180;
+      const kp=[cx, cy];   /* the projection is centred on Kuwait */
       const a=clamp((prog-0.35)/0.4,0,1);
       ctx.globalAlpha=a;
       ctx.strokeStyle="#5FD68A"; ctx.lineWidth=1.6;
       const rr=R*0.045+6;
       ctx.beginPath(); ctx.arc(kp[0],kp[1],rr,0,6.283); ctx.stroke();
-      ctx.globalAlpha=a*0.35; ctx.fillStyle="#5FD68A";
+      ctx.globalAlpha=a*0.30; ctx.fillStyle="#5FD68A";
       ctx.beginPath(); ctx.arc(kp[0],kp[1],rr*0.5,0,6.283); ctx.fill();
       ctx.globalAlpha=a; ctx.fillStyle="#BFF4E4";
-      ctx.font="600 12px 'IBM Plex Mono',monospace";
+      ctx.font="600 13px 'IBM Plex Mono',monospace";
       ctx.textAlign="left";
       ctx.fillText("KUWAIT", kp[0]+rr+8, kp[1]+4);
       ctx.globalAlpha=1;
     }
-    ctx.restore();
 
-    /* THE LIMB, and why it is an ARC and not a RING.
-
-       The old code stroked a uniform circle all the way round. A real
-       limb is bright only where the atmosphere is lit, so a full even
-       ring is the clearest tell that a planet was drawn rather than
-       photographed. This arc spans the lit side and fades out at both
-       ends. */
+    /* THE LIMB, an ARC across the lit side rather than a ring. An even
+       ring all the way round is the clearest tell of a drawn planet. */
     const ang=Math.atan2(ly,lx);
     const lg=ctx.createLinearGradient(cx+R*lx*1.1,cy+R*ly*1.1,cx-R*lx*1.1,cy-R*ly*1.1);
     lg.addColorStop(0,"rgba(186,226,255,.72)");
@@ -2607,23 +2730,94 @@ const Intro = (()=>{
 
     return {cx,cy,R};
   }
+
+  /* =================================================================
+     THE SATELLITE, ON A REAL ORBIT
+     =================================================================
+
+     It used to be a flat rectangle with two flat wings on a 2D ellipse,
+     painted on top of the Earth at every point of its path - including
+     the half where it is supposed to be BEHIND the planet. That single
+     thing is what made it read as a sticker on a circle.
+
+     Now the position is computed in three dimensions on an inclined
+     orbit, projected orthographically to match the globe, and the
+     satellite is OCCLUDED when its depth puts it behind the disc. The
+     body scales with distance and the orbit track is drawn in two
+     halves so the far side passes behind the Earth as well.
+
+     One depth test is the whole of the 3D. */
+  const ORB = { inc: 0.62, r: 1.34 };
+
+  function orbitPoint(ang){
+    /* Circular orbit inclined about the view axis. x right, y up on
+       screen, z toward the viewer. */
+    const ci=Math.cos(ORB.inc), si=Math.sin(ORB.inc);
+    const x=Math.cos(ang);
+    const y=Math.sin(ang)*ci;
+    const z=Math.sin(ang)*si;
+    return {x:x, y:y, z:z};
+  }
+
   function drawSat(e, a, ang){
-    const r=e.R*1.22;
-    const x=e.cx+Math.cos(ang)*r*1.02, y=e.cy+Math.sin(ang)*r*0.52;
+    const R=e.R, orbR=R*ORB.r;
     ctx.globalAlpha=a;
-    ctx.strokeStyle="rgba(63,208,201.35)"; ctx.lineWidth=1; ctx.setLineDash([4,5]);
-    ctx.beginPath(); ctx.ellipse(e.cx,e.cy,r*1.02,r*0.52,0,0,6.283); ctx.stroke(); ctx.setLineDash([]);
-    const s=clamp(e.R*0.035,7,20);
-    ctx.save(); ctx.translate(x,y); ctx.rotate(ang*0.4);
+
+    /* ---- the orbit track, in two depth-sorted halves ---- */
+    function track(front){
+      ctx.beginPath();
+      let started=false;
+      for(let i=0;i<=180;i++){
+        const th=(i/180)*6.283;
+        const p=orbitPoint(th);
+        const behind = p.z<0 && (p.x*p.x+p.y*p.y)*orbR*orbR < R*R;
+        if(behind===front){ started=false; continue; }
+        const X=e.cx+p.x*orbR, Y=e.cy+p.y*orbR;
+        if(!started){ ctx.moveTo(X,Y); started=true; } else { ctx.lineTo(X,Y); }
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([5,6]); ctx.lineWidth=1;
+    ctx.strokeStyle="rgba(63,208,201,.16)"; track(false);   /* behind */
+    ctx.strokeStyle="rgba(63,208,201,.42)"; track(true);    /* in front */
+    ctx.setLineDash([]);
+
+    const p=orbitPoint(ang);
+    const X=e.cx+p.x*orbR, Y=e.cy+p.y*orbR;
+    const hidden = p.z<0 && (p.x*p.x+p.y*p.y)*orbR*orbR < R*R;
+    if(hidden){ ctx.globalAlpha=1; return; }
+
+    /* Nearer is bigger. Only a slight range: a cubesat at this scale is
+       a speck, and exaggerating the perspective would look like a toy. */
+    const depth=0.86+0.14*(p.z+1);
+    const s=clamp(R*0.040,8,24)*depth;
+
+    /* The downlink, drawn first so the body sits over it. */
+    ctx.strokeStyle="rgba(95,214,138,.45)"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(X,Y); ctx.lineTo(e.cx, e.cy); ctx.stroke();
+
+    ctx.save(); ctx.translate(X,Y);
+    /* Face along the velocity vector, which is the tangent. */
+    ctx.rotate(Math.atan2(p.x, -p.y*1.0));
+
+    /* Solar wings. Foreshortened by how edge-on they are to the viewer,
+       which is the other half of reading as 3D. */
+    const foreshorten=0.28+0.72*Math.abs(p.z);
+    ctx.fillStyle="#123A55"; ctx.strokeStyle="#3FD0C9"; ctx.lineWidth=1;
+    [-1,1].forEach(function(sx){
+      const w=s*1.5*foreshorten;
+      ctx.fillRect(sx>0? s*0.42 : -s*0.42-w, -s*0.30, w, s*0.60);
+      ctx.strokeRect(sx>0? s*0.42 : -s*0.42-w, -s*0.30, w, s*0.60);
+    });
+    /* Bus. */
     ctx.fillStyle="#1B2A3C"; ctx.strokeStyle="#5FD6CF"; ctx.lineWidth=1.2;
-    ctx.fillRect(-s*0.4,-s*0.72,s*0.8,s*1.44); ctx.strokeRect(-s*0.4,-s*0.72,s*0.8,s*1.44);
-    ctx.fillStyle="#123A55"; ctx.strokeStyle="#3FD0C9";
-    ctx.fillRect(-s*1.8,-s*0.34,s*1.35,s*0.68); ctx.strokeRect(-s*1.8,-s*0.34,s*1.35,s*0.68);
-    ctx.fillRect(s*0.45,-s*0.34,s*1.35,s*0.68); ctx.strokeRect(s*0.45,-s*0.34,s*1.35,s*0.68);
+    ctx.fillRect(-s*0.40,-s*0.62,s*0.80,s*1.24);
+    ctx.strokeRect(-s*0.40,-s*0.62,s*0.80,s*1.24);
+    /* The payload aperture, facing the planet. */
+    ctx.fillStyle="#0B1621";
+    ctx.fillRect(-s*0.16, s*0.42, s*0.32, s*0.22);
     ctx.restore();
-    // downlink beam
-    ctx.strokeStyle="rgba(95,214,138.5)"; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(e.cx+e.R*0.05,e.cy-e.R*0.1); ctx.stroke();
+
     ctx.globalAlpha=1;
   }
 
@@ -2791,6 +2985,14 @@ const Intro = (()=>{
     size(); reset();
     phase="gate"; t0=performance.now();
     stage.hidden=true;
+    /* THE EARTH STARTS DOWNLOADING HERE, at the gate, not at the phase
+       that needs it. Sixteen tiles at 1.5-2s each cannot arrive inside
+       a 3.2s phase that begins 10.7s in, so fetched on demand the real
+       planet was never once seen - it fell back to the drawn globe
+       every time. Started here it has the whole countdown, plus however
+       long the visitor takes to press Begin. Idempotent, and the
+       fallback still covers a slow or failed fetch. */
+    loadEarthTexture();
     const g=$("#startGate"); if(g) g.hidden=false;
     raf=requestAnimationFrame(loop);
   }
