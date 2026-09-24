@@ -621,10 +621,18 @@
        reason the emblem needs it: cover would crop the antennas off. */
     unit:   { day: 'assets/cards/ksat1-flight-unit.png',
               night: 'assets/cards/ksat1-flight-unit.png', w: 752, h: 454, fit: 'contain' },
-    /* The section it labels is now a photograph of the team, so the
-       card carries that photograph. */
-    team:   { day: 'assets/cards/ksat1-team.webp',
-              night: 'assets/cards/ksat1-team.webp', w: 770, h: 513 },
+    /* The section it labels is a photograph of a person, so the card
+       carries that photograph.
+
+       fit: contain, and the aspect is the reason. Every other card here
+       is landscape and fills its slot; this one is 1080 x 1350
+       portrait. Cover-cropping a portrait into a landscape slot takes
+       the top off somebody's head, which is a poor way to credit them.
+       The slot keeps its own ground and the picture sits whole inside
+       it. Same reason the flight unit is contain. */
+    team:   { day: 'assets/people/project-director.webp',
+              night: 'assets/people/project-director.webp',
+              w: 1080, h: 1350, fit: 'contain' },
 
     near:   { day: 'assets/cards/card-kuwait-day.jpg',    night: 'assets/cards/card-kuwait-night.jpg',    w: 1200, h: 900 },
     gulf:   { day: 'assets/cards/card-gulf-day.jpg',      night: 'assets/cards/card-gulf-night.jpg',      w: 1200, h: 900 },
@@ -682,10 +690,10 @@
        inside the card loop and the FEATURED row comes out empty — which
        is exactly what adding `team` to ART alone did. */
     team: {
-      day:   { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch above them.',
-               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة.' },
-      night: { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch above them.',
-               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة.' }
+      day:   { en: 'Dr Hala Al-Jassar, Project Director of KuwaitSat-1: a portrait in a dark jacket beside the flag of Kuwait, with the KuwaitSat-1 mission patch in the upper corner.',
+               ar: 'د. هالة الجسّار، مدير مشروع كويت سات-١: صورة شخصية بسترة داكنة بجانب علم الكويت، وشعار المهمة في الزاوية العلوية.' },
+      night: { en: 'Dr Hala Al-Jassar, Project Director of KuwaitSat-1: a portrait in a dark jacket beside the flag of Kuwait, with the KuwaitSat-1 mission patch in the upper corner.',
+               ar: 'د. هالة الجسّار، مدير مشروع كويت سات-١: صورة شخصية بسترة داكنة بجانب علم الكويت، وشعار المهمة في الزاوية العلوية.' }
     },
     unit: {
       day:   { en: 'KuwaitSat-1: a black anodised CubeSat frame with four deep blue solar faces, a circuit board on the top deck and four thin whip antennas.',
