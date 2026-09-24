@@ -14,11 +14,11 @@
      WHAT THIS PAGE IS
      The workspace the team designed (kuwaitsat_researcher_page (4).html),
      wired to the real platform: a real session check, a real sign out,
-     a real payload archive read out of Supabase, a real mission insert,
+     a real payload archive read out of Supabase, a real run insert,
      a real agent run that writes its own audit trail, and a real map.
 
      WHAT IS NOT IN THIS FILE, AND WILL NEVER BE
-     Not one frame, not one coordinate, not one mission. This document is
+     Not one frame, not one coordinate, not one run. This document is
      an empty workspace. Anyone may fetch it; it tells them nothing. The
      data arrives over an authenticated PostgREST call and row level
      security decides whether to answer — see
@@ -42,7 +42,7 @@
      page could not have said in place.
 
      >>> EVERY PANEL BELOW IS EMPTY ON PURPOSE <<<
-     There is no example row, no placeholder mission and no invented
+     There is no example row, no placeholder run and no invented
      number anywhere in this document. If a table is empty on screen it
      is because the database returned nothing, and the panel says so in
      words. A demo that ships with sample rows cannot tell the difference
@@ -74,7 +74,7 @@
 <div id="entry"><div class="entrybox">
   <div class="entrytitle">KUWAITSAT-1 · RESEARCH OPERATIONS</div>
   <h2>Initializing research workspace</h2>
-  <p>Loading mission context · verifying data access · establishing session</p>
+  <p>Loading run context · verifying data access · establishing session</p>
   <div class="line"><i></i></div>
 </div></div>
 
@@ -95,7 +95,7 @@
   </a>
   <nav class="nav">
     <button class="active" data-go="overview">Overview</button>
-    <button data-go="missions">Missions</button>
+    <button data-go="missions">Runs</button>
     <button data-go="frames">Payload Archive</button>
     <button data-go="geo">Geospatial</button>
     <button data-go="data">Data Archive</button>
@@ -132,10 +132,10 @@
 
 <div class="layout">
 <aside>
-  <h5>Mission Operations</h5>
+  <h5>Run Operations</h5>
   <button class="active" data-go="overview">▣ Research Overview</button>
-  <button data-go="missions">▤ Missions</button>
-  <button data-act="new-mission">＋ New Mission</button>
+  <button data-go="missions">▤ Runs</button>
+  <button data-act="new-mission">＋ New Run</button>
   <h5>Scientific Data</h5>
   <button data-go="frames">◎ Payload Imagery</button>
   <button data-go="data">▦ Data Archive</button>
@@ -153,16 +153,16 @@
 <section id="overview" class="view">
   <div class="head">
     <div>
-      <div class="kicker">Research Operations / Mission Control</div>
+      <div class="kicker">Research Operations / Run Control</div>
       <h1>Research Overview</h1>
       <p>Operational context, active investigations and scientific workflow status.</p>
     </div>
-    <button class="btn primary" data-act="new-mission">＋ New Mission</button>
+    <button class="btn primary" data-act="new-mission">＋ New Run</button>
   </div>
 
   <div class="grid">
-    <div class="card s3"><div class="label">Active Missions</div>
-      <div class="metric" id="kMissions">—</div><div class="sub" id="kMissionsSub">Reading your missions</div></div>
+    <div class="card s3"><div class="label">Active Runs</div>
+      <div class="metric" id="kMissions">—</div><div class="sub" id="kMissionsSub">Reading your runs</div></div>
     <div class="card s3"><div class="label">Payload Frames</div>
       <div class="metric" id="kFrames">—</div><div class="sub" id="kFramesSub">Reading the archive</div></div>
     <div class="card s3"><div class="label">Data Ingest</div>
@@ -185,7 +185,7 @@
       <div id="ovMap" class="ksat-map ksat-map--wide" style="margin-top:18px"></div>
       <div class="ksat-keys" id="ovKeys"></div>
       <div class="bar" style="margin-top:9px">
-        <span class="sub grow" id="ovObjective">No mission selected.</span>
+        <span class="sub grow" id="ovObjective">No run selected.</span>
         <span class="sub" id="ovArea"></span>
       </div>
     </div>
@@ -199,8 +199,8 @@
     </div>
 
     <div class="card s12">
-      <div class="ct"><h3>Your Missions</h3><button class="btn" data-go="missions">View archive</button></div>
-      <table id="ovMissions"><tr><th>Mission</th><th>Objective</th><th>Created</th><th>Status</th></tr></table>
+      <div class="ct"><h3>Your Runs</h3><button class="btn" data-go="missions">View archive</button></div>
+      <table id="ovMissions"><tr><th>Run</th><th>Objective</th><th>Created</th><th>Status</th></tr></table>
       <div class="said" id="ovMissionsMsg"></div>
     </div>
 
@@ -210,14 +210,14 @@
 <!-- ================= MISSIONS ================= -->
 <section id="missions" class="view hidden">
   <div class="head">
-    <div><div class="kicker">Mission Operations</div><h1>Missions</h1>
-      <p>Research requests, workflow state, decisions and reproducible mission records.</p></div>
-    <button class="btn primary" data-act="new-mission">＋ New Mission</button>
+    <div><div class="kicker">Run Operations</div><h1>Runs</h1>
+      <p>Research requests, workflow state, decisions and reproducible run records.</p></div>
+    <button class="btn primary" data-act="new-mission">＋ New Run</button>
   </div>
   <div class="card">
     <input class="search" id="missionSearch" placeholder="Search mission name, objective, status…">
     <table style="margin-top:12px" id="missionTable">
-      <tr><th>Mission</th><th>Research objective</th><th>Area</th><th>Created</th><th>Status</th></tr>
+      <tr><th>Run</th><th>Research objective</th><th>Area</th><th>Created</th><th>Status</th></tr>
     </table>
     <div class="said" id="missionMsg"></div>
   </div>
@@ -269,7 +269,7 @@
   </div>
 
   <div class="notice" style="margin-bottom:14px">
-    These frames are held in the mission database and are released only to a signed in
+    These frames are held in the research database and are released only to a signed in
     researcher. They are not in the public repository, they are not part of the deployed
     site, and there is no address that serves them without a session.
   </div>
@@ -303,7 +303,7 @@
 <section id="geo" class="view hidden">
   <div class="head">
     <div><div class="kicker">Scientific Data Management</div><h1>Geospatial Layers</h1>
-      <p>Everything this account can see, on the ground: frame footprints, mission areas
+      <p>Everything this account can see, on the ground: frame footprints, run areas
          and the findings each run produced.</p></div>
     <span class="tag green">LIVE MAP</span>
   </div>
@@ -312,7 +312,7 @@
     <div class="ct"><h3>Kuwait</h3>
       <span class="bar">
         <button class="btn" data-act="geo-fit-frames">Fit to frames</button>
-        <button class="btn" data-act="geo-fit-missions">Fit to my missions</button>
+        <button class="btn" data-act="geo-fit-missions">Fit to my runs</button>
         <button class="btn primary" data-act="geo-use-view">Use this view as an area of interest</button>
       </span></div>
     <div id="geoMap" class="ksat-map"></div>
@@ -366,18 +366,18 @@
 <section id="console" class="view hidden">
   <div class="head">
     <div><div class="kicker">Scientific Analysis</div><h1>Research Console</h1>
-      <p>Choose a mission, run the orchestrated pipeline against your own data, and
+      <p>Choose a run, start the orchestrated pipeline against your own data, and
          inspect every decision before you accept anything.</p></div>
     <button class="btn primary" data-act="run" id="runBtn">Run Analysis</button>
   </div>
   <div class="grid">
     <div class="card s8">
-      <div class="ct"><h3>Mission</h3><span class="tag" id="runTag">ORCHESTRATOR READY</span></div>
+      <div class="ct"><h3>Run</h3><span class="tag" id="runTag">ORCHESTRATOR READY</span></div>
       <select class="search" id="runMission"></select>
-      <div class="sub" style="margin-top:8px">A run always belongs to a mission. The mission
-        carries the area of interest; the Orchestrator reads the objective from it.</div>
+      <div class="sub" style="margin-top:8px">Each run carries its own area of interest,
+        and the Orchestrator reads the objective recorded on it.</div>
       <div class="field" style="margin-top:14px">
-        <label>Research objective, as recorded on this mission</label>
+        <label>Research objective, as recorded on this run</label>
         <textarea id="q" class="query" readonly></textarea>
       </div>
       <div class="said" id="runMsg"></div>
@@ -434,7 +434,7 @@
     <div class="card s12">
       <div class="ct"><h3>Agent Execution Trace</h3>
         <span class="sub" id="traceSrc">DECISION-BASED WORKFLOW</span></div>
-      <div id="trace" class="empty">Pick a mission and press Run Analysis. Every step the
+      <div id="trace" class="empty">Pick a run and press Run Analysis. Every step the
         Orchestrator takes is written to the database first and then read back here, so
         what you see is the audit trail and not a script.</div>
     </div>
@@ -452,7 +452,7 @@
     </span>
   </div>
   <div class="card">
-    <table id="reportTable"><tr><th>Report</th><th>Mission</th><th>Approved</th><th>Status</th><th></th></tr></table>
+    <table id="reportTable"><tr><th>Report</th><th>Run</th><th>Approved</th><th>Status</th><th></th></tr></table>
     <div class="said" id="reportMsg"></div>
   </div>
 
@@ -498,7 +498,7 @@
     <div class="card s12">
       <div class="ct"><h3>Runs</h3><span class="sub">NEWEST FIRST</span></div>
       <div class="scrolly">
-        <table id="auditRuns"><tr><th>Run</th><th>Mission</th><th>Status</th><th>Started</th><th>Finished</th><th>Tool calls</th></tr></table>
+        <table id="auditRuns"><tr><th>Run</th><th>Run</th><th>Status</th><th>Started</th><th>Finished</th><th>Tool calls</th></tr></table>
       </div>
       <div class="said" id="auditRunsMsg"></div>
     </div>
@@ -528,7 +528,7 @@
         left open by a browser that went away. It runs at 02:00 Kuwait time as a scheduled
         job, not from anybody's laptop, and it writes a row whether it finds anything or
         not - so a missing night is visible rather than silent. The table it writes to
-        carries counts only: no mission, no run and no researcher id may ever be added
+        carries counts only: no run id, no mission id and no researcher id may ever be added
         to it.</p>
       <div class="scrolly">
         <table id="healthTable"><tr><th>Night</th><th>Events</th><th>Sweeps OK</th><th>Runs swept</th><th>Anomalies</th><th>Last event</th></tr></table>
@@ -556,16 +556,16 @@
 <!-- ================= NEW MISSION ================= -->
 <div id="modal" class="modal hidden">
   <div class="modalbox modalbox--wide">
-    <h2>New Research Mission</h2>
+    <h2>New Research Run</h2>
     <p>Define the scientific question and the ground it applies to. The Mission
        Orchestrator will decide the permitted next action from the evidence that
        actually exists inside that area.</p>
     <div class="mform">
       <div>
         <div class="form">
-          <div class="field full"><label>Mission name</label>
+          <div class="field full"><label>Run name</label>
             <input id="mTitle" maxlength="120" placeholder="e.g. Kuwait Bay vegetation assessment"></div>
-          <div class="field"><label>Mission type</label><select id="mType">
+          <div class="field"><label>Run type</label><select id="mType">
             <option>Earth Observation</option><option>Environmental Research</option>
             <option>Telemetry Analysis</option><option>Custom Research</option></select></div>
           <div class="field"><label>Time window</label>
@@ -591,7 +591,7 @@
     <div class="said" id="modalMsg"></div>
     <div class="actions">
       <button class="btn" data-act="close-modal">Cancel</button>
-      <button class="btn primary" data-act="create">Create mission</button>
+      <button class="btn primary" data-act="create">Create run</button>
     </div>
   </div>
 </div>

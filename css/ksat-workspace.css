@@ -30,50 +30,68 @@
    the biggest jump because it is the one surface that is PROSE - a
    report is read, not scanned.
    ===================================================================== */
-body{ font-size:14px }
+/* NOTHING BELOW 11px.
 
-.sub{ font-size:12px; line-height:1.55 }
-.label{ font-size:10px }
-.metric{ font-size:30px }
-td{ font-size:13px; line-height:1.55 }
-th{ font-size:10px }
-.notice{ font-size:13px; line-height:1.65; padding:12px 13px }
-.said{ font-size:13px; line-height:1.6 }
-.log{ font-size:12px; line-height:1.85 }
-.head h1{ font-size:30px }
-.head p{ font-size:14px }
-.kicker{ font-size:11px }
-.ct h3{ font-size:14px }
-.tag{ font-size:10px; padding:4px 7px }
-.btn{ font-size:13px; padding:10px 14px }
-.field label{ font-size:10px }
-.field input, .field textarea, .field select, .search, .query{ font-size:14px }
-.agent strong{ font-size:13px }
-.agent small{ font-size:12px }
-.state{ font-size:10px }
-.rule{ font-size:13px }
-.stage span{ font-size:11px }
-.empty{ font-size:13px; padding:36px }
-aside button{ font-size:14px }
-aside h5{ font-size:11px }
-.nav button{ font-size:13px }
-.brand{ font-size:15px }
-.statusbar{ font-size:11px }
+   The delivered design used 8px and 9px in twelve places - the status
+   bar, tag chips, table headers, field labels, the state chip, section
+   kickers, sheet terms. That is legible on the laptop it was drawn on
+   and gone from the third row of a room. Every size here has come up,
+   and the gaps between them are kept so the hierarchy still reads;
+   raising everything to the same number would have removed the
+   hierarchy along with the problem.
 
-.step b{ font-size:13px }
-.step small{ font-size:11px; line-height:1.65 }
-.step code{ font-size:11px }
-.finding h4{ font-size:12px }
-.finding p{ font-size:12px; line-height:1.7 }
-.detail dd{ font-size:13px }
-.detail dt{ font-size:9px }
-.sheet dd{ font-size:13px }
-.sheet dd small{ font-size:12px }
-.sheet dt{ font-size:10px }
-.aoi{ font-size:11px }
-.ksat-hud{ font-size:11px }
-.ksat-keys{ font-size:11px }
-.mono{ font-size:11px }
+   Body goes 14 -> 15 so the small sizes have something proportionate to
+   sit against. */
+body{ font-size:15px }
+
+.sub{ font-size:13px; line-height:1.6 }
+.label{ font-size:11.5px }
+.metric{ font-size:32px }
+td{ font-size:14px; line-height:1.6 }
+th{ font-size:11.5px }
+.notice{ font-size:13.5px; line-height:1.7; padding:13px 14px }
+.said{ font-size:13.5px; line-height:1.65 }
+.log{ font-size:13px; line-height:1.85 }
+.head h1{ font-size:31px }
+.head p{ font-size:15px }
+.kicker{ font-size:12px }
+.ct h3{ font-size:15px }
+.tag{ font-size:11px; padding:4px 8px }
+.btn{ font-size:14px; padding:11px 15px }
+.field label{ font-size:11.5px }
+.field input, .field textarea, .field select, .search, .query{ font-size:15px }
+.agent strong{ font-size:14px }
+.agent small{ font-size:13px }
+.state{ font-size:11.5px }
+.rule{ font-size:13.5px }
+.stage span{ font-size:12px }
+.stage i{ font-size:11.5px }
+.empty{ font-size:13.5px; padding:36px }
+aside button{ font-size:15px }
+aside h5{ font-size:12px }
+.nav button{ font-size:14px }
+.brand{ font-size:16px }
+.brand small{ font-size:11.5px }
+.statusbar{ font-size:11.5px }
+.map:before{ font-size:11.5px }
+.entrytitle{ font-size:11.5px }
+.entrybox p{ font-size:14px }
+.who .name small{ font-size:12px }
+
+.step b{ font-size:14px }
+.step small{ font-size:12.5px; line-height:1.7 }
+.step code{ font-size:12px }
+.finding h4{ font-size:13px }
+.finding p{ font-size:13px; line-height:1.7 }
+.detail dd{ font-size:14px }
+.detail dt{ font-size:11px }
+.sheet dd{ font-size:14px }
+.sheet dd small{ font-size:12.5px }
+.sheet dt{ font-size:11px }
+.aoi{ font-size:12px }
+.ksat-hud{ font-size:12px }
+.ksat-keys{ font-size:12px }
+.mono{ font-size:12px }
 
 /* ---------------------------------------------------------------------
    0b . SPACING
@@ -145,7 +163,7 @@ td,th{ padding:13px 10px }
 .leaflet-container{ background:#070b0f; font:12px Arial,Helvetica,sans-serif; outline:none }
 .leaflet-control-attribution{
   background:#0b1116d9; color:#7d8b96; border-top:1px solid #1d2730;
-  font-size:10px; padding:2px 7px;
+  font-size:11px; padding:3px 8px;
 }
 .leaflet-control-attribution a{ color:#9bb4c6 }
 .leaflet-bar{ border:1px solid #34414c; box-shadow:none }
@@ -170,7 +188,7 @@ td,th{ padding:13px 10px }
 .leaflet-popup-content h4{ margin:0 0 6px; font-size:13px; font-weight:bold; color:var(--white) }
 .leaflet-popup-content img{ width:100%; display:block; margin:0 0 8px; border:1px solid var(--line) }
 .leaflet-popup-content dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:3px 9px }
-.leaflet-popup-content dt{ font-size:10px; color:#64737e; text-transform:uppercase;
+.leaflet-popup-content dt{ font-size:11px; color:#64737e; text-transform:uppercase;
                            letter-spacing:.08em; padding-top:2px }
 .leaflet-popup-content dd{ margin:0; font-size:12px; color:#c5ced4 }
 .leaflet-popup-content .btn{ margin-top:9px; padding:6px 9px; font-size:12px }
@@ -221,7 +239,7 @@ td,th{ padding:13px 10px }
 .detail{ margin-top:12px }
 .detail .ct h3{ font-size:14px }
 .detail dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:7px 16px }
-.detail dt{ font-size:10px; color:#64737e; text-transform:uppercase;
+.detail dt{ font-size:11px; color:#64737e; text-transform:uppercase;
             letter-spacing:.1em; padding-top:2px }
 .detail dd{ margin:0; font-size:13px; color:#c5ced4 }
 
@@ -235,7 +253,7 @@ td,th{ padding:13px 10px }
 .step i{
   font-style:normal; width:20px; height:20px; display:grid; place-items:center;
   border:1px solid #51616d; background:#10161c; border-radius:50%;
-  font-size:10px; color:#a9bdc9;
+  font-size:11px; color:#a9bdc9;
 }
 .step.ok i{ background:#dce8ef; color:#0c1318; border-color:#dce8ef }
 .step.running i{ border-color:#9fc5dc; box-shadow:0 0 0 3px #9fc5dc18 }
@@ -720,7 +738,7 @@ td,th{ padding:13px 10px }
 table.zones{ width:100%; border-collapse:collapse; margin-top:4px }
 
 table.zones th{
-  font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  font-size:11px; letter-spacing:.1em; text-transform:uppercase;
   color:#7b8a95; text-align:left; font-weight:bold;
   padding:9px 10px; border-bottom:1px solid #2b3740; white-space:nowrap;
 }
@@ -733,7 +751,7 @@ table.zones tr:hover td{ background:#11181e }
 
 table.zones td.zn{ color:var(--white); white-space:nowrap }
 table.zones td.pl{ color:#9fd3b4 }
-table.zones td.mono{ font-family:monospace; font-size:12.5px; white-space:nowrap }
+table.zones td.mono{ font-family:monospace; font-size:13px; white-space:nowrap }
 table.zones td.num{ text-align:right }
 table.zones th:nth-child(n+4){ text-align:right }
 

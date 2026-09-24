@@ -58,7 +58,7 @@
    rather than as a widget bolted on. */
 .ksx-lab{
   font-family:var(--mono, ui-monospace, monospace);
-  font-size:10.5px;
+  font-size:11.5px;
   letter-spacing:.14em;
   text-transform:uppercase;
   color:var(--ink-3, #6B7A8D);

@@ -46,11 +46,11 @@
 }
 .ksat-ap-line.sub2 b { color: #cbd6dd }
 
-.ksat-ap .ct .btn { padding: 6px 10px; font-size: 10px }
+.ksat-ap .ct .btn { padding: 6px 10px; font-size:11.5px }
 
 /* The two fold buttons sit in the card headers of Runs and Agent steps. */
 .ksat-ap-fold {
   padding: 6px 10px;
-  font-size: 10px;
+  font-size:11.5px;
   margin-left: auto;
 }
