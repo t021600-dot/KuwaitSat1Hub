@@ -1860,13 +1860,27 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
       <div><h4 data-i18n="ft.src">Sources</h4><ul id="ftSrc"></ul></div>
       <div><h4 data-i18n="ft.leg">Status</h4>
         <ul>
-          <li data-i18n="ft.l1">Not affiliated with Kuwait University, KFAS or the KuwaitSat-1 project.</li>
+          <li data-i18n="ft.l1">KuwaitSat-1 imagery used with the permission of the KuwaitSat-1 team at Kuwait University.</li>
           <li data-i18n="ft.l2">No live telemetry. No official planning authority.</li>
           <li data-i18n="ft.l3">Satellite photographs remain the property of their publishers.</li>
           <li data-i18n="ft.l4">Reference data is generated in your browser. Signing in stores missions and agent runs in the project database.</li>
         </ul>
       </div>
     </div>
+
+    <!-- THE FORMAL NOTICE. Last thing on the page, deliberately.
+
+         Two claims, and they are different sizes. The first is a
+         permission the team actually holds, and it is narrow: it covers
+         the imagery. The second is everything that permission is NOT.
+         Both have to be here, because a reader who sees only the first
+         will reasonably conclude the university stands behind the
+         analysis, and it does not. -->
+    <section class="ft-notice" aria-labelledby="ftNoticeH">
+      <h4 id="ftNoticeH" data-i18n="ft.dis.h">Disclaimer</h4>
+      <p data-i18n="ft.dis.p1">The KuwaitSat-1 payload imagery reproduced on this platform is used with the permission of the KuwaitSat-1 team at Kuwait University. That permission covers the use of the imagery and nothing further.</p>
+      <p data-i18n="ft.dis.p2">This platform is an independent academic project. It is not endorsed by, and carries no mandate from, Kuwait University, the Kuwait Foundation for the Advancement of Sciences, or the KuwaitSat-1 project. All analysis, ranking and recommendation presented here is the authors' own, and no part of this platform constitutes an official planning instrument.</p>
+    </section>
   </div>
 </footer>
 </main>
@@ -1875,6 +1889,20 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <div id="toast" role="status" aria-live="polite"></div>
 
 <style>
+/* ---------- the formal notice in the footer ----------
+   Separated by a rule and set narrower than the column grid above it,
+   because a block of legal prose at full 1400px width is unreadable:
+   the eye loses the line it was on. 78ch is the upper bound that still
+   scans. Muted, but not so muted it reads as decoration - this is the
+   one paragraph on the page a reader may need to quote. */
+.ft-notice{margin-top:34px; padding-top:22px; border-top:1px solid var(--line);
+  max-width:78ch; color:var(--ink-2, #9aa6b2); font-size:13.5px; line-height:1.72}
+.ft-notice h4{margin:0 0 9px; font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-1, #c8d2dc)}
+.ft-notice p{margin:0 0 9px}
+.ft-notice p:last-child{margin-bottom:0}
+html[dir="rtl"] .ft-notice{text-align:right}
+
 /* ---------- descent transition ---------- */
 #descent{position:relative; height:clamp(240px,34vw,400px); margin:0 calc(-1 * var(--gut));
   overflow:hidden; border-top:1px solid var(--line)}
