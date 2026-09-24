@@ -1,0 +1,46 @@
+/* =====================================================================
+   ksat-checkpoint-figures.css
+   Owner: 01 Front End
+
+   The two figures on the Human checkpoint card. Side by side where
+   there is room, stacked where there is not, and never wider than the
+   card - #cpFindings is display:block with overflow-x:auto for the
+   zones table, and a map that forced that container to scroll would
+   drag the table sideways with it.
+   ===================================================================== */
+.ksat-cf-wrap{
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1px solid var(--line, #263038);
+}
+.ksat-cf-head{
+  font-size:12px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--dim, #8d9aa5);
+  margin-bottom:8px;
+}
+.ksat-cf-note{ margin-bottom:14px }
+
+/* Two up on a wide card, one up when the track would fall below the
+   width a map needs to be worth looking at. */
+.ksat-cf-wrap .figs{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+  gap:18px;
+}
+.ksat-cf-wrap .fig{ margin:0; min-width:0 }
+.ksat-cf-wrap .fig figcaption{
+  font-size:12.5px;
+  line-height:1.55;
+  margin-bottom:8px;
+  color:var(--dim, #8d9aa5);
+}
+.ksat-cf-wrap .fig figcaption b{ color:var(--white, #e8eef2) }
+.ksat-cf-wrap .ksat-map{ height:260px; width:100% }
+.ksat-cf-wrap .ksat-keys{ margin-top:14px }
+
+@media (max-width: 720px){
+  .ksat-cf-wrap .figs{ grid-template-columns:minmax(0,1fr); gap:14px }
+  .ksat-cf-wrap .ksat-map{ height:210px }
+}
