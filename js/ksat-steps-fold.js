@@ -76,6 +76,69 @@
      append-only, so the number is stable for the life of a run. */
   var OPEN = {};
 
+  /* ------------------------------------------------------------------
+     PLAIN LANGUAGE, AND WHY IT IS SAFE TO WRITE IT HERE
+
+     Each entry says what the AGENT IS, not what this run found. "Ranks
+     every tile against its own frame's median" is a fact about the
+     pipeline, true of every run, read off the code. None of it looks at
+     a result or repeats a number, so none of it can be wrong about a
+     particular run.
+
+     Everything the database actually recorded - the status word, the
+     tool, the refusal reason verbatim, the gloss, the injection flag,
+     the timestamp - is untouched and still on the row, one level down.
+     ------------------------------------------------------------------ */
+  var PLAIN = {
+    'Satellite Data Agent': {
+      one: 'Finds which KuwaitSat-1 frames cover your area, and loads them.',
+      steps: [
+        'Reads the area recorded on this run.',
+        'Searches the payload archive for frames whose footprint falls inside it.',
+        'Loads the matching frames, or stops here if none of them do.'
+      ]
+    },
+    'Environmental Analysis Agent': {
+      one: 'Measures how green every part of each frame is, and finds the outliers.',
+      steps: [
+        'Divides each frame into a grid and measures the average colour of every tile.',
+        'Sets water aside, so only land is compared.',
+        'Scores each tile against its own frame, not against the others.'
+      ]
+    },
+    'Recommendation Agent': {
+      one: 'Keeps only the zones that stand far enough out from ordinary ground.',
+      steps: [
+        'Ranks the tiles by how far they sit from their frame median.',
+        'Drops anything that does not clear the threshold.',
+        'Returns nothing at all rather than a weak answer.'
+      ]
+    },
+    'Impact Prediction Agent': {
+      one: 'Estimates what the approved zones would change, as ranges.',
+      steps: [
+        'Takes the zones you approved at the checkpoint.',
+        'Applies published coefficients to each one.',
+        'Gives ranges, and says so where the evidence will not carry a number.'
+      ]
+    },
+    'Visualization Agent': {
+      one: 'Draws the approved zones onto the map.',
+      steps: [
+        'Writes each zone as a shape with real coordinates.',
+        'Puts them on the same ground the measurement came from.'
+      ]
+    },
+    'Reporting Agent': {
+      one: 'Writes the report from what was recorded, then waits for you.',
+      steps: [
+        'Assembles the report from the run record only.',
+        'Carries the limitations through rather than dropping them.',
+        'Stops as a draft until you sign it.'
+      ]
+    }
+  };
+
   function el(tag, cls, txt) {
     var n = doc.createElement(tag);
     if (cls) { n.className = cls; }
@@ -108,7 +171,7 @@
   /* ------------------------------------------------------------------
      FOLD ONE ROW
      ------------------------------------------------------------------ */
-  function foldRow(row, key) {
+  function foldRow(row, key, repeatOfPrev) {
     if (row.dataset[MARK]) { return; }
     row.dataset[MARK] = '1';
 
@@ -118,38 +181,102 @@
 
     /* The role name stays visible. Everything after it is detail. */
     var keep = mid.querySelector('b');
+    var roleName = keep ? keep.textContent.trim() : '';
+    var plain = PLAIN[roleName];
+
+    /* Everything stepRow wrote after the <b> is the technical record. */
+    var tech = [], i, kids = mid.childNodes, seen = false;
+    for (i = 0; i < kids.length; i++) {
+      if (kids[i] === keep) { seen = true; continue; }
+      if (seen) { tech.push(kids[i]); }
+    }
+
+    /* ONE PLAIN SENTENCE, on the row. This is what the researcher reads
+       instead of a tool name.
+
+       SAID ONCE. The Environmental Analysis Agent runs per frame, so a
+       three-frame run writes three identical rows, and repeating the
+       sentence and the arrow down all three is exactly the noise this
+       pass exists to remove. A repeat keeps its number, its name and
+       its status - the parts that differ - and nothing else. */
+    if (plain && !repeatOfPrev) {
+      mid.appendChild(el('div', 'ksat-sf-one', plain.one));
+    }
+    if (repeatOfPrev) {
+      row.classList.add('ksat-sf-repeat');
+      if (chip) { chip.textContent = statusFor(row); }
+      /* The record is still reachable: it lives on the first row of the
+         group, and this row's own technical detail is dropped rather
+         than duplicated. Keep the row itself, because the COUNT of them
+         is information - three frames were measured, not one. */
+      tech.forEach(function (n) { if (n.parentNode) { n.parentNode.removeChild(n); } });
+      return;
+    }
+
     var detail = el('div', 'ksat-sf-detail');
     detail.hidden = true;
 
-    /* Preserve the recorded word before the chip is relabelled, so the
-       database's own vocabulary survives one click away. */
-    if (chip && chip.textContent) {
-      detail.appendChild(el('small', 'ksat-sf-orig',
-        'Recorded as: ' + chip.textContent.trim()));
+    /* THE BRIEF PROCESS, in plain steps. This is what opening a row is
+       for - not the log. */
+    if (plain && plain.steps.length) {
+      var ol = doc.createElement('ol');
+      ol.className = 'ksat-sf-steps';
+      plain.steps.forEach(function (t) {
+        ol.appendChild(el('li', null, t));
+      });
+      detail.appendChild(ol);
     }
 
-    var move = [], i, kids = mid.childNodes, seen = false;
-    for (i = 0; i < kids.length; i++) {
-      if (kids[i] === keep) { seen = true; continue; }
-      if (seen) { move.push(kids[i]); }
+    /* THE RECORD ITSELF, one level further down. Nothing the database
+       returned is discarded - the status word it actually used, the
+       tool, the refusal reason verbatim, the gloss, the timestamp. It
+       stops being the first thing on screen, which was the request. */
+    if (tech.length || (chip && chip.textContent)) {
+      var raw = el('div', 'ksat-sf-raw');
+      raw.hidden = true;
+      if (chip && chip.textContent) {
+        raw.appendChild(el('small', 'ksat-sf-orig',
+          'Recorded as: ' + chip.textContent.trim()));
+      }
+      tech.forEach(function (n) { raw.appendChild(n); });
+
+      var techBtn = el('button', 'ksat-sf-tech');
+      techBtn.type = 'button';
+      techBtn.textContent = 'Technical record';
+      techBtn.setAttribute('aria-expanded', 'false');
+      techBtn.addEventListener('click', function () {
+        var open = raw.hidden;
+        raw.hidden = !open;
+        techBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      detail.appendChild(techBtn);
+      detail.appendChild(raw);
     }
-    if (!move.length) {
-      /* Nothing to hide. Still relabel the chip so the vocabulary is
-         consistent down the column, but do not offer an empty fold. */
+
+    if (!detail.childNodes.length) {
       if (chip) { chip.textContent = statusFor(row); }
       return;
     }
-    move.forEach(function (n) { detail.appendChild(n); });
 
     var id = key + '#' + (row.children[0] ? row.children[0].textContent : '?');
+
+    /* AN ARROW, NOT A BUTTON LABEL. A caret that turns is a smaller
+       thing on the page than a worded control, and it repeats six times
+       down the card. The accessible name still says what it does. */
     var btn = el('button', 'ksat-sf-more');
     btn.type = 'button';
     btn.setAttribute('aria-expanded', 'false');
+    var caret = el('span', 'ksat-sf-caret', '\u203a');
+    var word = el('span', 'ksat-sf-word', 'How it works');
+    btn.appendChild(caret);
+    btn.appendChild(word);
 
     function paint(open) {
       detail.hidden = !open;
-      btn.textContent = open ? 'Hide details' : 'View run';
+      btn.classList.toggle('is-open', !!open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label',
+        (open ? 'Hide' : 'Show') + ' how the ' + roleName + ' works');
       if (open) { OPEN[id] = 1; } else { delete OPEN[id]; }
     }
     btn.addEventListener('click', function () { paint(detail.hidden); });
@@ -276,8 +403,13 @@
     }
 
     var key = runKey();
-    var i;
-    for (i = 0; i < rows.length; i++) { foldRow(rows[i], key); }
+    var i, prevRole = null;
+    for (i = 0; i < rows.length; i++) {
+      var b = rows[i].querySelector('b');
+      var roleNow = b ? b.textContent.trim() : '';
+      foldRow(rows[i], key, roleNow !== '' && roleNow === prevRole);
+      prevRole = roleNow;
+    }
     if (card) { paintStrip(card, rows); }
   }
 
