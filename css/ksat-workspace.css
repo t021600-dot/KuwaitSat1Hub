@@ -659,3 +659,40 @@ aside h5{ font-size:11px }
 .btn.danger:hover{ background:#3a1b1b; color:#f4d2d2 }
 
 .said.bad{ color:#e0a5a5 }
+
+/* =====================================================================
+   10 . THE CANDIDATE ZONES, AS A TABLE
+   Owner: 01 Front end
+
+   These were five stacked cards repeating the same four sentences with
+   different numbers in them. A researcher choosing between candidates
+   is comparing a column, and prose makes that impossible.
+
+   The numeric columns are monospace and right-aligned so the decimal
+   points line up. That is the whole reason the table beats the cards:
+   an outlier becomes visible without reading a word.
+   ===================================================================== */
+
+table.zones{ width:100%; border-collapse:collapse; margin-top:4px }
+
+table.zones th{
+  font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:#7b8a95; text-align:left; font-weight:bold;
+  padding:9px 10px; border-bottom:1px solid #2b3740; white-space:nowrap;
+}
+table.zones td{
+  font-size:13px; color:#c5ced4;
+  padding:10px; border-bottom:1px solid #1e2830;
+}
+table.zones tr:last-child td{ border-bottom:0 }
+table.zones tr:hover td{ background:#11181e }
+
+table.zones td.zn{ color:var(--white); white-space:nowrap }
+table.zones td.pl{ color:#9fd3b4 }
+table.zones td.mono{ font-family:monospace; font-size:12.5px; white-space:nowrap }
+table.zones td.num{ text-align:right }
+table.zones th:nth-child(n+4){ text-align:right }
+
+/* The table can outgrow the card on a narrow screen. It scrolls; the
+   page does not. */
+#cpFindings{ overflow-x:auto }

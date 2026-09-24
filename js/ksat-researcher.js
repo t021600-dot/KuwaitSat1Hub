@@ -2048,27 +2048,80 @@
       'the map layer and the report are written only after you approve, and the ' +
       'approval is recorded against your account.';
 
+    /* THE ZONES, AS A TABLE.
+
+       These were five stacked cards, each repeating the same four
+       sentences with different numbers in them. A researcher choosing
+       between candidates is doing exactly one thing: comparing a
+       column. Prose makes that impossible, and five paragraphs of
+       near-identical text is the shape that hides an outlier rather
+       than showing it.
+
+       Every column is something this platform actually measured. There
+       is no NDVI column because there is no near-infrared band on this
+       instrument, and no temperature column because MODIS is served as
+       a rendered image and no figure in degrees is claimed. An empty
+       column would be worse than a missing one. */
     var box = doc.getElementById('cpFindings');
     clear(box);
-    state.candidates.forEach(function (c, i) {
-      var d = el('div', 'finding');
-      d.appendChild(el('h4', null, 'Candidate ' + (i + 1) + ' · frame ' +
-        pad2(c.a.frame_no) + ' tile ' + c.t.gx + ',' + c.t.gy));
-      /* EACH CANDIDATE'S OWN SIZE, and the direction of its own
-         criterion. This panel used to quote state.tileM for every zone
-         and call it "square" - but the tiles are not square, the last
-         row and column are larger, and candidates can come from frames
-         of different pixel sizes. rank() stamps c.km2 for exactly this,
-         and the findings and the report already use it. */
-      var dry = (state.rankMode === 'driest');
-      d.appendChild(el('p', null,
-        'ExG ' + c.t.exg.toFixed(3) + ', which is ' +
-        (Math.round(Math.abs(c.t.z) * 10) / 10) + ' standard deviations ' +
-        (dry ? 'below' : 'above') + ' this frame median of ' +
-        (Math.round(c.a.exg.median * 1000) / 1000) + '\n' +
-        'Luminance ' + c.t.lum + ' · about ' + (c.km2 || 0) + ' km² on the ground'));
-      box.appendChild(d);
+
+    var dry = (state.rankMode === 'driest');
+    var named = state.candidates.some(function (c) { return c.place && c.place.name; });
+
+    var tbl = el('table', 'zones');
+    var hr = doc.createElement('tr');
+    var cols = ['Zone'];
+    if (named) { cols.push('Place'); }
+    cols = cols.concat(['Grid ref', 'ExG', dry ? 'Below median' : 'Above median',
+                        'Luminance', 'Area']);
+    cols.forEach(function (h) {
+      var th = doc.createElement('th');
+      th.textContent = h;
+      hr.appendChild(th);
     });
+    tbl.appendChild(hr);
+
+    state.candidates.forEach(function (c, i) {
+      var tr = doc.createElement('tr');
+      function cell(txt, cls) {
+        var td = doc.createElement('td');
+        if (cls) { td.className = cls; }
+        td.textContent = txt;
+        tr.appendChild(td);
+      }
+      cell('Candidate ' + (i + 1), 'zn');
+      if (named) { cell((c.place && c.place.name) || '\u2014', 'pl'); }
+
+      /* frame_no is 0 on a reference run BECAUSE no KuwaitSat-1 frame
+         covers this ground. Printing "frame 00" invited a reader to go
+         looking for a frame that does not exist. */
+      cell(c.a.frame_no
+        ? ('frame ' + pad2(c.a.frame_no) + ' \u00b7 ' + c.t.gx + ',' + c.t.gy)
+        : (c.t.gx + ',' + c.t.gy), 'mono');
+
+      cell(c.t.exg.toFixed(3), 'mono num');
+      cell((Math.round(Math.abs(c.t.z) * 10) / 10) + ' sd', 'mono num');
+      cell(String(c.t.lum), 'mono num');
+      /* c.km2 per candidate, not state.tileM: the tiles are NOT square,
+         the last row and column are larger, and candidates can come
+         from frames of different pixel sizes. */
+      cell((c.km2 || 0) + ' km\u00b2', 'mono num');
+      tbl.appendChild(tr);
+    });
+    box.appendChild(tbl);
+
+    /* The one number every row is measured AGAINST, said once rather
+       than repeated in five paragraphs. */
+    var med = state.candidates.length
+      ? (Math.round(state.candidates[0].a.exg.median * 1000) / 1000) : null;
+    if (med !== null) {
+      box.appendChild(el('div', 'sub', 'Separation is measured from the scene ' +
+        'median of ' + med + '. A zone is the ' + (dry ? 'driest' : 'least red') +
+        ' ground in its own scene, not detected vegetation.' +
+        (named ? ' Place names are OpenStreetMap areas under ODbL; a zone inside ' +
+                 'no named area shows its grid reference only.' : '')));
+    }
+
     card.scrollIntoView({ block: 'nearest' });
     log('human checkpoint reached on run ' + shortId(state.run_id));
   }
