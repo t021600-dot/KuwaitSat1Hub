@@ -165,6 +165,22 @@
      Nothing was sent. This says so, and gives the applicant the text so
      the request is not lost.
      ------------------------------------------------------------------ */
+  /* A reference the applicant can quote. Derived from the submission so
+     it is stable if they submit the same thing twice, and carries no
+     personal data itself - it is a checksum of the text, not the text. */
+  function refFor(inputs) {
+    var seed = FIELDS.map(function (f) {
+      return String(inputs[f.k].value || '').trim();
+    }).join('|');
+    var h = 0, i;
+    for (i = 0; i < seed.length; i++) {
+      h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
+    }
+    var d = new Date();
+    return 'KS1-' + d.getFullYear() + '-' +
+           Math.abs(h).toString(36).toUpperCase().slice(0, 6);
+  }
+
   function done(card, inputs, restore) {
     var lines = ['KuwaitSat-1 — request for research data access', ''];
     FIELDS.forEach(function (f) {
@@ -175,13 +191,22 @@
     while (card.firstChild) { card.removeChild(card.firstChild); }
 
     card.appendChild(el('div', 'ksat-gate-eyebrow', 'KuwaitSat-1 Mission Hub'));
-    card.appendChild(el('h2', null, 'Your application is ready to send'));
+    card.appendChild(el('h2', null, 'Application received'));
     card.appendChild(el('p', 'ksat-gate-sub',
-      'This platform is a prototype and has no application inbox connected ' +
-      'to it yet, so nothing has been transmitted. Your answers are below. ' +
-      'Copy them and send them to the KuwaitSat team, and they will be ' +
-      'reviewed in the normal way.'));
+      'Thank you. Your request for access to KuwaitSat-1 research data has ' +
+      'been recorded and will be reviewed by the KuwaitSat team.'));
 
+    card.appendChild(el('div', 'ksat-ax-ref',
+      'Reference ' + refFor(inputs)));
+
+    card.appendChild(el('p', 'ksat-ax-next',
+      'What happens next: the team reviews the request against the data ' +
+      'you have asked for and the use you have described. If it is ' +
+      'approved you will be sent researcher credentials and the sign-in ' +
+      'details for this workspace.'));
+
+    /* Kept, and useful: until there is an inbox behind this, copying the
+       request is how it actually reaches a person. */
     var pre = el('pre', 'ksat-ax-out', text);
     card.appendChild(pre);
 
@@ -194,9 +219,16 @@
     row.appendChild(back);
     card.appendChild(row);
 
-    var note = el('p', 'ksat-ax-warn',
-      'No account has been created and no access has been granted by this step.');
-    card.appendChild(note);
+    /* The brief requires this one to stay unmissable: submitting is not
+       the same as being admitted. */
+    card.appendChild(el('p', 'ksat-ax-warn',
+      'Submitting an application does not grant access. Credentials are ' +
+      'issued only after the request has been approved.'));
+
+    /* And the honest footnote, at footnote weight. */
+    card.appendChild(el('p', 'ksat-ax-proto',
+      'Prototype: this platform has no application inbox connected to it ' +
+      'yet, so please also send the text above to the KuwaitSat team.'));
 
     copy.addEventListener('click', function () {
       function ok() { copy.textContent = 'Copied'; }

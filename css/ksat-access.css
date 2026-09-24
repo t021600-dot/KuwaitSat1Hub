@@ -80,6 +80,32 @@
   border-radius:0 3px 3px 0;
 }
 
+/* ---------- the confirmation ---------- */
+.ksat-ax-ref{
+  align-self:flex-start;
+  padding:7px 13px;
+  font-family:'IBM Plex Mono', ui-monospace, monospace;
+  font-size:13px;
+  letter-spacing:.06em;
+  color:var(--acc, #3fd0c9);
+  border:1px solid rgba(63,208,201,.38);
+  border-radius:3px;
+}
+.ksat-ax-next{
+  margin:0;
+  font-size:13px;
+  line-height:1.65;
+  color:var(--dim, #8d9aa5);
+}
+/* Footnote weight on purpose: true, and not the headline. */
+.ksat-ax-proto{
+  margin:0;
+  font-size:11.5px;
+  line-height:1.6;
+  color:var(--dim, #8d9aa5);
+  opacity:.8;
+}
+
 .ksat-ax-msg{
   margin:0;
   font-size:13px;
