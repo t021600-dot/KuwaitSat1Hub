@@ -1096,7 +1096,7 @@ html[dir="rtl"] .eyebrow .num{ padding:2px 10px 2px 0; }
    that goes first when there is no room for it.
    --------------------------------------------------------------------- */
 #ksat-whoami .ksat-who-org{
-  font-size:10.5px;
+  font-size:11.5px;
   letter-spacing:.12em;
   text-transform:uppercase;
   color:var(--ink-3);

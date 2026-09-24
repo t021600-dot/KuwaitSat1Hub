@@ -140,7 +140,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
 /* The caret is a plain glyph rather than an SVG: it has to flip with the
    open state and nothing about it is worth a second element. */
 .ksat-nav-caret {
-  font-size: 9px;
+  font-size:11px;
   line-height: 1;
   opacity: .65;
   transform: translateY(1px);
@@ -154,7 +154,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
    against the invitation panels. */
 .ksat-nav-lock {
   font-family: var(--mono, monospace);
-  font-size: 9.5px;
+  font-size:11px;
   letter-spacing: .1em;
   line-height: 1;
   padding: 3px 4px;
@@ -173,7 +173,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
 }
 .ksat-nav-key {
   font-family: var(--mono, monospace);
-  font-size: 10px;
+  font-size:11.5px;
   letter-spacing: .06em;
   color: var(--ink-3, #6B7A8D);
   border: 1px solid var(--line-2, #232C3C);
@@ -269,7 +269,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
 }
 .ksat-nav-pop-en {
   font-family: var(--mono, monospace);
-  font-size: 10.5px;
+  font-size:11.5px;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--ink-2, #9AA7B8);
@@ -310,7 +310,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
 }
 .ksat-nav-item-lock {
   font-family: var(--mono, monospace);
-  font-size: 9.5px;
+  font-size:11px;
   letter-spacing: .09em;
   color: var(--ink-3, #6B7A8D);
   border: 1px solid var(--line-2, #232C3C);
@@ -328,7 +328,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
    and nothing new has been written to fill it. */
 .ksat-nav-more {
   font-family: var(--mono, monospace);
-  font-size: 9.5px;
+  font-size:11px;
   letter-spacing: .13em;
   text-transform: uppercase;
   color: var(--ink-3, #6B7A8D);
@@ -371,7 +371,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
    is. */
 .ksat-nav-count {
   font-family: var(--mono, monospace);
-  font-size: 9.5px;
+  font-size:11px;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--ink-3, #6B7A8D);
@@ -446,7 +446,7 @@ html[data-ksat-navup="on"] .navwrap { display: none !important; }
 }
 .ksat-tools-eyebrow {
   font-family: var(--mono, monospace);
-  font-size: 10px;
+  font-size:11.5px;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--ink-2, #9AA7B8);

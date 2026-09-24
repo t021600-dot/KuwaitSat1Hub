@@ -301,7 +301,7 @@
 
   function gate() {
     if (!haveDb()) {
-      denied('This workspace could not reach the mission database, so it cannot verify ' +
+      denied('This workspace could not reach the research database, so it cannot verify ' +
              'your session. Please tell the team.');
       return;
     }
@@ -310,7 +310,7 @@
       admitted(s.user);
       enrol(s.user).then(load);
     }).catch(function () {
-      denied('This workspace could not reach the mission database, so it cannot verify ' +
+      denied('This workspace could not reach the research database, so it cannot verify ' +
              'your session. Please tell the team.');
     });
 
@@ -636,21 +636,21 @@
   }
 
   function loadMissions() {
-    say('missionMsg', 'Reading your missions…');
+    say('missionMsg', 'Reading your runs…');
     return window.sb.from('missions')
       .select('id,title,objective,status,created_at,area_geojson,injection_flag,launched_at')
       .order('created_at', { ascending: false })
       .then(function (r) {
         if (r.error) {
-          say('missionMsg', 'Could not read missions: ' + r.error.message);
-          say('ovMissionsMsg', 'Could not read missions.');
+          say('missionMsg', 'Could not read runs: ' + r.error.message);
+          say('ovMissionsMsg', 'Could not read runs.');
           return;
         }
         MISSIONS = r.data || [];
         say('missionMsg', MISSIONS.length ? '' :
-          'No missions on this account yet. Row level security shows you your own ' +
+          'No runs on this account yet. Row level security shows you your own ' +
           'missions and nobody else’s, so an empty table here means you have not ' +
-          'created one. Press New Mission.');
+          'created one. Press New Run.');
         say('ovMissionsMsg', MISSIONS.length ? '' : 'Nothing yet.');
         var k = doc.getElementById('kMissions');
         if (k) k.textContent = pad2(MISSIONS.length);
@@ -676,7 +676,7 @@
         .toLowerCase().indexOf(q) >= 0;
     });
 
-    if (!rows.length && q) { say('missionMsg', 'No mission on this account matches “' + q + '”.'); }
+    if (!rows.length && q) { say('missionMsg', 'No run on this account matches “' + q + '”.'); }
     else if (MISSIONS.length) { say('missionMsg', ''); }
 
     rows.forEach(function (m, i) {
@@ -808,7 +808,7 @@
       return b;
     }
     if (m.status === 'draft' || m.status === 'failed') {
-      add('Run the pipeline on this mission', 'launch', true);
+      add('Run the pipeline on this run', 'launch', true);
     } else if (m.status === 'queued' || m.status === 'running') {
       add('Open the checkpoint in the console', 'open-in-console', true);
     } else if (m.status === 'review') {

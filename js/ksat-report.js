@@ -344,5 +344,11 @@
     }
   }
 
-  KS.report = { present: present, renderMarkdown: renderMarkdown, download: download };
+  /* buildFigure, zoneBounds and loadGeometry are exported so the Human
+     checkpoint can draw the SAME two figures from the SAME code. The
+     alternative was a second implementation of the before/after pair,
+     which would drift from this one the first time either changed. */
+  KS.report = { present: present, renderMarkdown: renderMarkdown, download: download,
+                buildFigure: buildFigure, zoneBounds: zoneBounds,
+                loadGeometry: loadGeometry };
 })();

@@ -270,7 +270,7 @@ html[data-ksat-assistant="open"] .ksat-as-fab{ opacity:0; pointer-events:none; }
   padding:3px 8px;
   border-radius:5px;
   font-family:var(--mono, monospace);
-  font-size:10.5px;
+  font-size:11.5px;
   letter-spacing:.09em;
   text-transform:uppercase;
   color:var(--ink-3, #8792AE);
@@ -545,7 +545,7 @@ html[data-ksat-assistant="open"] #ksat-ch-fab{
 
 .ksat-as-flab{
   font-family:var(--mono, ui-monospace, monospace);
-  font-size:10px;
+  font-size:11.5px;
   letter-spacing:.12em;
   line-height:1.6;
   text-transform:uppercase;
@@ -578,7 +578,7 @@ html[data-ksat-assistant="open"] #ksat-ch-fab{
   margin-bottom:5px;
   padding:2px 7px;
   font-family:var(--mono, ui-monospace, monospace);
-  font-size:9.5px;
+  font-size:11px;
   letter-spacing:.11em;
   line-height:1.7;
   text-transform:uppercase;
@@ -774,7 +774,7 @@ html[data-ksat-assistant="open"] #ksat-ch-fab{
   max-width:100%;
   padding:2px 7px;
   font-family:var(--mono, ui-monospace, monospace);
-  font-size:10px;
+  font-size:11.5px;
   letter-spacing:.06em;
   line-height:1.6;
   text-decoration:none;

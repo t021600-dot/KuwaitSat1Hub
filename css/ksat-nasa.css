@@ -933,7 +933,7 @@ section.sec[data-ksat-layer="workspace"] .phead .ttl h3{
 [data-ksat-layer="workspace"] .legend span,
 [data-ksat-layer="workspace"] .maplegend span{
   font-family:var(--mono);
-  font-size:10.5px;
+  font-size:11.5px;
   letter-spacing:.08em;
   text-transform:uppercase;
 }
@@ -968,7 +968,7 @@ section.sec[data-ksat-layer="workspace"] .phead .ttl h3{
 }
 [data-ksat-layer="workspace"] .chip{
   padding:6px 2px !important;                       /* beats ksat-detail    */
-  font-size:10.5px !important;
+  font-size:11.5px !important;
   margin-inline-end:14px;
 }
 [data-ksat-layer="workspace"] .rowf{ gap:10px; }

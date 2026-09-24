@@ -57,7 +57,7 @@
 }
 
 .ksat-tour-card .step {
-  font-size: 10px;
+  font-size:11.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6f7f8b;
@@ -114,7 +114,7 @@
 
 .ksat-tour-hint {
   margin-top: 11px;
-  font-size: 10.5px;
+  font-size:11.5px;
   color: #66737e;
   letter-spacing: 0.04em;
 }

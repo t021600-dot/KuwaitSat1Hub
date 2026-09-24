@@ -178,7 +178,7 @@
    this rank on the page is set — .eyebrow .lab, .fld, .tag. */
 .ksat-ss-eye{
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 10px;
+  font-size:11.5px;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--ink-3, #64778D);
@@ -243,7 +243,7 @@
 
 .ksat-ss-f .k{
   font-family: var(--mono, ui-monospace, monospace);
-  font-size: 9.5px;
+  font-size:11px;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--ink-3, #64778D);
@@ -254,7 +254,7 @@
   text-transform: none;
   letter-spacing: 0;
   font-family: var(--body, system-ui, sans-serif);
-  font-size: 10.5px;
+  font-size:11.5px;
 }
 
 .ksat-ss-f .v{
@@ -310,7 +310,7 @@
 
 .ksat-ss-btn{
   font-family: var(--mono, ui-monospace, monospace);
-  font-size: 10.5px;
+  font-size:11.5px;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--ink-2, #9DAEC2);
@@ -476,7 +476,7 @@
 }
 .ksat-ss-row .k{
   font-family: var(--mono, ui-monospace, monospace);
-  font-size: 9.5px;
+  font-size:11px;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--ink-3, #64778D);

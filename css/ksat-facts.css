@@ -146,7 +146,7 @@ h2.ksf-h2 {
 .ksf-fig:first-child { border-inline-start: 0; padding-inline-start: 0; }
 .ksf-fig .k {
   font-family: var(--mono, monospace);
-  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  font-size:11.5px; letter-spacing: .14em; text-transform: uppercase;
   color: var(--ink-3, #6B7A8D);
   display: block;
 }
