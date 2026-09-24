@@ -1,0 +1,145 @@
+/* =====================================================================
+   ksat-access.css — the external researcher application
+   Owner: 01 Front End
+
+   Every selector is prefixed .ksat-ax so nothing here can reach the
+   sign-in card's own rules. Colours are borrowed from the variables the
+   gate already uses; no new token is introduced and no existing one is
+   changed.
+   ===================================================================== */
+
+/* ---------- the entry point, under the sign-in form ---------- */
+.ksat-ax-cta{
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.10);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:flex-start;
+}
+.ksat-ax-ask{
+  margin:0;
+  font-size:13px;
+  color:var(--dim, #8d9aa5);
+}
+.ksat-ax-apply{
+  font:inherit;
+  font-size:13px;
+  padding:9px 16px;
+  color:var(--white, #e8eef2);
+  background:transparent;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:4px;
+  cursor:pointer;
+}
+.ksat-ax-apply:hover{
+  border-color:var(--acc, #3fd0c9);
+  color:var(--acc, #3fd0c9);
+}
+.ksat-ax-apply:focus-visible{
+  outline:2px solid var(--acc, #3fd0c9);
+  outline-offset:2px;
+}
+
+/* ---------- the form ---------- */
+.ksat-ax-form{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.ksat-ax-field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.ksat-ax-lab{
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--dim, #8d9aa5);
+}
+.ksat-ax-form textarea{
+  font:inherit;
+  font-size:14px;
+  line-height:1.55;
+  resize:vertical;
+  min-height:68px;
+}
+
+/* The one thing a reader must not miss. Not a footnote: the brief says
+   it has to be clear that applying is not the same as being admitted. */
+.ksat-ax-warn{
+  margin:0;
+  padding:11px 13px;
+  font-size:12.5px;
+  line-height:1.6;
+  color:#e7cfa6;
+  background:rgba(190,140,60,.10);
+  border-left:2px solid rgba(214,160,74,.65);
+  border-radius:0 3px 3px 0;
+}
+
+.ksat-ax-msg{
+  margin:0;
+  font-size:13px;
+  color:var(--dim, #8d9aa5);
+}
+.ksat-ax-msg.bad{ color:#e9a07a }
+
+/* The confirmation's two buttons must both stay reachable. The card is
+   a narrow column, so they wrap to their own lines rather than being
+   squeezed or pushed out of the scroll area - seen in testing, where
+   "Copy application" left the viewport. */
+.ksat-ax-row{
+  display:flex;
+  gap:10px;
+  align-items:stretch;
+  flex-wrap:wrap;
+}
+.ksat-ax-row > button{ flex:1 1 auto; min-width:150px }
+.ksat-ax-back{
+  font:inherit;
+  font-size:13px;
+  padding:9px 14px;
+  color:var(--dim, #8d9aa5);
+  background:transparent;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:4px;
+  cursor:pointer;
+}
+.ksat-ax-back:hover{ color:var(--white, #e8eef2) }
+.ksat-ax-back:focus-visible{
+  outline:2px solid var(--acc, #3fd0c9);
+  outline-offset:2px;
+}
+
+/* ---------- the completed application, ready to copy ---------- */
+.ksat-ax-out{
+  margin:0;
+  padding:13px 15px;
+  max-height:240px;
+  overflow:auto;
+  font-family:'IBM Plex Mono', ui-monospace, monospace;
+  font-size:12px;
+  line-height:1.7;
+  white-space:pre-wrap;
+  word-break:break-word;
+  color:var(--white, #e8eef2);
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:4px;
+}
+
+/* The card can now be taller than the viewport on a laptop, so it has
+   to be able to scroll on its own rather than overflowing the overlay. */
+#ksat-gate .ksat-gate-card{
+  max-height:88vh;
+  overflow-y:auto;
+}
+
+@media (max-width: 520px){
+  .ksat-ax-form{ gap:12px }
+  .ksat-ax-row{ gap:9px }
+  .ksat-ax-out{ max-height:180px }
+}

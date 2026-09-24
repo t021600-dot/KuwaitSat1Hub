@@ -76,6 +76,50 @@ aside h5{ font-size:11px }
 .mono{ font-size:11px }
 
 /* ---------------------------------------------------------------------
+   0b . SPACING
+
+   The workspace was legible but crowded: cards 16px from their own
+   content, a 12px gutter between them, and table cells at 8px. Read
+   individually each is defensible; stacked down a long page they make
+   a dense instrument panel, and the feedback was that it reads as
+   crowded rather than as serious.
+
+   Every declaration here is ONE property on a selector that already
+   exists. No colour is touched, no element is added, and nothing is
+   moved. The two lines that do most of the work are .card padding and
+   .grid gap - together they are roughly 70% of the perceived crowding,
+   so if this ever needs to shrink, shrink it to those two.
+
+   max-width comes DOWN, from 1500px to 1360px. That is deliberate and
+   it is not a typo: on a wide screen the constraint is not how much
+   room the content has, it is how far the eye has to travel across a
+   table row. A narrower measure with more air inside it reads as more
+   spacious than a wider one packed tight.
+   --------------------------------------------------------------------- */
+main{ padding:36px 40px; max-width:1360px }
+.grid{ gap:20px }
+.card{ padding:22px }
+.head{ margin-bottom:32px }
+.ct{ margin-bottom:18px }
+aside{ padding:26px 16px }
+aside button{ padding:11px 12px }
+aside h5{ margin:26px 9px 10px }
+td,th{ padding:13px 10px }
+.agent{ padding:14px 0 }
+.actions{ gap:12px; margin-top:26px }
+.form{ gap:18px }
+
+/* Small screens keep the old density on purpose. Air is a luxury of
+   width; on a phone the same padding just pushes content below the
+   fold, which is the opposite of easier to navigate. */
+@media (max-width: 720px){
+  main{ padding:20px 16px }
+  .card{ padding:16px }
+  .grid{ gap:14px }
+  aside{ padding:18px 12px }
+}
+
+/* ---------------------------------------------------------------------
    1 . THE MAP
    --------------------------------------------------------------------- */
 
