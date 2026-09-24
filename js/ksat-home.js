@@ -280,9 +280,9 @@
 
     /* TWO PHOTOGRAPHS OF REAL THINGS, WHICH IS WHY THEY HAVE NO DAY AND
        NO NIGHT. Everything above this line is a view of the Earth and
-       comes in two lightings because the page does. A room full of
-       people and a spacecraft on a bench do not. */
-    team:   { day: 'assets/cards/ksat1-team.webp',        night: 'assets/cards/ksat1-team.webp',        alt: 'team' },
+       comes in two lightings because the page does. A person and a
+       spacecraft on a bench do not. */
+    team:   { day: 'assets/people/project-director.webp', night: 'assets/people/project-director.webp', alt: 'director' },
     unit:   { day: 'assets/cards/ksat1-flight-unit.png',  night: 'assets/cards/ksat1-flight-unit.png',  alt: 'unit' },
     /* Added after the grid was measured: four of the eight tiles were
        the Arabian Peninsula at night at four camera distances, which are
@@ -354,10 +354,10 @@
        surface detail in that model is drawn". Saying it in the alt text
        is how the claim survives the sticker coming off. */
     team: {
-      day:   { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch and the KFAS and Kuwait University marks above them.',
-               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة وشعارا مؤسسة الكويت للتقدم العلمي وجامعة الكويت.' },
-      night: { en: 'The KuwaitSat-1 project team on the steps at Kuwait University: about thirty students and staff in black mission jackets, with the mission patch and the KFAS and Kuwait University marks above them.',
-               ar: 'فريق مشروع كويت سات-١ على درج جامعة الكويت: نحو ثلاثين طالباً وطالبة وأعضاء هيئة تدريس بسترات المهمة السوداء، وفوقهم شعار المهمة وشعارا مؤسسة الكويت للتقدم العلمي وجامعة الكويت.' }
+      day:   { en: 'Dr Hala Al-Jassar, Project Director of KuwaitSat-1: a portrait in a dark jacket beside the flag of Kuwait, with the KuwaitSat-1 mission patch in the upper corner.',
+               ar: 'د. هالة الجسّار، مدير مشروع كويت سات-١: صورة شخصية بسترة داكنة بجانب علم الكويت، وشعار المهمة في الزاوية العلوية.' },
+      night: { en: 'Dr Hala Al-Jassar, Project Director of KuwaitSat-1: a portrait in a dark jacket beside the flag of Kuwait, with the KuwaitSat-1 mission patch in the upper corner.',
+               ar: 'د. هالة الجسّار، مدير مشروع كويت سات-١: صورة شخصية بسترة داكنة بجانب علم الكويت، وشعار المهمة في الزاوية العلوية.' }
     },
     unit: {
       day:   { en: 'The KuwaitSat-1 flight unit: a black anodised CubeSat frame with four deep blue solar faces, a circuit board on the top deck and four thin whip antennas deployed from it.',
