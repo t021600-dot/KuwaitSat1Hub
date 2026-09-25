@@ -1022,7 +1022,26 @@ table.zones td.mono{ font-size:21px }
 .ksat-zt-defs{ font-size:18px }
 .ksat-zt-dl{ font-size:19px }
 .ksat-cf-head{ font-size:16px }
+/* DEAD, AND LEFT HERE WITH THE REASON. css/ksat-checkpoint-figures.css
+   sets the same selector, has the same specificity, and researcher.html
+   loads it AFTER this file - so that one wins and this 18px has never
+   been on screen. The live value is there, not here. Checked byte for
+   byte before the captions were resized. */
 .ksat-cf-wrap .fig figcaption{ font-size:18px }
+
+/* THE CHECKPOINT HEADLINE AND ITS SUMMARY.
+
+   "N candidate zones are ready for your decision" is the sentence a
+   researcher reads at the one moment on this platform where they are
+   being asked to commit to something, and it was 14px - smaller than
+   the table underneath it. css/ksat-researcher.css sets .decision h4 to
+   14px and .decision p to 12px and nothing overrode them; these do.
+
+   The paragraph is set below the heading rather than beside it, because
+   after this pass it is two sentences and its job is to qualify the
+   heading, not to compete with it. */
+.decision h4{ font-size:22px; line-height:1.25; margin-bottom:9px }
+.decision p{ font-size:17px; line-height:1.6 }
 
 /* ---- narrower windows give the type back rather than breaking ---- */
 @media (max-width: 1500px){

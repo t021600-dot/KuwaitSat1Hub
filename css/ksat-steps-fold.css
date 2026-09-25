@@ -185,12 +185,25 @@
   display:grid;
   grid-template-columns:repeat(auto-fill, minmax(min(100%, 340px), 1fr));
   gap:12px;
-  /* EACH CARD IS ITS OWN HEIGHT. Grid stretches items to the tallest in
-     the row by default, which is tidy at rest and wrong the moment one
-     card is opened: its neighbours grow with it and the row fills with
-     two columns of empty panel. A repeat card being shorter than a full
-     one is also true - it has less to say. */
-  align-items:start;
+  /* THE CARDS FILL THEIR ROW AGAIN.
+
+     This was align-items:start, so each card was its own height. The
+     row track is still as tall as the tallest card in it either way -
+     that is how an auto-sized grid row works - so a short card simply
+     ended early and left the rest of its track as bare background
+     before the next row began. That is the gap under the repeat cards.
+
+     stretch closes it: every card fills its track, all four edges line
+     up, and the band reads as one row of panels.
+
+     THE TRADE, STATED. An opened card now drags its neighbours taller
+     with it, which is what align-items:start was added to prevent. The
+     empty space that produces is transient - it lasts as long as the
+     disclosure is open - where the ragged gap was there at rest, on
+     every run, under every repeat card. align-content:start on the
+     card's own inner grid (below) still pins each card's CONTENT to
+     its top, so nothing floats in the middle of a stretched card. */
+  align-items:stretch;
   /* The 1px hairline grid the list used is what made six steps read as
      one block. Cards carry their own edges instead. */
   background:none;
