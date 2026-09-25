@@ -327,7 +327,7 @@
   var M = {
     /* mis.specn, the page's own wording for the SPECS table. Count is
        asserted against SPECS.length at build time, below. */
-    spec:    { en: 'Twelve published entries, each with its source',   ar: 'اثنتا عشرة مدخلة منشورة، ولكل منها مصدرها' },
+    spec:    { en: 'Fourteen published entries, each with its source', ar: 'أربع عشرة مدخلة منشورة، ولكل منها مصدرها' },
     /* CLAIMS entry 5: "five consecutive frames", and SPECS spec.first:
        "First image series captured 5 April 2023". Sources [3] and [4]. */
     frames:  { en: 'Five frames, 5 April 2023',                        ar: 'خمسة إطارات، 5 أبريل 2023' },
@@ -351,7 +351,7 @@
     /* PILLARS.length and source [9], Ministry of Foreign Affairs. */
     v2035:   { en: 'Kuwait Vision 2035, seven official pillars',       ar: 'رؤية كويت 2035، سبع ركائز رسمية' },
     /* SOURCES.length and CLAIMS.length; both asserted at build time. */
-    srcs:    { en: 'Sixteen sources behind nine claims',               ar: 'ستة عشر مصدراً خلف تسعة ادعاءات' },
+    srcs:    { en: 'Sixteen sources behind eight claims',              ar: 'ستة عشر مصدراً خلف ثمانية ادعاءات' },
     /* NOT_CLAIMED.length. */
     notclaim:{ en: 'Six things this platform does not claim',          ar: 'ستة أمور لا تدّعيها هذه المنصة' },
     /* Structural, and true: those are the sections in the record
@@ -506,9 +506,9 @@
   /* ===================================================================
      2b · THE COUNTS ARE CHECKED, NOT TRUSTED
 
-     Four meta lines above carry a number: twelve SPECS rows, sixteen
-     sources, nine claims, six not-claimed entries, six governorates,
-     seven pillars. Those numbers are true of index.html as it stands
+     Four meta lines above carry a number: fourteen SPECS rows,
+     sixteen sources, eight claims, six not-claimed entries, six
+     governorates, seven pillars. Those numbers are true of index.html as it stands
      today and index.html moves constantly. If somebody adds a source
      and the card still says sixteen, this panel has put a wrong number
      on the front page, which is the exact failure the platform exists
@@ -520,9 +520,11 @@
      is the wrong failure mode here; a missing line is the right one.
      =================================================================== */
   var EXPECT = [
-    ['spec',     'SPECS',       12],
+    ['spec',     'SPECS',       14],   /* was 12; Pictures Taken and
+                                             Current Altitude were added */
     ['srcs',     'SOURCES',     16],
-    ['srcs',     'CLAIMS',       9],
+    ['srcs',     'CLAIMS',       8],   /* the array has been 8 for a
+                                             while; the line said nine */
     ['notclaim', 'NOT_CLAIMED',  6],
     ['regions',  'REGIONS',      6],
     ['v2035',    'PILLARS',      7]

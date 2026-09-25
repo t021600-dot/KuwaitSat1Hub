@@ -823,6 +823,94 @@
   }
 
   /* =================================================================
+     4b · THE SAME MODEL, RENDERED OFFSCREEN
+
+     The orbit panel in index.html needs this spacecraft too, at about
+     forty pixels, travelling round a ring. It cannot share the canvas -
+     that one is the hero - and it must not get a second, simpler
+     spacecraft of its own, because then the site would show two
+     different models of one satellite and they would drift apart.
+
+     draw() already renders the whole thing. It renders to module state:
+     the context g, the size W/Hh, the centre CX/CY, the focal length
+     FOC, and the view V. So point that state at an offscreen canvas,
+     call the same draw(), and put it back.
+
+     THE RESTORE IS IN A finally. If draw() ever throws mid-frame, the
+     hero must not be left pointing at a 40px scratch canvas: it would
+     keep running, keep drawing, and keep drawing nothing anybody can
+     see, which is the kind of failure that takes an afternoon to find.
+
+     COST. One call is a full render - every face rotated, culled,
+     shaded and painted. At this size that is well under a millisecond,
+     but it is not free, and it is NOT safe to call sixty times a
+     second alongside other canvas work. The caller caches by rotation;
+     that is deliberately its problem and not this function's.
+
+     ONE THING IT DOES LEAK. draw() updates the shared `stat` counters,
+     so sprite renders are counted in KSAT.cubesat.stats() alongside the
+     hero's own frames and pull its mean frame time down. Those numbers
+     are instrumentation, read by a developer in a console and by
+     nothing else, so the counter is left shared rather than threaded
+     through draw() for the sake of a diagnostic.
+
+     px is the CSS size of the square sprite. The returned canvas is
+     backed at up to 2x for crispness and carries its CSS size on
+     .cssSize, so the caller blits it at that size rather than at its
+     pixel dimensions.
+     ================================================================= */
+  function sprite(px, ryDeg, rxDeg, zoom) {
+    px = Math.max(16, Math.min(256, Math.round(px || 48)));
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var c = document.createElement('canvas');
+    c.width = Math.round(px * dpr);
+    c.height = Math.round(px * dpr);
+    var cg = c.getContext('2d');
+    if (!cg) { return null; }
+    cg.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var sg = g, sW = W, sH = Hh, sCX = CX, sCY = CY, sFOC = FOC;
+    var sry = V.ry, srx = V.rx;
+    try {
+      g = cg; W = px; Hh = px;
+      CX = px / 2;
+      /* Centred, unlike the hero. fitCanvas() puts the model at 0.52 of
+         the height because that strip has a caption under it; a sprite
+         on a ring has nothing under it and an off-centre one wobbles as
+         it travels. */
+      CY = px / 2;
+      /* 2.9 is fitCanvas()'s constant for a strip far wider than it is
+         tall. A square sprite has to hold the antennas as well as the
+         bus, and they reach 165mm from a 227mm body, so the focal
+         length comes down to fit the whole spacecraft in the box.
+
+         2.15 is measured, not guessed. The spacecraft was rendered at
+         every 15 degrees through a full turn and the bounding box read
+         back each time: at this value the widest angle fills 82% of the
+         box and the tightest clearance to the edge is 4px, which leaves
+         room for the antialiased tip of an antenna and none to spare. */
+      FOC = px * 2.15 * (zoom || 1);
+      if (typeof ryDeg === 'number') { V.ry = ryDeg * Math.PI / 180; }
+      if (typeof rxDeg === 'number') { V.rx = rxDeg * Math.PI / 180; }
+      draw();
+    } catch (e) {
+      c = null;
+    } finally {
+      /* Unconditional. See THE RESTORE IS IN A finally above. */
+      g = sg; W = sW; Hh = sH; CX = sCX; CY = sCY; FOC = sFOC;
+      V.ry = sry; V.rx = srx;
+    }
+    if (c) { c.cssSize = px; }
+    return c;
+  }
+
+  /* Exposed on its own key, not on KS.cubesat. KS.cubesat is assigned
+     inside mount(), and mount() only runs if this page has a mount
+     point - so hanging the sprite off it would make the orbit panel
+     depend on the hero being present. It is not. */
+  KS.cubesatSprite = sprite;
+
+  /* =================================================================
      5 · INTERACTION
 
      Drag is the preview's, unchanged in behaviour. Two additions:

@@ -1206,7 +1206,13 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
       <details class="specfold">
         <summary>
           <span class="specfold-t" data-i18n="mis.spec">Mission record</span>
-          <span class="specfold-n" data-i18n="mis.specn">Twelve published entries, each with its source</span>
+          <!-- FOURTEEN. Nothing guards this one: it is plain markup, so when
+               SPECS grew it simply printed a number that had stopped
+               being true. The two copies in js/ksat-home.js and
+               js/ksat-explore.js are asserted against SPECS.length
+               and went quiet instead. If you add a row, all four
+               change together. -->
+          <span class="specfold-n" data-i18n="mis.specn">Fourteen published entries, each with its source</span>
         </summary>
         <div class="tblwrap">
           <table>
@@ -1656,7 +1662,11 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <section class="sec" id="orbit">
   <div class="eyebrow"><span class="badge sim">◈ Modelled, not live telemetry</span></div>
   <h2 class="st" data-i18n="orb.h">Where Is KuwaitSat?</h2>
-  <p class="lede" data-i18n="orb.lede">A simplified circular-orbit propagator running in your browser, initialised with the nominal sun-synchronous parameters of the Transporter-6 deployment. It is a teaching model: it does not read a TLE, it is not connected to a ground station, and the numbers below are computed here, not received from space.</p>
+  <!-- The 60-word lede that was here said what the eyebrow above it,
+       the badge on the canvas and the chip on the readout all already
+       say: modelled, not live. Three statements of the same claim are
+       enough; five is a paragraph nobody finishes. -->
+  <p class="lede" data-i18n="orb.lede">Where KuwaitSat-1 is now, on a model of its orbit.</p>
 
   <div class="grid g-53 mt">
     <div>
@@ -1678,11 +1688,20 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
     <div class="panel">
       <div class="phead"><div class="ttl"><h3 data-i18n="orb.tel">Telemetry readout</h3></div><span class="badge sim">◈ Modelled</span></div>
       <div class="telem" id="telem"></div>
-      <div class="note warn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.5 15 14H1L8 1.5Z" stroke="#B27F02" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6v3.6M8 11.6v.6" stroke="#B27F02" stroke-width="1.4" stroke-linecap="round"/></svg>
-        <span data-i18n="orb.warn">Simulated values. These are outputs of a circular two-body model with a fixed inclination, not measurements. Real pass prediction requires current orbital elements and a proper propagator.</span></div>
-      <hr class="divider">
-      <h4 style="font-size:13px;font-family:var(--mono);letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase" data-i18n="orb.log">Pass log</h4>
-      <div id="passLog" style="margin-top:9px"></div>
+      <!-- THE AMBER PANEL AND THE PASS LOG WERE HERE.
+
+           The panel said "Simulated values. These are outputs of a
+           circular two-body model with a fixed inclination..." - the
+           fourth statement of a claim already made by the section
+           eyebrow, by the MODELLED ORBIT badge on the canvas beside
+           these numbers, and by the Modelled chip at the top of this
+           very panel. Those three stay, so the claim is still on the
+           picture the reader is looking at and on the panel the numbers
+           are in. If either of those badges is ever removed, this text
+           has to come back.
+
+           The pass log was an empty state that has never had a row in
+           it. #passLog is gone; every writer to it is null-guarded. -->
     </div>
   </div>
 </section>
@@ -4282,39 +4301,190 @@ function orbState(t){
   lon=((lon+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
   return {lat:lat*180/Math.PI, lon:lon*180/Math.PI, u};
 }
+/* OFF SCREEN MEANS OFF.
+
+   The main loop calls drawOrbit() sixty times a second for as long as
+   the page is open, whatever the reader is looking at. That was nearly
+   free when the planet was a radial gradient and forty coastline
+   points. Sampling a photograph per pixel costs about 3.7ms a frame,
+   measured, and paying that continuously for a panel four screens down
+   is a laptop fan running for nothing.
+
+   So it draws only while its canvas is near the viewport. The model
+   clock is untouched - S.orb.t keeps advancing in the loop - so the
+   panel is at the right moment when it comes back into view rather
+   than resuming where it left off. */
+let orbVisible = true, orbWatch = null;
+function orbOnScreen(cv){
+  if (!orbWatch && typeof IntersectionObserver !== "undefined") {
+    orbWatch = new IntersectionObserver(function(es){
+      es.forEach(function(e){ orbVisible = e.isIntersecting; });
+    }, { rootMargin: "150px" });   /* start a little before it arrives */
+    orbWatch.observe(cv);
+  }
+  return orbVisible;               /* true until the observer says otherwise */
+}
+
 function drawOrbit(){
   const cv=$("#cvOrb"); if(!cv) return;
+  if(!orbOnScreen(cv)) return;
   const {ctx,w,h}=fit(cv, cv.parentElement.clientHeight);
   const cx=w/2, cy=h/2, R=Math.min(w,h)*0.27;
   ctx.clearRect(0,0,w,h);
   const st=orbState(S.orb.t);
-  // Earth, orthographic, centred so Kuwait stays visible
-  const lam0=(20+ (S.orb.t*0.0006)%360)*Math.PI/180, phi0=18*Math.PI/180;
-  const ag=ctx.createRadialGradient(cx,cy,R*0.94,cx,cy,R*1.3);
-  ag.addColorStop(0,"rgba(90,170,255.30)"); ag.addColorStop(1,"rgba(90,170,255,0)");
-  ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(cx,cy,R*1.3,0,6.283); ctx.fill();
+  /* THE EARTH TURNS, AT THE RATE THE EARTH TURNS.
+
+     This used to advance 0.0006 degrees per second of model time - a
+     placeholder that worked out at one revolution every eleven weeks of
+     simulated time, which is a still image with extra arithmetic.
+
+     It now turns once per sidereal day, 86164.0905 seconds, against the
+     same model clock as everything else in this panel. That is not a
+     decoration: the satellite's longitude in orbState() is already
+     corrected for Earth's rotation at 7.2921159e-5 rad/s, so before
+     this the ground track swept across a planet that was standing
+     still. The two agree now.
+
+     It starts centred on Kuwait, so the panel opens on the country it
+     is about. Kuwait then turns out of view and back once a day, which
+     is what Kuwait does; the readouts do not depend on it being
+     visible, and pt() already returns null for anything on the far
+     side. Raise Time acceleration to watch a whole revolution. */
+  const lam0=(47.98 + S.orb.t*360/86164.0905)*Math.PI/180, phi0=18*Math.PI/180;
+  /* Atmosphere. This was rgba(90,170,255.30) - no comma before the
+     alpha, so three arguments, so a solid blue ring around the disc.
+     With the alpha back, 0.30 across a band this wide still washed out
+     the limb of a real photograph, so the band is narrower now. */
+  const ag=ctx.createRadialGradient(cx,cy,R*0.97,cx,cy,R*1.18);
+  ag.addColorStop(0,"rgba(96,176,255,.26)"); ag.addColorStop(1,"rgba(96,176,255,0)");
+  ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(cx,cy,R*1.18,0,6.283); ctx.fill();
+
+  /* ---------------------------------------------------------------
+     THE ORBIT HAS A FAR SIDE, AND IT IS DRAWN FIRST.
+
+     The ring and the spacecraft used to be drawn last, over
+     everything. Against a gradient that passed. Against a photograph
+     of the planet it reads as a satellite parked on top of Africa.
+
+     The ring is a circle seen at a shallow angle, so the minor axis of
+     its projected ellipse IS the depth axis: drawn above the centre is
+     far, drawn below is near. In canvas coordinates that is
+     sin(u) < 0 for the far half.
+
+     So the far half is painted here, before the globe, and the near
+     half after it. Nothing is faded to suggest depth: the spacecraft
+     goes behind the Earth because it is behind the Earth, which is the
+     same thing the Pass status readout has always reported. --------- */
+  const ROT=-0.38;
+  const Ro=R*(1+ORB.alt/ORB.Re*1.05);
+  const oa=st.u;
+  const far=Math.sin(oa)<0;
+  const sx=Math.cos(oa)*Ro, sy=Math.sin(oa)*Ro*0.30;
+  const OE = (window.KSAT && window.KSAT.orbitEarth) ? window.KSAT.orbitEarth : null;
+
+  /* One spacecraft, drawn by whichever pass owns it this frame. Kept
+     as a function so the far and near passes cannot drift apart. */
+  function drawRing(fromA,toA,alpha){
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(ROT);
+    ctx.strokeStyle="rgba(63,208,201,"+alpha+")";
+    ctx.setLineDash([5,6]); ctx.lineWidth=1.1;
+    ctx.beginPath(); ctx.ellipse(0,0,Ro,Ro*0.30,0,fromA,toA); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+  function drawSat(){
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(ROT); ctx.translate(sx,sy);
+    /* ---------------------------------------------------------------
+       THE REAL SPACECRAFT.
+
+       This was three rectangles: a body and two wings. At fourteen
+       pixels that silhouette is a plus sign, which is a comms
+       satellite with large deployed arrays - the opposite of a 2U
+       CubeSat, and at odds with the specification table on this page.
+
+       js/ksat-cubesat.js already models KuwaitSat-1 properly, so this
+       asks it for a sprite rather than drawing a second spacecraft
+       free to disagree with the first. One call is a full 3D render,
+       so js/ksat-orbit-earth.js caches by rotation; it is never
+       rendered afresh every frame.
+
+       The spin comes off the clock the rest of the panel uses, so it
+       also turns when the reader scrubs the time control. It is part
+       of the model, not an idle animation.
+
+       Same rule as the globe: null until that renderer has loaded, and
+       the rectangles run until it does. ---------------------------- */
+    const satPx = Math.max(26, Math.min(64, Math.round(R*0.46)));
+    const sprite = OE ? OE.satellite(satPx, 18 + S.orb.t*0.02, -16) : null;
+    if (sprite) {
+      const px = sprite.cssSize || satPx;
+      /* A faint pool of light around it. The bus is near-black by
+         design and the panel behind it is dark, so without this the
+         spacecraft reads as a hole rather than an object. */
+      const hg=ctx.createRadialGradient(0,0,px*0.04,0,0,px*0.62);
+      hg.addColorStop(0,"rgba(120,200,235,.20)"); hg.addColorStop(1,"rgba(120,200,235,0)");
+      ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(0,0,px*0.62,0,6.283); ctx.fill();
+      ctx.drawImage(sprite, -px/2, -px/2, px, px);
+    } else {
+      ctx.fillStyle="#1B2A3C"; ctx.strokeStyle="#5FD6CF"; ctx.lineWidth=1.2;
+      ctx.fillRect(-4.5,-7,9,14); ctx.strokeRect(-4.5,-7,9,14);
+      ctx.fillStyle="#123A55"; ctx.strokeStyle="#3FD0C9";
+      ctx.fillRect(-15,-3.5,10,7); ctx.strokeRect(-15,-3.5,10,7);
+      ctx.fillRect(5,-3.5,10,7); ctx.strokeRect(5,-3.5,10,7);
+    }
+    ctx.restore();
+  }
+
+  /* FAR PASS. Dimmer as well as behind: the far limb of anything is. */
+  drawRing(Math.PI, 2*Math.PI, ".18");
+  if (far) { drawSat(); }
+
   ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.clip();
-  const og=ctx.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.1,cx,cy,R);
-  og.addColorStop(0,"#1C6396"); og.addColorStop(.65,"#0C3454"); og.addColorStop(1,"#061A2A");
-  ctx.fillStyle=og; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+
+  /* The same projection the imagery is sampled through, so anything
+     drawn on top - the graticule, the ground track, Kuwait, the
+     sub-satellite point - lands where the photograph says it should. */
   const pt=(lon,lat)=>{const lam=lon*Math.PI/180, phi=lat*Math.PI/180;
     const cosc=Math.sin(phi0)*Math.sin(phi)+Math.cos(phi0)*Math.cos(phi)*Math.cos(lam-lam0);
     if(cosc<0) return null;
     return [cx+R*Math.cos(phi)*Math.sin(lam-lam0), cy-R*(Math.cos(phi0)*Math.sin(phi)-Math.sin(phi0)*Math.cos(phi)*Math.cos(lam-lam0))];};
-  ctx.fillStyle="#35442E";
-  [[[-17,14],[-5,25],[10,33],[24,32],[32,31],[35,29],[43,12],[51,12],[45,0],[40,-12],[35,-24],[20,-35],[12,-5],[9,4],[-8,5]],
-   [[35,30],[41,31],[48,30],[57,25],[60,22],[52,13],[43,12],[36,24]],
-   [[-9,36],[5,43],[20,45],[35,45],[50,47],[70,45],[95,45],[122,42],[140,36],[130,25],[110,18],[95,8],[80,8],[72,22],[60,26],[48,30],[41,31],[28,41],[12,41],[-2,39]]
-  ].forEach(poly=>{ctx.beginPath();let st2=false;
-    poly.forEach(c=>{const p=pt(c[0],c[1]); if(!p){st2=false;return;} if(!st2){ctx.moveTo(p[0],p[1]);st2=true;}else ctx.lineTo(p[0],p[1]);});
-    ctx.closePath();ctx.fill();});
-  // graticule
-  ctx.strokeStyle="rgba(150,200,255.12)"; ctx.lineWidth=.8;
+
+  /* ---------------------------------------------------------------
+     THE REAL PLANET, AND WHY THE OLD ONE IS STILL HERE.
+
+     js/ksat-orbit-earth.js samples EOX s2cloudless per pixel through
+     the projection above - the same imagery as the intro globe.
+
+     It returns null until sixteen tiles have arrived, and the drawing
+     under `else` is what runs until they do. That is not a rare path:
+     it runs on the first frames of every single visit, because the
+     panel starts drawing long before the network answers. It is also
+     the permanent answer on a connection that blocks the tiles. So the
+     old hand-typed coastline stays exactly where it was.
+     --------------------------------------------------------------- */
+  const globe = OE ? OE.draw(ctx, cx-R, cy-R, R*2, lam0*180/Math.PI, phi0*180/Math.PI) : false;
+
+  if (!globe) {
+    const og=ctx.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.1,cx,cy,R);
+    og.addColorStop(0,"#1C6396"); og.addColorStop(.65,"#0C3454"); og.addColorStop(1,"#061A2A");
+    ctx.fillStyle=og; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+    ctx.fillStyle="#35442E";
+    [[[-17,14],[-5,25],[10,33],[24,32],[32,31],[35,29],[43,12],[51,12],[45,0],[40,-12],[35,-24],[20,-35],[12,-5],[9,4],[-8,5]],
+     [[35,30],[41,31],[48,30],[57,25],[60,22],[52,13],[43,12],[36,24]],
+     [[-9,36],[5,43],[20,45],[35,45],[50,47],[70,45],[95,45],[122,42],[140,36],[130,25],[110,18],[95,8],[80,8],[72,22],[60,26],[48,30],[41,31],[28,41],[12,41],[-2,39]]
+    ].forEach(poly=>{ctx.beginPath();let st2=false;
+      poly.forEach(c=>{const p=pt(c[0],c[1]); if(!p){st2=false;return;} if(!st2){ctx.moveTo(p[0],p[1]);st2=true;}else ctx.lineTo(p[0],p[1]);});
+      ctx.closePath();ctx.fill();});
+  }
+
+  /* Graticule. The alpha here was rgba(150,200,255.12) - no comma, so
+     three arguments, so fully opaque. Over a flat gradient that passed;
+     over a photograph of the planet it is four bright blue bands. */
+  ctx.strokeStyle=globe?"rgba(255,255,255,.13)":"rgba(150,200,255,.12)"; ctx.lineWidth=.8;
   for(let la=-60;la<=60;la+=30){ctx.beginPath();let s2=false;
     for(let lo=-180;lo<=180;lo+=5){const p=pt(lo,la); if(!p){s2=false;continue;} if(!s2){ctx.moveTo(p[0],p[1]);s2=true;}else ctx.lineTo(p[0],p[1]);}
     ctx.stroke();}
   // ground track
-  ctx.strokeStyle="rgba(95,214,138.55)"; ctx.lineWidth=1.3;
+  ctx.strokeStyle="rgba(95,214,138,.85)"; ctx.lineWidth=1.6;
   ctx.beginPath(); let s3=false;
   for(let k=-40;k<=40;k++){const g=orbState(S.orb.t+k*60); const p=pt(g.lon,g.lat);
     if(!p){s3=false;continue;} if(!s3){ctx.moveTo(p[0],p[1]);s3=true;}else ctx.lineTo(p[0],p[1]);}
@@ -4329,27 +4499,18 @@ function drawOrbit(){
   // sub-satellite point
   const sp=pt(st.lon,st.lat);
   if(sp){ ctx.fillStyle="#FFD79A"; ctx.beginPath(); ctx.arc(sp[0],sp[1],3,0,6.283); ctx.fill();
-    ctx.strokeStyle="rgba(255,215,154.5)"; ctx.beginPath(); ctx.arc(sp[0],sp[1],10,0,6.283); ctx.stroke(); }
+    ctx.strokeStyle="rgba(255,215,154,.55)"; ctx.beginPath(); ctx.arc(sp[0],sp[1],10,0,6.283); ctx.stroke(); }
   const sg=ctx.createRadialGradient(cx-R*0.5,cy-R*0.45,R*0.1,cx,cy,R*1.05);
-  sg.addColorStop(0,"rgba(255,255,255.10)"); sg.addColorStop(.6,"rgba(0,0,0,0)"); sg.addColorStop(1,"rgba(0,0,0.65)");
+  sg.addColorStop(0,"rgba(255,255,255,.10)"); sg.addColorStop(.6,"rgba(0,0,0,0)"); sg.addColorStop(1,"rgba(0,0,0,.55)");
   ctx.fillStyle=sg; ctx.fillRect(cx-R,cy-R,R*2,R*2);
   ctx.restore();
-  ctx.strokeStyle="rgba(150,210,255.35)"; ctx.lineWidth=1;
+  ctx.strokeStyle="rgba(150,210,255,.35)"; ctx.lineWidth=1;
   ctx.beginPath(); ctx.arc(cx,cy,R,0,6.283); ctx.stroke();
-  // orbit ring (inclined ellipse, visual)
-  const Ro=R*(1+ORB.alt/ORB.Re*1.05);
-  ctx.save(); ctx.translate(cx,cy); ctx.rotate(-0.38);
-  ctx.strokeStyle="rgba(63,208,201.35)"; ctx.setLineDash([5,6]); ctx.lineWidth=1.1;
-  ctx.beginPath(); ctx.ellipse(0,0,Ro,Ro*0.30,0,0,6.283); ctx.stroke(); ctx.setLineDash([]);
-  const oa=st.u;
-  const sx=Math.cos(oa)*Ro, sy=Math.sin(oa)*Ro*0.30;
-  ctx.translate(sx,sy);
-  ctx.fillStyle="#1B2A3C"; ctx.strokeStyle="#5FD6CF"; ctx.lineWidth=1.2;
-  ctx.fillRect(-4.5,-7,9,14); ctx.strokeRect(-4.5,-7,9,14);
-  ctx.fillStyle="#123A55"; ctx.strokeStyle="#3FD0C9";
-  ctx.fillRect(-15,-3.5,10,7); ctx.strokeRect(-15,-3.5,10,7);
-  ctx.fillRect(5,-3.5,10,7); ctx.strokeRect(5,-3.5,10,7);
-  ctx.restore();
+  /* NEAR PASS. The half of the ring that comes round the front, and
+     the spacecraft if it is on that half. Everything it needs was set
+     up before the globe; see THE ORBIT HAS A FAR SIDE above. */
+  drawRing(0, Math.PI, ".40");
+  if (!far) { drawSat(); }
   updateTelemetry(st);
 }
 function greatCircleKm(lat1,lon1,lat2,lon2){
@@ -6821,6 +6982,11 @@ addEventListener("resize",()=>{ if(RC.out.vis && RC.open==="vis") setTimeout(rcD
      which chapter #descent lives in; and after ksat-appearance.js, because it
      reads the resolved theme for its lighting. -->
 <script src="js/ksat-cubesat.js"></script>
+<!-- The orbit panel's real Earth and real spacecraft. Loads AFTER
+     ksat-cubesat.js because it borrows that file's renderer for the
+     sprite; it checks for it at call time rather than at load time, so
+     the order is a courtesy, not a requirement. -->
+<script src="js/ksat-orbit-earth.js"></script>
 <!-- Last: it reshapes the masthead that ksat-nav.js builds, so it has to
      run after that file and after ksat-shell.js has settled the tier. -->
 <script src="js/ksat-minimal.js"></script>
