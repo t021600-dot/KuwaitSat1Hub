@@ -1020,17 +1020,37 @@ html[data-ksat-tier="public"] .hero .factstrip {
   grid-row: 2;
   padding-inline: clamp(20px, 4vw, 64px);
   padding-block: 0 clamp(18px, 3vh, 34px);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, max-content));
+  /* FLEX, NOT GRID, and the reason is measured.
+
+     This was repeat(auto-fit, minmax(150px, max-content)), which
+     computed to 150px 150px 150px 150px. Every track produced by one
+     repeat() gets the same size, so max-content there cannot mean
+     "each column fits its own content" - it resolved to the 150px
+     floor. "2U CubeSat - 2 kg" is wider than 150px, so the hairline
+     above it and the panel behind it stopped short while the text ran
+     past them.
+
+     Four items that each want to be exactly as wide as their own
+     content, laid along a line and wrapping when they run out of room,
+     is what flex-wrap does directly. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: clamp(20px, 5vw, 72px);
-  justify-content: start;             /* THIS is the "not in the middle" */
+  justify-content: flex-start;        /* THIS is the "not in the middle" */
   border: 0 !important;
   background: none !important;
 }
 html[data-ksat-tier="public"] .hero .factstrip > div {
+  /* Each item is exactly as wide as its own content, so the rule above
+     it is exactly as wide as the value under it. min-width stops a
+     short one collapsing to nothing. */
+  flex: 0 0 auto;
+  min-width: 110px;
   border: 0 !important;
   border-top: 1px solid rgba(255,255,255,.26) !important;
   padding: 12px 0 0 !important;
+  background: none !important;
   text-align: start;
 }
 html[data-ksat-tier="public"] .hero .factstrip .k {
