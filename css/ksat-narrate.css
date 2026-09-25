@@ -71,22 +71,30 @@
   border-left: 2px solid transparent;
 }
 
+/* The elapsed figure still says how long each step took, which is worth
+   seeing, but quieter - it was the first thing on every line and the
+   loudest. */
 .ksat-nr-line .t {
   font-family: ui-monospace, Consolas, monospace;
   font-variant-numeric: tabular-nums;
   font-size: 11px;
-  color: #5d6b76;
-  min-width: 48px;
+  color: #4a5661;
+  min-width: 44px;
+  opacity: .85;
 }
 
 .ksat-nr-line .b { flex: 1 }
 
 .ksat-nr-line .who {
+  /* A NAME, NOT A LOG LEVEL. This was uppercase at 0.1em tracking,
+     which is how a console prints a severity. Sentence case reads as
+     somebody doing something. */
   display: block;
-  font-size:11.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #8ea3b2;
+  font-size:13px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+  color: #9db3c2;
   margin-bottom: 3px;
 }
 
@@ -126,3 +134,16 @@
   .ksat-nr-line .what { font-size: 13.5px }
   .ksat-nr.big .ksat-nr-line .what { font-size: 17px }
 }
+
+
+/* THE LIVE LINE, findable from across a room.
+
+   It changed colour only, which is a small signal on a dark panel with
+   a presenter talking over it. An accent rule down the left edge is
+   readable at a glance and costs nothing. */
+.ksat-nr-line.now{
+  border-left:2px solid var(--acc, #3fd0c9);
+  padding-left:9px;
+  margin-left:-11px;
+}
+.ksat-nr-line{ padding-left:9px; margin-left:-11px; border-left:2px solid transparent }

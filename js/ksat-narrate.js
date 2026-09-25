@@ -69,8 +69,15 @@
      the story's own first sentence instead, which arrives in order
      with the rest of the narration because it IS the rest of the
      narration. run() opens every run with it, the reference path
-     included. */
-  var STARTS = /requesting a run slot/i;
+     included.
+
+     REWORDED ONCE ALREADY. This matched "requesting a run slot" until
+     that line was rewritten to "starting the run" for the plain-English
+     pass. A regex tied to one phrasing of a sentence somebody will
+     reword again is a trap, so it now matches either - and if you
+     reword run()'s opening line a third time, add it here or this panel
+     silently stops resetting between runs. */
+  var STARTS = /requesting a run slot|starting the run/i;
 
   function el(tag, cls, text) {
     var n = doc.createElement(tag);

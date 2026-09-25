@@ -145,7 +145,7 @@
   <button data-go="console">⌁ Research Console</button>
   <h5>Outputs</h5>
   <button data-go="reports">▤ Reports &amp; Exports</button>
-  <button data-go="audit">▣ Provenance / Audit</button>
+  <button data-go="audit">▣ Where results came from</button>
 </aside>
 
 <main>
@@ -241,7 +241,7 @@
       </div>
 
       <div class="card s12" style="border:0;padding:0">
-        <div class="ct"><h3>Runs and steps</h3><span class="sub">READ BACK FROM agent_steps</span></div>
+        <div class="ct"><h3>Runs and steps</h3><span class="sub">Read back from the record</span></div>
         <div class="steps" id="mdSteps"></div>
         <div class="said" id="mdStepsMsg"></div>
       </div>
@@ -279,7 +279,7 @@
     <div class="ct"><h3 id="framesCount">Payload frames</h3>
       <span class="bar">
         <button class="btn" data-act="export-frames">Download the record as CSV</button>
-        <span class="sub">PROVENANCE REQUIRED</span>
+        <span class="sub">Every row cites its source</span>
       </span></div>
     <div id="framesGrid" class="frames"></div>
     <div class="said" id="framesMsg"></div>
@@ -349,11 +349,12 @@
       <select class="search" style="margin-top:9px" id="fClass">
         <option>All data classes</option><option>MEASURED</option><option>MODELLED</option><option>ESTIMATED</option><option>DERIVED</option>
       </select>
-      <div class="sub" style="margin-top:12px">The record counts are live. A dataset that
-        says <b>refused</b> is one row level security will not answer for this account.</div>
+      <div class="sub" style="margin-top:12px">These counts are live. A dataset marked
+        <b>refused</b> is one the database will not release to this account — the
+        refusal comes from the database, not from this page.</div>
     </div>
     <div class="card s9">
-      <div class="ct"><h3 id="dataCount">Datasets</h3><span class="sub">PROVENANCE REQUIRED</span></div>
+      <div class="ct"><h3 id="dataCount">Datasets</h3><span class="sub">Every row cites its source</span></div>
       <input class="search" id="dataSearch" placeholder="Search dataset, source, class…">
       <table style="margin-top:12px" id="dataTable">
         <tr><th>Dataset</th><th>Source</th><th>Class</th><th>Resolution</th><th>Records</th><th>Quality</th></tr>
@@ -469,8 +470,8 @@
   </div>
 
   <div class="grid" style="margin-top:20px">
-    <div class="card s6"><div class="ct"><h3>Report structure</h3></div>
-      <div class="log">EXECUTIVE SUMMARY<br>RESEARCH OBJECTIVE<br>DATA USED<br>METHODOLOGY<br>FINDINGS<br>RESEARCHER-APPROVED RECOMMENDATIONS<br>IMPACT ESTIMATE<br>VISUALIZATIONS<br>SOURCES / PROVENANCE<br>LIMITATIONS</div></div>
+    <div class="card s6"><div class="ct"><h3>What a report contains</h3></div>
+      <div class="log">EXECUTIVE SUMMARY<br>RESEARCH OBJECTIVE<br>DATA USED<br>METHODOLOGY<br>FINDINGS<br>RESEARCHER-APPROVED RECOMMENDATIONS<br>IMPACT ESTIMATE<br>VISUALIZATIONS<br>SOURCES<br>LIMITATIONS</div></div>
     <div class="card s6"><div class="ct"><h3>Evidence policy</h3></div>
       <div class="notice">If available evidence is insufficient, the Reporting Agent records that limitation rather
         than inventing a quantitative conclusion. Impact outputs use ranges or state plainly that
@@ -481,7 +482,7 @@
 <!-- ================= PROVENANCE / AUDIT ================= -->
 <section id="audit" class="view hidden">
   <div class="head">
-    <div><div class="kicker">Governance</div><h1>Provenance / Audit</h1>
+    <div><div class="kicker">The record</div><h1>Where the results came from</h1>
       <p>Every automated run leaves a row. This is that record, read back out of the
          database, including the steps that were refused.</p></div>
     <button class="btn" data-act="audit-refresh">Refresh</button>
@@ -491,7 +492,7 @@
     <div class="card s3"><div class="label">Runs</div>
       <div class="metric" id="aRuns">—</div><div class="sub">mission_runs</div></div>
     <div class="card s3"><div class="label">Steps recorded</div>
-      <div class="metric" id="aSteps">—</div><div class="sub">agent_steps</div></div>
+      <div class="metric" id="aSteps">—</div><div class="sub">across all your runs</div></div>
     <div class="card s3"><div class="label">Steps refused</div>
       <div class="metric" id="aRefused">—</div><div class="sub">evidence of a boundary</div></div>
     <div class="card s3"><div class="label">Findings</div>
