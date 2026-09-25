@@ -998,7 +998,7 @@
        in the platform. Amber, not red. */
     if (s.step_name === 'environmental_analysis' || s.step_name === 'recommendation') {
       return { cls: 'nodata', label: 'NO EVIDENCE',
-               gloss: 'The Orchestrator stopped here rather than answering from data ' +
+               gloss: 'The run stopped here rather than answer from data ' +
                       'that cannot support the question. The reason above is the finding.' };
     }
 
@@ -1951,8 +1951,8 @@
     var rr = doc.getElementById('runResultCard');
     if (rr) rr.hidden = true;
     RESULT_MISSION = null;
-    traceMsg('Mission Orchestrator — requesting a run slot…', 'log');
-    narrate('Mission Orchestrator — requesting a run slot');
+    traceMsg('Mission Orchestrator — starting the run…', 'log');
+    narrate('Mission Orchestrator — starting the run');
 
     agents.run({
       mission: m,
@@ -2075,8 +2075,14 @@
     var hr = doc.createElement('tr');
     var cols = ['Zone'];
     if (named) { cols.push('Place'); }
-    cols = cols.concat(['Grid ref', 'ExG', dry ? 'Below median' : 'Above median',
-                        'Luminance', 'Area']);
+    /* PLAIN HEADINGS, EXACT NUMBERS. Each of these is the same
+       measurement under a word somebody can read cold: ExG is a
+       greenness index, a z-score is how far a tile stands out from its
+       own scene, luminance is brightness. The values underneath are
+       untouched, the units stay on them, and the precise terms are
+       spelled out in the "What these mean" panel below the table. */
+    cols = cols.concat(['Where', 'Greenness', dry ? 'Stands out (low)' : 'Stands out',
+                        'Brightness', 'Area']);
     cols.forEach(function (h) {
       var th = doc.createElement('th');
       th.textContent = h;
@@ -2113,16 +2119,56 @@
     });
     box.appendChild(tbl);
 
-    /* The one number every row is measured AGAINST, said once rather
-       than repeated in five paragraphs. */
+    /* ONE PLAIN SENTENCE, then the exact terms behind a toggle.
+
+       The old note was three clauses of method. The claim that matters
+       to somebody deciding is the LAST one - these are the least red
+       ground in their own scene, not detected vegetation - so that
+       leads, and the method follows for anyone who wants it. */
     var med = state.candidates.length
       ? (Math.round(state.candidates[0].a.exg.median * 1000) / 1000) : null;
     if (med !== null) {
-      box.appendChild(el('div', 'sub', 'Separation is measured from the scene ' +
-        'median of ' + med + '. A zone is the ' + (dry ? 'driest' : 'least red') +
-        ' ground in its own scene, not detected vegetation.' +
-        (named ? ' Place names are OpenStreetMap areas under ODbL; a zone inside ' +
-                 'no named area shows its grid reference only.' : '')));
+      box.appendChild(el('div', 'sub', 'These are the ' +
+        (dry ? 'driest' : 'least red') + ' ground in their own image. ' +
+        'They are not detected vegetation.'));
+
+      var defsBtn = el('button', 'ksat-zt-defs');
+      defsBtn.type = 'button';
+      defsBtn.setAttribute('aria-expanded', 'false');
+      defsBtn.textContent = 'What these columns mean';
+
+      var defs = el('dl', 'ksat-zt-dl');
+      defs.hidden = true;
+      [['Where', 'The frame this zone came from, and its tile position in that frame.'],
+       ['Greenness', 'Excess Green (ExG), computed as 2g − r − b from the ' +
+                     'visible bands. There is no near-infrared band on this payload, ' +
+                     'so NDVI is not available and is not claimed.'],
+       ['Stands out', 'How far the tile sits from the median of its own image, in ' +
+                      'standard deviations (sd). Measured against that image only, ' +
+                      'never across images. The scene median here is ' + med + '.'],
+       ['Brightness', 'Mean luminance of the tile, 0 to 255. Used to separate land ' +
+                      'from water before anything is ranked.'],
+       ['Area', 'Ground area of the tile. Tiles are not all the same size: the last ' +
+                'row and column of each frame are larger.']
+      ].forEach(function (d) {
+        defs.appendChild(el('dt', null, d[0]));
+        defs.appendChild(el('dd', null, d[1]));
+      });
+      if (named) {
+        defs.appendChild(el('dt', null, 'Place'));
+        defs.appendChild(el('dd', null, 'OpenStreetMap area names, under ODbL. ' +
+          'A zone inside no named area shows its position only.'));
+      }
+
+      defsBtn.addEventListener('click', function () {
+        var open = defs.hidden;
+        defs.hidden = !open;
+        defsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        defsBtn.textContent = open ? 'Hide what the columns mean'
+                                   : 'What these columns mean';
+      });
+      box.appendChild(defsBtn);
+      box.appendChild(defs);
     }
 
     card.scrollIntoView({ block: 'nearest' });

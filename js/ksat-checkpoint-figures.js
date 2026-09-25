@@ -110,7 +110,13 @@
     wrap.appendChild(note);
     var figs = el('div', 'figs');
     wrap.appendChild(figs);
-    box.appendChild(wrap);
+
+    /* BEFORE THE TABLE, not after it. Measured on a live checkpoint: the
+       card runs 965px and the maps sat at 530, so a researcher met a
+       table of numbers before seeing the ground those numbers describe.
+       Picture first, detail under it. */
+    var tbl = box.querySelector('table.zones');
+    if (tbl) { box.insertBefore(wrap, tbl); } else { box.appendChild(wrap); }
 
     var id = missionId();
 

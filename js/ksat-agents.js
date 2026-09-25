@@ -321,7 +321,7 @@
 
     function step(name) { phase(ROLES[name] ? ROLES[name].name : name); }
 
-    phase('Mission Orchestrator - requesting a run slot');
+    phase('Mission Orchestrator — starting the run');
 
     return rpc('launch_mission', { p_mission_id: mission.id })
       .then(function (runId) {
@@ -609,7 +609,7 @@
                     return state;
                   });
               }
-              phase('Mission Orchestrator - evidence sufficient, human checkpoint required');
+              phase('Mission Orchestrator — enough evidence. Your decision next.');
               if (opts.onCheckpoint) opts.onCheckpoint(state);
               return state;
             });
@@ -703,7 +703,7 @@
           heat_resolution_m: ref.SOURCES.heat.resolution_m })
       .then(function () {
         tick();
-        phase(ROLES.satellite_data.name + ' - fetching Sentinel-2 surface imagery');
+        phase(ROLES.satellite_data.name + ' — loading satellite imagery');
         return ref.fetchArea('optical', bounds, 768);
       })
       .then(function (optical) {
@@ -731,7 +731,7 @@
           .then(function () { tick(); return m; });
       })
       .then(function (m) {
-        phase(ROLES.environmental_analysis.name + ' - fetching land surface temperature');
+        phase(ROLES.environmental_analysis.name + ' — loading surface heat');
         return ref.fetchArea('heat', bounds, 512)
           .then(function (heatArea) {
             var hm = ref.measureHeat(heatArea, 16);
@@ -743,7 +743,7 @@
                   source_pixels_over_area: hm.sourcePixels,
                   tiles_measured: hm.total,
                   can_rank_at_this_grid: hm.usable,
-                  used_for: hm.usable ? 'ranking candidates'
+                  used_for: hm.usable ? 'sorting the best zones'
                                       : 'context only, too coarse to rank this grid',
                   units: 'relative index only, never degrees',
                   why: hm.limitation || hm.note })
@@ -798,7 +798,7 @@
               return state;
             });
         }
-        phase('Mission Orchestrator - evidence sufficient, human checkpoint required');
+        phase('Mission Orchestrator — enough evidence. Your decision next.');
         if (opts.onCheckpoint) { opts.onCheckpoint(state); }
         return state;
       })

@@ -44,3 +44,29 @@
   .ksat-cf-wrap .figs{ grid-template-columns:minmax(0,1fr); gap:14px }
   .ksat-cf-wrap .ksat-map{ height:210px }
 }
+
+/* ---------------------------------------------------------------------
+   THE DECISION STAYS IN REACH
+
+   The checkpoint card measured 965px tall on a live run, with the three
+   buttons at the very bottom. The one thing a researcher is on this
+   screen to do was the one thing that scrolled off it.
+
+   Sticky, not fixed: it sits at the foot of the CARD, travels with it,
+   and stops being sticky when the card ends. Backed with the card's own
+   colour so the table cannot show through it.
+   --------------------------------------------------------------------- */
+#checkpointCard .bar{
+  position:sticky;
+  bottom:0;
+  z-index:2;
+  margin-top:20px;
+  padding:14px 0 2px;
+  background:linear-gradient(to top, var(--card,#0e151b) 72%, rgba(14,21,27,0));
+}
+
+/* On a short viewport a sticky bar eats the little height there is, so
+   it goes back to normal flow. */
+@media (max-height: 620px){
+  #checkpointCard .bar{ position:static; background:none }
+}

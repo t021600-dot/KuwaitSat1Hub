@@ -779,3 +779,48 @@ table.zones th:nth-child(n+4){ text-align:right }
 
    #cpFindings is 1-0-0 and beats .findings at 0-1-0 wherever it sits. */
 #cpFindings{ display:block; overflow-x:auto }
+
+/* ---------------------------------------------------------------------
+   THE ZONES TABLE, WHAT ITS COLUMNS MEAN
+
+   Plain headings on the table, exact terms behind this. The definitions
+   are where ExG, the z-score and the luminance threshold are spelled
+   out - they are not deleted, just not the first thing a researcher
+   meets at the moment they are deciding something.
+   --------------------------------------------------------------------- */
+.ksat-zt-defs{
+  display:inline-block;
+  margin-top:12px;
+  padding:4px 0;
+  font:inherit;
+  font-size:13px;
+  color:var(--dim, #8d9aa5);
+  background:transparent;
+  border:0;
+  border-bottom:1px dotted currentColor;
+  cursor:pointer;
+}
+.ksat-zt-defs:hover{ color:var(--white, #e8eef2) }
+.ksat-zt-defs:focus-visible{ outline:2px solid var(--acc, #3fd0c9); outline-offset:3px }
+
+.ksat-zt-dl{
+  margin:12px 0 0;
+  padding-left:13px;
+  border-left:1px solid var(--line, #263038);
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:8px 16px;
+  font-size:13.5px;
+  line-height:1.6;
+}
+.ksat-zt-dl dt{
+  margin:0;
+  font-weight:600;
+  color:var(--white, #e8eef2);
+  white-space:nowrap;
+}
+.ksat-zt-dl dd{ margin:0; color:var(--dim, #8d9aa5) }
+@media (max-width: 640px){
+  .ksat-zt-dl{ grid-template-columns:minmax(0,1fr); gap:3px 0 }
+  .ksat-zt-dl dd{ margin-bottom:8px }
+}
