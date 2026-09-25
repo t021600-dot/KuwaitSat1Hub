@@ -316,11 +316,19 @@
       KS.geo.resize(hostA);
       KS.geo.resize(hostB);
 
-      note.textContent = sites.length
-        ? ('Two figures of the same ground at the same extent. The green on ' +
-           'Figure 2 is a CONCEPTUAL SIMULATION of the decision in this report: ' +
-           'it is not a prediction and not an observation.')
-        : 'The mission area is outlined on both figures.';
+      /* THE PARAGRAPH UNDER THE TWO MAPS IS GONE, on request.
+
+         It read: "Two figures of the same ground at the same extent. The
+         green on Figure 2 is a CONCEPTUAL SIMULATION of the decision in
+         this report: it is not a prediction and not an observation."
+
+         THE CLAIM IT CARRIED HAS NOT GONE WITH IT. The key directly
+         below still labels the green swatch "Approved zone, drawn as the
+         change", the amber one "Candidate zone, as measured", and
+         Figure 2's own caption still says the zones are DRAWN AS the
+         change rather than observed as it. If that key or that caption
+         is ever reworded, this sentence has to come back. */
+      note.textContent = '';
 
       var keys = el('div', 'ksat-keys');
       [['#dce9f1', 'Mission area'], ['#d2ad68', 'Candidate zone, as measured'],

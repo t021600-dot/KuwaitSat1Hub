@@ -130,7 +130,12 @@
 
 /* ---------- breathing room in the trace itself (spec item 1) ----------
    The rows were 1px apart. That is what made six steps read as a wall
-   rather than as six things. Nothing else about .step is touched. */
+   rather than as six things.
+
+   SUPERSEDED BY SECTION 2 AT THE FOOT OF THIS FILE, which turns the
+   list into a grid of cards and sets the gap to 12px. Kept because it
+   is the rule that applies if that section is ever taken out, and
+   7px is still the right answer for a list. */
 #trace.steps{ gap:7px }
 
 @media (max-width: 720px){
@@ -146,6 +151,243 @@
 /* A repeated agent: same agent, next frame. It keeps its number, name
    and status, because the count of them is information - three frames
    were measured, not one - but it says nothing a reader has already
-   read one line above. */
+   read one line above.
+
+   The opacity here is overridden inside #trace by section 2: a faded
+   CARD reads as disabled, where a faded ROW read as quieter. It still
+   applies to any .step outside the trace. */
 .step.ksat-sf-repeat > div > b{ font-weight:500 }
 .step.ksat-sf-repeat{ opacity:.82 }
+
+/* =====================================================================
+   2 · THE AGENTS ARE CARDS SIDE BY SIDE, NOT A LIST
+
+   Asked for: "not like a list but one next to another, each numbered,
+   each with a toggle to see the simple process inside; a looping ring
+   while it works and green when it finishes."
+
+   NOTHING IN THE MARKUP CHANGES. stepRow() in js/ksat-researcher.js
+   still writes the same three children into every .step - the number,
+   the body, the status chip - and this file still reads the row classes
+   rather than a second source of truth. The list becomes a grid, the
+   row becomes a card, and the chip moves to the foot of it, all in the
+   cascade. A renderer that knows nothing about cards keeps working.
+
+   WHY auto-fill AND NOT A FIXED COLUMN COUNT. A run produces between
+   one and about a dozen steps, and this card sits in a panel whose
+   width changes with the sidebar. minmax(min(100%,340px),1fr) gives as
+   many columns as fit and exactly one on a phone. min(100%,340px)
+   rather than a bare 340px is what stops the floor forcing a sideways
+   scrollbar on a 320px screen, which is a trap this repository has
+   already been caught by once.
+   ===================================================================== */
+#trace.steps{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap:12px;
+  /* EACH CARD IS ITS OWN HEIGHT. Grid stretches items to the tallest in
+     the row by default, which is tidy at rest and wrong the moment one
+     card is opened: its neighbours grow with it and the row fills with
+     two columns of empty panel. A repeat card being shorter than a full
+     one is also true - it has less to say. */
+  align-items:start;
+  /* The 1px hairline grid the list used is what made six steps read as
+     one block. Cards carry their own edges instead. */
+  background:none;
+  border:0;
+}
+
+#trace.steps > .step{
+  grid-template-columns:32px 1fr;
+  gap:10px 12px;
+  align-content:start;
+  padding:15px 16px 0;
+  border:1px solid var(--line, #26313b);
+  border-radius:12px;
+  background:var(--panel, #0f141a);
+}
+
+/* The number. It is how a reader refers to a step out loud, so it leads
+   the card and it is big enough to say. */
+#trace.steps > .step > i{
+  width:28px; height:28px;
+  font-size:14px;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- the type comes up ----------
+   The name was 13px and the sentence 11px, which is a row in a table. A
+   card is read rather than scanned. */
+#trace.steps > .step b{ font-size:17px; line-height:1.35; color:var(--white, #f5f7f8) }
+#trace.steps > .step .ksat-sf-one{ font-size:15px; line-height:1.55; margin-top:6px }
+#trace.steps > .step small{ font-size:13.5px; line-height:1.65 }
+#trace.steps > .step .ksat-sf-more{ font-size:14px; margin-top:9px }
+#trace.steps > .step .ksat-sf-steps{ font-size:14.5px; line-height:1.6 }
+
+/* ---------- the status, along the foot ----------
+   The chip is the row's third child. In a two-column card it would drop
+   into the next row's first column, so it is told to span both and
+   becomes a footer with a rule above it. */
+#trace.steps > .step > .state{
+  grid-column:1 / -1;
+  display:flex; align-items:center; gap:9px;
+  margin-top:12px;
+  padding:10px 0 12px;
+  border-top:1px solid var(--line, #26313b);
+  font-size:14px; letter-spacing:.02em;
+}
+
+/* =====================================================================
+   3 · THE MARK: A RING THAT TURNS, THEN A GREEN TICK
+
+   Four states, set by paintChip() in js/ksat-steps-fold.js from the row
+   classes. The word beside it says the same thing, so none of this is
+   load-bearing on its own - see the note on paintChip for why that
+   matters on a monochrome screen.
+   ===================================================================== */
+.ksat-sf-mark{
+  flex:0 0 auto;
+  width:17px; height:17px;
+  border-radius:50%;
+  display:inline-grid; place-items:center;
+  box-sizing:border-box;
+}
+
+/* WAITING: a hollow ring, the quietest of the four. */
+.ksat-sf-mark-wait .ksat-sf-mark{
+  border:2px solid #3a4853;
+}
+
+/* RUNNING: one lit arc on a dim ring, turning. This is the timer the
+   request asked for: it says "this is taking time" without claiming a
+   duration the page does not know. */
+.ksat-sf-mark-running .ksat-sf-mark{
+  border:2px solid #29323c;
+  border-top-color:var(--acc, #3fd0c9);
+  animation:ksat-sf-spin .85s linear infinite;
+}
+@keyframes ksat-sf-spin{ to{ transform:rotate(360deg) } }
+
+/* REVIEW: hollow, amber, and deliberately NOT a spinner. Nothing is
+   happening here; it is waiting for a person. */
+.ksat-sf-mark-review .ksat-sf-mark{
+  border:2px solid var(--amber, #d2ad68);
+}
+
+/* DONE: filled green with a tick through it. The tick is drawn from two
+   borders rather than typed, so it keeps its weight at any size and
+   needs no font that happens to carry the glyph. */
+.ksat-sf-mark-done .ksat-sf-mark{
+  border:0;
+  background:var(--green, #79bd96);
+  background-image:linear-gradient(140deg, #8fd0a8, #5fa87e);
+}
+.ksat-sf-mark-done .ksat-sf-mark::after{
+  content:"";
+  width:4px; height:8px;
+  margin-top:-2px;
+  border:solid #0b1a12;
+  border-width:0 2px 2px 0;
+  transform:rotate(45deg);
+}
+
+.ksat-sf-mark-done{ color:var(--green, #79bd96) }
+.ksat-sf-mark-running{ color:var(--acc, #3fd0c9) }
+.ksat-sf-mark-review{ color:var(--amber, #d2ad68) }
+.ksat-sf-mark-wait{ color:var(--dim, #66737e) }
+
+@media (prefers-reduced-motion: reduce){
+  /* The arc still says WHICH state this is; it simply stops turning.
+     Parked off-axis so it never reads as a closed ring. */
+  .ksat-sf-mark-running .ksat-sf-mark{
+    animation:none; transform:rotate(45deg);
+  }
+}
+
+/* A repeat card carries a number, a name and a status and nothing else.
+   Without this it would be a third the height of its neighbours and the
+   row would read as broken rather than as brief. */
+#trace.steps > .step.ksat-sf-repeat{ opacity:1 }
+#trace.steps > .step.ksat-sf-repeat b{ font-size:15.5px; color:#b9c6cf }
+
+/* =====================================================================
+   4 · THE CHAIN STRIP, LOUDER
+
+   Kept and made obvious, as asked. It was an 18px circle on a 1px
+   hairline under an 11px label: correct, and nearly invisible above a
+   card of content. The circles are 28px now, the rail is 2px, the
+   finished part of the rail is green rather than grey, a finished stage
+   swaps its number for a tick, and the stage in progress carries a
+   pulsing halo.
+
+   THE NUMBER IS REPLACED, NOT COVERED. font-size:0 collapses the digit
+   and ::after draws the tick in its place, so there is no stacking to
+   get wrong and nothing to misalign when the strip wraps.
+   ===================================================================== */
+.ksat-sf-chain{ margin:18px 0 6px }
+
+.ksat-sf-chain .stage i{
+  width:28px; height:28px;
+  font-size:13px;
+  border-width:2px;
+  font-variant-numeric:tabular-nums;
+  transition:background .25s ease, border-color .25s ease;
+}
+.ksat-sf-chain .stage:before{
+  top:14px;                /* the centre of a 28px circle; was 8px */
+  height:2px;
+  background:#222d36;
+}
+.ksat-sf-chain .stage span{
+  font-size:12.5px;
+  letter-spacing:.12em;
+  color:#7f8e9a;
+  margin-top:9px;
+}
+
+/* DONE: green, ticked, and the rail behind it green too, so the strip
+   shows how far the run has got as a filling bar and not only as a set
+   of separate dots. */
+.ksat-sf-chain .stage.done i{
+  background:var(--green, #79bd96);
+  border-color:var(--green, #79bd96);
+  color:transparent;
+  font-size:0;
+}
+.ksat-sf-chain .stage.done i::after{
+  content:"";
+  width:5px; height:10px;
+  margin-top:-2px;
+  border:solid #0b1a12;
+  border-width:0 2px 2px 0;
+  transform:rotate(45deg);
+  display:block;
+}
+.ksat-sf-chain .stage.done:before{ background:#2f6b4d }
+.ksat-sf-chain .stage.done span{ color:#93a7b2 }
+
+/* ACTIVE: the stage the run is in. A halo that breathes, and the only
+   full-strength label on the strip, which is what makes it findable at
+   a glance from the back of a room. */
+.ksat-sf-chain .stage.active i{
+  border-color:var(--acc, #3fd0c9);
+  color:var(--acc, #3fd0c9);
+  animation:ksat-sf-pulse 1.7s ease-in-out infinite;
+}
+.ksat-sf-chain .stage.active span{ color:var(--white, #f5f7f8) }
+@keyframes ksat-sf-pulse{
+  0%,100%{ box-shadow:0 0 0 0 rgba(63,208,201,.34) }
+  50%    { box-shadow:0 0 0 7px rgba(63,208,201,0) }
+}
+@media (prefers-reduced-motion: reduce){
+  /* A static halo, so "you are here" survives with the motion off. */
+  .ksat-sf-chain .stage.active i{
+    animation:none; box-shadow:0 0 0 4px rgba(63,208,201,.20);
+  }
+}
+
+@media (max-width: 720px){
+  .ksat-sf-chain .stage span{ font-size:11px; letter-spacing:.06em }
+  .ksat-sf-chain .stage i{ width:24px; height:24px; font-size:12px }
+  .ksat-sf-chain .stage:before{ top:12px }
+}

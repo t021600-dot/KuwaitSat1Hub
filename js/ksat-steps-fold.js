@@ -169,6 +169,52 @@
   }
 
   /* ------------------------------------------------------------------
+     THE STATUS MARK: A RING WHILE IT RUNS, A TICK WHEN IT IS DONE
+
+     Asked for directly: a looping ring while an agent is working, green
+     when it finishes. The word stays - a ring on its own is a shape,
+     and "Completed" is the thing a researcher quotes later - so the
+     mark goes in front of it rather than in place of it.
+
+     FOUR STATES, NOT TWO. statusFor() above already collapses six row
+     classes into four words, and the mark follows the same four so the
+     shape and the word can never disagree:
+
+       done     ok, held      a filled green disc with a tick
+       running  running       a ring with one lit arc, turning
+       review   nodata, fault a hollow amber ring
+       wait     anything else a hollow grey ring
+
+     THE COLOUR IS NOT THE ONLY SIGNAL. The tick, the turning arc and
+     the word are all carried separately, so the card still reads on a
+     monochrome screen and to somebody who cannot tell the green from
+     the amber. That is the same rule the refusal colours in
+     css/ksat-workspace.css already follow.
+     ------------------------------------------------------------------ */
+  function stateKey(row) {
+    if (row.classList.contains('ok') || row.classList.contains('held')) { return 'done'; }
+    if (row.classList.contains('nodata') || row.classList.contains('fault')) { return 'review'; }
+    if (row.classList.contains('running')) { return 'running'; }
+    return 'wait';
+  }
+
+  /* Only ever called from inside foldRow, which runs once per row: this
+     writes into the chip, #trace is watched with subtree:true, and an
+     unguarded write here would re-enter sweep() for ever. */
+  function paintChip(row, chip) {
+    if (!chip) { return; }
+    var k = stateKey(row);
+    chip.classList.remove('ksat-sf-done', 'ksat-sf-running',
+                          'ksat-sf-review', 'ksat-sf-wait');
+    chip.classList.add('ksat-sf-mark-' + k);
+    chip.textContent = '';
+    var dot = el('span', 'ksat-sf-mark');
+    dot.setAttribute('aria-hidden', 'true');
+    chip.appendChild(dot);
+    chip.appendChild(doc.createTextNode(statusFor(row)));
+  }
+
+  /* ------------------------------------------------------------------
      FOLD ONE ROW
      ------------------------------------------------------------------ */
   function foldRow(row, key, repeatOfPrev) {
@@ -204,7 +250,7 @@
     }
     if (repeatOfPrev) {
       row.classList.add('ksat-sf-repeat');
-      if (chip) { chip.textContent = statusFor(row); }
+      paintChip(row, chip);
       /* The record is still reachable: it lives on the first row of the
          group, and this row's own technical detail is dropped rather
          than duplicated. Keep the row itself, because the COUNT of them
@@ -254,7 +300,7 @@
     }
 
     if (!detail.childNodes.length) {
-      if (chip) { chip.textContent = statusFor(row); }
+      paintChip(row, chip);
       return;
     }
 
@@ -285,7 +331,7 @@
     mid.appendChild(detail);
     paint(!!OPEN[id]);
 
-    if (chip) { chip.textContent = statusFor(row); }
+    paintChip(row, chip);
   }
 
   /* ------------------------------------------------------------------
