@@ -658,15 +658,36 @@
         paintMissions();
         fillRunMission();
         paintGeoLayers();
+        greet();
         log('missions: ' + MISSIONS.length + ' visible');
       });
+  }
+
+  /* THE GREETING, from the name the masthead already resolved.
+
+     The portal opens with one and this page opened with a page title.
+     Same treatment now - and deliberately from #whoName rather than a
+     second read of the profile, so there is exactly one place a
+     researcher's name comes from on this page and it cannot drift.
+
+     Silent until that name is real: "Good morning, Signed in" would be
+     worse than the page title it replaces. */
+  function greet() {
+    var h = doc.getElementById('ovGreeting');
+    var who = doc.getElementById('whoName');
+    if (!h || !who) { return; }
+    var name = (who.firstChild && who.firstChild.textContent || '').trim();
+    if (!name || /^signed in$/i.test(name)) { return; }
+    var hr = new Date().getHours();
+    var word = hr < 12 ? 'Good morning' : (hr < 18 ? 'Good afternoon' : 'Good evening');
+    h.textContent = word + ', ' + String(name).split(/\s+/).slice(0, 2).join(' ');
   }
 
   function paintMissions() {
     var t = doc.getElementById('missionTable');
     var ov = doc.getElementById('ovMissions');
     if (!t) return;
-    $$('tr:not(:first-child)', t).forEach(function (n) { n.remove(); });
+    clear(t);
     if (ov) $$('tr:not(:first-child)', ov).forEach(function (n) { n.remove(); });
 
     var q = (($('#missionSearch') || {}).value || '').trim().toLowerCase();
@@ -680,18 +701,30 @@
     else if (MISSIONS.length) { say('missionMsg', ''); }
 
     rows.forEach(function (m, i) {
-      var tr = el('tr', 'missionrow');
-      tr.setAttribute('data-mid', m.id);
-      tr.appendChild(el('td', null, m.title || 'Untitled'));
-      tr.appendChild(el('td', 'wrap', (m.objective || '').slice(0, 110)));
-      tr.appendChild(el('td', null, areaCell(m)));
-      tr.appendChild(el('td', 'nowrap', (m.created_at || '').slice(0, 10)));
-      var td = el('td');
-      td.appendChild(statusTag(m.status));
-      if (m.injection_flag) td.appendChild(el('span', 'tag', ' FLAGGED'));
-      tr.appendChild(td);
-      tr.addEventListener('click', function () { openMission(m.id); });
-      t.appendChild(tr);
+      /* ONE CARD PER RUN. A button, not a div with a click handler:
+         this opens something, so it has to be reachable by keyboard and
+         announce itself as a control. */
+      var card = el('button', 'runcard');
+      card.type = 'button';
+      card.setAttribute('data-mid', m.id);
+
+      var top = el('div', 'runcard-top');
+      top.appendChild(el('b', null, m.title || 'Untitled'));
+      top.appendChild(statusTag(m.status));
+      if (m.injection_flag) { top.appendChild(el('span', 'tag', 'FLAGGED')); }
+      card.appendChild(top);
+
+      /* Shorter than the old 110, because a card gives it three lines
+         rather than one cell to run along. */
+      card.appendChild(el('p', 'runcard-obj', (m.objective || '').slice(0, 96)));
+
+      var foot = el('div', 'runcard-foot');
+      foot.appendChild(el('span', null, areaCell(m)));
+      foot.appendChild(el('span', null, (m.created_at || '').slice(0, 10)));
+      card.appendChild(foot);
+
+      card.addEventListener('click', function () { openMission(m.id); });
+      t.appendChild(card);
 
       if (i < 4 && ov) {
         var o = el('tr');

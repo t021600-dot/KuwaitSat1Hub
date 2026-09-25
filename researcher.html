@@ -155,8 +155,11 @@
   <div class="head">
     <div>
       <div class="kicker">Research Operations / Run Control</div>
-      <h1>Research Overview</h1>
-      <p>Operational context, active investigations and scientific workflow status.</p>
+      <!-- Filled by greet() in js/ksat-researcher.js once the profile
+           arrives. Until then it reads as the page title, not as a
+           greeting addressed to nobody. -->
+      <h1 id="ovGreeting">Research Overview</h1>
+      <p>Your runs, your data, and what the agents have done.</p>
     </div>
     <button class="btn primary" data-act="new-mission">＋ New Run</button>
   </div>
@@ -213,17 +216,21 @@
     <button class="btn primary" data-act="new-mission">＋ New Run</button>
   </div>
   <div class="card">
-    <input class="search" id="missionSearch" placeholder="Search mission name, objective, status…">
-    <table style="margin-top:12px" id="missionTable">
-      <tr><th>Run</th><th>Research objective</th><th>Area</th><th>Created</th><th>Status</th></tr>
-    </table>
+    <input class="search" id="missionSearch" placeholder="Search runs by name, objective or status…">
+    <!-- CARDS, NOT ROWS. Thirteen rows of five columns with a
+         110-character objective in one of them is a wall to scan in two
+         directions at once. A <table> is the right element for tabular
+         data and the wrong one for a set of summaries, so the headings
+         went with it: each value is labelled by its position and by the
+         chip that carries it. -->
+    <div class="runcards" id="missionTable" style="margin-top:16px"></div>
     <div class="said" id="missionMsg"></div>
   </div>
 
   <!-- Opened by clicking a row. Empty, and hidden, until then. -->
   <div class="card detail" id="missionDetail" hidden>
     <div class="ct">
-      <h3 id="mdTitle">Mission</h3>
+      <h3 id="mdTitle">Run</h3>
       <button class="btn" data-act="close-detail">Close</button>
     </div>
     <div class="grid">
@@ -487,7 +494,7 @@
 
   <div class="grid">
     <div class="card s3"><div class="label">Runs</div>
-      <div class="metric" id="aRuns">—</div><div class="sub">mission_runs</div></div>
+      <div class="metric" id="aRuns">—</div><div class="sub">across all your runs</div></div>
     <div class="card s3"><div class="label">Steps recorded</div>
       <div class="metric" id="aSteps">—</div><div class="sub">across all your runs</div></div>
     <div class="card s3"><div class="label">Steps refused</div>
