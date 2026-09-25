@@ -83,8 +83,18 @@ aside h5{ font-size:12px }
 .step code{ font-size:13px }
 .finding h4{ font-size:13px }
 .finding p{ font-size:13px; line-height:1.7 }
-.detail dd{ font-size:15px }
-.detail dt{ font-size:12px }
+/* THE OPEN RUN IS THE PAGE NOW, so it is set at reading size rather
+   than at the size of a row in a list. Every other run is hidden while
+   this is open - js/ksat-run-focus.js - so there is no list beside it
+   for it to stay in proportion with. The labels come up with the values
+   so the pair still reads as a pair. */
+.detail dd{ font-size:17px; line-height:1.6 }
+.detail dt{ font-size:13px }
+.detail .ct h3{ font-size:20px }
+.detail .said{ font-size:15.5px; line-height:1.65 }
+.detail .finding h4{ font-size:15.5px }
+.detail .finding p{ font-size:15px; line-height:1.7 }
+.detail .sub{ font-size:13px }
 .sheet dd{ font-size:15px }
 .sheet dd small{ font-size:12.5px }
 .sheet dt{ font-size:11px }

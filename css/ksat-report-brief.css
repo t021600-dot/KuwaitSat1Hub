@@ -54,9 +54,23 @@
   margin-bottom:6px;
 }
 
-/* ---------- body rhythm ---------- */
+/* ---------- body rhythm ----------
+
+   THE PROSE UNDER EACH HEADING IS SET LARGER, on request. It inherited
+   the workspace's own body size, which is right for a table cell and
+   small for a document somebody is being asked to approve and sign off.
+
+   17px with a 1.75 line and a 74-character measure is an ordinary
+   reading setting; the headings above it were already 19px and 30px, so
+   this closes a gap that made the body look like a footnote to its own
+   title rather than the thing the title introduces.
+
+   PRINT IS NOT TOUCHED. The @media print block at the foot of this file
+   sets the document in points against paper, and a screen size in px
+   has no business leaking into it. */
 .reporthost .reportmain p,
-.reporthost .reportmain li{ line-height:1.75 }
+.reporthost .reportmain li{ font-size:17px; line-height:1.75 }
+.reporthost .reportmain{ max-width:74ch }
 .reporthost .reportmain p{ margin:0 0 13px }
 .reporthost .reportmain ul,
 .reporthost .reportmain ol{ margin:0 0 14px; display:flex; flex-direction:column; gap:8px }
@@ -95,4 +109,12 @@
   html.ksat-printing .ksat-rb-rest{ display:block !important }
   html.ksat-printing .ksat-rb-more{ display:none !important }
   html.ksat-printing .reportmain .ksat-rb-lead{ font-size:11.5pt }
+  /* THE SCREEN SIZES DO NOT FOLLOW THE REPORT ONTO PAPER. The body
+     rhythm block above sets 17px and a 74ch measure, which are right
+     for a panel in a workspace and wrong against an A4 page that
+     already has its own margins. Paper gets points, and the measure is
+     the page. */
+  html.ksat-printing .reportmain{ max-width:none }
+  html.ksat-printing .reportmain p,
+  html.ksat-printing .reportmain li{ font-size:10.5pt; line-height:1.55 }
 }

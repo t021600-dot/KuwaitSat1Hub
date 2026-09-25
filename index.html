@@ -1273,7 +1273,20 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
      just been told how to read the badges should meet a live panel
      wearing them before they meet a table. -->
 <section class="sec" id="orbit">
-  <div class="eyebrow"><span class="badge sim">◈ Modelled, not live telemetry</span></div>
+  <!-- THE SECTION EYEBROW IS GONE, on request. It read
+       "◈ Modelled, not live telemetry".
+
+       THE CLAIM SURVIVES TWICE OVER, and it has to, because this panel
+       shows a position for a satellite and nothing here is measured:
+
+         1. the badge drawn on the canvas itself,
+            "◈ MODELLED ORBIT · NOT LIVE TELEMETRY"
+         2. the chip on the telemetry readout beside it, "◈ Modelled"
+
+       A paragraph saying the same thing was removed earlier for the
+       same reason, and its note said that if either of those badges
+       ever goes, the words have to come back. That is now the only
+       place the claim lives. Do not remove them. -->
   <h2 class="st" data-i18n="orb.h">Where Is KuwaitSat?</h2>
   <!-- The 60-word lede that was here said what the eyebrow above it,
        the badge on the canvas and the chip on the readout all already
@@ -2535,56 +2548,175 @@ const Intro = (()=>{
       ctx.stroke();
     });
 
+    /* ---------------------------------------------------------------
+       A LIT CYLINDER, NOT A STRIP OF PAPER.
+
+       Every tube here used to be one flat fill with a darker rectangle
+       laid over the right-hand third. At any size that reads as paper,
+       because a cylinder does not have an edge down its middle - it has
+       a dark limb, a lit band, a specular line and a second dark limb,
+       and the eye reads the SMOOTHNESS between them as roundness.
+
+       Sun from the upper left, the same direction as the planet and the
+       spacecraft in this sequence. The stops below are that: limb,
+       shoulder, highlight, body, falling shadow, far limb. */
+    function tube(x0, w, stops){
+      const g = ctx.createLinearGradient(x0, 0, x0 + w, 0);
+      for (let i = 0; i < stops.length; i++) { g.addColorStop(stops[i][0], stops[i][1]); }
+      return g;
+    }
+    /* White orbital-class paint is never white: it is a very light warm
+       grey that goes blue in shadow, which is why the dark stops here
+       are cooler than the light ones rather than simply darker. */
+    const PAINT = [[0,"#6F7A87"],[.05,"#A9B5C1"],[.20,"#FAFDFF"],[.34,"#EDF2F8"],
+                   [.62,"#C2CBD6"],[.86,"#868F9C"],[1,"#5A626D"]];
+    const SOOT  = [[0,"#04060A"],[.10,"#141A21"],[.30,"#2C333D"],[.58,"#1B212A"],
+                   [.84,"#0D1117"],[1,"#030508"]];
+
+    /* A hairline down both flanks. A white body on a pale horizon loses
+       its silhouette exactly where it should be sharpest, and one pixel
+       of dark edge is the whole fix. */
+    function flanks(x0, w, y, h){
+      ctx.strokeStyle = "rgba(14,18,24,.55)";
+      ctx.lineWidth = Math.max(0.5, 0.55 * s);
+      ctx.beginPath();
+      ctx.moveTo(x0, y);          ctx.lineTo(x0, y + h);
+      ctx.moveTo(x0 + w, y);      ctx.lineTo(x0 + w, y + h);
+      ctx.stroke();
+    }
+
+    /* A seam where two sections meet. Real hardware shows a line there;
+       a drawing that does not have one reads as extruded. */
+    function seam(y, w){
+      ctx.fillStyle = "rgba(10,14,19,.45)";
+      ctx.fillRect(-w / 2, y, w, Math.max(0.6, 0.7 * s));
+    }
+
     /* FIRST STAGE */
-    ctx.fillStyle="#E9EEF3"; ctx.fillRect(-bw/2,-h1,bw,h1);
-    /* the shaded side, so it reads as a cylinder and not a strip */
-    ctx.fillStyle="#C4CDD7"; ctx.fillRect(bw*0.16,-h1,bw*0.34,h1);
+    ctx.fillStyle = tube(-bw/2, bw, PAINT);
+    ctx.fillRect(-bw/2, -h1, bw, h1);
+
     /* THE RACEWAY. A black conduit enclosure runs the full length of
        the first stage on one side. On a white tube it is one of the two
        markings that identify this vehicle at a glance - the other being
-       the interstage - and the drawing had neither the stripe nor the
-       gap where it meets the interstage. Offset from centre because it
-       runs down a side, not the middle. */
-    ctx.fillStyle="#191D23";
+       the interstage. Offset from centre because it runs down a side,
+       not the middle, and given its own narrow gradient so it turns
+       with the hull rather than sitting on top of it. */
+    ctx.fillStyle = tube(bw*0.05, bw*0.13, SOOT);
     ctx.fillRect(bw*0.05, -h1, bw*0.13, h1);
 
-    /* soot band above the engines: every flown booster carries one */
-    ctx.fillStyle="#6E747B"; ctx.globalAlpha=.55;
-    ctx.fillRect(-bw/2,-H70*0.075,bw,H70*0.075); ctx.globalAlpha=1;
-    /* octaweb */
-    ctx.fillStyle="#12181F"; ctx.fillRect(-bw*0.56,-H70*0.022,bw*1.12,H70*0.022);
+    /* soot band above the engines: every flown booster carries one, and
+       it fades upward rather than stopping at a line. */
+    let sg = ctx.createLinearGradient(0, -H70*0.085, 0, 0);
+    sg.addColorStop(0, "rgba(58,64,72,0)");
+    sg.addColorStop(1, "rgba(38,43,50,.72)");
+    ctx.fillStyle = sg; ctx.fillRect(-bw/2, -H70*0.085, bw, H70*0.085);
+
+    flanks(-bw/2, bw, -h1, h1);
+
+    /* THE OCTAWEB AND NINE MERLINS. This was a plain black rectangle,
+       so the vehicle appeared to end in a slab. Side on, three bells
+       are in silhouette below the thrust structure: the centre engine
+       and the two outboard ones whose bells clear the skirt. */
+    ctx.fillStyle = tube(-bw*0.56, bw*1.12, SOOT);
+    ctx.fillRect(-bw*0.56, -H70*0.031, bw*1.12, H70*0.031);
+
+    /* NOTHING HANGS BELOW y=0, and that is not a detail.
+
+       y=0 is where the vehicle meets the pad: the legs put their hinges
+       on it and drawPad() builds the deck around it. The first version
+       of these bells flared DOWNWARD from zero, which is what a real
+       bell does relative to its thrust structure - and on this drawing
+       it put three black teeth through the pad surface.
+
+       So the bells sit inside the skirt instead, which is also what you
+       actually see from side on: a dark recess with three lit mouths in
+       it. The octaweb was deepened from 0.024 to 0.031 of the stack to
+       make the room for them. */
+    const bell = H70*0.021;
+    [[-0.34,0.86],[0,1],[0.34,0.86]].forEach(function(e){
+      const mouth = -bell + bell*e[1];
+      ctx.fillStyle = "#070B10";
+      ctx.beginPath();
+      ctx.moveTo(e[0]*bw - bw*0.09, -bell);
+      ctx.lineTo(e[0]*bw + bw*0.09, -bell);
+      ctx.lineTo(e[0]*bw + bw*0.15, mouth);
+      ctx.lineTo(e[0]*bw - bw*0.15, mouth);
+      ctx.closePath(); ctx.fill();
+      /* The rim of a bell is the one part of it that catches light, and
+         at intro scale it is the whole reason the base reads as engines
+         rather than as a slab. */
+      ctx.fillStyle = "rgba(156,170,188,.42)";
+      ctx.fillRect(e[0]*bw - bw*0.14, mouth - Math.max(0.6, 0.7*s),
+                   bw*0.28, Math.max(0.6, 0.7*s));
+    });
 
     /* GRID FINS, stowed, near the top of the first stage.
        Unpainted TITANIUM on Block 5 - warmer and darker than the
        ablative-painted aluminium of the earlier versions. */
-    ctx.fillStyle="#8E8A82";
-    ctx.fillRect(-bw*0.78,-h1+H70*0.012,bw*0.28,H70*0.026);
-    ctx.fillRect( bw*0.50,-h1+H70*0.012,bw*0.28,H70*0.026);
+    ctx.fillStyle = "#8E8A82";
+    ctx.fillRect(-bw*0.78, -h1 + H70*0.012, bw*0.28, H70*0.026);
+    ctx.fillRect( bw*0.50, -h1 + H70*0.012, bw*0.28, H70*0.026);
+    ctx.fillStyle = "rgba(24,26,30,.55)";
+    ctx.fillRect(-bw*0.78, -h1 + H70*0.019, bw*0.28, Math.max(0.6, 0.6*s));
+    ctx.fillRect( bw*0.50, -h1 + H70*0.019, bw*0.28, Math.max(0.6, 0.6*s));
 
-    /* INTERSTAGE, black. The one unmistakable Falcon 9 marking. */
-    ctx.fillStyle="#14191F"; ctx.fillRect(-bw/2,-(h1+hIS),bw,hIS);
+    /* INTERSTAGE, black composite. The one unmistakable Falcon 9
+       marking, and the only black band on this vehicle - the reference
+       image has them the length of the stack, and this one does not. */
+    ctx.fillStyle = tube(-bw/2, bw, SOOT);
+    ctx.fillRect(-bw/2, -(h1+hIS), bw, hIS);
+    flanks(-bw/2, bw, -(h1+hIS), hIS);
+    seam(-h1, bw);
 
     /* SECOND STAGE */
-    ctx.fillStyle="#E9EEF3"; ctx.fillRect(-bw/2,-(h1+hIS+h2),bw,h2);
-    ctx.fillStyle="#C4CDD7"; ctx.fillRect(bw*0.16,-(h1+hIS+h2),bw*0.34,h2);
+    ctx.fillStyle = tube(-bw/2, bw, PAINT);
+    ctx.fillRect(-bw/2, -(h1+hIS+h2), bw, h2);
+    flanks(-bw/2, bw, -(h1+hIS+h2), h2);
+    seam(-(h1+hIS), bw);
 
-    /* FAIRING: wider than the core, with the ogive nose. */
-    const fy=-(h1+hIS+h2);
-    ctx.fillStyle="#F2F6FA";
+    /* FAIRING: wider than the core, with the ogive nose. Clipped and
+       filled with the same gradient across its own width, so the nose
+       is lit from the same side as everything under it instead of being
+       a flat shape with a grey rectangle inside it. */
+    const fy = -(h1+hIS+h2);
+    ctx.save();
     ctx.beginPath();
     ctx.moveTo(-bw/2, fy);
-    ctx.lineTo(-fw/2, fy-hFR*0.16);          // shoulder out to 5.2 m
-    ctx.lineTo(-fw/2, fy-hFR*0.62);
-    ctx.quadraticCurveTo(-fw/2, fy-hFR*0.95, 0, fy-hFR);   // ogive
-    ctx.quadraticCurveTo( fw/2, fy-hFR*0.95,  fw/2, fy-hFR*0.62);
-    ctx.lineTo( fw/2, fy-hFR*0.16);
+    ctx.lineTo(-fw/2, fy - hFR*0.16);          // shoulder out to 5.2 m
+    ctx.lineTo(-fw/2, fy - hFR*0.62);
+    ctx.quadraticCurveTo(-fw/2, fy - hFR*0.95, 0, fy - hFR);   // ogive
+    ctx.quadraticCurveTo( fw/2, fy - hFR*0.95,  fw/2, fy - hFR*0.62);
+    ctx.lineTo( fw/2, fy - hFR*0.16);
     ctx.lineTo( bw/2, fy);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle="#CBD5DF";
-    ctx.fillRect(fw*0.10, fy-hFR*0.62, fw*0.26, hFR*0.46);
-    /* the fairing split line */
-    ctx.strokeStyle="rgba(120,132,146,.55)"; ctx.lineWidth=Math.max(0.6,0.7*s);
-    ctx.beginPath(); ctx.moveTo(0,fy-hFR*0.02); ctx.lineTo(0,fy-hFR*0.9); ctx.stroke();
+    ctx.closePath();
+    ctx.clip();
+    ctx.fillStyle = tube(-fw/2, fw, PAINT);
+    ctx.fillRect(-fw/2, fy - hFR*1.02, fw, hFR*1.04);
+    /* The tip takes a little of the sky: a nose cone this far from the
+       body colour is what makes a drawn rocket look like a cardboard
+       cut-out. */
+    let tg = ctx.createLinearGradient(0, fy - hFR, 0, fy - hFR*0.55);
+    tg.addColorStop(0, "rgba(150,168,190,.55)");
+    tg.addColorStop(1, "rgba(150,168,190,0)");
+    ctx.fillStyle = tg; ctx.fillRect(-fw/2, fy - hFR, fw, hFR*0.45);
+    ctx.restore();
+
+    /* the fairing outline and its split line */
+    ctx.strokeStyle = "rgba(14,18,24,.50)";
+    ctx.lineWidth = Math.max(0.5, 0.55 * s);
+    ctx.beginPath();
+    ctx.moveTo(-bw/2, fy);
+    ctx.lineTo(-fw/2, fy - hFR*0.16);
+    ctx.lineTo(-fw/2, fy - hFR*0.62);
+    ctx.quadraticCurveTo(-fw/2, fy - hFR*0.95, 0, fy - hFR);
+    ctx.quadraticCurveTo( fw/2, fy - hFR*0.95,  fw/2, fy - hFR*0.62);
+    ctx.lineTo( fw/2, fy - hFR*0.16);
+    ctx.lineTo( bw/2, fy);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(110,124,140,.60)";
+    ctx.beginPath(); ctx.moveTo(0, fy - hFR*0.02); ctx.lineTo(0, fy - hFR*0.9); ctx.stroke();
+    seam(fy - hFR*0.16, fw*0.99);
 
     ctx.restore();
   }

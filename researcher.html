@@ -60,7 +60,16 @@
 <link rel="stylesheet" href="css/ksat-workspace.css">
 <link rel="stylesheet" href="css/ksat-areas.css">
 <link rel="stylesheet" href="css/ksat-audit-plain.css">
-<link rel="stylesheet" href="css/ksat-narrate.css">
+<!-- css/ksat-narrate.css and js/ksat-narrate.js are no longer loaded.
+
+     They drew the "Live progress" panel above the agent list: a scrolling
+     commentary with its own clock, its own run id and a Bigger button.
+     Taken off on request. The same information is in the agent cards
+     under it, which now carry a running ring and a finished tick, and
+     the chain strip above them says which stage the run is in.
+
+     The files are still in the repository. Nothing else reads
+     KSAT.narrate, so bringing the panel back is these two lines. -->
 <link rel="stylesheet" href="css/ksat-researcher-tour.css">
 <link rel="stylesheet" href="css/ksat-steps-fold.css">
 <link rel="stylesheet" href="css/ksat-access.css">
@@ -615,11 +624,13 @@
 <script src="js/ksat-areas.js"></script>
 <script src="js/ksat-researcher.js"></script>
 <script src="js/ksat-audit-plain.js"></script>
-<script src="js/ksat-narrate.js"></script>
 <script src="js/ksat-missions-map.js"></script>
 <script src="js/ksat-mission-edit.js"></script>
 <script src="js/ksat-researcher-tour.js"></script>
 <script src="js/ksat-steps-fold.js"></script>
+<!-- One run at a time: while a run is open its card is the page, and
+     the grid of every other run is not. -->
+<script src="js/ksat-run-focus.js"></script>
 <script src="js/ksat-access.js"></script>
 <script src="js/ksat-report-doc.js"></script>
 <script src="js/ksat-checkpoint-figures.js"></script>
