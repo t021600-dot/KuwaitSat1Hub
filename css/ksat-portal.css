@@ -293,3 +293,7 @@ a.tile:hover { background: #141d25; border-color: #3c4a55 }
 
 .itembody{ padding-left:30px; margin-top:8px }
 .itembody p{ margin:0 0 10px }
+
+/* The portal sidebar carries the same treatment: same items, same type,
+   less space between them. */
+aside h5{ font-size:12px; letter-spacing:.12em }

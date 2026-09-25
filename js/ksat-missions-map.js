@@ -77,8 +77,8 @@
     WRAP.id = 'ksatMissionsMap';
 
     var ct = el('div', 'ct');
-    ct.appendChild(el('h3', null, 'Where these missions are'));
-    var fit = el('button', 'btn', 'Fit to my missions');
+    ct.appendChild(el('h3', null, 'Where your runs are'));
+    var fit = el('button', 'btn', 'Fit to my runs');
     fit.type = 'button';
     fit.addEventListener('click', function () { fitAll(true); });
     ct.appendChild(fit);
@@ -179,10 +179,19 @@
       drawn++;
     });
 
-    say(drawn + ' mission' + (drawn === 1 ? '' : 's') + ' drawn on the real ' +
-        'coastline' + (skipped ? ', ' + skipped + ' with no usable area' : '') +
-        '. Click an area to open its mission. Boundaries are OpenStreetMap ' +
-        'under ODbL; see assets/geo/LICENSE-DATA.md.');
+    /* THE CAPTION IS GONE, and the licence credit is not.
+
+       This said "N missions drawn on the real coastline. Click an area
+       to open its mission. Boundaries are OpenStreetMap under ODbL; see
+       assets/geo/LICENSE-DATA.md." Removed on request.
+
+       The ODbL credit survives because it was never only here:
+       js/ksat-layers.js adds it to Leaflet's own attribution control on
+       every map it loads a layer into, and this map calls
+       KS.layers.load for both 'land' and 'islands'. The obligation is
+       met on the map itself, which is where a map credit belongs. If
+       that ever stops being true, this sentence has to come back. */
+    say('');
 
     fitAll(false);
   }

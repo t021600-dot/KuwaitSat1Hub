@@ -1057,3 +1057,105 @@ table.zones td.mono{ font-size:21px }
    lines and pushing the tiles to different heights. */
 .card .label + .metric{ line-height:1.05 }
 .card .label{ line-height:1.35 }
+
+/* =====================================================================
+   RUNS AS CARDS
+
+   Thirteen rows of five columns, one of them carrying a 110-character
+   objective, is a wall a reader scans in two directions at once. A grid
+   of cards is read one card at a time.
+
+   Each card is a BUTTON, because it opens something - so it is
+   focusable, it announces itself, and Enter works on it.
+   ===================================================================== */
+.runcards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));
+  gap:16px;
+}
+.runcard{
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+  width:100%;
+  min-width:0;
+  padding:20px;
+  font:inherit;
+  text-align:left;
+  color:inherit;
+  background:#0f161c;
+  border:1px solid var(--line, #263038);
+  border-radius:10px;          /* the soft edges */
+  cursor:pointer;
+  transition:border-color .14s ease, background .14s ease;
+}
+.runcard:hover{ background:#131c24; border-color:#36434e }
+.runcard:focus-visible{ outline:2px solid var(--acc, #3fd0c9); outline-offset:2px }
+@media (prefers-reduced-motion: reduce){ .runcard{ transition:none } }
+
+.runcard-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.runcard-top b{
+  font-size:19px;
+  line-height:1.35;
+  color:var(--white, #e8eef2);
+  min-width:0;
+}
+.runcard-top .tag{ flex:0 0 auto }
+
+.runcard-obj{
+  margin:0;
+  font-size:17px;
+  line-height:1.55;
+  color:var(--dim, #8d9aa5);
+  /* Three lines, then stop. A card whose height depends on how long
+     somebody's question was is a grid that never lines up. */
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.runcard-foot{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 16px;
+  margin-top:auto;
+  padding-top:11px;
+  border-top:1px solid #1b242c;
+  font-size:15px;
+  color:#6f7d88;
+}
+
+@media (max-width: 720px){
+  .runcards{ grid-template-columns:minmax(0,1fr); gap:13px }
+  .runcard{ padding:17px }
+}
+
+/* =====================================================================
+   THE SIDEBAR, TIGHTENED
+
+   Eleven items over five groups, each at 13px padding with 26px between
+   groups, ran the full height of the screen and then some. The type
+   stays where it is - it was raised on purpose - and the SPACE between
+   things comes down instead. Same items, same size, less scrolling.
+   ===================================================================== */
+aside{ padding:16px 12px }
+aside button{ padding:9px 10px; border-radius:6px }
+aside h5{
+  font-size:12px;
+  letter-spacing:.12em;
+  margin:18px 10px 6px;
+}
+aside h5:first-child{ margin-top:4px }
+aside .asidelink{ padding:9px 10px }
+
+@media (max-width: 1500px){
+  aside{ padding:14px 11px }
+  aside button{ padding:8px 9px }
+  aside h5{ margin:15px 9px 5px }
+}
