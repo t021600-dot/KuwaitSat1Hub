@@ -1100,7 +1100,15 @@
        illustrated the orbit rather than the thing in it. */
     feature.appendChild(figureFor('unit', COPY.capUnit, code));
 
-    /* ---- TREATMENT 2: the two prose blocks under it ---------------- */
+    /* ---- TREATMENT 2: the two prose blocks under it ----------------
+
+       THERE ARE NO TWO PROSE BLOCKS ANY MORE. js/ksat-facts.js stopped
+       emitting .ksf-band.two when the orbit panel took that place on
+       the page, so `two` is null and everything below is skipped.
+
+       The treatment is left standing rather than deleted: it is four
+       lines, it is already null-guarded, and if the row is ever wanted
+       back it is one uncommented block in js/ksat-facts.js away. */
     var two = ksf.querySelector(':scope > .ksf-band.two');
     if (two) {
       var row = el('div', 'ksh-row');

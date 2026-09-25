@@ -1204,11 +1204,27 @@ html[dir="rtl"] .ksh-tile:focus-visible .ksh-tile__arrow { transform: scaleX(-1)
    1.5 photograph in the 2.4 box and the whole 36% crop this note
    exists to describe.
    ===================================================================== */
+/* THE RATIO BELOW WAS WRITTEN FOR A DIFFERENT PHOTOGRAPH.
+
+   770 x 513 was the group portrait. The picture in this band now is Dr
+   Hala Al-Jassar's, at 1080 x 1350 - a PORTRAIT, 0.8 rather than 1.5.
+   Dropped into the old box and covered, it lost the top of her head and
+   the bottom of the frame, which is the same failure this whole note
+   was written about the first time, in the other direction.
+
+   So the band takes the picture's own ratio and is capped at a width
+   that keeps it a photograph rather than a column: 470px, which is
+   about the width of the prose beside it.
+
+   object-fit: contain is belt and braces. With the ratios matching it
+   is identical to cover; it is here so that the next photograph to go
+   in this band is letterboxed rather than silently cropped. */
 #mission .ksh-band {
-  aspect-ratio: 770 / 513;
+  aspect-ratio: 1080 / 1350;
   min-height: 0;
   width: 100%;
-  max-width: min(100%, 1040px);
+  max-width: min(100%, 470px);
   margin-inline: auto;
   margin-block: clamp(20px, 3vw, 44px);
 }
+#mission .ksh-band__img { object-fit: contain; }

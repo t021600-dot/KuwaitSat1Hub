@@ -112,8 +112,10 @@ img{max-width:100%}
   border-bottom:1px solid var(--line)}
 .bar-in{max-width:var(--maxw); margin:0 auto; padding-inline:var(--gut);
   height:var(--bar-h); display:flex; align-items:center; gap:14px}
+/* An <a> now, not a <button> - see the markup. The three declarations
+   after `padding:0` are what an anchor needs and a button did not. */
 .brand{display:flex; align-items:center; gap:10px; flex:0 0 auto; cursor:pointer;
-  background:none; border:0; padding:0}
+  background:none; border:0; padding:0; text-decoration:none; color:inherit}
 .brand .mk{width:26px; height:26px; flex:0 0 auto}
 .brand b{font-family:var(--disp); font-weight:800; font-size:15.5px; letter-spacing:.055em; color:var(--ink)}
 .brand i{font-style:normal; font-family:var(--mono); font-size:11.5px; color:var(--accent);
@@ -277,20 +279,38 @@ tbody tr:hover td{background:rgba(255,255,255.025)}
 .startgate{display:flex; flex-direction:column; align-items:center; text-align:center; gap:0;
   animation:gatein .9s ease both}
 @keyframes gatein{from{opacity:0; transform:translateY(12px)}to{opacity:1; transform:none}}
-.gate-mark{margin-bottom:16px; filter:drop-shadow(0 0 22px rgba(63,208,201.35))}
+/* NO GLOW ON THE SEAL.
+
+   This was filter:drop-shadow(0 0 22px rgba(63,208,201.35)). There is
+   no comma before the alpha, so that colour parses as three-argument
+   rgb() and the halo was drawn FULLY OPAQUE rather than at 35%. That is
+   the teal flare the seal was sitting in.
+
+   Removed rather than corrected. The emblem is a printed circular seal;
+   the two effects css/ksat-brand.css gives it for use on the void - its
+   own drop-shadow and the slow halo behind it - are also cancelled
+   here, because on this card it is 150px of cream on black and needs no
+   help being seen. Both are scoped to .gate-mark and stay exactly as
+   they are everywhere else the emblem appears. */
+.gate-mark{margin-bottom:16px}
+.gate-mark .ksat-emblem{filter:none}
+.gate-mark .ksat-emblem-wrap::before{display:none}
 .gate-kw{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.46em; color:#4FD3CC;
   margin-bottom:14px}
 .gate-h{font-family:var(--disp); font-size:clamp(24px,5.4vw,50px); font-weight:800; letter-spacing:-.03em;
   color:#F2F8FF; max-width:16ch}
 .gate-ar{font-family:"Readex Pro",sans-serif; direction:rtl; font-size:clamp(14px,2.6vw,22px);
   color:#9BE8E2; margin-top:10px}
-.gate-p{font-size:13.5px; color:#8AA3BC; max-width:44ch; margin-top:20px; line-height:1.65}
+/* .gate-p is gone with the paragraph it styled. See the note beside
+   the two start buttons in the markup. */
 .gate-btns{display:flex; gap:11px; margin-top:26px; flex-wrap:wrap; justify-content:center}
 .gate-b{padding:12px 22px; font-size:14px; border-radius:11px}
 /* #5C7086 measured 4.12:1 on this card's black, under the 4.5:1 bar for
    body text at 11.5px regular. #6E849C is 5.44:1 on the same black and
-   still reads as the quietest line on the gate - .gate-p above it sits at
-   8.05:1, so the hierarchy that made the old value attractive survives.
+   still reads as the quietest line on the gate. It used to be measured
+   against .gate-p above it at 8.05:1; that paragraph has gone, so this
+   line is now the only body text on the card and the ratio is the only
+   thing keeping it readable.
    The gate is black in BOTH themes, so this is not a light-mode rule and
    wants no token. */
 .gate-n{font-size:11.5px; color:#6E849C; margin-top:16px}
@@ -302,9 +322,42 @@ tbody tr:hover td{background:rgba(255,255,255.025)}
 .intro-ui{position:relative; z-index:3; width:100%; height:100%; display:flex;
   flex-direction:column; align-items:center; justify-content:center;
   padding-inline:var(--gut); text-align:center}
-.count{font-family:var(--disp); font-weight:800; font-size:clamp(90px,22vw,230px);
+/* THE COUNT AND THE VEHICLE STOPPED SHARING THE MIDDLE OF THE FRAME.
+
+   The stack - plate, number, T-minus, status - was centred in the
+   viewport. The rocket is drawn with its base at 0.86 of the height and
+   a total height of 150 x min(W,H)/620, which puts its nose at about
+   0.62 of the height AT EVERY SIZE, because both the base and the scale
+   are proportional to it. The bottom of the stack sat inside that band,
+   so "IGNITION SEQUENCE" was printed across the first stage.
+
+   So the count owns the top 52% and the vehicle owns the rest. 52%
+   rather than a number that happens to work on one screen: the nose
+   lands at 62% whatever the window is, so the clearance is about a
+   tenth of the viewport everywhere.
+
+   THE NUMBER TAKES ITS SIZE FROM THE HEIGHT AS WELL NOW. It was
+   clamp(90px,22vw,230px), which on a short wide window asks for 230px
+   of type in a band that is 200px tall. min(22vw,34vh) lets the height
+   win when the height is what is short.
+
+   The glow was rgba(120,200,255.35) - no comma, so opaque - which is
+   why a 70px shadow reached most of the way across the frame. */
+.count{font-family:var(--disp); font-weight:800;
+  /* 32vh, not 34: measured across six window sizes, 34vh let the
+     stack overflow its own band by 2px at 962x492. It still cleared
+     the vehicle, but a band the content does not fit in is a bug
+     waiting for the next string to be one word longer. */
+  font-size:clamp(90px,min(22vw,32vh),230px);
   line-height:.9; color:#EAF6FF; letter-spacing:-.04em; font-variant-numeric:tabular-nums;
-  text-shadow:0 0 70px rgba(120,200,255.35)}
+  text-shadow:0 0 70px rgba(120,200,255,.35)}
+/* The [hidden] guard is not optional: an id selector outscores the
+   browser's own [hidden]{display:none}, so without it the countdown
+   stack would be on screen during the start gate. */
+#introStage{position:absolute; inset-inline:0; top:0; height:52%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding-inline:var(--gut); text-align:center}
+#introStage[hidden]{display:none}
 .count.pulse{animation:cpulse .92s cubic-bezier(.2.8.3,1)}
 @keyframes cpulse{0%{opacity:0; transform:scale(1.5); filter:blur(7px)}
   22%{opacity:1; transform:scale(1); filter:blur(0)} 78%{opacity:1} 100%{opacity:.12; transform:scale(.96)}}
@@ -1029,7 +1082,11 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
       </div>
       <div class="gate-kw">KUWAITSAT</div>
       <h2 class="gate-h" data-i18n="gate.h">From Space to a Greener Kuwait</h2>
-      <p class="gate-p" data-i18n="gate.p">This opening has sound: a launch countdown and an original, fully synthesised rocket sound design. Your browser will only play it if you ask for it here.</p>
+      <!-- THE SOUND PARAGRAPH IS GONE. It explained that the opening has
+           sound and that the browser will only play it if asked. Two
+           buttons reading "Begin with sound" and "Begin muted", with a
+           line under them saying the sound can be switched at any point,
+           say all of that in the act of offering the choice. -->
       <div class="gate-btns">
         <button class="btn pri gate-b" id="gateSound">
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -1095,7 +1152,20 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <!-- ============ MISSION BAR ============ -->
 <header class="bar">
   <div class="bar-in">
-    <button class="brand" id="brandBtn" title="Top">
+    <!-- A LINK, NOT A BUTTON, AND IT GOES HOME.
+
+         It used to be a <button> that scrolled to the top of whatever
+         was on screen. That is not the same thing as home: this page
+         shows one chapter at a time, so the top of the Planning chapter
+         is the top of Planning.
+
+         researcher.html and portal.html have always carried
+         <a class="brand" href="/">; this is the same element, so the
+         seal now behaves like a logo everywhere - middle-clickable,
+         openable in a new tab, and announced as a link. index.html
+         intercepts the click to reopen the home chapter without a
+         reload; the href is what happens if that script never runs. -->
+    <a class="brand" id="brandBtn" href="/" title="KuwaitSat-1 Mission Hub">
       <!-- The seal's four motifs, redrawn as vector so they hold at 26px on
            the void and can move. Kuwait is the same boundary the maps use
            (OUTLINE, index.html), not a traced picture. Motion: css/ksat-brand.css. -->
@@ -1122,7 +1192,7 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
         <path class="mk-star" d="M25.3,15.1 26.0,17.5 28.4,18.2 26.0,18.9 25.3,21.3 24.6,18.9 22.2,18.2 24.6,17.5Z"/>
       </svg>
       <span><b>KUWAITSAT</b><i>GREEN INTELLIGENCE</i></span>
-    </button>
+    </a>
     <div class="navwrap"><nav class="nav" id="nav" aria-label="Sections"></nav></div>
     <div class="bar-act">
       <button class="btn sm" id="demoBtn" data-i18n="nav.demo">Guided tour</button>
@@ -1195,6 +1265,59 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
     </div>
   </div>
   </section>
+
+<!-- ============ WHERE IS KUWAITSAT ============
+     Moved here from the Kuwait From Space chapter. It sits between the
+     legend and the mission brief because that is where the two "Behind
+     the mission" prose blocks used to be, and because a reader who has
+     just been told how to read the badges should meet a live panel
+     wearing them before they meet a table. -->
+<section class="sec" id="orbit">
+  <div class="eyebrow"><span class="badge sim">◈ Modelled, not live telemetry</span></div>
+  <h2 class="st" data-i18n="orb.h">Where Is KuwaitSat?</h2>
+  <!-- The 60-word lede that was here said what the eyebrow above it,
+       the badge on the canvas and the chip on the readout all already
+       say: modelled, not live. Three statements of the same claim are
+       enough; five is a paragraph nobody finishes. -->
+  <p class="lede" data-i18n="orb.lede">Where KuwaitSat-1 is now, on a model of its orbit.</p>
+
+  <div class="grid g-53 mt">
+    <div>
+      <div class="stage3d" id="orbStage" style="aspect-ratio:16/11">
+        <canvas id="cvOrb"></canvas>
+        <div class="s3hud"><span class="exhud" style="position:static">◈ MODELLED ORBIT · NOT LIVE TELEMETRY</span></div>
+      </div>
+      <div class="rowf mt-s">
+        <div style="flex:0 0 auto;display:flex;gap:8px">
+          <button class="btn sm" id="orbPlay" data-i18n="orb.pause">Pause</button>
+          <button class="btn sm" id="orbReset" data-i18n="orb.reset">Reset</button>
+        </div>
+        <div><label class="fld" for="orbSpeed"><span data-i18n="orb.speed">Time acceleration · </span><span id="orbSpeedVal">120×</span></label>
+          <input type="range" id="orbSpeed" min="0" max="5" step="1" value="2"></div>
+        <div style="flex:0 0 auto"><label class="fld" data-i18n="orb.pass">Observation window</label>
+          <span class="passbadge" id="passBadge"><span class="led"></span><span id="passTxt">OUT OF RANGE</span></span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="phead"><div class="ttl"><h3 data-i18n="orb.tel">Telemetry readout</h3></div><span class="badge sim">◈ Modelled</span></div>
+      <div class="telem" id="telem"></div>
+      <!-- THE AMBER PANEL AND THE PASS LOG WERE HERE.
+
+           The panel said "Simulated values. These are outputs of a
+           circular two-body model with a fixed inclination..." - the
+           fourth statement of a claim already made by the section
+           eyebrow, by the MODELLED ORBIT badge on the canvas beside
+           these numbers, and by the Modelled chip at the top of this
+           very panel. Those three stay, so the claim is still on the
+           picture the reader is looking at and on the panel the numbers
+           are in. If either of those badges is ever removed, this text
+           has to come back.
+
+           The pass log was an empty state that has never had a row in
+           it. #passLog is gone; every writer to it is null-guarded. -->
+    </div>
+  </div>
+</section>
 
 <!-- ============ MISSION BRIEF ============ -->
 <section class="sec" id="mission">
@@ -1659,52 +1782,17 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 </section>
 
 <!-- ============ ORBIT SIM ============ -->
-<section class="sec" id="orbit">
-  <div class="eyebrow"><span class="badge sim">◈ Modelled, not live telemetry</span></div>
-  <h2 class="st" data-i18n="orb.h">Where Is KuwaitSat?</h2>
-  <!-- The 60-word lede that was here said what the eyebrow above it,
-       the badge on the canvas and the chip on the readout all already
-       say: modelled, not live. Three statements of the same claim are
-       enough; five is a paragraph nobody finishes. -->
-  <p class="lede" data-i18n="orb.lede">Where KuwaitSat-1 is now, on a model of its orbit.</p>
+<!-- THE ORBIT PANEL IS NOT HERE ANY MORE.
 
-  <div class="grid g-53 mt">
-    <div>
-      <div class="stage3d" id="orbStage" style="aspect-ratio:16/11">
-        <canvas id="cvOrb"></canvas>
-        <div class="s3hud"><span class="exhud" style="position:static">◈ MODELLED ORBIT · NOT LIVE TELEMETRY</span></div>
-      </div>
-      <div class="rowf mt-s">
-        <div style="flex:0 0 auto;display:flex;gap:8px">
-          <button class="btn sm" id="orbPlay" data-i18n="orb.pause">Pause</button>
-          <button class="btn sm" id="orbReset" data-i18n="orb.reset">Reset</button>
-        </div>
-        <div><label class="fld" for="orbSpeed"><span data-i18n="orb.speed">Time acceleration · </span><span id="orbSpeedVal">120×</span></label>
-          <input type="range" id="orbSpeed" min="0" max="5" step="1" value="2"></div>
-        <div style="flex:0 0 auto"><label class="fld" data-i18n="orb.pass">Observation window</label>
-          <span class="passbadge" id="passBadge"><span class="led"></span><span id="passTxt">OUT OF RANGE</span></span></div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="phead"><div class="ttl"><h3 data-i18n="orb.tel">Telemetry readout</h3></div><span class="badge sim">◈ Modelled</span></div>
-      <div class="telem" id="telem"></div>
-      <!-- THE AMBER PANEL AND THE PASS LOG WERE HERE.
+     "Where Is KuwaitSat?" used to be the last section of the Kuwait
+     From Space chapter, which meant a reader only met it after opening
+     Explore and choosing that chapter. It is now on the home page,
+     between the data legend and the mission brief, where the two
+     "Behind the mission" prose blocks were. Asked for directly.
 
-           The panel said "Simulated values. These are outputs of a
-           circular two-body model with a fixed inclination..." - the
-           fourth statement of a claim already made by the section
-           eyebrow, by the MODELLED ORBIT badge on the canvas beside
-           these numbers, and by the Modelled chip at the top of this
-           very panel. Those three stay, so the claim is still on the
-           picture the reader is looking at and on the panel the numbers
-           are in. If either of those badges is ever removed, this text
-           has to come back.
-
-           The pass log was an empty state that has never had a row in
-           it. #passLog is gone; every writer to it is null-guarded. -->
-    </div>
-  </div>
-</section>
+     js/ksat-shell.js moved 'orbit' from the space chapter to brief at
+     the same time; the DOM order and that list have to agree or the
+     chapter opens with a section missing from the middle of it. -->
 
 <!-- ============ AI ANALYST ============ -->
 <section class="sec" id="ai">
@@ -5363,7 +5451,23 @@ function dragX(stage, handle, set){
 
 /* ========================= BINDINGS ========================== */
 function bind(){
-  $("#brandBtn").onclick=()=>scrollTo({top:0,behavior:reduceMotion?"auto":"smooth"});
+  /* THE SEAL GOES HOME. The href="/" on it is the fallback and the
+     thing that makes middle-click and "open in new tab" work; this
+     handler is what happens on an ordinary left click, which is to
+     reopen the home chapter in place rather than reload the page.
+
+     The modifier check is the part that is easy to leave out: without
+     it, ctrl-click and cmd-click would be swallowed by preventDefault
+     and the reader would lose the one behaviour they went looking for
+     when they reached for the modifier in the first place. */
+  $("#brandBtn").addEventListener("click", e=>{
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button>0) return;
+    e.preventDefault();
+    const sh=window.KSAT&&window.KSAT.shell;
+    if(sh&&typeof sh.goToSection==="function") sh.goToSection("top");
+    else scrollTo({top:0,behavior:reduceMotion?"auto":"smooth"});
+    if(location.hash) history.replaceState(null,"",location.pathname+location.search);
+  });
   $("#demoBtn").onclick=()=>{S.demo.on=!S.demo.on; S.demo.i=0; renderDemo(); if(S.demo.on) goDemo();};
   $("#heroTour").onclick=()=>{S.demo.on=true; S.demo.i=0; renderDemo(); goDemo();};
   $("#heroSim").onclick=()=>{ $("#simulate").scrollIntoView({behavior:"smooth"}); setTimeout(runSim,500); };

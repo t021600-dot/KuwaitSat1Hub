@@ -800,11 +800,15 @@
      closing statement, which is still exactly Story & Accountability -
      so all six chapter names, and their Arabic, are unchanged. */
   var CHAPTERS = [
+    /* 'orbit' IS IN THE HOME CHAPTER NOW, not in space. It was moved
+       in index.html to sit between #legend and #mission, and this list
+       has to agree with the DOM order or openChapter() reveals a
+       chapter with a hole in the middle of it. */
     { key: 'brief',    en: 'Mission Record',         ar: 'السجل',
-      ids: ['top', 'legend', 'mission', 'builders'],
+      ids: ['top', 'legend', 'orbit', 'mission', 'builders'],
       extra: ['descent'] },
     { key: 'space',    en: 'Kuwait From Space',      ar: 'من الفضاء',
-      ids: ['imagery', 'explorer', 'compare', 'globe', 'orbit'] },
+      ids: ['imagery', 'explorer', 'compare', 'globe'] },
     { key: 'intel',    en: 'Intelligence',           ar: 'التحليل',
       ids: ['dashboard', 'map', 'charts'] },
     { key: 'planning', en: 'Planning',               ar: 'التخطيط',
