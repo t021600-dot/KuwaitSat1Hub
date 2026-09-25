@@ -372,8 +372,11 @@
     <button class="btn primary" data-act="run" id="runBtn">Run Analysis</button>
   </div>
   <div class="grid">
-    <div class="card s8">
-      <div class="ct"><h3>Run</h3><span class="tag" id="runTag">ORCHESTRATOR READY</span></div>
+    <!-- FULL WIDTH NOW. This was s8 because an s4 Agent Tool
+         Permissions card sat beside it. That card is gone, and s8 left a
+         third of the row empty. -->
+    <div class="card s12">
+      <div class="ct"><h3>Run</h3><span class="tag" id="runTag">READY</span></div>
       <select class="search" id="runMission"></select>
       <div class="sub" style="margin-top:8px">Each run carries its own area of interest,
         and the Orchestrator reads the objective recorded on it.</div>
@@ -433,9 +436,9 @@
     <div class="card s12">
       <div class="ct"><h3>What the agents did</h3>
         <span class="sub" id="traceSrc">Step by step</span></div>
-      <div id="trace" class="empty">Pick a run and press Run Analysis. Every step the
-        Orchestrator takes is written to the database first and then read back here, so
-        what you see is the audit trail and not a script.</div>
+      <div id="trace" class="empty">Pick a run above and press Run Analysis.
+        Each step is saved as it happens, then read back here, so this is a
+        record of what the agents did rather than a script.</div>
     </div>
   </div>
 </section>
