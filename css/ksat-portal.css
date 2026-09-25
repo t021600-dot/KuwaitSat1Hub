@@ -212,3 +212,47 @@ a.tile:hover { background: #141d25; border-color: #3c4a55 }
 @media (max-width: 900px) {
   .tiles { grid-template-columns: minmax(0, 1fr) }
 }
+
+/* =====================================================================
+   BIGGER, TO MATCH THE 22px WORKSPACE
+
+   Everything on this page that carries its own size was written before
+   the type scale moved, so while the shared components came up to 22px
+   these stayed at 11 to 14 and became the smallest text on the site.
+   The "Pick up where you left off" rows and the tag key were the worst
+   of it: a run name at 13px under a 24px card title.
+
+   Loaded after css/ksat-workspace.css, so these win on source order.
+   ===================================================================== */
+
+/* "Pick up where you left off" - a run name and its created line. */
+.resumerow b{ font-size:21px; line-height:1.4 }
+.resumerow small{ font-size:16px; margin-top:5px; line-height:1.5 }
+.resumerow{ padding-block:16px }
+
+/* "What the tags mean" - the definition beside each chip. */
+.provkey dd{ font-size:18px; line-height:1.6; margin-bottom:16px }
+.provkey dt{ margin-bottom:7px }
+
+/* The tag chips themselves, which label everything on this page. */
+.prov{ font-size:14px; padding:4px 9px }
+
+/* Notifications, service tiles, programme items, the change track. */
+.ibrow .txt{ font-size:19px; line-height:1.55 }
+.ibrow .sub{ font-size:16px; margin-top:5px }
+.tile b{ font-size:19px }
+.tile span{ font-size:16px }
+.item h4{ font-size:21px }
+.item p{ font-size:18px; line-height:1.6 }
+.item .src{ font-size:15px }
+.track b{ font-size:18px }
+.track span{ font-size:16px }
+
+@media (max-width: 1500px){
+  .resumerow b{ font-size:19px }
+  .resumerow small{ font-size:15px }
+  .provkey dd{ font-size:17px }
+  .ibrow .txt{ font-size:18px }
+  .item h4{ font-size:19px }
+  .item p{ font-size:17px }
+}
