@@ -824,3 +824,56 @@ table.zones th:nth-child(n+4){ text-align:right }
   .ksat-zt-dl{ grid-template-columns:minmax(0,1fr); gap:3px 0 }
   .ksat-zt-dl dd{ margin-bottom:8px }
 }
+
+
+/* =====================================================================
+   0c . BIGGER, INCLUDING THE CHROME
+
+   The earlier pass raised the content and left the frame: masthead,
+   sidebar and stage strip stayed at the delivered sizes, so on a wide
+   screen the page read as small text in a large shell.
+
+   Loaded after css/ksat-researcher.css, so plain selectors win on
+   source order and the delivered design file is not touched.
+   ===================================================================== */
+
+/* THE MASTHEAD, and the one calc that depended on it.
+
+   .layout was min-height:calc(100vh - 105px): a 74px bar plus the 31px
+   status strip. That strip was removed earlier, so this has been
+   over-subtracting 31px since, and a taller bar makes it worse. One
+   variable now, matching the bar's real height. */
+:root{ --ksat-bar-h: 84px }
+.top{ min-height:var(--ksat-bar-h); padding:0 28px; gap:30px }
+.layout{ min-height:calc(100vh - var(--ksat-bar-h)) }
+
+.brand{ font-size:15px; letter-spacing:.11em }
+.brand small{ font-size:12.5px; letter-spacing:.11em; margin-top:5px }
+.nav button{ font-size:15px; padding:10px 13px }
+.who .name{ font-size:15px }
+.who .name small{ font-size:13px }
+
+/* THE SIDEBAR. Wider as well as larger: at 235px the longer labels
+   ("Where results came from") were wrapping onto three lines. */
+aside{ width:264px; padding:24px 15px }
+aside button{ font-size:15.5px; padding:11px 10px }
+aside h5{ font-size:12.5px; letter-spacing:.13em; margin:24px 10px 9px }
+
+/* THE HEADLINE NUMBERS and their captions. */
+.label{ font-size:12.5px; letter-spacing:.09em }
+.metric{ font-size:34px; margin-top:9px }
+
+/* THE STAGE STRIP. Its labels were 11px under an 18px disc. */
+.stage span{ font-size:12.5px; margin-top:8px }
+.stage i{ width:22px; height:22px; font-size:12px }
+
+/* Card and page headings, one more step up. */
+.head h1{ font-size:34px }
+.ct h3{ font-size:17.5px }
+
+/* Long labels must not wrap in the sidebar; if the window is genuinely
+   narrow the sidebar gives the width back rather than the type. */
+@media (max-width: 1100px){
+  aside{ width:224px }
+  aside button{ font-size:14.5px }
+}
