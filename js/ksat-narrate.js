@@ -180,7 +180,7 @@
     PANEL.hidden = true;
 
     var bar = el('div', 'ksat-nr-bar');
-    bar.appendChild(el('h4', null, 'What the Orchestrator is doing'));
+    bar.appendChild(el('h4', null, 'Live progress'));
     HEAD = el('span', 'run', 'NO RUN YET');
     bar.appendChild(HEAD);
     CLOCK = el('span', 'clock', '0.0s');
@@ -201,9 +201,7 @@
     PANEL.appendChild(LOG);
 
     PANEL.appendChild(el('div', 'ksat-nr-foot',
-      'This is the narration. The Agent Execution Trace below is the ' +
-      'audit record, read back from agent_steps. If the two ever ' +
-      'disagree, the trace is right.'));
+      'This is a live commentary. The list below it is the record, and the record is what counts.'));
 
     /* Above the trace, inside the same card, so the story and the
        record read as one thing in one place. */

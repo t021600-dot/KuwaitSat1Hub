@@ -1112,7 +1112,7 @@
         say('reportMsg', REPORTS.length ? '' :
           'No reports on this account yet. A report exists only once a researcher has ' +
           'approved the findings behind it — run a mission in the Research Console, ' +
-          'approve the candidate set, then generate the report.');
+          'approve the zones, then write the report.');
         REPORTS.forEach(function (rep) {
           var m = missionById(rep.mission_id);
           var tr = el('tr');
@@ -1793,7 +1793,7 @@
           'takes is written to the database first and then read back here, so ' +
           'what you see is the audit trail and not a script.'));
         var src = doc.getElementById('traceSrc');
-        if (src) src.textContent = 'DECISION-BASED WORKFLOW';
+        if (src) src.textContent = 'Step by step';
       }
       if (!RUNNING) { RUN_STATE = null; }
     }
@@ -1850,7 +1850,9 @@
         clear(box);
         (r.data || []).forEach(function (s, i) { box.appendChild(stepRow(s, i + 1)); });
         var src = doc.getElementById('traceSrc');
-        if (src) src.textContent = 'READ FROM agent_steps · RUN ' + shortId(runId);
+        /* The run reference is how a run is quoted later, so it stays -
+           it just stops leading with a table name. */
+        if (src) src.textContent = 'Run ' + shortId(runId);
       });
   }
 
