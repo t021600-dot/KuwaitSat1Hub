@@ -17,8 +17,8 @@
    only line that has to be legible at a glance, so it gets the size. */
 .ksat-sf-one{
   margin-top:3px;
-  font-size:13.5px;
-  line-height:1.55;
+  font-size:15px;
+  line-height:1.6;
   color:var(--dim, #8d9aa5);
   max-width:64ch;
 }
@@ -34,7 +34,7 @@
   margin-top:9px;
   padding:3px 2px;
   font:inherit;
-  font-size:12px;
+  font-size:13px;
   letter-spacing:.03em;
   color:var(--dim, #8d9aa5);
   background:transparent;
@@ -66,8 +66,8 @@
   display:flex;
   flex-direction:column;
   gap:6px;
-  font-size:13px;
-  line-height:1.6;
+  font-size:14px;
+  line-height:1.65;
   color:var(--dim, #8d9aa5);
 }
 .ksat-sf-steps li::marker{ color:var(--acc, #3fd0c9) }

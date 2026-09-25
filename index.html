@@ -2421,8 +2421,10 @@ const Intro = (()=>{
       ctx.lineTo(sx*bw*0.84, 0);               // hinge, down at the octaweb
       ctx.lineTo(sx*bw*0.46, 0);
       ctx.closePath();
-      ctx.fillStyle="#AFB9C4"; ctx.fill();
-      ctx.strokeStyle="rgba(28,36,46,.75)"; ctx.lineWidth=Math.max(0.5,0.6*s);
+      /* BLACK, not aluminium. Block 5 legs carry thermal protection;
+         the light grey they were drawn in is the earlier variant. */
+      ctx.fillStyle="#1A1D22"; ctx.fill();
+      ctx.strokeStyle="rgba(70,78,88,.55)"; ctx.lineWidth=Math.max(0.5,0.6*s);
       ctx.stroke();
     });
 
@@ -2430,14 +2432,25 @@ const Intro = (()=>{
     ctx.fillStyle="#E9EEF3"; ctx.fillRect(-bw/2,-h1,bw,h1);
     /* the shaded side, so it reads as a cylinder and not a strip */
     ctx.fillStyle="#C4CDD7"; ctx.fillRect(bw*0.16,-h1,bw*0.34,h1);
+    /* THE RACEWAY. A black conduit enclosure runs the full length of
+       the first stage on one side. On a white tube it is one of the two
+       markings that identify this vehicle at a glance - the other being
+       the interstage - and the drawing had neither the stripe nor the
+       gap where it meets the interstage. Offset from centre because it
+       runs down a side, not the middle. */
+    ctx.fillStyle="#191D23";
+    ctx.fillRect(bw*0.05, -h1, bw*0.13, h1);
+
     /* soot band above the engines: every flown booster carries one */
     ctx.fillStyle="#6E747B"; ctx.globalAlpha=.55;
     ctx.fillRect(-bw/2,-H70*0.075,bw,H70*0.075); ctx.globalAlpha=1;
     /* octaweb */
     ctx.fillStyle="#12181F"; ctx.fillRect(-bw*0.56,-H70*0.022,bw*1.12,H70*0.022);
 
-    /* GRID FINS, stowed, near the top of the first stage */
-    ctx.fillStyle="#AEB8C3";
+    /* GRID FINS, stowed, near the top of the first stage.
+       Unpainted TITANIUM on Block 5 - warmer and darker than the
+       ablative-painted aluminium of the earlier versions. */
+    ctx.fillStyle="#8E8A82";
     ctx.fillRect(-bw*0.78,-h1+H70*0.012,bw*0.28,H70*0.026);
     ctx.fillRect( bw*0.50,-h1+H70*0.012,bw*0.28,H70*0.026);
 
@@ -2800,22 +2813,100 @@ const Intro = (()=>{
     /* Face along the velocity vector, which is the tangent. */
     ctx.rotate(Math.atan2(p.x, -p.y*1.0));
 
-    /* Solar wings. Foreshortened by how edge-on they are to the viewer,
-       which is the other half of reading as 3D. */
-    const foreshorten=0.28+0.72*Math.abs(p.z);
-    ctx.fillStyle="#123A55"; ctx.strokeStyle="#3FD0C9"; ctx.lineWidth=1;
-    [-1,1].forEach(function(sx){
-      const w=s*1.5*foreshorten;
-      ctx.fillRect(sx>0? s*0.42 : -s*0.42-w, -s*0.30, w, s*0.60);
-      ctx.strokeRect(sx>0? s*0.42 : -s*0.42-w, -s*0.30, w, s*0.60);
+    /* ---------------------------------------------------------------
+       A 2U CUBESAT.
+
+       Was a rectangle with two rectangles beside it - at this size that
+       silhouette is a plus sign, which is a comms satellite with big
+       deployed arrays and the opposite of what this spacecraft is.
+
+       2U and not 3U on purpose. The reference photograph is a 3U;
+       KuwaitSat-1 is a 2U, and this page's own specification table says
+       so. A 3U here would contradict the table two screens below it.
+
+       The antennas carry the silhouette. At twenty pixels the cell
+       divisions and the rails are texture, but four thin whips splayed
+       off one end read as a CubeSat and as nothing else, so they are
+       drawn last and longest.
+       --------------------------------------------------------------- */
+    const U = s*0.62;                    /* one CubeSat unit on screen */
+    const bw2 = U, bh2 = U*2;            /* 1 x 1 x 2 */
+    const dx = U*0.30*(p.z>=0?1:-1);     /* the visible side face */
+
+    /* FOUR WHIP ANTENNAS, from the top face. Drawn first so the body
+       sits over their roots. */
+    ctx.strokeStyle="rgba(24,28,34,.95)";
+    ctx.lineWidth=Math.max(0.8, s*0.055);
+    ctx.lineCap="round";
+    [[-1,-0.55],[-1,0.18],[1,-0.55],[1,0.18]].forEach(function(a){
+      ctx.beginPath();
+      ctx.moveTo(a[0]*bw2*0.32, -bh2*0.50);
+      ctx.lineTo(a[0]*bw2*(1.9+Math.abs(a[1])*1.1), -bh2*(0.50+0.40*(a[1]+0.7)));
+      ctx.stroke();
     });
-    /* Bus. */
-    ctx.fillStyle="#1B2A3C"; ctx.strokeStyle="#5FD6CF"; ctx.lineWidth=1.2;
-    ctx.fillRect(-s*0.40,-s*0.62,s*0.80,s*1.24);
-    ctx.strokeRect(-s*0.40,-s*0.62,s*0.80,s*1.24);
-    /* The payload aperture, facing the planet. */
-    ctx.fillStyle="#0B1621";
-    ctx.fillRect(-s*0.16, s*0.42, s*0.32, s*0.22);
+    ctx.lineCap="butt";
+
+    /* THE SIDE FACE, giving it depth. */
+    ctx.fillStyle="#0E1420";
+    ctx.beginPath();
+    ctx.moveTo(bw2*0.5, -bh2*0.5);
+    ctx.lineTo(bw2*0.5+dx, -bh2*0.5-U*0.16);
+    ctx.lineTo(bw2*0.5+dx,  bh2*0.5-U*0.16);
+    ctx.lineTo(bw2*0.5,  bh2*0.5);
+    ctx.closePath(); ctx.fill();
+
+    /* THE FRONT FACE: solar cells, near black with a blue cast. */
+    ctx.fillStyle="#121A2B";
+    ctx.fillRect(-bw2*0.5, -bh2*0.5, bw2, bh2);
+
+    /* Cell divisions. Two columns and six rows is what the reference
+       shows on a face this size; below about 14px they stop resolving
+       and are skipped rather than drawn as mud. */
+    if (s > 14) {
+      ctx.strokeStyle="rgba(120,140,178,.34)";
+      ctx.lineWidth=Math.max(0.5, s*0.022);
+      let i;
+      for(i=1;i<6;i++){
+        const yy=-bh2*0.5 + bh2*(i/6);
+        ctx.beginPath(); ctx.moveTo(-bw2*0.5,yy); ctx.lineTo(bw2*0.5,yy); ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.moveTo(0,-bh2*0.5); ctx.lineTo(0,bh2*0.5); ctx.stroke();
+    }
+
+    /* A highlight down the lit edge, so it reads as a solid and not a
+       sticker. Same sun direction as the planet. */
+    const hg=ctx.createLinearGradient(-bw2*0.5,0,bw2*0.5,0);
+    hg.addColorStop(0,"rgba(180,206,255,.20)");
+    hg.addColorStop(.35,"rgba(180,206,255,0)");
+    ctx.fillStyle=hg;
+    ctx.fillRect(-bw2*0.5, -bh2*0.5, bw2, bh2);
+
+    /* ALUMINIUM RAILS at the corners - the bright verticals in every
+       CubeSat photograph. */
+    ctx.fillStyle="#95A3B4";
+    ctx.fillRect(-bw2*0.5, -bh2*0.5, Math.max(1,s*0.05), bh2);
+    ctx.fillRect( bw2*0.5-Math.max(1,s*0.05), -bh2*0.5, Math.max(1,s*0.05), bh2);
+
+    /* The top deck, catching the light. */
+    ctx.fillStyle="#2A3547";
+    ctx.beginPath();
+    ctx.moveTo(-bw2*0.5, -bh2*0.5);
+    ctx.lineTo(-bw2*0.5+dx, -bh2*0.5-U*0.16);
+    ctx.lineTo( bw2*0.5+dx, -bh2*0.5-U*0.16);
+    ctx.lineTo( bw2*0.5, -bh2*0.5);
+    ctx.closePath(); ctx.fill();
+
+    /* THE PAYLOAD APERTURE, facing the planet. This is the camera the
+       whole platform is built on, so it gets to be visible. */
+    ctx.fillStyle="#05080D";
+    ctx.beginPath();
+    ctx.arc(0, bh2*0.30, Math.max(1.2, s*0.10), 0, 6.283);
+    ctx.fill();
+    ctx.strokeStyle="rgba(150,175,205,.55)";
+    ctx.lineWidth=Math.max(0.5, s*0.025);
+    ctx.stroke();
+
     ctx.restore();
 
     ctx.globalAlpha=1;

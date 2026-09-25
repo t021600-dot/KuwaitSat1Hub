@@ -99,11 +99,7 @@
     <button class="active" data-go="overview">Overview</button>
     <button data-go="missions">Runs</button>
     <button data-go="frames">Payload Archive</button>
-    <button data-go="geo">Geospatial</button>
     <button data-go="data">Data Archive</button>
-    <button data-go="console">Research Console</button>
-    <button data-go="reports">Reports</button>
-    <button data-go="audit">Audit</button>
   </nav>
   <div class="who">
     <div class="ident">
@@ -124,13 +120,16 @@
      team has telemetry for either. They are replaced by the one thing
      the archive can actually support: the date of the most recent frame
      it holds. -->
-<div class="statusbar">
-  <span>LAST FRAME <b id="lastFrame">● READING</b></span>
-  <span>PAYLOAD <b id="payState">● CHECKING</b></span>
-  <span>ARCHIVE <b id="archiveState">● CHECKING</b></span>
-  <span>DATA PIPELINE <b id="pipeState">● CHECKING</b></span>
-  <span>ACCESS: RESEARCHER</span>
-</div>
+<!-- THE STATUS STRIP IS GONE, and the four ids with it.
+
+     It read LAST FRAME / PAYLOAD / ARCHIVE / DATA PIPELINE / ACCESS,
+     which is the vocabulary of somebody operating a spacecraft rather
+     than somebody doing research. js/ksat-researcher.js still writes to
+     #lastFrame, #payState, #archiveState and #pipeState; every one of
+     those writes is guarded by a null check, so they are now harmless
+     no-ops rather than errors. Left in place on purpose: gutting four
+     call sites to delete a strip is a bigger change than deleting the
+     strip. -->
 
 <div class="layout">
 <aside>
@@ -373,8 +372,11 @@
     <button class="btn primary" data-act="run" id="runBtn">Run Analysis</button>
   </div>
   <div class="grid">
-    <div class="card s8">
-      <div class="ct"><h3>Run</h3><span class="tag" id="runTag">ORCHESTRATOR READY</span></div>
+    <!-- FULL WIDTH NOW. This was s8 because an s4 Agent Tool
+         Permissions card sat beside it. That card is gone, and s8 left a
+         third of the row empty. -->
+    <div class="card s12">
+      <div class="ct"><h3>Run</h3><span class="tag" id="runTag">READY</span></div>
       <select class="search" id="runMission"></select>
       <div class="sub" style="margin-top:8px">Each run carries its own area of interest,
         and the Orchestrator reads the objective recorded on it.</div>
@@ -385,32 +387,30 @@
       <div class="said" id="runMsg"></div>
     </div>
 
-    <div class="card s4">
-      <div class="ct"><h3>Agent Tool Permissions</h3><span class="tag">READ / ANALYZE</span></div>
-      <div class="rule"><span>Search approved datasets</span><b class="state ok">ALLOWED</b></div>
-      <div class="rule"><span>Retrieve authorized imagery</span><b class="state ok">ALLOWED</b></div>
-      <div class="rule"><span>Retrieve metadata</span><b class="state ok">ALLOWED</b></div>
-      <div class="rule"><span>Modify original data</span><b class="state" id="permWrite">DENIED</b></div>
-      <div class="rule"><span>Publish externally</span><b class="state">DENIED</b></div>
-      <div class="rule"><span>Real mission command</span><b class="state">HUMAN ONLY</b></div>
-      <div class="notice" style="margin-top:12px">These are not labels. The payload archive
-        carries no insert, update or delete grant for any signed in role, so the three DENIED
-        rows are refused by the database itself rather than by this page. Prove it against the
-        live database with the Access Test on
-        <a href="#audit" data-go="audit" style="color:#9bb4c6">Provenance / Audit</a>.</div>
-    </div>
+    <!-- THE AGENT TOOL PERMISSIONS CARD WAS HERE.
+
+         Six ALLOWED/DENIED rows and a paragraph of security reasoning,
+         sitting beside the console while a researcher is trying to read
+         a result. Removed on request.
+
+         The claim it carried is NOT lost. That the three DENIED rows are
+         refused by the database rather than by this page, and that the
+         Access Test proves it against the live database, is the
+         platform's strongest security statement - it now lives only on
+         Provenance / Audit, which is where the Access Test already is
+         and where somebody looking for it would go. -->
 
     <div class="card s12" id="checkpointCard" hidden>
       <div class="ct"><h3>Human checkpoint</h3><span class="tag amber">DECISION REQUIRED</span></div>
       <div class="decision">
-        <h4 id="cpTitle">Decision required</h4>
+        <h4 id="cpTitle">Your decision</h4>
         <p id="cpBody"></p>
       </div>
       <div class="findings" id="cpFindings" style="margin-top:12px"></div>
       <div class="bar" style="margin-top:14px">
-        <button class="btn primary" data-act="approve">Approve the candidate set</button>
-        <button class="btn" data-act="reject">Reject and re-rank</button>
-        <button class="btn" data-act="abandon">Abandon this run</button>
+        <button class="btn primary" data-act="approve">Approve these zones</button>
+        <button class="btn" data-act="reject">Ask for different zones</button>
+        <button class="btn" data-act="abandon">Stop this run</button>
       </div>
       <div class="said" id="decisionMsg"></div>
     </div>
@@ -434,11 +434,11 @@
     </div>
 
     <div class="card s12">
-      <div class="ct"><h3>Agent Execution Trace</h3>
-        <span class="sub" id="traceSrc">DECISION-BASED WORKFLOW</span></div>
-      <div id="trace" class="empty">Pick a run and press Run Analysis. Every step the
-        Orchestrator takes is written to the database first and then read back here, so
-        what you see is the audit trail and not a script.</div>
+      <div class="ct"><h3>What the agents did</h3>
+        <span class="sub" id="traceSrc">Step by step</span></div>
+      <div id="trace" class="empty">Pick a run above and press Run Analysis.
+        Each step is saved as it happens, then read back here, so this is a
+        record of what the agents did rather than a script.</div>
     </div>
   </div>
 </section>

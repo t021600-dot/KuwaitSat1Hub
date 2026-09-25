@@ -104,7 +104,7 @@
     if (!R || !R.buildFigure || !KS.geo || typeof w.L === 'undefined') { return; }
 
     var wrap = el('div', WRAP_CLS);
-    var head = el('div', 'ksat-cf-head', 'What you are deciding about');
+    var head = el('div', 'ksat-cf-head', 'Before and after');
     var note = el('div', 'sub ksat-cf-note', 'Drawing the ground…');
     wrap.appendChild(head);
     wrap.appendChild(note);
@@ -125,15 +125,13 @@
         return;
       }
 
-      var hostA = figure(figs, 'Figure 1. As measured.',
-        'The run area, and every zone this run found, outlined where the ' +
-        'measurement put it.');
-      var hostB = figure(figs, 'Figure 2. Proposed.',
+      var hostA = figure(figs, 'Now.',
+        'Every zone this run found, where the measurement put it.');
+      var hostB = figure(figs, 'Proposed.',
         sites.length
-          ? ('The same ground at the same extent, with the ' + sites.length +
-             ' candidate zone' + (sites.length === 1 ? '' : 's') +
-             ' drawn as the change they would make.')
-          : 'This run produced no candidate zones, so nothing is drawn as changed.');
+          ? ('The same ground, with the ' + sites.length + ' zone' +
+             (sites.length === 1 ? '' : 's') + ' drawn as the change.')
+          : 'This run found no zones, so nothing is drawn as changed.');
 
       var mA = R.buildFigure(hostA, area, rows, 'before');
       var mB = R.buildFigure(hostB, area, rows, 'after');
@@ -153,15 +151,17 @@
       KS.geo.resize(hostA);
       KS.geo.resize(hostB);
 
+      /* Shorter, and the simulation caveat survives intact. It is the
+         one sentence on this card that must not be softened: the green
+         is a drawing of a proposal, not a measurement. */
       note.textContent = sites.length
-        ? 'Two views of the same ground at the same extent. The green on ' +
-          'Figure 2 is a CONCEPTUAL SIMULATION of what you are being asked ' +
-          'to approve. It is not a prediction and not an observation.'
-        : 'The run area is outlined on both figures.';
+        ? 'The same ground, twice. Green on the right is a simulation of ' +
+          'what you are approving \u2014 not a measurement, not a prediction.'
+        : 'The run area is outlined on both maps.';
 
       var keys = el('div', 'ksat-keys');
-      [['#dce9f1', 'Run area'], ['#d2ad68', 'Candidate zone, as measured'],
-       ['#79bd96', 'Proposed change, simulated']].forEach(function (p) {
+      [['#dce9f1', 'Your area'], ['#d2ad68', 'Zone found'],
+       ['#79bd96', 'Proposed, simulated']].forEach(function (p) {
         var sp = el('span');
         var ic = el('i');
         ic.style.background = p[0];
