@@ -1020,37 +1020,37 @@ html[data-ksat-tier="public"] .hero .factstrip {
   grid-row: 2;
   padding-inline: clamp(20px, 4vw, 64px);
   padding-block: 0 clamp(18px, 3vh, 34px);
-  /* FLEX, NOT GRID, and the reason is measured.
+  /* FOUR EQUAL PANELS, EACH WIDER THAN ITS TEXT.
 
-     This was repeat(auto-fit, minmax(150px, max-content)), which
-     computed to 150px 150px 150px 150px. Every track produced by one
-     repeat() gets the same size, so max-content there cannot mean
-     "each column fits its own content" - it resolved to the 150px
-     floor. "2U CubeSat - 2 kg" is wider than 150px, so the hairline
-     above it and the panel behind it stopped short while the text ran
-     past them.
+     The original bug here was a fixed 150px track holding a 167px
+     value, so the rule and the panel stopped short while the text ran
+     past them. Equal tracks were never the problem - the problem was a
+     floor set BELOW the widest content.
 
-     Four items that each want to be exactly as wide as their own
-     content, laid along a line and wrapping when they run out of room,
-     is what flex-wrap does directly. */
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: clamp(20px, 5vw, 72px);
-  justify-content: flex-start;        /* THIS is the "not in the middle" */
+     So they are equal again, with the floor comfortably above it: 210px
+     minimum, and 1fr so they share whatever is left over. Every panel
+     is the same size, and no value can outgrow its box however the copy
+     changes later. */
+  display: grid;
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
+  align-items: stretch;
+  gap: clamp(12px, 1.6vw, 22px);
+  justify-content: start;             /* THIS is the "not in the middle" */
   border: 0 !important;
   background: none !important;
 }
 html[data-ksat-tier="public"] .hero .factstrip > div {
-  /* Each item is exactly as wide as its own content, so the rule above
-     it is exactly as wide as the value under it. min-width stops a
-     short one collapsing to nothing. */
-  flex: 0 0 auto;
-  min-width: 110px;
+  /* BLACK, NOT TRANSLUCENT. These sit over the Earth photograph at the
+     foot of the hero, and a see-through panel there picks up whatever
+     is behind it - which is why two of the four read darker than the
+     others in the screenshot. Solid black reads the same across the
+     whole width, whatever the photograph is doing underneath. */
+  min-width: 0;
   border: 0 !important;
-  border-top: 1px solid rgba(255,255,255,.26) !important;
-  padding: 12px 0 0 !important;
-  background: none !important;
+  border-top: 1px solid rgba(255,255,255,.30) !important;
+  padding: 16px 20px 18px !important;
+  background: #000 !important;
+  border-radius: 0 0 6px 6px;
   text-align: start;
 }
 html[data-ksat-tier="public"] .hero .factstrip .k {
