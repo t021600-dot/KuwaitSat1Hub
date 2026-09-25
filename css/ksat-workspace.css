@@ -925,3 +925,135 @@ td{ font-size:16px; padding:14px 12px }
   .who .name{ font-size:14.5px }
   .who .name small{ font-size:12.5px }
 }
+
+/* =====================================================================
+   0e . 22px READING TEXT
+
+   Asked for directly. 22px is presentation type - it is meant to be
+   read from across a room rather than from a desk - so this is the
+   whole workspace re-scaled around it, not one number changed.
+
+   WHAT IS 22 AND WHAT IS NOT, and why.
+
+   The READING text is 22: body copy, notices, narration, table cells,
+   form fields, the agent sentences. That is what was asked for.
+
+   The CHROME is not, and cannot be. The masthead carries a wordmark, a
+   four-item nav, a name block and four buttons on one row; at 22px
+   those stop fitting before the viewport does and the bar wraps into
+   two rows, which is worse than smaller type. It goes to 18-19, which
+   still reads from a distance and still fits. Column headings are 16:
+   they are labels for the 22px values under them and have to stay
+   subordinate to them or the table reads as two competing rows.
+
+   Everything scales UP from 22 above it, so the hierarchy survives
+   rather than flattening into one size.
+   ===================================================================== */
+
+body{ font-size:22px }
+
+/* ---- reading text ---- */
+p, li{ line-height:1.6 }
+.sub{ font-size:20px; line-height:1.6 }
+.notice{ font-size:21px; line-height:1.65; padding:18px 20px }
+.said{ font-size:21px; line-height:1.6 }
+.log{ font-size:19px; line-height:1.8 }
+.rule{ font-size:20px }
+.empty{ font-size:20px; padding:40px }
+.field input, .field textarea, .field select, .search, .query{ font-size:21px }
+.field label{ font-size:16px }
+
+/* ---- tables: values at 22, headings deliberately below them ---- */
+td{ font-size:22px; line-height:1.55; padding:16px 14px }
+th{ font-size:16px; padding:15px 14px; letter-spacing:.06em }
+
+/* ---- headings, scaled up from 22 so the hierarchy holds ---- */
+.head h1{ font-size:44px }
+.head p{ font-size:22px }
+.ct h3{ font-size:24px }
+.label{ font-size:16px }
+.metric{ font-size:46px; margin-top:11px }
+.kicker{ font-size:16px }
+
+/* ---- the chrome, which cannot be 22 ----
+   The masthead is a wordmark, four nav items, a name block and four
+   buttons on one row. At 22 they wrap the bar into two rows. */
+:root{ --ksat-bar-h: 92px }
+.top{ min-height:var(--ksat-bar-h); padding:0 30px; gap:26px }
+.layout{ min-height:calc(100vh - var(--ksat-bar-h)) }
+.brand{ font-size:17px }
+.brand small{ font-size:13.5px }
+.nav button{ font-size:18px; padding:12px 14px }
+.top .btn, .top a.btn, .top button.btn{ font-size:16px; padding:12px 16px }
+.who .name{ font-size:17px }
+.who .name small{ font-size:14.5px }
+
+aside{ width:300px; padding:26px 16px }
+aside button{ font-size:19px; padding:13px 12px }
+aside h5{ font-size:14px; margin:26px 11px 10px }
+
+.btn{ font-size:19px; padding:14px 20px }
+.tag{ font-size:14px; padding:5px 10px }
+.state{ font-size:15px }
+.stage span{ font-size:15px }
+.stage i{ width:26px; height:26px; font-size:14px }
+.mono{ font-size:18px }
+
+/* ---- the pieces added during this pass ---- */
+.ksat-sf-one{ font-size:21px; line-height:1.55 }
+.ksat-sf-steps{ font-size:20px }
+.ksat-sf-more{ font-size:17px }
+.ksat-sf-tech{ font-size:15px }
+.step b{ font-size:21px }
+.step small{ font-size:18px }
+table.zones th{ font-size:16px; padding:14px 14px }
+table.zones td{ font-size:22px; padding:16px 14px }
+table.zones td.mono{ font-size:21px }
+.ksat-zt-defs{ font-size:18px }
+.ksat-zt-dl{ font-size:19px }
+.ksat-cf-head{ font-size:16px }
+.ksat-cf-wrap .fig figcaption{ font-size:18px }
+
+/* ---- narrower windows give the type back rather than breaking ---- */
+@media (max-width: 1500px){
+  body{ font-size:20px }
+  td, table.zones td{ font-size:20px }
+  .nav button{ font-size:16px; padding:10px 11px }
+  .top .btn, .top a.btn, .top button.btn{ font-size:14.5px; padding:10px 13px }
+  aside{ width:270px }
+  aside button{ font-size:17.5px }
+  .head h1{ font-size:38px }
+  .metric{ font-size:40px }
+}
+@media (max-width: 1100px){
+  body{ font-size:18px }
+  td, table.zones td{ font-size:18px }
+  aside{ width:240px }
+  aside button{ font-size:16px }
+  .head h1{ font-size:32px }
+  .metric{ font-size:34px }
+}
+
+/* THE CARD HEADER HAD TO GIVE.
+
+   .ct is display:flex with justify-content:space-between on one line: a
+   title on the left, a tag or a control on the right. At 16px that fit
+   in a quarter-width card. At 24px "Agent Operations" and its run tag
+   collided and both wrapped mid-word - seen in the browser.
+
+   It wraps as a unit now: the tag drops to its own line under the title
+   when there is no room beside it, rather than the two of them tearing
+   each other apart. Wide cards are unchanged, because there the row
+   still fits. */
+.ct{
+  flex-wrap:wrap;
+  gap:6px 12px;
+  align-items:baseline;
+}
+.ct h3{ flex:1 1 auto; min-width:0; line-height:1.2 }
+.ct .tag, .ct .sub{ flex:0 0 auto; white-space:nowrap }
+
+/* The four headline tiles: at 22px their captions were wrapping to two
+   lines and pushing the tiles to different heights. */
+.card .label + .metric{ line-height:1.05 }
+.card .label{ line-height:1.35 }
