@@ -57,9 +57,26 @@
 
   function clear(n) { while (n && n.firstChild) { n.removeChild(n.firstChild); } }
 
+  /* WHERE THIS FILE SPEAKS.
+
+     It was hard-coded to #mdMsg, the mission-detail pane's message
+     line, and it returned silently when that element was not in the
+     document. That was fine while the only door into delete was inside
+     that pane. It is not fine now that the runs list has a door of its
+     own: every error from there would have been written to an element
+     that is not on screen, which is the same as not reporting it.
+
+     So the target is settable, and the default is what it always was. */
+  var MSG_ID = 'mdMsg';
+
   function say(t, bad) {
-    var n = doc.getElementById('mdMsg');
-    if (!n) { return; }
+    var n = doc.getElementById(MSG_ID);
+    if (!n) {
+      /* Still better than silence. A delete that fails with nothing on
+         screen is the failure this whole file is careful about. */
+      if (bad && t) { try { console.error('[ksat-mission-edit] ' + t); } catch (e) {} }
+      return;
+    }
     clear(n);
     n.className = 'said' + (bad ? ' bad' : '');
     n.appendChild(doc.createTextNode(t || ''));
@@ -180,9 +197,13 @@
   /* ------------------------------------------------------------------
      DELETE
      ------------------------------------------------------------------ */
-  function openDelete(m, w) {
-    var bar = doc.getElementById('mdActions');
+  /* opts: { host, msgId, onDone }. All optional, and all default to the
+     mission-detail pane, which is where this was welded before. */
+  function openDelete(m, w, opts) {
+    opts = opts || {};
+    var bar = opts.host || doc.getElementById('mdActions');
     if (!bar || doc.getElementById('mdDelBox')) { return; }
+    MSG_ID = opts.msgId || 'mdMsg';
 
     var box = el('div', 'editbox danger');
     box.id = 'mdDelBox';
@@ -220,6 +241,15 @@
       BUSY = true;
       go.disabled = true;
       say('Deleting…');
+      /* GUARDED. js/config.js leaves window.sb null when supabase-js
+         did not load or the keys were never pasted, and this line used
+         to call .rpc on it bare - a TypeError, no message, a button
+         that appears to do nothing. */
+      if (!window.sb) {
+        BUSY = false; go.disabled = false;
+        say('Not connected to the database, so nothing was deleted.', true);
+        return;
+      }
       window.sb.rpc('delete_mission', { p_mission_id: m.id }).then(function (r) {
         BUSY = false;
         go.disabled = false;
@@ -228,6 +258,10 @@
         var d = doc.getElementById('missionDetail');
         if (d) { d.hidden = true; }
         refresh();
+        if (typeof opts.onDone === 'function') { opts.onDone(m); }
+      }, function (e) {
+        BUSY = false; go.disabled = false;
+        say((e && e.message) || 'The delete did not complete.', true);
       });
     });
     act.appendChild(cancel);
@@ -332,7 +366,54 @@
     poke();
   }
 
-  KS.missionEdit = { decorate: decorate };
+  /* ------------------------------------------------------------------
+     THE SECOND DOOR
+
+     js/ksat-runs-panel.js offers Delete against a row in the runs list.
+     It calls this rather than repeating the flow, so there is one
+     confirmation, one set of counts, one signed-report refusal and one
+     RPC call in the codebase. A second copy would drift from this one
+     the first time either is touched, and the thing that would drift is
+     a confirmation in front of an irreversible delete.
+
+     It fetches the mission and weighs it exactly as decorate() does,
+     because the caller has a row on screen and not a record, and
+     because the weights are what the confirmation is FOR.
+     ------------------------------------------------------------------ */
+  function deleteFlow(missionId, opts) {
+    opts = opts || {};
+    var sb = window.sb;
+    if (!sb) {
+      MSG_ID = opts.msgId || 'mdMsg';
+      say('Not connected to the database.', true);
+      return Promise.resolve(false);
+    }
+    return sb.from('my_missions').select('*').eq('id', missionId).limit(1)
+      .then(function (r) {
+        if (r.error || !r.data || !r.data.length) {
+          MSG_ID = opts.msgId || 'mdMsg';
+          say('That run could not be read back, so nothing was deleted.', true);
+          return false;
+        }
+        var m = r.data[0];
+        return weigh(missionId).then(function (w) {
+          if (w && w.signed) {
+            /* THE SAME REFUSAL THE PANE MAKES, in the same words. The
+               database would refuse it too; saying so here means the
+               reader learns the rule rather than meeting an error. */
+            MSG_ID = opts.msgId || 'mdMsg';
+            say('This run has a signed report, so it cannot be deleted. The ' +
+                'report was approved by a named person and deleting the run ' +
+                'would delete that approval with it.', true);
+            return false;
+          }
+          openDelete(m, w, opts);
+          return true;
+        });
+      });
+  }
+
+  KS.missionEdit = { decorate: decorate, deleteFlow: deleteFlow };
 
   if (doc.readyState === 'loading') { doc.addEventListener('DOMContentLoaded', watch); }
   else { watch(); }

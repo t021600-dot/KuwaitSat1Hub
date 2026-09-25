@@ -1,0 +1,61 @@
+/* =====================================================================
+   ksat-runs-panel.css - the hide control and the per-row delete
+   Companion to js/ksat-runs-panel.js.
+   ===================================================================== */
+
+/* The hide control sits beside "View archive" and is the quieter of the
+   two: leaving the card is a bigger move than folding it. */
+.ksat-rp-toggle{
+  margin-inline-end:8px;
+}
+
+/* A collapsed card is a header and nothing else. Its own bottom padding
+   would otherwise leave a band of empty panel under the heading that
+   looks like something failed to load. */
+.card.ksat-rp-collapsed{
+  padding-bottom:14px;
+}
+
+/* ---------- the delete column ----------
+   Right-aligned and no wider than its button, so the four columns that
+   carry the run keep the width they had. */
+.ksat-rp-act{
+  width:1%;
+  white-space:nowrap;
+  text-align:end;
+}
+
+/* SMALLER THAN A PRIMARY CONTROL, ON PURPOSE. This is the one button on
+   the overview that cannot be undone, and it sits in a table somebody
+   scans rather than reads. It should be findable when looked for and
+   never the thing the eye lands on first, which is why it carries no
+   fill until it is hovered. */
+.btn.sm.ksat-rp-del{
+  padding:6px 11px;
+  font-size:13.5px;
+  color:var(--muted, #8e9aa5);
+  border-color:#33414c;
+  background:none;
+}
+.btn.sm.ksat-rp-del:hover,
+.btn.sm.ksat-rp-del:focus-visible{
+  color:var(--red, #d88484);
+  border-color:#5c3434;
+  background:#191114;
+}
+.btn.sm.ksat-rp-del:focus-visible{
+  outline:2px solid var(--red, #d88484);
+  outline-offset:2px;
+}
+
+/* The confirmation js/ksat-mission-edit.js opens lands under the table.
+   It carries class "editbox danger" and is styled by that file's own
+   rules; this only gives it room to breathe in its new home. */
+#ovMissions + .editbox{ margin-top:14px }
+
+@media print{
+  /* Neither control belongs on paper, and a collapsed table should
+     print in full: what is on the page is a record, not a view state. */
+  .ksat-rp-toggle, .ksat-rp-act{ display:none !important }
+  #ovMissions{ display:table !important }
+}
