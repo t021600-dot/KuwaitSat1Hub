@@ -1018,8 +1018,13 @@ html[data-ksat-tier="public"] .hero-copy .kwflag { margin-top: 26px; }
 html[data-ksat-tier="public"] .hero .factstrip {
   position: relative; z-index: 2;
   grid-row: 2;
-  padding-inline: clamp(20px, 4vw, 64px);
-  padding-block: 0 clamp(18px, 3vh, 34px);
+  /* TIGHTENED. These were clamp(20px,4vw,64px) at the sides and up to
+     34px underneath, which on a wide screen put 64px of air outside a
+     rail whose own panels are only 16px deep. The rail sits on the
+     bottom edge of a photograph: the air around it was reading as part
+     of the picture rather than as space. */
+  padding-inline: clamp(16px, 2.4vw, 40px);
+  padding-block: 0 clamp(12px, 2vh, 22px);
   /* FOUR EQUAL PANELS, EACH WIDER THAN ITS TEXT.
 
      The original bug here was a fixed 150px track holding a 167px
@@ -1034,7 +1039,10 @@ html[data-ksat-tier="public"] .hero .factstrip {
   display: grid;
   grid-template-columns: repeat(4, minmax(210px, 1fr));
   align-items: stretch;
-  gap: clamp(12px, 1.6vw, 22px);
+  /* 22px between four black panels on a dark photograph reads as a
+     gap in the rail rather than as four panels. Half that closes them
+     into one band without merging them. */
+  gap: clamp(8px, 0.9vw, 12px);
   justify-content: start;             /* THIS is the "not in the middle" */
   border: 0 !important;
   background: none !important;
@@ -1048,7 +1056,7 @@ html[data-ksat-tier="public"] .hero .factstrip > div {
   min-width: 0;
   border: 0 !important;
   border-top: 1px solid rgba(255,255,255,.30) !important;
-  padding: 16px 20px 18px !important;
+  padding: 12px 16px 14px !important;
   background: #000 !important;
   border-radius: 0 0 6px 6px;
   text-align: start;
@@ -1064,7 +1072,10 @@ html[data-ksat-tier="public"] .hero .factstrip .v {
   color: #FFFFFF; margin-top: 4px;
 }
 @media (max-width: 700px) {
-  html[data-ksat-tier="public"] .hero .factstrip { gap: 18px 26px; }
+  /* Still looser than the desktop rail, because at this width the four
+     panels wrap into a column and the gap is the only thing separating
+     one fact from the next. Reduced in step with the rule above. */
+  html[data-ksat-tier="public"] .hero .factstrip { gap: 12px 16px; }
 }
 
 /* =====================================================================

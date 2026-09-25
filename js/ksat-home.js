@@ -1172,20 +1172,62 @@
        goes at the foot of the section, immediately before the closing
        provenance note, which is where "at the foot" meant all along. */
     var gridRow = el('div', 'ksh-row');
-    if (natBand) {
+
+    /* THE GRID GOES BELOW THE ORBIT PANEL NOW, not above it.
+
+       Asked for as a swap: "Where Is KuwaitSat?" and this index of the
+       rest of the page traded places. The orbit panel is a <section>
+       and this is a <div> inside #legend, so they cannot literally
+       exchange nodes - the grid moves past the section instead, which
+       is the same thing on screen and leaves every other block where it
+       was.
+
+       IT IS APPENDED INSIDE #orbit RATHER THAN PLACED AFTER IT. A bare
+       <div> between two sections belongs to no chapter: js/ksat-shell.js
+       walks section.sec to hide a chapter, so a sibling div would stay
+       on screen in Planning and in Agents too. That bug has already
+       happened here once, to #descent, and the note in that file
+       records it. Inside the section, the grid inherits the section's
+       chapter for free and needs no second list to be kept in step.
+
+       An index of the whole page is not ABOUT the orbit, so this is a
+       placement of convenience and it should be read as one. If the
+       grid ever needs to stand on its own, give it a real <section> and
+       an id, and add that id to the brief chapter in js/ksat-shell.js. */
+    /* EXISTENCE, NOT VISIBILITY. The first version of this line asked
+       for offsetParent, which is the test used elsewhere in this file
+       for sections css/ksat-spacecraft.css takes off the public tier
+       with display:none. It is the wrong test here and it loses a race:
+       this runs before js/ksat-shell.js has opened a chapter, so #orbit
+       is still hidden="until-found", offsetParent is null, and the grid
+       would quietly go back where it was. #orbit is never display:none,
+       and if the shell has parked it out of the document then
+       getElementById returns null and the fallback below is correct. */
+    var orbitSec = document.getElementById('orbit');
+    var hostId = null;
+    if (orbitSec) {
+      orbitSec.appendChild(gridRow);
+      /* A tile for the section the grid is sitting in would promise the
+         reader something and deliver the panel already on their screen.
+         buildGrid skips it. */
+      hostId = 'orbit';
+    } else if (natBand) {
       natBand.insertAdjacentElement('afterend', gridRow);
     } else {
       var tail = ksf.querySelector(':scope > .ksf-note');
       if (tail) { ksf.insertBefore(gridRow, tail); } else { ksf.appendChild(gridRow); }
     }
     gridRow.appendChild(rowHead(COPY.gridRow, null, code));
-    gridRow.appendChild(buildGrid(code));
+    gridRow.appendChild(buildGrid(code, hostId));
   }
 
-  function buildGrid(code) {
+  function buildGrid(code, hostId) {
     var g = el('div', 'ksh-grid');
 
     DESTS.forEach(function (d) {
+      /* Never a tile for the section this grid is inside: see the note
+         at the placement above. */
+      if (hostId && d.id === hostId) return;
       /* CHECKED AGAINST THE LIVE DOCUMENT. A tile for a section the
          shell has parked would be a button that does nothing, and on a
          page whose whole argument is that a link can be trusted that is
