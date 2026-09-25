@@ -460,14 +460,14 @@
      'It closes runs left open by a browser that went away, at 02:00 Kuwait time, ' +
      'as a scheduled job rather than from anybody laptop. Writing on a quiet night ' +
      'too is deliberate: a missing night is then visible rather than silent. The ' +
-     'table it writes to carries counts only, never a mission, run or researcher id.',
+     'table it writes to carries counts only, never a run, mission or researcher id.',
      '03-security/db/11_monitoring.sql'],
 
-    ['A researcher cannot rewrite a mission that has run',
+    ['A researcher cannot rewrite a run once it has started',
      'The title can be corrected. The objective locks the moment anything has ' +
      'run, because agent_steps hold prompts built from that objective and ' +
      'rewriting it afterwards would make the trail describe a question nobody ' +
-     'asked. A mission with a signed report cannot be deleted at all.',
+     'asked. A run with a signed report cannot be deleted at all.',
      '03-security/db/15_researcher_edit_delete.sql']
   ];
 
@@ -485,11 +485,37 @@
   function paintRecord() {
     var f = doc.getElementById('feed');
     if (f && !f.firstChild) {
-      FEED.forEach(function (it) {
+      /* HEADLINE FIRST, THE REST ON REQUEST.
+
+         Seven items at 40-60 words each is about 400 words in one
+         column, all open at once. Nothing is deleted - every paragraph
+         is a checkable fact with its source named, and the source line
+         is exactly what separates this from an announcements feed. It
+         folds instead. Seven headlines is a list somebody reads; seven
+         paragraphs is something they skip. */
+      FEED.forEach(function (it, i) {
         var d = el('article', 'item');
-        d.appendChild(el('h4', null, it[0]));
-        d.appendChild(el('p', null, it[1]));
-        d.appendChild(el('div', 'src', 'Source: ' + it[2]));
+
+        var head = el('button', 'itemhead');
+        head.type = 'button';
+        head.setAttribute('aria-expanded', 'false');
+        head.appendChild(el('span', 'itemcaret', '›'));
+        head.appendChild(el('h4', null, it[0]));
+        d.appendChild(head);
+
+        var body = el('div', 'itembody');
+        body.hidden = true;
+        body.appendChild(el('p', null, it[1]));
+        body.appendChild(el('div', 'src', 'Source: ' + it[2]));
+        d.appendChild(body);
+
+        head.addEventListener('click', function () {
+          var open = body.hidden;
+          body.hidden = !open;
+          head.classList.toggle('is-open', open);
+          head.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+
         f.appendChild(d);
       });
     }
