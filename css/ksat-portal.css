@@ -256,3 +256,40 @@ a.tile:hover { background: #141d25; border-color: #3c4a55 }
   .item h4{ font-size:19px }
   .item p{ font-size:17px }
 }
+
+/* ---------------------------------------------------------------------
+   THE PROGRAMME RECORD, AS A LIST OF HEADLINES
+
+   Seven sourced paragraphs open at once is about 400 words in one
+   column. The headline is now a control; the paragraph and its source
+   open under it. Nothing is removed - the source line especially,
+   which is what makes this a record rather than a news feed.
+   --------------------------------------------------------------------- */
+.itemhead{
+  display:flex;
+  align-items:baseline;
+  gap:11px;
+  width:100%;
+  padding:4px 0;
+  font:inherit;
+  text-align:left;
+  color:inherit;
+  background:transparent;
+  border:0;
+  cursor:pointer;
+}
+.itemhead h4{ margin:0; flex:1 1 auto; min-width:0 }
+.itemcaret{
+  flex:0 0 auto;
+  font-size:19px;
+  line-height:1;
+  color:var(--acc, #3fd0c9);
+  transition:transform .16s ease;
+}
+.itemhead.is-open .itemcaret{ transform:rotate(90deg) }
+.itemhead:hover h4{ color:var(--white, #e8eef2) }
+.itemhead:focus-visible{ outline:2px solid var(--acc, #3fd0c9); outline-offset:3px; border-radius:3px }
+@media (prefers-reduced-motion: reduce){ .itemcaret{ transition:none } }
+
+.itembody{ padding-left:30px; margin-top:8px }
+.itembody p{ margin:0 0 10px }
