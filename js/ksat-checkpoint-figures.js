@@ -160,10 +160,26 @@
       /* Shorter, and the simulation caveat survives intact. It is the
          one sentence on this card that must not be softened: the green
          is a drawing of a proposal, not a measurement. */
-      note.textContent = sites.length
-        ? 'The same ground, twice. Green on the right is a simulation of ' +
-          'what you are approving \u2014 not a measurement, not a prediction.'
-        : 'The run area is outlined on both maps.';
+      /* THE NOTE UNDER THE TWO MAPS IS GONE, on request. It read:
+         "The same ground, twice. Green on the right is a simulation of
+         what you are approving - not a measurement, not a prediction."
+
+         THE CLAIM IT CARRIED IS STILL ON THE CARD, and it has to be,
+         because the green on the right is a drawing of a proposal and
+         not a measurement of anything:
+
+           · the key below these maps labels that swatch
+             "Proposed, simulated"
+           · Figure 2's own caption says the zones are DRAWN AS the
+             change, not observed as it
+
+         If either of those is reworded, this sentence comes back.
+
+         The element itself stays. note.textContent is also how the two
+         failure paths above speak - "No geometry recorded for this run"
+         and the load error - so removing the div would take those with
+         it. It is emptied, not deleted. */
+      note.textContent = '';
 
       var keys = el('div', 'ksat-keys');
       [['#dce9f1', 'Your area'], ['#d2ad68', 'Zone found'],

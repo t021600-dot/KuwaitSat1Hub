@@ -72,6 +72,7 @@
      KSAT.narrate, so bringing the panel back is these two lines. -->
 <link rel="stylesheet" href="css/ksat-researcher-tour.css">
 <link rel="stylesheet" href="css/ksat-steps-fold.css">
+<link rel="stylesheet" href="css/ksat-report-fold.css">
 <link rel="stylesheet" href="css/ksat-access.css">
 <!-- Last of the stylesheets on purpose: its print rules must beat
      css/ksat-workspace.css at equal specificity, on source order. -->
@@ -438,7 +439,11 @@
     <div class="card s12" id="runResultCard" hidden>
       <div class="ct"><h3>Run complete</h3><span class="tag amber" id="rrTag">DRAFT</span></div>
       <div class="notice" id="rrNote"></div>
-      <div class="ct" style="margin-top:16px"><h3 id="rrReportTitle">Draft report</h3>
+      <!-- "The Report", not "Draft report": the DRAFT / SIGNED chip is
+           on the row above this one and js/ksat-researcher.js flips it
+           on signing, so the heading was saying a second time what the
+           chip already says. -->
+      <div class="ct" style="margin-top:16px"><h3 id="rrReportTitle">The Report</h3>
         <span class="bar">
           <button class="btn primary" data-act="sign-report">Sign and publish this report</button>
           <button class="btn" data-act="close-result">Close</button>
@@ -631,6 +636,8 @@
 <!-- One run at a time: while a run is open its card is the page, and
      the grid of every other run is not. -->
 <script src="js/ksat-run-focus.js"></script>
+<!-- The arrow under "The Report" that shrinks the whole document. -->
+<script src="js/ksat-report-fold.js"></script>
 <script src="js/ksat-access.js"></script>
 <script src="js/ksat-report-doc.js"></script>
 <script src="js/ksat-checkpoint-figures.js"></script>

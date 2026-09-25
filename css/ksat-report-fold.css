@@ -1,0 +1,50 @@
+/* =====================================================================
+   ksat-report-fold.css - the control that shrinks the whole report
+   Companion to js/ksat-report-fold.js.
+
+   Deliberately the same shape as .ksat-rb-more in
+   css/ksat-report-brief.css and .ksat-sf-more in
+   css/ksat-steps-fold.css: a caret that turns, a word beside it, no
+   border and no fill. There are three disclosures within a screen of
+   each other on this page and they should not be three different
+   controls.
+   ===================================================================== */
+.ksat-rf-toggle{
+  display:inline-flex; align-items:center; gap:8px;
+  margin:0 0 12px;
+  padding:6px 2px;
+  background:none; border:0;
+  color:var(--muted, #8e9aa5);
+  font:inherit; font-size:15px;
+  cursor:pointer;
+  text-align:start;
+}
+.ksat-rf-toggle:hover{ color:var(--white, #f5f7f8) }
+.ksat-rf-toggle:focus-visible{
+  outline:2px solid var(--acc, #3fd0c9);
+  outline-offset:3px;
+  border-radius:3px;
+}
+
+/* The caret points right when the report is hidden and down when it is
+   showing, which is the direction every other disclosure on this page
+   turns. */
+.ksat-rf-caret{
+  display:inline-block;
+  font-size:19px; line-height:1;
+  transition:transform .16s ease;
+}
+.ksat-rf-toggle.is-open .ksat-rf-caret{ transform:rotate(90deg) }
+@media (prefers-reduced-motion: reduce){
+  .ksat-rf-caret{ transition:none }
+}
+
+/* PRINT TAKES EVERYTHING. js/ksat-report-fold.js re-opens the report on
+   beforeprint; this drops the control itself, which would otherwise
+   print as a stray word above the document. A collapsed report that
+   printed as a heading and nothing else is the failure this pair of
+   rules exists to make impossible. */
+@media print{
+  .ksat-rf-toggle{ display:none !important }
+  #rrReport, #mdReport{ display:block !important }
+}

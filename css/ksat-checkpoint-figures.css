@@ -30,8 +30,17 @@
   gap:18px;
 }
 .ksat-cf-wrap .fig{ margin:0; min-width:0 }
+/* THIS IS THE RULE THAT WINS, AND THAT IS THE POINT OF THE NOTE.
+
+   css/ksat-workspace.css section 0e sets the same selector to 18px.
+   Identical specificity, and researcher.html loads this file after that
+   one, so 12.5px was what was actually on screen and the 18px has never
+   applied. Raising the size in the workspace file would have changed
+   nothing, which is the kind of edit that gets made twice.
+
+   17px here, to match the size the rest of the workspace reads at. */
 .ksat-cf-wrap .fig figcaption{
-  font-size:12.5px;
+  font-size:17px;
   line-height:1.55;
   margin-bottom:8px;
   color:var(--dim, #8d9aa5);

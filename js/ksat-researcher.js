@@ -188,8 +188,14 @@
                                  function () {
                                    doc.getElementById('rrTag').textContent = 'SIGNED';
                                    doc.getElementById('rrTag').className = 'tag green';
-                                   doc.getElementById('rrReportTitle').textContent =
-                                     'Approved report';
+                                   /* The heading stays "The Report" in
+                                      both states now. #rrTag beside it
+                                      goes DRAFT -> SIGNED and turns
+                                      green, which is where the state
+                                      belongs; the heading naming it as
+                                      well was the same fact twice. */
+                                   doc.getElementById('rrTag').setAttribute(
+                                     'title', 'Signed and published');
                                  }); break;
       case 'close-result':     doc.getElementById('runResultCard').hidden = true; break;
       case 'open-in-console':  openInConsole(); break;
@@ -2071,18 +2077,30 @@
        On this archive nothing reaches the vegetation threshold, so a
        panel that says "candidate zones for planting" and nothing else
        would be the page telling a researcher something the measurement
-       does not support. The sentence that matters comes first. */
+       does not support. The sentence that matters comes first.
+
+       CUT FROM FIVE SENTENCES TO TWO, on request. What went was method
+       and consequence: the tile count, the phrase "relative greenness
+       within each frame", the list of what has not run yet, and the
+       line about the approval being recorded against the account.
+
+       WHAT COULD NOT GO, AND DID NOT. "No vegetation was detected" and
+       "not vegetated areas" are the whole reason this panel is worded
+       the way it is. A researcher who reads only this line has to come
+       away knowing that these zones are the least red ground in their
+       own frames and not detected plants, because the next thing they
+       do is approve them.
+
+       Everything cut is still on the page a few centimetres below: the
+       zones table states each zone's separation from its own frame
+       median, and its "What these columns mean" panel spells out the
+       index and the units. This is the summary, not the record. */
     doc.getElementById('cpBody').textContent =
       (state.vegetationDetected
         ? 'Vegetation was detected above the threshold in at least one frame. '
-        : 'No vegetation was detected. Not one tile in any frame here reaches the ' +
-          'Excess Green threshold, so these are the least red ground in their frames, ' +
-          'not vegetated areas. They are a place to look. ') +
-      'The Recommendation Agent ranked ' + (state.landTiles || 0) + ' land tiles by ' +
-      'relative greenness within each frame, and every zone below stands clear of its ' +
-      'own frame median. Nothing downstream of this point has run: impact prediction, ' +
-      'the map layer and the report are written only after you approve, and the ' +
-      'approval is recorded against your account.';
+        : 'No vegetation was detected: these are the least red ground in their ' +
+          'own frames, not vegetated areas. ') +
+      'They are a place to look, and nothing downstream runs until you approve.';
 
     /* THE ZONES, AS A TABLE.
 
@@ -2433,11 +2451,24 @@
     if (!card) return;
     RESULT_MISSION = state.mission;
     doc.getElementById('rrTag').textContent = 'DRAFT, NOT YET SIGNED';
-    doc.getElementById('rrNote').textContent =
-      'The last three agents have run and their steps are in the trace below. ' +
-      'This report is a draft: it exists as a finding on the mission and carries ' +
-      'nobody\'s name. Pressing the button records YOUR account as the person who ' +
-      'approved it, and closes the mission to further runs.';
+    /* THE NOTE ABOVE THE REPORT IS GONE, on request. It explained that
+       the last three agents had run, that the report was a draft
+       carrying nobody's name, and that signing would record the
+       researcher's account against it.
+
+       NOTHING IT SAID IS NOW UNSAID. The DRAFT chip is on the same row
+       as the heading, the button under it reads "Sign and publish this
+       report" in the first person, and js/ksat-report-doc.js stamps
+       "DRAFT - NOT SIGNED" across the printed cover page until it is
+       signed. Three statements of the same fact were two too many.
+
+       The element is emptied and hidden rather than left blank: it
+       carries class "notice", which draws a bordered panel, and an
+       empty bordered panel above a report reads as something that
+       failed to load. */
+    var rrNote = doc.getElementById('rrNote');
+    rrNote.textContent = '';
+    rrNote.hidden = true;
     say('rrMsg', '');
     /* js/ksat-report.js owns the presentation: the document on the left,
        the ground it is about on the right, and the download. It reads the
