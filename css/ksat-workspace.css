@@ -877,3 +877,51 @@ aside h5{ font-size:12.5px; letter-spacing:.13em; margin:24px 10px 9px }
   aside{ width:224px }
   aside button{ font-size:14.5px }
 }
+
+/* =====================================================================
+   0d . ONE MORE STEP, ON THE THINGS STILL POINTED AT
+
+   The circled surfaces: the top navigation, the four account buttons
+   beside it, the sidebar, and the Your Runs table. They came up in 0c
+   and were still the smallest readable things on a wide screen.
+   ===================================================================== */
+
+.nav button{ font-size:16.5px; padding:11px 14px }
+
+/* The four account controls. .btn is already 15px from the type scale;
+   these specific ones sit at the top of the page beside 16.5px nav and
+   were reading as secondary to it. */
+.top .btn, .who + .btn, .top a.btn, .top button.btn{
+  font-size:15.5px;
+  padding:11px 15px;
+}
+
+/* WHO. The name block was clamped to 220px, which on this account
+   pushed "Environmental Science Research Group" under the Staff portal
+   button. Wider, and it wraps inside its own box instead of running
+   into the controls beside it. */
+.who{ gap:13px }
+.who .name{ font-size:16px; max-width:none }
+.who .name small{ font-size:13.5px; white-space:nowrap }
+
+aside button{ font-size:16.5px; padding:12px 11px }
+aside h5{ font-size:13px }
+
+/* YOUR RUNS, and every other table on these pages. Column headings were
+   the smallest text in a card a researcher reads across. */
+th{ font-size:13.5px; padding:13px 12px }
+td{ font-size:16px; padding:14px 12px }
+
+/* Card titles keep their lead over the body text now that body-level
+   text in tables is 16. */
+.ct h3{ font-size:18.5px }
+.head h1{ font-size:36px }
+
+@media (max-width: 1240px){
+  /* The masthead has four buttons, a name block and a nav; below this
+     width it needs the type back rather than wrapping the bar. */
+  .nav button{ font-size:15px; padding:10px 11px }
+  .top .btn, .top a.btn, .top button.btn{ font-size:14px; padding:9px 12px }
+  .who .name{ font-size:14.5px }
+  .who .name small{ font-size:12.5px }
+}
