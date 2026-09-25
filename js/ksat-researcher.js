@@ -1823,8 +1823,8 @@
        the Research Console was written and then silently deleted, which
        looked exactly like the run having done nothing at all. */
     if (!m) {
-      say('runMsg', 'Create a mission first: a run belongs to a mission, and the ' +
-                    'mission carries the area of interest the pipeline reads.');
+      say('runMsg', 'Create a run first, using New Run in the sidebar. A run '
+                  + 'carries the area the agents will look at.');
     }
   }
 
