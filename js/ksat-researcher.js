@@ -734,6 +734,13 @@
 
       if (i < 4 && ov) {
         var o = el('tr');
+        /* WHICH RUN THIS ROW IS. The card grid below has carried
+           data-mid since it was a table; this row never needed it
+           because nothing acted on it. js/ksat-runs-panel.js puts a
+           Delete on each of these, and a delete control that has to
+           infer its target from the title in the first cell is a
+           delete control that will one day remove the wrong run. */
+        o.setAttribute('data-mid', m.id);
         o.appendChild(el('td', null, m.title || 'Untitled'));
         o.appendChild(el('td', 'wrap', (m.objective || '').slice(0, 70)));
         o.appendChild(el('td', 'nowrap', (m.created_at || '').slice(0, 10)));

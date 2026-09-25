@@ -186,9 +186,25 @@ A failed check raises **"Mission not found."** — not *"not yours"*, because
 > researcher decides what happens next."
 
 🔨 **This one lives in the n8n workflow, not in SQL, and I say so.** The
-enforcement that *is* in SQL is that the refusal becomes permanent evidence: the
-row is written with `allowed = false` and `status = 'refused'`, and
+enforcement that *is* in SQL is that the refusal is evidence no agent can
+retract: the row is written with `allowed = false` and `status = 'refused'`, and
 `agent_log_step` will not let a finished run grow new steps (Rule 14).
+
+> **"Permanent" was the wrong word, and it is worth saying why.** This
+> paragraph used to read "becomes permanent evidence". It is append-only *from
+> the agent side*, which is the qualifier `04_policies.sql` and the RLS test
+> matrix both use — the researcher who owns an **unsigned** mission can delete
+> it, and `delete_mission` cascades through `mission_runs` to `agent_steps`, so
+> the refusals go with it. That is deliberate and it is argued in
+> `15_researcher_edit_delete.sql`: an unsigned mission was never offered to
+> anyone as evidence, the confirmation names the exact refusal count before the
+> press, and a counts-only row goes to `monitoring_events` first, so the erasure
+> stays on the record even though the mission does not. A mission whose report
+> has been **signed** cannot be deleted at all.
+>
+> Two doors lead to that delete now — the run's own panel and the runs list —
+> which is why the word is being corrected here rather than left to be
+> discovered.
 
 **Never switch an n8n node to "continue on fail" to make it green.** A green tick
 over a refused step is the one thing on this page that would be a lie.
