@@ -451,30 +451,19 @@
     }
     h += '</div>';
 
-    /* objective and people, side by side */
-    h += '<div class="ksf-band two">';
+    /* THE OBJECTIVE-AND-PEOPLE BAND IS GONE.
 
-    h += '<div class="ksf-block">' +
-           '<h3>' + esc(L(COPY.objH, code)) + '</h3>' +
-           '<p class="ksf-quote">' + esc(L(COPY.objQuote, code)) + ' ' + cite(COPY.objQuoteSrc) + '</p>' +
-           '<p>' + esc(L(COPY.objP, code)) + '</p>' +
-         '</div>';
+       It was two prose blocks side by side, "What the mission set out
+       to do" and "Who built it", which js/ksat-home.js then wrapped in
+       a row headed "Behind the mission". The orbit panel is in that
+       place on the page now.
 
-    var peeps = '';
-    for (var p = 0; p < COPY.people.length; p++) {
-      peeps += '<li class="ksf-person">' +
-                 '<span class="n">' + esc(L(COPY.people[p].n, code)) + '</span>' +
-                 '<span class="r">' + esc(L(COPY.people[p].r, code)) + '</span>' +
-               '</li>';
-    }
-    h += '<div class="ksf-block">' +
-           '<h3>' + esc(L(COPY.whoH, code)) + '</h3>' +
-           '<p>' + esc(L(COPY.whoP, code)) + ' ' + cite(COPY.whoPsrc) + '</p>' +
-           '<ul class="ksf-people">' + peeps + '</ul>' +
-           '<p>' + esc(L(COPY.whoP2, code)) + '</p>' +
-         '</div>';
-
-    h += '</div>';
+       NOTHING LEAVES THE RECORD WITH IT. The objective is quoted in the
+       mission brief, and Dr Hala Al-Jassar is named in #mission, in
+       CLAIMS entry 4, in the story section and in the sources register.
+       COPY.objH, objQuote, objP, whoH, whoP, people and whoP2 are all
+       still defined above: if this row is ever wanted back, it is this
+       block that has to come back, not the words. */
 
     /* the pointer to the relocated key */
     h += '<p class="ksf-note">' + esc(L(COPY.note, code)) +
