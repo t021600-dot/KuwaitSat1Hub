@@ -98,10 +98,12 @@
    string is quoted from another file the key is recorded beside it so
    the next person can check it in one grep.
 
-     THE COUNT. "Twelve published entries" is the page's own wording for
-     the SPECS table (data-i18n mis.specn). It is asserted against
+     THE COUNT. "Fourteen published entries" is the page's own wording
+     for the SPECS table (data-i18n mis.specn). It is asserted against
      SPECS.length at render time and the line is DROPPED if the array
-     ever stops having twelve rows. A count that drifts is the easiest
+     ever stops having fourteen rows. It has already earned its keep:
+     the table went from twelve rows to fourteen and this line went
+     quiet, while the unguarded copy in index.html kept printing twelve. A count that drifts is the easiest
      false statement on a page like this to ship, because nobody
      recounts a number that was true when it was written.
 
@@ -457,8 +459,8 @@
        and the panel it opens can never disagree.
          mis.spec   mis.specn   mis.chain   mis.gs */
     cRecord:  { en: 'Mission record', ar: 'سجل المهمة' },
-    cRecordM: { en: 'Twelve published entries, each with its source',
-                ar: 'اثنتا عشرة مدخلة منشورة، ولكل منها مصدرها' },
+    cRecordM: { en: 'Fourteen published entries, each with its source',
+                ar: 'أربع عشرة مدخلة منشورة، ولكل منها مصدرها' },
     cChain:   { en: 'Concept chain',  ar: 'سلسلة المفهوم' },
     cGround:  { en: 'Ground segment', ar: 'القطاع الأرضي' },
     /* CLAIMS entry 4 and SPECS spec.gs, source [3]. The Arabic is
@@ -971,12 +973,13 @@
 
     var cards = el('div', 'ksh-cards');
 
-    /* THE COUNT IS ASSERTED, NOT TRUSTED. mis.specn says twelve. If
-       SPECS ever stops having twelve rows the line is dropped and the
+    /* THE COUNT IS ASSERTED, NOT TRUSTED. mis.specn says fourteen. If
+       SPECS ever stops having fourteen rows the line is dropped and the
        card carries one fewer line, rather than printing a number that
-       has quietly become false. */
+       has quietly become false. It was 12 here and the table grew, so
+       this has been dropping the line rather than lying. */
     var sp = specs();
-    var recordMeta = (sp && sp.length === 12) ? COPY.cRecordM : null;
+    var recordMeta = (sp && sp.length === 14) ? COPY.cRecordM : null;
 
     var fold = sec.querySelector('details.specfold');
     cards.appendChild(card('sat1', COPY.cRecord, recordMeta, code, function () {
