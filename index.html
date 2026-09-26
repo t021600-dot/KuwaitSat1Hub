@@ -3814,8 +3814,27 @@ function renderNav(){
     b.onclick=()=>{ const t=$("#"+s.id); if(t) t.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"}); };
     n.appendChild(b); });
   $("#ftNav").innerHTML=NAV.slice(0,7).map(s=>'<li><a href="#'+s.id+'">'+esc(L(s))+'</a></li>').join("");
-  $("#ftSrc").innerHTML=SOURCES.slice(0,5).map(s=>'<li><a href="'+s.url+'" target="_blank" rel="noopener">'+
-    esc(s.name.split(", ")[0].trim())+'</a></li>').join("");
+  /* FIVE DISTINCT PUBLISHERS, NOT THE FIRST FIVE SOURCES.
+
+     This printed SOURCES.slice(0,5) shortened to the publisher with
+     name.split(", ")[0]. Entries 1 and 2 are two different Kuwait
+     University announcements with two different URLs, and both shorten
+     to "Kuwait University" - so the footer listed it twice and looked
+     like a mistake.
+
+     It walks the register instead and skips a publisher it has already
+     shown, which keeps the list at five and drops nothing: the
+     complete register, every entry with its own number, is rendered
+     into #srcList from the whole array. */
+  const ftSeen={}, ftOut=[];
+  for(const s of SOURCES){
+    const pub=s.name.split(", ")[0].trim();
+    if(ftSeen[pub]) continue;
+    ftSeen[pub]=1;
+    ftOut.push('<li><a href="'+s.url+'" target="_blank" rel="noopener">'+esc(pub)+'</a></li>');
+    if(ftOut.length===5) break;
+  }
+  $("#ftSrc").innerHTML=ftOut.join("");
 }
 const SPEC_LAB={
  "spec.op":{en:"Operator / builder",ar:"الجهة المشغّلة والبانية"},
@@ -4555,9 +4574,31 @@ function render3DControls(){
 }
 
 /* ====================== ORBIT SIMULATION ====================
-   Circular two-body model. Nominal parameters of the Transporter-6
-   sun-synchronous deployment; NOT a TLE propagator, NOT live.      */
-const ORB={ alt:525, Re:6371, inc:97.5*Math.PI/180 };
+   Circular two-body model. NOT a TLE propagator, NOT live.
+
+   ALTITUDE IS 440 km, WHICH USED TO BE 525.
+
+   525 was the nominal Transporter-6 sun-synchronous deployment figure.
+   The specification table on this same page states a current altitude
+   of 440 km, supplied by the team, and a reader met both: 525 in this
+   panel, which is open by default, and 440 two sections below inside a
+   folded accordion. Same spacecraft, one page, 85 km apart.
+
+   The figure was asked to be 440 here. It is set on the MODEL rather
+   than on the label, because velocity and orbital period on the next
+   two lines are computed from this constant: writing 440 into the
+   label alone would have left the card stating one altitude and then
+   printing a speed and a period belonging to a different orbit, which
+   moves the contradiction inside a single panel instead of resolving
+   it. Everything derived follows:
+
+       velocity        7.60 -> 7.65 km/s   sqrt(mu/a), a = Re + alt
+       orbital period  95.0 -> 93.2 min    2*pi*sqrt(a^3/mu)
+       the orbit ring  1.2% smaller        Ro scales off ORB.alt
+
+   The inclination stays at the deployment figure. It is printed as a
+   constant below and nothing here derives from it.              */
+const ORB={ alt:440, Re:6371, inc:97.5*Math.PI/180 };
 ORB.a=ORB.Re+ORB.alt;
 ORB.period=2*Math.PI*Math.sqrt(Math.pow(ORB.a*1000,3)/3.986004418e14); // seconds
 ORB.v=Math.sqrt(3.986004418e14/(ORB.a*1000))/1000; // km/s
@@ -4791,11 +4832,23 @@ function updateTelemetry(st){
   const d=greatCircleKm(st.lat,st.lon,29.38,47.98);
   const inWin=d<1200;
   const el=$("#telem");
+  /* THREE OF THESE ROWS DO NOT MOVE, and that is not a bug.
+
+     Inclination has always been a hard-coded constant here. Swath and
+     Pictures Taken join it: they are fixed mission figures, the same
+     two the specification table carries, and they were asked for on
+     this card. Everything else on the list is computed from the model
+     clock or from ORB, and changes as the panel runs.
+
+     Current Altitude reads 440 because ORB.alt is 440 - see the note
+     on that constant for why the number moved rather than the label. */
   if(el) el.innerHTML=[
-    [T("tl.alt","Altitude"), ORB.alt.toFixed(0), "km"],
+    [T("tl.alt","Current Altitude"), ORB.alt.toFixed(0), "km"],
     [T("tl.vel","Velocity"), ORB.v.toFixed(2), "km/s"],
     [T("tl.per","Orbital period"), (ORB.period/60).toFixed(1), "min"],
     [T("tl.inc","Inclination"), "97.5", "°"],
+    [T("tl.sw","Swath"), "80", "km"],
+    [T("tl.shots","Pictures Taken"), "1,091", ""],
     [T("tl.lat","Latitude"), st.lat.toFixed(2), "°"],
     [T("tl.lon","Longitude"), st.lon.toFixed(2), "°"],
     [T("tl.rng","Range to Kuwait"), Math.round(d).toLocaleString(), "km"],

@@ -656,7 +656,28 @@
      ===================================================================== */
   var LABELS = {
     /* readouts and controls */
-    'Altitude':'الارتفاع', 'Velocity':'السرعة', 'Inclination':'الميل المداري',
+    /* 'Altitude' stays: other readouts still use it. 'Current Altitude'
+       is the orbit card's label since the model moved to 440 km, and
+       Swath and Pictures Taken joined it on that card.
+
+       WORTH KNOWING BEFORE YOU TRUST THESE THREE. translateLabels()
+       runs once per language switch and rewrites text nodes in place.
+       The orbit readout rebuilds its own innerHTML on every animation
+       frame from T(), and index.html's AR map is empty by design
+       ("English-only build: the bilingual layer was removed on
+       request"), so T() returns English and the next frame overwrites
+       whatever this walker just wrote. In practice that panel shows
+       Arabic for a single frame and then reverts.
+
+       That is true of the nine labels already in this list, not only
+       of the three added with it, so these are consistent rather than
+       broken. They are here because they are the correct translations
+       and they start working the moment either half is fixed: give the
+       walker something that re-runs after a repaint, or let
+       updateTelemetry() consult this map instead of T(). */
+    'Altitude':'الارتفاع', 'Current Altitude':'الارتفاع الحالي',
+    'Swath':'عرض المسح', 'Pictures Taken':'الصور الملتقطة',
+    'Velocity':'السرعة', 'Inclination':'الميل المداري',
     'Orbital period':'الزمن المداري', 'Orbit position':'الموضع المداري',
     'Range to Kuwait':'المسافة إلى الكويت', 'Pass status':'حالة المرور',
     'Latitude':'خط العرض', 'Longitude':'خط الطول',
