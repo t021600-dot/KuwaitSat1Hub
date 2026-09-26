@@ -58,9 +58,8 @@
      ================================================================= */
   var ARABIC = {
     /* --- launch sequence and gate --- */
-    'vid.cap':   'مقطع أرشيفي · 0:00, 0:08 · مضمَّن من يوتيوب',
-    'vid.fall':  'مقطع الإطلاق مضمَّن من يوتيوب، وهذا العارض يحجب الوسائط الخارجية. يستمر التسلسل بدونه, والمقطع متاح عبر رابط المصدر.',
-    'vid.open':  'فتح المقطع على يوتيوب',
+    /* vid.cap, vid.fall and vid.open went with the archive clip they
+       translated. No element carries those keys now. */
     'gate.h':    'من الفضاء إلى كويت أكثر اخضراراً',
     /* 'gate.p' went with the English paragraph it translated: the two
        start buttons and the line under them say the same thing. */
@@ -81,7 +80,7 @@
     'hero.h1a':  'من الفضاء إلى',
     'hero.h1b':  'كويت أكثر اخضراراً',
     'hero.lede': 'ينظر كويت سات-١ إلى الأسفل. هذه المنصة هي الطبقة التي تحوّل ما يراه القمر الصناعي إلى ما يمكن لمخطِّط أن يتصرف بناءً عليه, مسار تشغيلي يمتد من الصور، إلى التحليل البيئي، إلى توصية للتشجير.',
-    'hero.cta1': 'محاكاة كويت أكثر اخضراراً',
+    /* hero.cta1 went with the Simulate button. */
     'hero.cta2': 'ابدأ الجولة الإرشادية',
 
     /* --- mission facts --- */
