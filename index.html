@@ -378,9 +378,7 @@ tbody tr:hover td{background:rgba(255,255,255.025)}
 .tcard.in .crewplate{opacity:1; transform:none}
 .crewlab{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.34em; color:#6FE3DC;
   text-transform:uppercase; margin-bottom:11px}
-.crewvid{position:relative; width:100%; aspect-ratio:16/9; margin:10px 0 0;
-  border:1px solid #223247; background:#000; overflow:hidden; border-radius:4px}
-.crewvid iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+/* .crewvid went with the embed it framed. */
 .crewimg{position:relative; width:min(660px,86vw); margin:0 auto; border-radius:12px; overflow:hidden;
   border:1px solid rgba(95,214,138.38); box-shadow:0 24px 70px rgba(0,0,0.72), 0 0 0 1px rgba(63,208,201.12)}
 .crewimg img{display:block; width:100%; height:auto}
@@ -410,18 +408,8 @@ tbody tr:hover td{background:rgba(255,255,255.025)}
 .skip:hover{color:#fff; border-color:#3B5170}
 .introbar{position:absolute; bottom:0; inset-inline-start:0; height:2px; width:0%;
   background:linear-gradient(90deg,#3FD0C9,#5FD68A); z-index:4; transition:width .3s linear}
-#vidStage{position:absolute; inset:0; z-index:2; opacity:0; pointer-events:none;
-  transition:opacity .7s ease; background:#000}
-#vidStage.on{opacity:1; pointer-events:auto}
-#vidStage iframe{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:177.78vh; height:100vh; min-width:100%; min-height:56.25vw; border:0}
-.vmask{position:absolute; inset:0; background:radial-gradient(70% 70% at 50% 50%,transparent 30%,rgba(0,0,0.72) 100%);
-  pointer-events:none}
-.vcap{position:absolute; bottom:6vh; inset-inline-start:0; right:0; text-align:center;
-  font-family:var(--mono); font-size:11px; letter-spacing:.2em; color:#8AA3BC; z-index:3}
-.vfall{position:absolute; inset:0; display:none; align-items:center; justify-content:center;
-  flex-direction:column; gap:14px; padding:24px; text-align:center}
-.vfall.on{display:flex}
+/* The archive clip's styles went with its markup: #vidStage, .vmask,
+   .vcap and .vfall. No element on this page carries any of them now. */
 
 /* ---------- hero ---------- */
 .hero{padding-top:clamp(40px,6vw,74px); padding-bottom:clamp(40px,6vw,70px)}
@@ -1059,16 +1047,13 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
 <div id="intro" role="dialog" aria-label="Launch sequence">
   <canvas id="introCv" aria-hidden="true"></canvas>
 
-  <div id="vidStage">
-    <div id="vidSlot"></div>
-    <div class="vmask"></div>
-    <div class="vcap" data-i18n="vid.cap">ARCHIVE CLIP · 0:00, 0:08 · EMBEDDED FROM YOUTUBE</div>
-    <div class="vfall" id="vidFall">
-      <div class="badge src">EXTERNAL MEDIA BLOCKED</div>
-      <p style="color:#8AA3BC;font-size:13px;max-width:44ch" data-i18n="vid.fall">The launch clip is embedded from YouTube and this viewer blocks external media. The sequence continues without it, the clip is available at the source link.</p>
-      <a class="btn sm" id="vidLink" href="https://youtu.be/XGuaRj3C4bM" target="_blank" rel="noopener" data-i18n="vid.open">Open clip on YouTube</a>
-    </div>
-  </div>
+  <!-- THE ARCHIVE CLIP OVERLAY IS GONE. It was already unreachable -
+       startVideo() had stopped being called - but it was NOT inert, and
+       that is the part worth recording: the `vid` binding it created was
+       still read by reset(), and reset() is what start() calls. Deleting
+       this markup on its own would have made `vid` null, thrown inside
+       reset(), and stopped the countdown and the rocket from running at
+       all. The markup and all four references were removed together. -->
 
   <div class="intro-ui">
     <div class="startgate" id="startGate">
@@ -1112,28 +1097,21 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
       <h1 data-i18n="intro.title">From Space to a Greener Kuwait</h1>
       <div class="crewplate" id="crewPlate">
         <div class="crewlab" data-i18n="intro.crew">The people behind the mission</div>
-        <!-- THE LAUNCH, RATHER THAN A PHOTOGRAPH OF THE TEAM.
+        <!-- THE EMBEDDED VIDEO IS GONE, on request.
 
-             This was a group portrait. It is the mission footage now.
+             A youtube-nocookie iframe sat here, under this label, in the
+             closing card of the launch sequence. It had no JavaScript
+             behind it at all: it was static markup that appeared with
+             the card, so taking it out changes nothing about the
+             countdown, the rocket or the timing of any phase.
 
-             youtube-nocookie, and vercel.json already allows exactly
-             this origin in frame-src. No cookie is set until the viewer
-             presses play, which is the whole reason for the nocookie
-             host over the ordinary one.
+             The label above and the two credit lines below stay. They
+             are the credit to the people who built the spacecraft, and
+             they read on their own without a film under them.
 
-             No autoplay and no mute: this is a deliberate watch, not a
-             background loop, and a video that starts talking over a
-             presenter is worse than no video at all. loading=lazy so a
-             third-party frame cannot hold up the intro sequence. -->
-        <div class="crewvid">
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/V5_ufwAb0Ww?rel=0&amp;modestbranding=1&amp;playsinline=1"
-            title="KuwaitSat-1"
-            loading="lazy"
-            referrerpolicy="strict-origin-when-cross-origin"
-            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
-        </div>
+             The second embed this page carried, the full-screen archive
+             clip, went in the same pass. See the note where the phase
+             machine used to branch on it. -->
         <div class="crewcap">KuwaitSat-1 · Kuwait University · with the Kuwait Foundation for the Advancement of Sciences</div>
         <div class="crewline">They built it. We can only look because they did.</div>
       </div>
@@ -1220,7 +1198,15 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   <div class="hero-copy">
     <h1><span data-i18n="hero.h1a">From Space to a</span> <span class="gr" data-i18n="hero.h1b">Greener Kuwait</span></h1>
     <div class="hero-cta">
-      <button class="btn grn" id="heroSim" data-i18n="hero.cta1">Simulate a greener Kuwait</button>
+      <!-- "Simulate a greener Kuwait" was here, and it never worked.
+           Its handler scrolled to #simulate and ran the simulator, but
+           'simulate' is in the INSIDER list in js/ksat-shell.js and
+           parkInsiderSections() removes that section from the document
+           at the public tier. So $("#simulate") was null and the click
+           threw. Removed rather than disabled, as asked, and with its
+           handler in the same commit: bind() is the first statement of
+           init(), so a handler bound to a missing element throws there
+           and takes the whole page down with it. -->
       <button class="btn" id="heroTour" data-i18n="hero.cta2">Take the guided tour</button>
     </div>
     <div class="kwflag" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -2391,7 +2377,7 @@ function fit(cv, h){
 const Intro = (()=>{
   const wrap=$("#intro"), cv=$("#introCv"), ctx=cv.getContext("2d");
   const numEl=$("#countNum"), statEl=$("#mstat"), stage=$("#introStage"),
-        tcard=$("#tcard"), bar=$("#introbar"), vid=$("#vidStage");
+        tcard=$("#tcard"), bar=$("#introbar");
   let W=0,H=0,dpr=1, raf=0, t0=0, phase="count", pt=0, done=false;
   let smoke=[], sparks=[], camY=0, rocketY=0, vel=0, flashA=0, lastN=null;
   const subEl=document.getElementById("subCount");
@@ -2417,7 +2403,7 @@ const Intro = (()=>{
 
   function reset(){ phase="count"; pt=0; t0=performance.now(); smoke=[];sparks=[];
     camY=0;rocketY=0;vel=0;flashA=0; done=false; lastN=null;
-    numEl.textContent="TEN"; numEl.style.opacity=""; tcard.hidden=true; tcard.classList.remove("in"); vid.classList.remove("on"); }
+    numEl.textContent="TEN"; numEl.style.opacity=""; tcard.hidden=true; tcard.classList.remove("in"); }
 
   /* ------------------------- drawing ------------------------- */
   function drawSpace(a){
@@ -2567,11 +2553,23 @@ const Intro = (()=>{
     }
     /* White orbital-class paint is never white: it is a very light warm
        grey that goes blue in shadow, which is why the dark stops here
-       are cooler than the light ones rather than simply darker. */
-    const PAINT = [[0,"#6F7A87"],[.05,"#A9B5C1"],[.20,"#FAFDFF"],[.34,"#EDF2F8"],
-                   [.62,"#C2CBD6"],[.86,"#868F9C"],[1,"#5A626D"]];
-    const SOOT  = [[0,"#04060A"],[.10,"#141A21"],[.30,"#2C333D"],[.58,"#1B212A"],
-                   [.84,"#0D1117"],[1,"#030508"]];
+       are cooler than the light ones rather than simply darker.
+
+       NINE STOPS, AND THE BRIGHT ONE IS NARROW. The first version put
+       its highlight across a third of the body. A polished cylinder
+       does not do that - it carries a tight specular stripe with a fast
+       falloff either side, and the width of that stripe is most of the
+       difference between reading as metal and reading as paper. The
+       lit band here is about a tenth of the diameter. */
+    const PAINT = [[0,"#5C646F"],[.03,"#8C97A4"],[.09,"#C9D3DE"],
+                   [.15,"#FDFEFF"],[.21,"#F2F6FB"],[.30,"#D9E1EA"],
+                   [.52,"#BAC4D0"],[.78,"#8A94A1"],[.93,"#616A76"],[1,"#474E58"]];
+    /* Black composite in daylight is not flat: it is very dark on the
+       shadow side and carries a hard bright line where it turns into
+       the light. A flat dark fill reads as a hole cut in the vehicle. */
+    const SOOT  = [[0,"#030508"],[.04,"#0C1016"],[.12,"#232A33"],
+                   [.17,"#3B434E"],[.24,"#232A34"],[.52,"#161C24"],
+                   [.82,"#0A0E13"],[1,"#020407"]];
 
     /* A hairline down both flanks. A white body on a pale horizon loses
        its silhouette exactly where it should be sharpest, and one pixel
@@ -2592,9 +2590,45 @@ const Intro = (()=>{
       ctx.fillRect(-w / 2, y, w, Math.max(0.6, 0.7 * s));
     }
 
+    /* WELD RINGS, AND WHY A LONG TUBE NEEDS THEM.
+
+       A tank this size is rolled from plate and welded in barrel
+       sections, and every one of those joins shows as a faint ring. A
+       drawing without them has no sense of scale: the eye has nothing
+       to count, so a seventy metre vehicle and a seven metre one look
+       identical. They are the cheapest realism on this whole drawing.
+
+       Drawn as a dark line with a lighter one directly under it, which
+       is what a raised weld bead actually does to the light, and
+       skipped entirely below about 1.4 scale where they would collapse
+       into noise. */
+    function rings(y0, h, w, step){
+      if (s < 1.4) { return; }
+      const lw = Math.max(0.5, 0.42 * s);
+      for (let ry = y0 + step; ry < y0 + h - step * 0.5; ry += step) {
+        ctx.fillStyle = "rgba(24,31,40,.30)";
+        ctx.fillRect(-w / 2, ry, w, lw);
+        ctx.fillStyle = "rgba(226,236,247,.16)";
+        ctx.fillRect(-w / 2, ry + lw, w, lw * 0.8);
+      }
+    }
+
+    /* The short shadow a section casts onto the one below it. The seams
+       gave every join a line; this gives them depth. */
+    function occlude(y, w, depth){
+      const g = ctx.createLinearGradient(0, y, 0, y + depth);
+      g.addColorStop(0, "rgba(6,9,13,.55)");
+      g.addColorStop(1, "rgba(6,9,13,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(-w / 2, y, w, depth);
+    }
+
     /* FIRST STAGE */
     ctx.fillStyle = tube(-bw/2, bw, PAINT);
     ctx.fillRect(-bw/2, -h1, bw, h1);
+    /* Barrel sections about 4 m apart on a 70 m stack. */
+    rings(-h1, h1, bw, H70 * 0.057);
+    occlude(-h1, bw, H70 * 0.016);
 
     /* THE RACEWAY. A black conduit enclosure runs the full length of
        the first stage on one side. On a white tube it is one of the two
@@ -2666,12 +2700,21 @@ const Intro = (()=>{
        image has them the length of the stack, and this one does not. */
     ctx.fillStyle = tube(-bw/2, bw, SOOT);
     ctx.fillRect(-bw/2, -(h1+hIS), bw, hIS);
+    /* The two hard lines at the top and bottom of the black band. On the
+       reference these are the brightest edges on the whole vehicle,
+       because a matte black section beside white paint catches the sky
+       along its rim and nothing else. */
+    ctx.fillStyle = "rgba(196,210,226,.34)";
+    ctx.fillRect(-bw/2, -(h1+hIS), bw, Math.max(0.6, 0.6*s));
+    ctx.fillRect(-bw/2, -h1 - Math.max(0.6, 0.6*s), bw, Math.max(0.6, 0.6*s));
     flanks(-bw/2, bw, -(h1+hIS), hIS);
     seam(-h1, bw);
 
     /* SECOND STAGE */
     ctx.fillStyle = tube(-bw/2, bw, PAINT);
     ctx.fillRect(-bw/2, -(h1+hIS+h2), bw, h2);
+    rings(-(h1+hIS+h2), h2, bw, H70 * 0.048);
+    occlude(-(h1+hIS+h2), bw, H70 * 0.012);
     flanks(-bw/2, bw, -(h1+hIS+h2), h2);
     seam(-(h1+hIS), bw);
 
@@ -2717,6 +2760,14 @@ const Intro = (()=>{
     ctx.strokeStyle = "rgba(110,124,140,.60)";
     ctx.beginPath(); ctx.moveTo(0, fy - hFR*0.02); ctx.lineTo(0, fy - hFR*0.9); ctx.stroke();
     seam(fy - hFR*0.16, fw*0.99);
+
+    /* THE SHOULDER. Where the fairing flares out from the core is the
+       one place on this vehicle with a horizontal surface facing the
+       sky, so it takes a bright line the flanks do not. Without it the
+       nose reads as glued to the tube rather than sitting on it. */
+    ctx.fillStyle = "rgba(240,247,255,.42)";
+    ctx.fillRect(-fw*0.5, fy - hFR*0.16, fw, Math.max(0.6, 0.55*s));
+    occlude(fy - hFR*0.14, fw*0.96, H70 * 0.010);
 
     ctx.restore();
   }
@@ -3152,7 +3203,9 @@ const Intro = (()=>{
   }
 
   /* -------------------------- loop --------------------------- */
-  const D={count:7.15,launch:3.6,earth:3.2,sat:1.8,video:8.4};
+  /* video:8.4 went with the archive clip. The four that remain are the
+     countdown, the ascent, the Earth and the spacecraft. */
+  const D={count:7.15,launch:3.6,earth:3.2,sat:1.8};
   const WORDS=["ZERO","ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN"];
   const WORDS_AR=["صفر","واحد","اثنان","ثلاثة","أربعة","خمسة","ستة","سبعة","ثمانية","تسعة","عشرة"];
   function loop(now){
@@ -3219,20 +3272,20 @@ const Intro = (()=>{
       drawSat(e, p, -0.9+p*1.1);
       statEl.innerHTML="<b>"+esc(stat(13))+"</b>";
       bar.style.width=(78+p*8)+"%";
-      /* THE ARCHIVE CLIP IS GONE FROM THE INTRO. This used to call
-         startVideo(), which injected a youtube-nocookie iframe over the
-         sequence for 8.4 seconds. The phase machine never waited on it
-         - every transition here is wall-clock - so going straight to
-         the title card costs the sequence nothing but the 8.4s.
-         startVideo/killVideo and #vidStage stay in the file: killVideo
-         is still called from showTitle, finish and skip, and it is
-         null-guarded, so they are harmless no-ops. */
+      /* THE ARCHIVE CLIP IS GONE, AND SO IS ITS MACHINERY.
+
+         The call to startVideo() was removed first and the rest was
+         left behind with a note saying it was a harmless no-op because
+         killVideo "is null-guarded". THAT NOTE WAS WRONG. killVideo
+         guarded #vidSlot and then touched `vid` unguarded, and reset()
+         did the same - so the leftovers were one markup deletion away
+         from stopping the countdown and the rocket. The whole cluster
+         went in one pass rather than being trimmed again.
+
+         The phase machine never waited on the clip anyway: every
+         transition here is wall-clock, so the sequence is 8.4 seconds
+         shorter and otherwise identical. */
       if(t>=D.sat){ KSAudio.cue("deploy"); showTitle(); }
-    }
-    else if(phase==="video"){
-      drawSpace(1); const e=drawEarth(0.44,1); drawSat(e,1,0.2+t*0.12);
-      bar.style.width=(86+clamp(t/D.video,0,1)*14)+"%";
-      if(t>=D.video) showTitle();
     }
     else if(phase==="title"){
       drawSpace(1); const e=drawEarth(0.44,1+Math.sin(t*0.25)*0.012); drawSat(e,1,0.2+t*0.12);
@@ -3259,45 +3312,23 @@ const Intro = (()=>{
     raf=requestAnimationFrame(loop);
   }
 
-  /* --------------------- YouTube segment --------------------- */
-  let ytTimer=null;
-  function startVideo(now){
-    phase="video"; t0=now; stage.hidden=true;
-    const slot=$("#vidSlot");
-    slot.innerHTML='<iframe id="ytFrame" title="KuwaitSat-1 launch clip" '+
-      'src="https://www.youtube-nocookie.com/embed/XGuaRj3C4bM?start=0&end=8&autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1" '+
-      'allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" loading="eager"></iframe>';
-    vid.classList.add("on"); KSAudio.duck(true);
-    const fr=$("#ytFrame");
-    // If the embed cannot load (blocked by the viewer), show the fallback.
-    let loaded=false;
-    fr.addEventListener("load",()=>{loaded=true;});
-    setTimeout(()=>{ if(!loaded) $("#vidFall").classList.add("on"); }, 2600);
-    // Hard stop at 8 s regardless of what the player does.
-    ytTimer=setTimeout(()=>{ vid.classList.remove("on"); slot.innerHTML=""; }, 8200);
-  }
-  /* The null guard is the fix for the page's only console error. On the
-     intro-skip path - sessionStorage ks_intro==="1", which every returning
-     visitor in a session takes - the whole #intro block is removed and
-     #vidSlot goes with it. A pending ytTimer or an audio cue still calls
-     this function afterwards, and the bare $("#vidSlot").innerHTML="" then
-     threw "Cannot set properties of null". Never fatal - the page carried
-     on and the tour layer mounted normally - but it was an uncaught
-     exception on the commonest load path, so it was the first thing in the
-     console when anyone opened devtools on the site. */
-  function killVideo(){ if(ytTimer) clearTimeout(ytTimer);
-    const slot=$("#vidSlot"); if(slot) slot.innerHTML="";
-    vid.classList.remove("on"); KSAudio.duck(false); }
+  /* startVideo(), killVideo() and the ytTimer were here. They built the
+     archive clip's iframe, faded the overlay in and hard-stopped it at
+     eight seconds. All three are gone with the overlay, and the three
+     killVideo() calls in showTitle, finish and skip went with them.
+
+     KSAudio.duck() is untouched and still exists. Only startVideo ever
+     ducked the audio, so nothing is left holding the volume down. */
 
   function showTitle(){
-    phase="title"; t0=performance.now(); killVideo();
+    phase="title"; t0=performance.now();
     KSAudio.cue("impact");
     stage.hidden=true; tcard.hidden=false;
     requestAnimationFrame(()=>tcard.classList.add("in"));
   }
   function finish(){
     if(done) return; done=true;
-    cancelAnimationFrame(raf); killVideo(); KSAudio.fadeOut();
+    cancelAnimationFrame(raf); KSAudio.fadeOut();
     wrap.style.transition="opacity .8s ease"; wrap.style.opacity="0";
     setTimeout(()=>{ wrap.remove(); document.body.classList.remove("locked"); }, 820);
     try{ sessionStorage.setItem("ks_intro","1"); }catch(e){}
@@ -3328,7 +3359,7 @@ const Intro = (()=>{
   }
   function skip(){
     if(phase==="gate"){ const g=$("#startGate"); if(g) g.hidden=true; stage.hidden=true; showTitle(); return; }
-    if(phase==="title"){ finish(); } else { KSAudio.cue("skip"); killVideo(); showTitle(); }
+    if(phase==="title"){ finish(); } else { KSAudio.cue("skip"); showTitle(); }
   }
 
   $("#gateSound").addEventListener("click", ()=>begin(true));
@@ -3781,8 +3812,8 @@ const SPEC_LAB={
  "spec.gs":{en:"Ground station",ar:"المحطة الأرضية"},
  "spec.obj":{en:"Stated objective",ar:"الهدف المعلن"},
  "spec.first":{en:"First imagery",ar:"أول صور"},
- "spec.shots":{en:"Pictures taken",ar:"الصور الملتقطة"},
- "spec.alt":{en:"Current altitude",ar:"الارتفاع الحالي"}
+ "spec.shots":{en:"Pictures Taken",ar:"الصور الملتقطة"},
+ "spec.alt":{en:"Current Altitude",ar:"الارتفاع الحالي"}
 };
 const SPEC_VAL_AR={
  "spec.op":"جامعة الكويت","spec.form":"مكعب ساتلي 2U","spec.mass":"نحو ٢ كجم",
@@ -5602,7 +5633,10 @@ function bind(){
   });
   $("#demoBtn").onclick=()=>{S.demo.on=!S.demo.on; S.demo.i=0; renderDemo(); if(S.demo.on) goDemo();};
   $("#heroTour").onclick=()=>{S.demo.on=true; S.demo.i=0; renderDemo(); goDemo();};
-  $("#heroSim").onclick=()=>{ $("#simulate").scrollIntoView({behavior:"smooth"}); setTimeout(runSim,500); };
+  /* #heroSim's handler went with the button. Both had to go in one
+     edit: this line runs inside bind(), bind() is the first statement of
+     init(), and .onclick on a null element throws - which would have
+     aborted init() and left a blank page rather than a missing button. */
 
   // explorer
   $("#exScene").onchange=e=>{S.ex.scene=e.target.value; S.ex.view={x:0,y:0,z:1,fx:0,fy:0}; drawExplorer(); drawCompare();};
