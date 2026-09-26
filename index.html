@@ -2006,7 +2006,25 @@ textarea#rcObj{resize:vertical; min-height:74px; line-height:1.6}
   max-width:78ch; color:var(--ink-2, #9aa6b2); font-size:13.5px; line-height:1.72}
 .ft-notice h4{margin:0 0 9px; font-size:11px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink-1, #c8d2dc)}
-.ft-notice p{margin:0 0 9px}
+
+/* BOLD, AND SET IN CSS RATHER THAN IN THE MARKUP.
+
+   Asked for as bold. The obvious way would be a <strong> around each
+   paragraph, and it would survive exactly until somebody pressed AR:
+   js/ksat-i18n.js line 560 swaps these paragraphs by writing
+   n.textContent, which replaces every child node, so any inline tag
+   inside them is destroyed on the first language switch and never
+   comes back. A rule on the class cannot be reached by that.
+
+   THE COLOUR COMES UP WITH THE WEIGHT. At 13.5px, bold in the muted
+   footer grey smears rather than emphasises - the strokes thicken but
+   the contrast does not, so it reads as blurred instead of firm. The
+   text moves to the brighter of the two footer inks, which is the one
+   the heading above it already uses.
+
+   This is the one block on the page a reader may need to quote in
+   full, which is why it is the one block being made louder. */
+.ft-notice p{margin:0 0 9px; font-weight:700; color:var(--ink-1, #c8d2dc)}
 .ft-notice p:last-child{margin-bottom:0}
 html[dir="rtl"] .ft-notice{text-align:right}
 
